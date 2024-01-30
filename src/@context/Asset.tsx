@@ -18,11 +18,6 @@ import { useMarketMetadata } from './MarketMetadata'
 import { assetStateToString } from '@utils/assetState'
 import { isValidDid } from '@utils/ddo'
 import { useAddressConfig } from '@hooks/useAddressConfig'
-import {
-  getPublisherFromServiceCredential,
-  getServiceCredential,
-  verifyRawServiceCredential
-} from '@components/Publish/_utils'
 import { useAccount, useNetwork } from 'wagmi'
 import { useAutomation } from './Automation/AutomationProvider'
 
@@ -38,11 +33,6 @@ export interface AssetProviderValue {
   oceanConfig: Config
   loading: boolean
   assetState: string
-  isVerifyingServiceCredential: boolean
-  isServiceCredentialVerified: boolean
-  serviceCredentialIdMatch?: boolean
-  serviceCredentialVersion: string
-  verifiedServiceProviderName: string
   fetchAsset: (token?: CancelToken) => Promise<void>
 }
 
@@ -72,16 +62,6 @@ function AssetProvider({
   const [isAssetNetwork, setIsAssetNetwork] = useState<boolean>()
   const [oceanConfig, setOceanConfig] = useState<Config>()
   const [assetState, setAssetState] = useState<string>()
-  const [isVerifyingServiceCredential, setIsVerifyingServiceCredential] =
-    useState(false)
-  const [isServiceCredentialVerified, setIsServiceCredentialVerified] =
-    useState<boolean>()
-  const [serviceCredentialIdMatch, setServiceCredentialIdMatch] =
-    useState<boolean>()
-  const [serviceCredentialVersion, setServiceCredentialVersion] =
-    useState<string>()
-  const [verifiedServiceProviderName, setVerifiedServiceProviderName] =
-    useState<string>()
 
   const newCancelToken = useCancelToken()
   const isMounted = useIsMounted()
@@ -181,56 +161,6 @@ function AssetProvider({
   ])
 
   // -----------------------------------
-  // Helper: Get and set asset Service Credential state
-  // -----------------------------------
-  const checkServiceCredential = useCallback(
-    async (asset: AssetExtended): Promise<void> => {
-      if (!asset) return
-      setIsVerifyingServiceCredential(true)
-
-      try {
-        const { additionalInformation } = asset.metadata
-        const serviceCredential =
-          additionalInformation?.gaiaXInformation?.serviceSD
-
-        if (!serviceCredential || !Object.keys(serviceCredential)?.length) {
-          setIsServiceCredentialVerified(false)
-          setServiceCredentialIdMatch(false)
-          setServiceCredentialVersion(undefined)
-          setVerifiedServiceProviderName(undefined)
-          return
-        }
-
-        const serviceCredentialContent = serviceCredential?.url
-          ? await getServiceCredential(serviceCredential?.url)
-          : serviceCredential?.raw
-
-        const { verified, complianceApiVersion, idMatch } =
-          await verifyRawServiceCredential(serviceCredentialContent, asset.id)
-
-        setIsServiceCredentialVerified(verified && !!serviceCredentialContent)
-        setServiceCredentialIdMatch(
-          verified && !!serviceCredentialContent && idMatch
-        )
-        setServiceCredentialVersion(complianceApiVersion)
-        const serviceProviderName = getPublisherFromServiceCredential(
-          serviceCredentialContent
-        )
-        setVerifiedServiceProviderName(serviceProviderName)
-      } catch (error) {
-        setIsServiceCredentialVerified(false)
-        setServiceCredentialIdMatch(false)
-        setServiceCredentialVersion(undefined)
-        setVerifiedServiceProviderName(undefined)
-        LoggerInstance.error(error)
-      } finally {
-        setIsVerifyingServiceCredential(false)
-      }
-    },
-    []
-  )
-
-  // -----------------------------------
   // 1. Get and set asset based on passed DID
   // -----------------------------------
   useEffect(() => {
@@ -294,15 +224,6 @@ function AssetProvider({
     setAssetState(assetStateToString(asset.nft.state))
   }, [asset])
 
-  // -----------------------------------
-  // Set Asset Service Credential state
-  // -----------------------------------
-  useEffect(() => {
-    if (!asset) return
-
-    checkServiceCredential(asset)
-  }, [asset, checkServiceCredential])
-
   return (
     <AssetContext.Provider
       value={
@@ -319,12 +240,7 @@ function AssetProvider({
           isAssetNetwork,
           isOwner,
           oceanConfig,
-          assetState,
-          isVerifyingServiceCredential,
-          isServiceCredentialVerified,
-          serviceCredentialIdMatch,
-          serviceCredentialVersion,
-          verifiedServiceProviderName
+          assetState
         } as AssetProviderValue
       }
     >

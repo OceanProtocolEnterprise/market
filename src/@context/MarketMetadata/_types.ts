@@ -7,8 +7,6 @@ export interface OpcFee {
 
 export interface AppConfig {
   metadataCacheUri: string
-  complianceUri: string
-  complianceApiVersion: string
   chainIds: number[]
   chainIdsSupported: number[]
   defaultDatatokenTemplateIndex: number

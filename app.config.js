@@ -9,13 +9,6 @@ module.exports = {
     process.env.NEXT_PUBLIC_METADATACACHE_URI ||
     'https://v4.aquarius.oceanprotocol.com',
 
-  complianceUri:
-    process.env.NEXT_PUBLIC_COMPLIANCE_URI ||
-    'https://compliance.lab.gaia-x.eu',
-
-  complianceApiVersion:
-    process.env.NEXT_PUBLIC_COMPLIANCE_API_VERSION || '2210',
-
   // List of chainIds which metadata cache queries will return by default.
   // This preselects the Chains user preferences.
   chainIds: [80001],
