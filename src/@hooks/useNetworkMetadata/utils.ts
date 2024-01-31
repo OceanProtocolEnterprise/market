@@ -57,7 +57,7 @@ export function getNetworkDataById(
   data: EthereumListsChain[],
   networkId: number
 ): EthereumListsChain {
-  if (!networkId) return
+  if (!networkId || !Array.isArray(data)) return
   const networkData = data.filter(
     (chain: EthereumListsChain) => chain.chainId === networkId
   )
