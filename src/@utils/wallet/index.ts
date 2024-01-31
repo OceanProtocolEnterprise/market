@@ -149,14 +149,6 @@ export async function addCustomNetwork(
   )
 }
 
-export function getAdjustDecimalsValue(
-  value: number,
-  decimals: number
-): string {
-  const adjustedDecimalsValue = `${value}${'0'.repeat(18 - decimals)}`
-  return formatEther(adjustedDecimalsValue)
-}
-
 export async function getTokenBalance(
   accountId: string,
   decimals: number,
@@ -168,8 +160,8 @@ export async function getTokenBalance(
   try {
     const token = new Contract(tokenAddress, erc20ABI, web3Provider)
     const balance = await token.balanceOf(accountId)
-
-    return getAdjustDecimalsValue(balance, decimals)
+    const adjustedDecimalsBalance = `${balance}${'0'.repeat(18 - decimals)}`
+    return formatEther(adjustedDecimalsBalance)
   } catch (e) {
     LoggerInstance.error(`ERROR: Failed to get the balance: ${e.message}`)
   }

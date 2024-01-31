@@ -200,7 +200,6 @@ export default function Download({
             asset.accessDetails.datatoken?.symbol
           )[asset.accessDetails.type === 'fixed' ? 2 : 1]
         )
-
         const orderTx = await order(
           signer,
           asset,
