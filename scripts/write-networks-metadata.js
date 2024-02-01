@@ -27,8 +27,8 @@ const axios = require('axios')
 const chainDataUrl = 'https://chainid.network/chains.json'
 
 axios(chainDataUrl).then((response) => {
-  response.data.push(bargeNetwork)
-  const networks = { ...response.data, ...bargeNetwork }
+  const networkData = response.data
+  networkData.push(bargeNetwork)
 
-  process.stdout.write(JSON.stringify(networks, null, '  '))
+  process.stdout.write(JSON.stringify(networkData, null, '  '))
 })
