@@ -20,8 +20,15 @@
           "name": "Example",
           "link": "https://marketplace.example.com/",
           "description": "An enterprise marketplace built with Ocean Protocol Enterprise",
-          "image": "ocean-logo.webp",
+          "image": "example_logo.png",
           "category": "manufacturing"
+        },
+        {
+          "name": "Another Example",
+          "link": "https://marketplace.example.com/",
+          "description": "An enterprise marketplace built with Ocean Protocol Enterprise",
+          "image": "example_logo.png",
+          "category": "mobility"
         }
       ]
     }
