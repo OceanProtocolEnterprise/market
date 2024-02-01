@@ -176,15 +176,6 @@ export default function Download({
     setRetry(false)
     try {
       if (isOwned) {
-        if (asset?.metadata?.additionalInformation?.saas?.redirectUrl) {
-          window.open(
-            asset.metadata.additionalInformation.saas.redirectUrl,
-            '_blank'
-          )
-          setIsLoading(false)
-          return
-        }
-
         setStatusText(
           getOrderFeedback(
             asset.accessDetails.baseToken?.symbol,
@@ -236,11 +227,7 @@ export default function Download({
       dtBalance={dtBalance}
       type="submit"
       assetTimeout={secondsToString(asset?.services?.[0]?.timeout)}
-      assetType={
-        asset?.metadata?.additionalInformation?.saas
-          ? 'saas'
-          : asset?.metadata?.type
-      }
+      assetType={asset?.metadata?.type}
       stepText={statusText}
       isLoading={isLoading}
       priceType={asset.accessDetails?.type}
