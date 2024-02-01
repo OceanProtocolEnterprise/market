@@ -3,8 +3,8 @@
 
 :root {
   --color-primary: var(--brand-blue);
-  --color-secondary: var(--brand-red);
-  --color-highlight: var(--brand-blue);
+  --color-secondary: var(--brand-blue-light);
+  --color-highlight: var(--brand-red);
 
   /* Only use these vars for most color referencing for easy light/dark mode */
   --font-color-text: var(--brand-grey);
