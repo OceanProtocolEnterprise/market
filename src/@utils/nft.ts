@@ -186,7 +186,7 @@ export async function setNFTMetadataAndTokenURI(
         : {
             name: (asset as AssetExtended).nft.name,
             symbol: (asset as AssetExtended).nft.symbol,
-            description: `${nftMetadataTemplate.description}\n\nView on Pontus-X: ${externalUrl}`,
+            description: `${nftMetadataTemplate.description}\n\nView on Ocean Enterprise: ${externalUrl}`,
             external_url: externalUrl
           }
     )
