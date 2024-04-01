@@ -48,7 +48,6 @@ export default function AssetTeaser({
           <span className={styles.typeLabel}>
             {datatokens[0]?.symbol.substring(0, 9)}
           </span>
-          {/* <NetworkName networkId={asset.chainId} className={styles.typeLabel} /> */}
         </aside>
         <header className={styles.header}>
           <Dotdotdot tagName="h1" clamp={3} className={styles.title}>
