@@ -3,7 +3,6 @@ import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { InvoiceData } from '../../@types/invoice/InvoiceData'
 import abiNft from './abis/abiNft'
 import abiInstance from './abis/abiInstance'
-import { createInvoice } from './createInvoice'
 
 const rpcUrl =
   'https://eth-sepolia.g.alchemy.com/v2/ocu-b79LFZKHUllyUIXWVqtJgmuYFqZe'

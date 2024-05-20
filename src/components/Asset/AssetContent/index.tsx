@@ -161,7 +161,7 @@ export default function AssetContent({
                   href={`data:text/json;charset=utf-8,${encodeURIComponent(
                     JSON.stringify(jsonInvoice)
                   )}`}
-                  download="publish_invoice.json"
+                  download={`${asset.id}.json`}
                 >
                   Download Publish Invoice JSON
                 </a>
