@@ -25,10 +25,7 @@ function createInvoicePublish(
     invoice_id: 'PMF1',
     invoice_date: formattedInvoiceDate,
     paid: true,
-    issuer_name: event.args.PublishMarketFeeAddress,
-    issuer_company: 'Publish MarketFee company',
-    issuer_address: 'Publish MarketFee address',
-    issuer_email: 'Publish MarketFee email',
+    issuer_address_blockchain: event.args.PublishMarketFeeAddress,
     client_name: txPublish.from,
     client_company: 'Client company',
     client_address: 'Client address',
@@ -43,7 +40,27 @@ function createInvoicePublish(
     ],
     tax: transactionFee,
     currencyTax: 'ETH',
-    note: 'Thank You For Your Business!'
+    note: 'Thank You For Your Business!',
+    credentialSubject: {
+      name: 'Example Organization',
+      url: 'http://www.example.com',
+      logo: 'http://www.example.com/logo.png',
+      contactPoint: {
+        email: 'example@example.com',
+        telephone: '+1-800-123-4567',
+        contactType: 'customer service'
+      },
+      address: {
+        streetAddress: '20341 Whitworth Institute 405 N. Whitworth',
+        addressLocality: 'Seattle',
+        addressRegion: 'WA',
+        postalCode: '98101'
+      },
+      globalLocationNumber: '1234567890123',
+      leiCode: '5493001KJTIIGC8Y1R12',
+      vatID: 'GB123456789',
+      taxID: '123-45-6789'
+    }
   }
   return invoiceData
   // return createInvoice(invoiceData)

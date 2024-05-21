@@ -44,10 +44,7 @@ function createInvoices(
       invoice_id: '1',
       invoice_date: formattedInvoiceDate,
       paid: true,
-      issuer_name: seller,
-      issuer_company: 'Seller company',
-      issuer_address: 'Seller address',
-      issuer_email: 'Seller email',
+      issuer_address_blockchain: seller,
       client_name: tx.from,
       client_company: 'Buyer company',
       client_address: 'Buyer address',
@@ -62,16 +59,33 @@ function createInvoices(
       ],
       tax: transactionFee,
       currencyTax: 'ETH',
-      note: 'Thank You For Your Business!'
+      note: 'Thank You For Your Business!',
+      credentialSubject: {
+        name: 'Example Organization',
+        url: 'http://www.example.com',
+        logo: 'http://www.example.com/logo.png',
+        contactPoint: {
+          email: 'example@example.com',
+          telephone: '+1-800-123-4567',
+          contactType: 'customer service'
+        },
+        address: {
+          streetAddress: '20341 Whitworth Institute 405 N. Whitworth',
+          addressLocality: 'Seattle',
+          addressRegion: 'WA',
+          postalCode: '98101'
+        },
+        globalLocationNumber: '1234567890123',
+        leiCode: '5493001KJTIIGC8Y1R12',
+        vatID: 'GB123456789',
+        taxID: '123-45-6789'
+      }
     }
     const invoiceData2: InvoiceData = {
       invoice_id: '2',
       invoice_date: formattedInvoiceDate,
       paid: true,
-      issuer_name: events[indexOrder].args.publishMarketAddress,
-      issuer_company: 'Market Operator company',
-      issuer_address: 'Market Operator address',
-      issuer_email: 'Market Operator email',
+      issuer_address_blockchain: events[indexOrder].args.publishMarketAddress,
       client_name: tx.from,
       client_company: 'Buyer company',
       client_address: 'Buyer address',
@@ -86,17 +100,34 @@ function createInvoices(
       ],
       tax: 0,
       currencyTax: 'ETH',
-      note: 'Thank You For Your Business!'
+      note: 'Thank You For Your Business!',
+      credentialSubject: {
+        name: 'Market Operator company',
+        url: 'http://www.example.com',
+        logo: 'http://www.example.com/logo.png',
+        contactPoint: {
+          email: 'example@example.com',
+          telephone: '+1-800-123-4567',
+          contactType: 'customer service'
+        },
+        address: {
+          streetAddress: '20341 Whitworth Institute 405 N. Whitworth',
+          addressLocality: 'Seattle',
+          addressRegion: 'WA',
+          postalCode: '98101'
+        },
+        globalLocationNumber: '1234567890123',
+        leiCode: '5493001KJTIIGC8Y1R12',
+        vatID: 'GB123456789',
+        taxID: '123-45-6789'
+      }
     }
 
     const invoiceData3: InvoiceData = {
       invoice_id: '3',
       invoice_date: formattedInvoiceDate,
       paid: true,
-      issuer_name: events[indexProvider].args.providerFeeAddress,
-      issuer_company: 'Provider company',
-      issuer_address: 'Provider address',
-      issuer_email: 'Provider email',
+      issuer_address_blockchain: events[indexProvider].args.providerFeeAddress,
       client_name: tx.from,
       client_company: 'Buyer company',
       client_address: 'Buyer address',
@@ -111,16 +142,33 @@ function createInvoices(
       ],
       tax: 0,
       currencyTax: 'ETH',
-      note: 'Thank You For Your Business!'
+      note: 'Thank You For Your Business!',
+      credentialSubject: {
+        name: 'Provider organization',
+        url: 'http://www.example.com',
+        logo: 'http://www.example.com/logo.png',
+        contactPoint: {
+          email: 'example@example.com',
+          telephone: '+1-800-123-4567',
+          contactType: 'customer service'
+        },
+        address: {
+          streetAddress: '20341 Whitworth Institute 405 N. Whitworth',
+          addressLocality: 'Seattle',
+          addressRegion: 'WA',
+          postalCode: '98101'
+        },
+        globalLocationNumber: '1234567890123',
+        leiCode: '5493001KJTIIGC8Y1R12',
+        vatID: 'GB123456789',
+        taxID: '123-45-6789'
+      }
     }
     const invoiceData4: InvoiceData = {
       invoice_id: '4',
       invoice_date: formattedInvoiceDate,
       paid: true,
-      issuer_name: 'Ocean Enterprise',
-      issuer_company: 'Ocean Enterprise company',
-      issuer_address: 'Ocean Enterprise address',
-      issuer_email: 'Ocean Enterprise email',
+      issuer_address_blockchain: 'Ocean Enterprise',
       client_name: tx.from,
       client_company: 'Buyer company',
       client_address: 'Buyer address',
@@ -135,9 +183,29 @@ function createInvoices(
       ],
       tax: 0,
       currencyTax: 'ETH',
-      note: 'Thank You For Your Business!'
+      note: 'Thank You For Your Business!',
+      credentialSubject: {
+        name: 'Ocean Enterprise',
+        url: 'http://www.example.com',
+        logo: 'http://www.example.com/logo.png',
+        contactPoint: {
+          email: 'example@example.com',
+          telephone: '+1-800-123-4567',
+          contactType: 'customer service'
+        },
+        address: {
+          streetAddress: '20341 Whitworth Institute 405 N. Whitworth',
+          addressLocality: 'Seattle',
+          addressRegion: 'WA',
+          postalCode: '98101'
+        },
+        globalLocationNumber: '1234567890123',
+        leiCode: '5493001KJTIIGC8Y1R12',
+        vatID: 'GB123456789',
+        taxID: '123-45-6789'
+      }
     }
-
+    console.log('invoiceData', invoiceData)
     return [invoiceData, invoiceData2, invoiceData3, invoiceData4]
   } catch (error) {
     console.error('Error in create invoice:', error)
@@ -181,10 +249,7 @@ function createInvoicesComputeJobs(
       invoice_id: '1',
       invoice_date: formattedInvoiceDate,
       paid: true,
-      issuer_name: ownerAsset,
-      issuer_company: 'Seller company',
-      issuer_address: 'Seller address',
-      issuer_email: 'Seller email',
+      issuer_address_blockchain: ownerAsset,
       client_name: tx.from,
       client_company: 'Buyer company',
       client_address: 'Buyer address',
@@ -199,17 +264,34 @@ function createInvoicesComputeJobs(
       ],
       tax: transactionFee,
       currencyTax: 'ETH',
-      note: 'Thank You For Your Business!'
+      note: 'Thank You For Your Business!',
+      credentialSubject: {
+        name: 'Example Organization',
+        url: 'http://www.example.com',
+        logo: 'http://www.example.com/logo.png',
+        contactPoint: {
+          email: 'example@example.com',
+          telephone: '+1-800-123-4567',
+          contactType: 'customer service'
+        },
+        address: {
+          streetAddress: '20341 Whitworth Institute 405 N. Whitworth',
+          addressLocality: 'Seattle',
+          addressRegion: 'WA',
+          postalCode: '98101'
+        },
+        globalLocationNumber: '1234567890123',
+        leiCode: '5493001KJTIIGC8Y1R12',
+        vatID: 'GB123456789',
+        taxID: '123-45-6789'
+      }
     }
 
     const invoiceData2: InvoiceData = {
       invoice_id: '2',
       invoice_date: formattedInvoiceDate,
       paid: true,
-      issuer_name: ownerAlgo,
-      issuer_company: 'Seller company',
-      issuer_address: 'Seller address',
-      issuer_email: 'Seller email',
+      issuer_address_blockchain: ownerAlgo,
       client_name: tx.from,
       client_company: 'Buyer company',
       client_address: 'Buyer address',
@@ -224,16 +306,33 @@ function createInvoicesComputeJobs(
       ],
       tax: transactionFee,
       currencyTax: 'ETH',
-      note: 'Thank You For Your Business!'
+      note: 'Thank You For Your Business!',
+      credentialSubject: {
+        name: 'Example Organization',
+        url: 'http://www.example.com',
+        logo: 'http://www.example.com/logo.png',
+        contactPoint: {
+          email: 'example@example.com',
+          telephone: '+1-800-123-4567',
+          contactType: 'customer service'
+        },
+        address: {
+          streetAddress: '20341 Whitworth Institute 405 N. Whitworth',
+          addressLocality: 'Seattle',
+          addressRegion: 'WA',
+          postalCode: '98101'
+        },
+        globalLocationNumber: '1234567890123',
+        leiCode: '5493001KJTIIGC8Y1R12',
+        vatID: 'GB123456789',
+        taxID: '123-45-6789'
+      }
     }
     const invoiceData3: InvoiceData = {
       invoice_id: '3',
       invoice_date: formattedInvoiceDate,
       paid: true,
-      issuer_name: events[indexOrder].args.publishMarketAddress,
-      issuer_company: 'Market Operator company',
-      issuer_address: 'Market Operator address',
-      issuer_email: 'Market Operator email',
+      issuer_address_blockchain: events[indexOrder].args.publishMarketAddress,
       client_name: tx.from,
       client_company: 'Buyer company',
       client_address: 'Buyer address',
@@ -248,16 +347,33 @@ function createInvoicesComputeJobs(
       ],
       tax: 0,
       currencyTax: 'ETH',
-      note: 'Thank You For Your Business!'
+      note: 'Thank You For Your Business!',
+      credentialSubject: {
+        name: 'Market Operator company',
+        url: 'http://www.example.com',
+        logo: 'http://www.example.com/logo.png',
+        contactPoint: {
+          email: 'example@example.com',
+          telephone: '+1-800-123-4567',
+          contactType: 'customer service'
+        },
+        address: {
+          streetAddress: '20341 Whitworth Institute 405 N. Whitworth',
+          addressLocality: 'Seattle',
+          addressRegion: 'WA',
+          postalCode: '98101'
+        },
+        globalLocationNumber: '1234567890123',
+        leiCode: '5493001KJTIIGC8Y1R12',
+        vatID: 'GB123456789',
+        taxID: '123-45-6789'
+      }
     }
     const invoiceData4: InvoiceData = {
       invoice_id: '4',
       invoice_date: formattedInvoiceDate,
       paid: true,
-      issuer_name: events[indexProvider].args.providerFeeAddress,
-      issuer_company: 'Provider company',
-      issuer_address: 'Provider address',
-      issuer_email: 'Provider email',
+      issuer_address_blockchain: events[indexProvider].args.providerFeeAddress,
       client_name: tx.from,
       client_company: 'Buyer company',
       client_address: 'Buyer address',
@@ -272,16 +388,33 @@ function createInvoicesComputeJobs(
       ],
       tax: 0,
       currencyTax: 'ETH',
-      note: 'Thank You For Your Business!'
+      note: 'Thank You For Your Business!',
+      credentialSubject: {
+        name: 'Provider Company',
+        url: 'http://www.example.com',
+        logo: 'http://www.example.com/logo.png',
+        contactPoint: {
+          email: 'example@example.com',
+          telephone: '+1-800-123-4567',
+          contactType: 'customer service'
+        },
+        address: {
+          streetAddress: '20341 Whitworth Institute 405 N. Whitworth',
+          addressLocality: 'Seattle',
+          addressRegion: 'WA',
+          postalCode: '98101'
+        },
+        globalLocationNumber: '1234567890123',
+        leiCode: '5493001KJTIIGC8Y1R12',
+        vatID: 'GB123456789',
+        taxID: '123-45-6789'
+      }
     }
     const invoiceData5: InvoiceData = {
       invoice_id: '5',
       invoice_date: formattedInvoiceDate,
       paid: true,
-      issuer_name: 'Ocean Enterprise',
-      issuer_company: 'Ocean Enterprise company',
-      issuer_address: 'Ocean Enterprise address',
-      issuer_email: 'Ocean Enterprise email',
+      issuer_address_blockchain: 'Ocean Enterprise',
       client_name: tx.from,
       client_company: 'Buyer company',
       client_address: 'Buyer address',
@@ -296,18 +429,29 @@ function createInvoicesComputeJobs(
       ],
       tax: 0,
       currencyTax: 'ETH',
-      note: 'Thank You For Your Business!'
+      note: 'Thank You For Your Business!',
+      credentialSubject: {
+        name: 'Ocean Enterprise',
+        url: 'http://www.example.com',
+        logo: 'http://www.example.com/logo.png',
+        contactPoint: {
+          email: 'example@example.com',
+          telephone: '+1-800-123-4567',
+          contactType: 'customer service'
+        },
+        address: {
+          streetAddress: '20341 Whitworth Institute 405 N. Whitworth',
+          addressLocality: 'Seattle',
+          addressRegion: 'WA',
+          postalCode: '98101'
+        },
+        globalLocationNumber: '1234567890123',
+        leiCode: '5493001KJTIIGC8Y1R12',
+        vatID: 'GB123456789',
+        taxID: '123-45-6789'
+      }
     }
     return [invoiceData, invoiceData2, invoiceData3, invoiceData4, invoiceData5]
-    // const promises = [
-    //   createInvoice(invoiceData),
-    //   createInvoice(invoiceData2),
-    //   createInvoice(invoiceData3),
-    //   createInvoice(invoiceData4),
-    //   createInvoice(invoiceData5)
-    // ]
-
-    // return Promise.all(promises)
   } catch (error) {
     console.error('Error in create invoice:', error)
     throw error

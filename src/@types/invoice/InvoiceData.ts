@@ -2,10 +2,7 @@ export type InvoiceData = {
   invoice_id: string
   invoice_date: string
   paid: boolean
-  issuer_name: string
-  issuer_company: string
-  issuer_address: string
-  issuer_email: string
+  issuer_address_blockchain: string
   client_name: string
   client_company: string
   client_address: string
@@ -19,4 +16,24 @@ export type InvoiceData = {
   tax: number
   currencyTax: string
   note: string
+  credentialSubject: {
+    name: string
+    url: string
+    logo: string
+    contactPoint: {
+      email: string
+      telephone: string
+      contactType: string
+    }
+    address: {
+      streetAddress: string
+      addressLocality: string
+      addressRegion: string
+      postalCode: string
+    }
+    globalLocationNumber: string
+    leiCode: string
+    vatID: string
+    taxID: string
+  }
 }

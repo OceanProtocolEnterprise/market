@@ -97,25 +97,25 @@ export async function createInvoice(data: InvoiceData): Promise<Blob> {
             </div>
             <br />
             <div class="col col-md-12">
-              <div class="font-weight-bold">${data.issuer_name}</div>
-              <div>${data.issuer_company}</div>
-              <div>${data.issuer_address}</div>
-              <div>${data.issuer_email}</div>
+              <div class=""><strong>Name:</strong> ${data.credentialSubject.name}</div>
+              <div class=""><strong>Address Blockchain:</strong> ${data.issuer_address_blockchain}</div>
+              <div class="">
+                <strong>Company:</strong> ${data.credentialSubject.name}
+              </div>
+              <div class="">
+                <strong>Address:</strong> ${data.credentialSubject.address.streetAddress}, ${data.credentialSubject.address.addressLocality}
+              </div>
+              <div class=""><strong>Email:</strong> ${data.credentialSubject.contactPoint.email}</div>
+              <div class=""><strong>Telephone:</strong> ${data.credentialSubject.contactPoint.telephone}</div>
+            </div>
             </div>
   
             <br />
             <div class="col col-md-12">
-              <div class="font-weight-bold footer-title">BILL TO</div>
-              <div class="">
-                <div class=""><strong>Name:</strong> ${data.client_name}</div>
-                <div class="">
-                  <strong>Company:</strong> ${data.client_company}
-                </div>
-                <div class="">
-                  <strong>Address:</strong> ${data.client_address}
-                </div>
-                <div class=""><strong>Email:</strong> ${data.client_email}</div>
-              </div>
+            <div class="font-weight-bold">${data.client_name}</div>
+            <div>${data.client_company}</div>
+            <div>${data.client_address}</div>
+            <div>${data.client_email}</div>
             </div>
             <br />
             <div class="row col-md-12">
