@@ -97,7 +97,6 @@ export async function createInvoice(data: InvoiceData): Promise<Blob> {
             </div>
             <br />
             <div class="col col-md-12">
-              <div class=""><strong>Name:</strong> ${data.credentialSubject.name}</div>
               <div class=""><strong>Wallet Address:</strong> ${data.issuer_address_blockchain}</div>
               <div class="">
                 <strong>Company:</strong> ${data.credentialSubject.name}
