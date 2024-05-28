@@ -3,6 +3,11 @@ import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { InvoiceData } from '../../@types/invoice/InvoiceData'
 import abi from './abis/abi'
 import abiFixedRateExchange from './abis/abiFixedRateExchange'
+import {
+  consumeMarketFixedSwapFee,
+  consumeMarketOrderFee,
+  marketCommunityFee
+} from 'app.config'
 
 // TODO from env
 const rpcUrl =
@@ -95,7 +100,7 @@ function createInvoices(
       items: [
         {
           name: `Fee to Market Operator for ${id}`,
-          price: 0 // TODO what amount
+          price: Number(consumeMarketFixedSwapFee)
         }
       ],
       tax: 0,
@@ -178,7 +183,7 @@ function createInvoices(
       items: [
         {
           name: `Ocean Community Fee`,
-          price: 0.03
+          price: Number(marketCommunityFee)
         }
       ],
       tax: 0,
@@ -342,7 +347,7 @@ function createInvoicesComputeJobs(
       items: [
         {
           name: `Fee to Market Operator for ${assetId}`,
-          price: 0 // TODO what amount
+          price: Number(consumeMarketOrderFee)
         }
       ],
       tax: 0,
@@ -424,7 +429,7 @@ function createInvoicesComputeJobs(
       items: [
         {
           name: `Ocean Community Fee`,
-          price: 0.03
+          price: Number(marketCommunityFee)
         }
       ],
       tax: 0,
