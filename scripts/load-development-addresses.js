@@ -58,8 +58,5 @@ updateEnvFile([
   },
   { key: 'NEXT_PUBLIC_DISPENSER_ADDRESS', value: addresses.Dispenser },
   { key: 'NEXT_PUBLIC_OCEAN_TOKEN_ADDRESS', value: addresses.Ocean },
-  { key: 'NEXT_PUBLIC_MARKET_DEVELOPMENT', value: true },
-  { key: 'NEXT_PUBLIC_PROVIDER_URL', value: 'http://127.0.0.1:8000' },
-  { key: '#NEXT_PUBLIC_SUBGRAPH_URL', value: 'http://127.0.0.1:9000' },
-  { key: 'NEXT_PUBLIC_METADATACACHE_URI', value: 'http://127.0.0.1:8000' }
+  { key: 'NEXT_PUBLIC_MARKET_DEVELOPMENT', value: true }
 ])
