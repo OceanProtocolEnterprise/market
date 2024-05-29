@@ -3,11 +3,7 @@ import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { InvoiceData } from '../../@types/invoice/InvoiceData'
 import abiNft from './abis/abiNft'
 import abiInstance from './abis/abiInstance'
-
-const rpcUrl =
-  'https://eth-sepolia.g.alchemy.com/v2/ocu-b79LFZKHUllyUIXWVqtJgmuYFqZe'
-// TODO from ENV createNft for fee
-const contractAddress = '0xEF62FB495266C72a5212A11Dce8baa79Ec0ABeB1'
+import { nftFactoryAddress, rpcUrl } from 'app.config'
 
 function createInvoicePublish(
   txPublish: TransactionResponse,
@@ -82,7 +78,7 @@ export async function decodePublish(
     const timestamp = Number(time.timestamp)
     const invoiceDate = new Date(timestamp * 1000)
 
-    const contract = new ethers.Contract(contractAddress, abiNft, provider)
+    const contract = new ethers.Contract(nftFactoryAddress, abiNft, provider)
     const eventInstance = await contract.queryFilter(
       'InstanceDeployed',
       transactionPublish.blockNumber - 10, // fromBlockOrBlockhash

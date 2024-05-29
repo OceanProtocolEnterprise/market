@@ -6,16 +6,10 @@ import abiFixedRateExchange from './abis/abiFixedRateExchange'
 import {
   consumeMarketFixedSwapFee,
   consumeMarketOrderFee,
-  marketCommunityFee
+  fixedRateExchangeAddress,
+  marketCommunityFee,
+  rpcUrl
 } from 'app.config'
-
-// TODO from env
-const rpcUrl =
-  'https://eth-sepolia.g.alchemy.com/v2/ocu-b79LFZKHUllyUIXWVqtJgmuYFqZe'
-
-// TODO from env
-const contractAddressFixedRateExchange =
-  '0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8'
 
 function createInvoices(
   events: Event[],
@@ -520,9 +514,8 @@ export async function decodeBuyComputeJob(
         transactionFee
       )
     } else {
-      // TODO from env
       const contractFixedRateExchange = new ethers.Contract(
-        contractAddressFixedRateExchange,
+        fixedRateExchangeAddress,
         abiFixedRateExchange,
         provider
       )
@@ -596,7 +589,7 @@ export async function decodeBuy(
     }
 
     const contractFixedRateExchange = new ethers.Contract(
-      contractAddressFixedRateExchange,
+      fixedRateExchangeAddress,
       abiFixedRateExchange,
       provider
     )

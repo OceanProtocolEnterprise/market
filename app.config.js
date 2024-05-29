@@ -41,6 +41,13 @@ module.exports = {
 
   marketCommunityFee: process.env.NEXT_PUBLIC_MARKET_COMMUNITY_FEE || '0.3',
 
+  fixedRateExchangeAddress:
+    process.env.NEXT_PUBLIC_FIXED_RATE_EXCHANGE_ADDRESS || '',
+
+  nftFactoryAddress: process.env.NEXT_PUBLIC_NFT_FACTORY_ADDRESS || '',
+
+  rpcUrl: process.env.NEXT_PUBLIC_RPC_URI || '',
+
   // Config for https://github.com/oceanprotocol/use-dark-mode
   darkModeConfig: {
     classNameDark: 'dark',
