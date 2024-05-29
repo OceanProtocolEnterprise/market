@@ -12,7 +12,8 @@ import {
   FilterByAccessOptions,
   FilterByTypeOptions,
   SortDirectionOptions,
-  SortTermOptions
+  SortTermOptions,
+  TypesenseSearchParams
 } from '../../@types/aquarius/SearchQuery'
 import { filterSets, getInitialFilters } from './Filter'
 
@@ -43,7 +44,12 @@ export function getSearchQuery(
   serviceType?: string | string[],
   accessType?: string | string[],
   filterSet?: string | string[]
-): SearchQuery {
+): TypesenseSearchParams {
+  // TODO - now it is searching for everything
+  return {
+    q: '*',
+    query_by: []
+  }
   text = escapeEsReservedCharacters(text)
   const emptySearchTerm = text === undefined || text === ''
   const filters: FilterTerm[] = []

@@ -6,7 +6,9 @@ import { metadataCacheUri, allowDynamicPricing } from '../../../app.config'
 import {
   FilterByTypeOptions,
   SortDirectionOptions,
-  SortTermOptions
+  SortTermOptions,
+  TypesenseSearchParams,
+  TypesenseSearchResponse
 } from '../../@types/aquarius/SearchQuery'
 import { transformAssetToAssetSelection } from '../assetConvertor'
 import addressConfig from '../../../address.config'
@@ -169,9 +171,8 @@ export function generateBaseQuery(
 }
 
 export function transformQueryResult(
-  queryResult: SearchResponse,
-  from = 0,
-  size = 21
+  queryResult: TypesenseSearchResponse[],
+  page = 0
 ): PagedAssets {
   const result: PagedAssets = {
     results: [],
@@ -180,39 +181,39 @@ export function transformQueryResult(
     totalResults: 0,
     aggregations: []
   }
+  console.log(queryResult)
 
-  result.results = (queryResult.hits.hits || []).map(
-    (hit) => hit._source as Asset
+  // ocean-node is storing ddos with different versions in different typesense collections. /api/aquarius/assets/metadata/query is querying all of them at the same time.
+  // Do we want to display assets with any version? If so we would lose the ability to easily search/filter/page/sort through typesense collection
+  // For now we are displaying only assets with version 4.5.0
+  const collectionResult: TypesenseSearchResponse = queryResult.find(
+    (res) => res.request_params.collection_name === 'op_ddo_v4.5.0'
   )
 
-  result.aggregations = queryResult.aggregations
-  // Temporary fix to handle old Aquarius deployment
-  result.totalResults =
-    queryResult.hits.total?.value ||
-    (queryResult.hits.total as unknown as number)
-
-  result.totalPages =
-    result.totalResults / size < 1
-      ? Math.floor(result.totalResults / size)
-      : Math.ceil(result.totalResults / size)
-  result.page = from ? from / size + 1 : 1
+  result.results = collectionResult.hits.map((hit) => hit.document)
+  result.aggregations = {} // TODO - not sure what is it used for
+  result.totalResults = collectionResult.out_of
+  result.page = page
+  result.totalPages = Math.ceil(
+    collectionResult.out_of / collectionResult.request_params.per_page
+  )
 
   return result
 }
 
 export async function queryMetadata(
-  query: SearchQuery,
+  query: TypesenseSearchParams,
   cancelToken: CancelToken
 ): Promise<PagedAssets> {
   try {
-    const response: AxiosResponse<SearchResponse> = await axios.post(
-      `${metadataCacheUri}/api/aquarius/assets/query`,
+    const response: AxiosResponse<TypesenseSearchResponse[]> = await axios.post(
+      `${metadataCacheUri}/api/aquarius/assets/metadata/query`,
       { ...query },
-      { cancelToken }
+      { cancelToken } // TODO not sure what is this for
     )
     if (!response || response.status !== 200 || !response.data) return
 
-    return transformQueryResult(response.data, query.from, query.size)
+    return transformQueryResult(response.data, query.page)
   } catch (error) {
     if (axios.isCancel(error)) {
       LoggerInstance.log(error.message)
