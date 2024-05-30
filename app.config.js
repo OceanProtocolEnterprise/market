@@ -42,9 +42,12 @@ module.exports = {
   marketCommunityFee: process.env.NEXT_PUBLIC_MARKET_COMMUNITY_FEE || '0.3',
 
   fixedRateExchangeAddress:
-    process.env.NEXT_PUBLIC_FIXED_RATE_EXCHANGE_ADDRESS || '',
+    process.env.NEXT_PUBLIC_FIXED_RATE_EXCHANGE_ADDRESS ||
+    '0x80E63f73cAc60c1662f27D2DFd2EA834acddBaa8',
 
-  nftFactoryAddress: process.env.NEXT_PUBLIC_NFT_FACTORY_ADDRESS || '',
+  nftFactoryAddress:
+    process.env.NEXT_PUBLIC_NFT_FACTORY_ADDRESS ||
+    '0xEF62FB495266C72a5212A11Dce8baa79Ec0ABeB1',
 
   rpcUrl: process.env.NEXT_PUBLIC_RPC_URI || '',
 

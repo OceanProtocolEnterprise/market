@@ -10,6 +10,7 @@ import {
   marketCommunityFee,
   rpcUrl
 } from 'app.config'
+import Decimal from 'decimal.js'
 
 function createInvoices(
   events: Event[],
@@ -89,12 +90,14 @@ function createInvoices(
       client_company: 'Buyer company',
       client_address: 'Buyer address',
       client_email: 'Buyer email',
-      currencyToken: 'Ocean',
+      currencyToken: tokenSymbol,
       currencyAddress: events[indexProvider].args.providerFeeToken,
       items: [
         {
           name: `Fee to Market Operator for ${id}`,
-          price: Number(consumeMarketFixedSwapFee)
+          price: Number(
+            new Decimal(consumeMarketFixedSwapFee).mul(price).div(100)
+          )
         }
       ],
       tax: 0,
@@ -228,6 +231,7 @@ function createInvoicesComputeJobs(
   ownerAsset: string,
   ownerAlgo: string
 ): InvoiceData[] {
+  console.log('here')
   try {
     const formattedInvoiceDate = invoiceDate.toLocaleDateString('en-US', {
       month: 'long',
@@ -336,12 +340,14 @@ function createInvoicesComputeJobs(
       client_company: 'Buyer company',
       client_address: 'Buyer address',
       client_email: 'Buyer email',
-      currencyToken: 'Ocean',
+      currencyToken: tokenSymbolAsset,
       currencyAddress: events[indexOrder].args.providerFeeToken,
       items: [
         {
           name: `Fee to Market Operator for ${assetId}`,
-          price: Number(consumeMarketOrderFee)
+          price: Number(
+            new Decimal(consumeMarketOrderFee).mul(priceAsset).div(100)
+          )
         }
       ],
       tax: 0,
@@ -370,6 +376,49 @@ function createInvoicesComputeJobs(
     }
     const invoiceData4: InvoiceData = {
       invoice_id: '4',
+      invoice_date: formattedInvoiceDate,
+      paid: true,
+      issuer_address_blockchain: events[indexOrder].args.publishMarketAddress,
+      client_name: tx.from,
+      client_company: 'Buyer company',
+      client_address: 'Buyer address',
+      client_email: 'Buyer email',
+      currencyToken: tokenSymbolAlgo,
+      currencyAddress: events[indexOrder].args.providerFeeToken,
+      items: [
+        {
+          name: `Fee to Market Operator for ${algoId}`,
+          price: Number(
+            new Decimal(consumeMarketOrderFee).mul(priceAlgo).div(100)
+          )
+        }
+      ],
+      tax: 0,
+      currencyTax: 'ETH',
+      note: 'Thank You For Your Business!',
+      credentialSubject: {
+        name: 'Market Operator company',
+        url: 'http://www.example.com',
+        logo: 'http://www.example.com/logo.png',
+        contactPoint: {
+          email: 'example@example.com',
+          telephone: '+1-800-123-4567',
+          contactType: 'customer service'
+        },
+        address: {
+          streetAddress: '20341 Whitworth Institute 405 N. Whitworth',
+          addressLocality: 'Seattle',
+          addressRegion: 'WA',
+          postalCode: '98101'
+        },
+        globalLocationNumber: '1234567890123',
+        leiCode: '5493001KJTIIGC8Y1R12',
+        vatID: 'GB123456789',
+        taxID: '123-45-6789'
+      }
+    }
+    const invoiceData5: InvoiceData = {
+      invoice_id: '5',
       invoice_date: formattedInvoiceDate,
       paid: true,
       issuer_address_blockchain: events[indexProvider].args.providerFeeAddress,
@@ -409,8 +458,8 @@ function createInvoicesComputeJobs(
         taxID: '123-45-6789'
       }
     }
-    const invoiceData5: InvoiceData = {
-      invoice_id: '5',
+    const invoiceData6: InvoiceData = {
+      invoice_id: '6',
       invoice_date: formattedInvoiceDate,
       paid: true,
       issuer_address_blockchain: 'Ocean Enterprise',
@@ -450,7 +499,14 @@ function createInvoicesComputeJobs(
         taxID: '123-45-6789'
       }
     }
-    return [invoiceData, invoiceData2, invoiceData3, invoiceData4, invoiceData5]
+    return [
+      invoiceData,
+      invoiceData2,
+      invoiceData3,
+      invoiceData4,
+      invoiceData5,
+      invoiceData6
+    ]
   } catch (error) {
     console.error('Error in create invoice:', error)
     throw error
