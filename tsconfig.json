@@ -25,6 +25,13 @@
       "@content/*": ["./@content/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "src/@utils/invoice/abis/abiNft.ts",
+    "src/@utils/invoice/abis/abiInstance.ts",
+    "src/@utils/invoice/abis/abi.ts"
+  ],
   "exclude": ["node_modules", ".next", "*.js"]
 }
