@@ -181,7 +181,6 @@ export function transformQueryResult(
     totalResults: 0,
     aggregations: []
   }
-  console.log(queryResult)
 
   // ocean-node is storing ddos with different versions in different typesense collections. /api/aquarius/assets/metadata/query is querying all of them at the same time.
   // Do we want to display assets with any version? If so we would lose the ability to easily search/filter/page/sort through typesense collection

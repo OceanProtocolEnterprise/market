@@ -16,6 +16,8 @@ import {
   TypesenseSearchParams
 } from '../../@types/aquarius/SearchQuery'
 import { filterSets, getInitialFilters } from './Filter'
+import { Filters } from '@context/Filter'
+import { filterBy } from '@components/Search/typesense'
 
 export function updateQueryStringParameter(
   uri: string,
@@ -45,11 +47,29 @@ export function getSearchQuery(
   accessType?: string | string[],
   filterSet?: string | string[]
 ): TypesenseSearchParams {
-  // TODO - now it is searching for everything
+  console.log('chainIds', chainIds)
+  console.log('text', text)
+  console.log('owner', owner)
+  console.log('tags', tags)
+  console.log('page', page)
+  console.log('offset', offset)
+  console.log('sort', sort)
+  console.log('sortDirection', sortDirection)
+  console.log('serviceType', serviceType)
+  console.log('filterSet', filterSet)
+
+  const f = getInitialFilters({ accessType, serviceType, filterSet }, [
+    'accessType',
+    'serviceType',
+    'filterSet'
+  ])
+
   return {
-    q: '*',
-    query_by: []
+    q: escapeEsReservedCharacters(text) || '*',
+    query_by: [],
+    filter_by: filterBy(f)
   }
+
   text = escapeEsReservedCharacters(text)
   const emptySearchTerm = text === undefined || text === ''
   const filters: FilterTerm[] = []
