@@ -4,7 +4,6 @@ import axios, { CancelToken, AxiosResponse } from 'axios'
 import { OrdersData_orders as OrdersData } from '../../@types/subgraph/OrdersData'
 import { metadataCacheUri, allowDynamicPricing } from '../../../app.config'
 import {
-  FilterByTypeOptions,
   SortDirectionOptions,
   SortTermOptions,
   TypesenseSearchParams,

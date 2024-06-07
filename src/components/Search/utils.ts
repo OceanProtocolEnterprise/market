@@ -9,14 +9,11 @@ import {
 import queryString from 'query-string'
 import { CancelToken } from 'axios'
 import {
-  FilterByAccessOptions,
-  FilterByTypeOptions,
   SortDirectionOptions,
   SortTermOptions,
   TypesenseSearchParams
 } from '../../@types/aquarius/SearchQuery'
 import { filterSets, getInitialFilters } from './Filter'
-import { Filters } from '@context/Filter'
 import { filterBy } from '@components/Search/typesense'
 
 export function updateQueryStringParameter(
@@ -66,7 +63,7 @@ export function getSearchQuery(
 
   return {
     q: escapeEsReservedCharacters(text) || '*',
-    query_by: [],
+    query_by: '',
     filter_by: filterBy(f)
   }
 
