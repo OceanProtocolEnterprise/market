@@ -181,20 +181,17 @@ export function transformQueryResult(
     aggregations: []
   }
 
-  // ocean-node is storing ddos with different versions in different typesense collections. /api/aquarius/assets/metadata/query is querying all of them at the same time.
-  // Do we want to display assets with any version? If so we would lose the ability to easily search/filter/page/sort through typesense collection
-  // For now we are displaying only assets with version 4.5.0
-  const collectionResult: TypesenseSearchResponse = queryResult.find(
-    (res) => res.request_params.collection_name === 'op_ddo_v4.5.0'
-  )
-
-  result.results = collectionResult.hits.map((hit) => hit.document)
-  result.aggregations = {} // TODO - not sure what is it used for
-  result.totalResults = collectionResult.out_of
-  result.page = page
+  queryResult.forEach((res) => {
+    if (res.hits.length > 0) {
+      result.results.push(...res.hits.map((h) => h.document))
+    }
+    result.totalResults += res.found
+  })
   result.totalPages = Math.ceil(
-    collectionResult.out_of / collectionResult.request_params.per_page
+    result.totalResults /
+      (queryResult.length * queryResult[0].request_params.per_page)
   )
+  result.page = page
 
   return result
 }

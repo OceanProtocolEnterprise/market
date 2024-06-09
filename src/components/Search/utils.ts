@@ -64,7 +64,8 @@ export function getSearchQuery(
   return {
     q: escapeEsReservedCharacters(text) || '*',
     query_by: '',
-    filter_by: filterBy(f)
+    filter_by: filterBy(f),
+    page: page ? parseInt(page) : 1
   }
 
   text = escapeEsReservedCharacters(text)

@@ -11,8 +11,8 @@ export function filterBy(f: Filters): string | undefined {
     if (value.length === 0) {
       continue
     }
-    result += `${filterQueryPath[key]}:=[${value}] &&`
+    result += `${filterQueryPath[key]}:=[${value}] && `
   }
 
-  return result.length > 1 ? result.substring(0, result.length - 3) : undefined
+  return result.length > 1 ? result.substring(0, result.length - 4) : undefined
 }
