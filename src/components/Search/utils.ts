@@ -1,11 +1,5 @@
 import { LoggerInstance } from '@oceanprotocol/lib'
-import {
-  escapeEsReservedCharacters,
-  generateBaseQuery,
-  getFilterTerm,
-  parseFilters,
-  queryMetadata
-} from '@utils/aquarius'
+import { escapeEsReservedCharacters, queryMetadata } from '@utils/aquarius'
 import queryString from 'query-string'
 import { CancelToken } from 'axios'
 import {
@@ -13,7 +7,7 @@ import {
   SortTermOptions,
   TypesenseSearchParams
 } from '../../@types/aquarius/SearchQuery'
-import { filterSets, getInitialFilters } from './Filter'
+import { getInitialFilters } from './Filter'
 import { filterBy } from '@components/Search/typesense'
 
 export function updateQueryStringParameter(
