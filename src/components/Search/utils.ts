@@ -44,17 +44,6 @@ export function getSearchQuery(
   accessType?: string | string[],
   filterSet?: string | string[]
 ): TypesenseSearchParams {
-  console.log('chainIds', chainIds)
-  console.log('text', text)
-  console.log('owner', owner)
-  console.log('tags', tags)
-  console.log('page', page)
-  console.log('offset', offset)
-  console.log('sort', sort)
-  console.log('sortDirection', sortDirection)
-  console.log('serviceType', serviceType)
-  console.log('filterSet', filterSet)
-
   const f = getInitialFilters({ accessType, serviceType, filterSet }, [
     'accessType',
     'serviceType',
@@ -65,102 +54,9 @@ export function getSearchQuery(
     q: escapeEsReservedCharacters(text) || '*',
     query_by: '',
     filter_by: filterBy(f),
-    page: page ? parseInt(page) : 1
+    page: page ? parseInt(page) : 1,
+    sort_by: `${sort}:${sortDirection}`
   }
-
-  text = escapeEsReservedCharacters(text)
-  const emptySearchTerm = text === undefined || text === ''
-  const filters: FilterTerm[] = []
-  let searchTerm = text || ''
-  let nestedQuery
-  if (tags) {
-    filters.push(getFilterTerm('metadata.tags.keyword', tags))
-  } else {
-    searchTerm = searchTerm.trim()
-    const modifiedSearchTerm = searchTerm.split(' ').join(' OR ').trim()
-    const noSpaceSearchTerm = searchTerm.split(' ').join('').trim()
-
-    const prefixedSearchTerm =
-      emptySearchTerm && searchTerm
-        ? searchTerm
-        : !emptySearchTerm && searchTerm
-        ? '*' + searchTerm + '*'
-        : '**'
-    const searchFields = [
-      'id',
-      'nft.owner',
-      'datatokens.address',
-      'datatokens.name',
-      'datatokens.symbol',
-      'metadata.name^10',
-      'metadata.author',
-      'metadata.description',
-      'metadata.tags'
-    ]
-
-    nestedQuery = {
-      must: [
-        {
-          bool: {
-            should: [
-              {
-                query_string: {
-                  query: `${modifiedSearchTerm}`,
-                  fields: searchFields,
-                  minimum_should_match: '2<75%',
-                  phrase_slop: 2,
-                  boost: 5
-                }
-              },
-              {
-                query_string: {
-                  query: `${noSpaceSearchTerm}*`,
-                  fields: searchFields,
-                  boost: 5,
-                  lenient: true
-                }
-              },
-              {
-                match_phrase: {
-                  content: {
-                    query: `${searchTerm}`,
-                    boost: 10
-                  }
-                }
-              },
-              {
-                query_string: {
-                  query: `${prefixedSearchTerm}`,
-                  fields: searchFields,
-                  default_operator: 'AND'
-                }
-              }
-            ]
-          }
-        }
-      ]
-    }
-  }
-
-  const filtersList = getInitialFilters(
-    { accessType, serviceType, filterSet },
-    ['accessType', 'serviceType', 'filterSet']
-  )
-  parseFilters(filtersList, filterSets).forEach((term) => filters.push(term))
-
-  const baseQueryParams = {
-    chainIds,
-    nestedQuery,
-    esPaginationOptions: {
-      from: (Number(page) - 1 || 0) * (Number(offset) || 21),
-      size: Number(offset) || 21
-    },
-    sortOptions: { sortBy: sort, sortDirection },
-    filters
-  } as BaseQueryParams
-
-  const query = generateBaseQuery(baseQueryParams)
-  return query
 }
 
 export async function getResults(
