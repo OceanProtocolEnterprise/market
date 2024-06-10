@@ -49,12 +49,34 @@ export function getSearchQuery(
     'serviceType',
     'filterSet'
   ])
+  const searchFields = [
+    'nft.owner',
+    'datatokens.address',
+    'datatokens.name',
+    'datatokens.symbol',
+    'metadata.name',
+    'metadata.author',
+    'metadata.description',
+    'metadata.tags'
+  ]
 
+  const idRegex = /^did:op:[0-9a-fA-F]{64}$/
+  let filter = filterBy(f)
+  let queryBy = searchFields.toString()
+  if (idRegex.test(text)) {
+    // In Typesense 0.22, the id field can only be filtered on and cannot be searched on according to https://threads.typesense.org/2K2e51
+    filter = `id:=${text}`
+    text = ''
+    queryBy = ''
+  }
   return {
     q: escapeEsReservedCharacters(text) || '*',
-    query_by: '',
-    filter_by: filterBy(f),
+    query_by: text ? queryBy : '',
+    filter_by: filter,
     page: page ? parseInt(page) : 1,
+    // todo Sorting only works on number fields.
+    // for string fields => add "sort" property in the collection schema: https://typesense.org/docs/26.0/api/search.html#sorting-on-strings
+    // to sort by "nft.createdAt", we should add a timestamp in the DDO schema
     sort_by: `${sort}:${sortDirection}`
   }
 }
