@@ -4,7 +4,6 @@ import axios, { CancelToken, AxiosResponse } from 'axios'
 import { OrdersData_orders as OrdersData } from '../../@types/subgraph/OrdersData'
 import { metadataCacheUri, allowDynamicPricing } from '../../../app.config'
 import {
-  FilterByTypeOptions,
   SortDirectionOptions,
   SortTermOptions
 } from '../../@types/aquarius/SearchQuery'
@@ -58,25 +57,27 @@ export function parseFilters(
     serviceType: 'metadata.type',
     filterSet: 'metadata.tags.keyword'
   }
+  if (filtersList) {
+    const filterTerms = Object.keys(filtersList)?.map((key) => {
+      if (key === 'filterSet') {
+        const tags = filtersList[key].reduce(
+          (acc, set) => [...acc, ...filterSets[set]],
+          []
+        )
+        const uniqueTags = [...new Set(tags)]
+        return uniqueTags.length > 0
+          ? getFilterTerm(filterQueryPath[key], uniqueTags)
+          : undefined
+      }
+      if (filtersList[key].length > 0)
+        return getFilterTerm(filterQueryPath[key], filtersList[key])
 
-  const filterTerms = Object.keys(filtersList)?.map((key) => {
-    if (key === 'filterSet') {
-      const tags = filtersList[key].reduce(
-        (acc, set) => [...acc, ...filterSets[set]],
-        []
-      )
-      const uniqueTags = [...new Set(tags)]
-      return uniqueTags.length > 0
-        ? getFilterTerm(filterQueryPath[key], uniqueTags)
-        : undefined
-    }
-    if (filtersList[key].length > 0)
-      return getFilterTerm(filterQueryPath[key], filtersList[key])
+      return undefined
+    })
 
-    return undefined
-  })
-
-  return filterTerms.filter((term) => term !== undefined)
+    return filterTerms.filter((term) => term !== undefined)
+  }
+  return []
 }
 
 export function getWhitelistShould(): FilterTerm[] {
@@ -373,8 +374,7 @@ export async function getPublishedAssets(
   const query = generateBaseQuery(baseQueryParams)
 
   try {
-    const result = await queryMetadata(query, cancelToken)
-    return result
+    return queryMetadata(query, cancelToken)
   } catch (error) {
     if (axios.isCancel(error)) {
       LoggerInstance.log(error.message)
@@ -458,19 +458,6 @@ export async function getTopAssetsPublishers(
   publishers.sort((a, b) => b.totalSales - a.totalSales)
 
   return publishers.slice(0, nrItems)
-}
-
-export async function getUserSales(
-  accountId: string,
-  chainIds: number[]
-): Promise<number> {
-  try {
-    const result = await getPublishedAssets(accountId, chainIds, null)
-    const { totalOrders } = result.aggregations
-    return totalOrders.value
-  } catch (error) {
-    LoggerInstance.error('Error getUserSales', error.message)
-  }
 }
 
 export async function getDownloadAssets(

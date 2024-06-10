@@ -10,11 +10,7 @@ import {
 import { getUserTokenOrders } from '@utils/subgraph'
 import { useUserPreferences } from '../UserPreferences'
 import { Asset, LoggerInstance } from '@oceanprotocol/lib'
-import {
-  getDownloadAssets,
-  getPublishedAssets,
-  getUserSales
-} from '@utils/aquarius'
+import { getDownloadAssets, getPublishedAssets } from '@utils/aquarius'
 import axios, { CancelToken } from 'axios'
 import { useMarketMetadata } from '../MarketMetadata'
 import { isAddress } from 'ethers/lib/utils'
@@ -70,6 +66,7 @@ function ProfileProvider({
   //
   const [assets, setAssets] = useState<Asset[]>()
   const [assetsTotal, setAssetsTotal] = useState(0)
+  const [sales, setSales] = useState(0)
   // const [assetsWithPrices, setAssetsWithPrices] = useState<AssetListPrices[]>()
 
   useEffect(() => {
@@ -87,6 +84,9 @@ function ProfileProvider({
           ownAccount
         )
 
+        const { totalOrders } = result.aggregations
+        setSales(totalOrders.value)
+        LoggerInstance.log(`[profile] Fetched sales number: ${result}.`, result)
         setAssets(result.results)
         setAssetsTotal(
           typeof result.totalResults === 'number'
@@ -184,27 +184,6 @@ function ProfileProvider({
       clearInterval(downloadsInterval)
     }
   }, [fetchDownloads, appConfig.metadataCacheUri, downloadsInterval])
-
-  //
-  // SALES NUMBER
-  //
-  const [sales, setSales] = useState(0)
-  useEffect(() => {
-    if (!accountId || chainIds.length === 0) {
-      setSales(0)
-      return
-    }
-    async function getUserSalesNumber() {
-      try {
-        const result = await getUserSales(accountId, chainIds)
-        setSales(result)
-        LoggerInstance.log(`[profile] Fetched sales number: ${result}.`, result)
-      } catch (error) {
-        LoggerInstance.error(error.message)
-      }
-    }
-    getUserSalesNumber()
-  }, [accountId, chainIds])
 
   return (
     <ProfileContext.Provider
