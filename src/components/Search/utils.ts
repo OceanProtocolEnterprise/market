@@ -1,21 +1,14 @@
 import { LoggerInstance } from '@oceanprotocol/lib'
-import {
-  escapeEsReservedCharacters,
-  generateBaseQuery,
-  getFilterTerm,
-  parseFilters,
-  queryMetadata
-} from '@utils/aquarius'
+import { escapeEsReservedCharacters, queryMetadata } from '@utils/aquarius'
 import queryString from 'query-string'
 import { CancelToken } from 'axios'
 import {
-  FilterByAccessOptions,
-  FilterByTypeOptions,
   SortDirectionOptions,
   SortTermOptions,
   TypesenseSearchParams
 } from '../../@types/aquarius/SearchQuery'
-import { filterSets, getInitialFilters } from './Filter'
+import { getInitialFilters } from './Filter'
+import { filterBy } from '@components/Search/typesense'
 
 export function updateQueryStringParameter(
   uri: string,
@@ -45,104 +38,41 @@ export function getSearchQuery(
   accessType?: string | string[],
   filterSet?: string | string[]
 ): TypesenseSearchParams {
-  // TODO - now it is searching for everything
+  const f = getInitialFilters({ accessType, serviceType, filterSet }, [
+    'accessType',
+    'serviceType',
+    'filterSet'
+  ])
+  const searchFields = [
+    'nft.owner',
+    'datatokens.address',
+    'datatokens.name',
+    'datatokens.symbol',
+    'metadata.name',
+    'metadata.author',
+    'metadata.description',
+    'metadata.tags'
+  ]
+
+  const idRegex = /^did:op:[0-9a-fA-F]{64}$/
+  let filter = filterBy(f)
+  let queryBy = searchFields.toString()
+  if (idRegex.test(text)) {
+    // In Typesense 0.22, the id field can only be filtered on and cannot be searched on according to https://threads.typesense.org/2K2e51
+    filter = `id:=${text}`
+    text = ''
+    queryBy = ''
+  }
   return {
-    q: '*',
-    query_by: []
+    q: escapeEsReservedCharacters(text) || '*',
+    query_by: text ? queryBy : '',
+    filter_by: filter,
+    page: page ? parseInt(page) : 1,
+    // todo Sorting only works on number fields.
+    // for string fields => add "sort" property in the collection schema: https://typesense.org/docs/26.0/api/search.html#sorting-on-strings
+    // to sort by "nft.createdAt", we should add a timestamp in the DDO schema
+    sort_by: `${sort}:${sortDirection}`
   }
-  text = escapeEsReservedCharacters(text)
-  const emptySearchTerm = text === undefined || text === ''
-  const filters: FilterTerm[] = []
-  let searchTerm = text || ''
-  let nestedQuery
-  if (tags) {
-    filters.push(getFilterTerm('metadata.tags.keyword', tags))
-  } else {
-    searchTerm = searchTerm.trim()
-    const modifiedSearchTerm = searchTerm.split(' ').join(' OR ').trim()
-    const noSpaceSearchTerm = searchTerm.split(' ').join('').trim()
-
-    const prefixedSearchTerm =
-      emptySearchTerm && searchTerm
-        ? searchTerm
-        : !emptySearchTerm && searchTerm
-        ? '*' + searchTerm + '*'
-        : '**'
-    const searchFields = [
-      'id',
-      'nft.owner',
-      'datatokens.address',
-      'datatokens.name',
-      'datatokens.symbol',
-      'metadata.name^10',
-      'metadata.author',
-      'metadata.description',
-      'metadata.tags'
-    ]
-
-    nestedQuery = {
-      must: [
-        {
-          bool: {
-            should: [
-              {
-                query_string: {
-                  query: `${modifiedSearchTerm}`,
-                  fields: searchFields,
-                  minimum_should_match: '2<75%',
-                  phrase_slop: 2,
-                  boost: 5
-                }
-              },
-              {
-                query_string: {
-                  query: `${noSpaceSearchTerm}*`,
-                  fields: searchFields,
-                  boost: 5,
-                  lenient: true
-                }
-              },
-              {
-                match_phrase: {
-                  content: {
-                    query: `${searchTerm}`,
-                    boost: 10
-                  }
-                }
-              },
-              {
-                query_string: {
-                  query: `${prefixedSearchTerm}`,
-                  fields: searchFields,
-                  default_operator: 'AND'
-                }
-              }
-            ]
-          }
-        }
-      ]
-    }
-  }
-
-  const filtersList = getInitialFilters(
-    { accessType, serviceType, filterSet },
-    ['accessType', 'serviceType', 'filterSet']
-  )
-  parseFilters(filtersList, filterSets).forEach((term) => filters.push(term))
-
-  const baseQueryParams = {
-    chainIds,
-    nestedQuery,
-    esPaginationOptions: {
-      from: (Number(page) - 1 || 0) * (Number(offset) || 21),
-      size: Number(offset) || 21
-    },
-    sortOptions: { sortBy: sort, sortDirection },
-    filters
-  } as BaseQueryParams
-
-  const query = generateBaseQuery(baseQueryParams)
-  return query
 }
 
 export async function getResults(
