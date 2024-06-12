@@ -24,6 +24,7 @@ interface ProfileProviderValue {
   isDownloadsLoading: boolean
   sales: number
   ownAccount: boolean
+  revenue: string
 }
 
 interface ExtendedPagedAssets extends Omit<PagedAssets, 'totalResults'> {
@@ -50,7 +51,7 @@ function ProfileProvider({
 }): ReactElement {
   const { chainIds } = useUserPreferences()
   const { appConfig } = useMarketMetadata()
-
+  const [revenue, setRevunue] = useState('0 Ocean')
   const [isEthAddress, setIsEthAddress] = useState<boolean>()
   //
   // Do nothing in all following effects
@@ -139,19 +140,21 @@ function ProfileProvider({
         dtList.push(tokenOrders[i].datatoken.address)
       }
 
-      const downloads = await getDownloadAssets(
+      const downloadsResponse = await getDownloadAssets(
         dtList,
         tokenOrders,
         chainIds,
         cancelToken,
         ownAccount
       )
-      setDownloads(downloads)
-      setDownloadsTotal(downloads.length)
-      LoggerInstance.log(
-        `[profile] Fetched ${downloads.length} download orders.`,
-        downloads
-      )
+      if (downloadsResponse) {
+        setDownloads(downloadsResponse)
+        setDownloadsTotal(downloadsResponse.length)
+        LoggerInstance.log(
+          `[profile] Fetched ${downloadsResponse.length} download orders.`,
+          downloadsResponse
+        )
+      }
     },
     [accountId, chainIds, ownAccount]
   )
@@ -195,7 +198,8 @@ function ProfileProvider({
         downloadsTotal,
         isDownloadsLoading,
         ownAccount,
-        sales
+        sales,
+        revenue
       }}
     >
       {children}

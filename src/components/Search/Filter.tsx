@@ -78,17 +78,19 @@ export function getInitialFilters(
 export default function Filter({
   addFiltersToUrl,
   showPurgatoryOption,
+  showTime,
   expanded,
   className
 }: {
   addFiltersToUrl?: boolean
   showPurgatoryOption?: boolean
+  showTime?: boolean
   expanded?: boolean
   className?: string
 }): ReactElement {
   const { filters, setFilters, ignorePurgatory, setIgnorePurgatory } =
     useFilter()
-
+  console.log('showtime:', showTime)
   const router = useRouter()
 
   const parsedUrl = queryString.parse(location.search, {
@@ -235,6 +237,7 @@ export default function Filter({
             </Accordion>
           </div>
         ))}
+
         {showPurgatoryOption && (
           <div className={styles.compactFilterContainer}>
             <Accordion
