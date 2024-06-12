@@ -24,7 +24,7 @@ interface ProfileProviderValue {
   isDownloadsLoading: boolean
   sales: number
   ownAccount: boolean
-  revenue: string
+  revenue: Revenue[]
 }
 
 interface ExtendedPagedAssets extends Omit<PagedAssets, 'totalResults'> {
@@ -51,7 +51,7 @@ function ProfileProvider({
 }): ReactElement {
   const { chainIds } = useUserPreferences()
   const { appConfig } = useMarketMetadata()
-  const [revenue, setRevunue] = useState('0 Ocean')
+  const [revenue, setRevenue] = useState<Revenue[]>()
   const [isEthAddress, setIsEthAddress] = useState<boolean>()
   //
   // Do nothing in all following effects
@@ -85,8 +85,9 @@ function ProfileProvider({
           ownAccount
         )
 
-        const { totalOrders } = result.aggregations
+        const { totalOrders, totalRevenue } = result.aggregations
         setSales(totalOrders.value)
+        setRevenue(totalRevenue.buckets)
         LoggerInstance.log(`[profile] Fetched sales number: ${result}.`, result)
         setAssets(result.results)
         setAssetsTotal(

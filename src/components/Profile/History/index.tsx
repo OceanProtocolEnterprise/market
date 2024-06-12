@@ -55,11 +55,9 @@ function getTabs(
     content: <HistoryData accountId={accountId} />
   }
   // TODO only for logged user?
-  // if (accountId === userAccountId) {
-  //   defaultTabs.push(history)
-  // }
-
-  defaultTabs.push(history)
+  if (accountId === userAccountId) {
+    defaultTabs.push(history)
+  }
 
   return defaultTabs
 }

@@ -1,6 +1,5 @@
 import { Asset, LoggerInstance } from '@oceanprotocol/lib'
 import { ReactElement, useEffect, useState } from 'react'
-import AssetList from '@shared/AssetList'
 import { getPublishedAssets } from '@utils/aquarius'
 import { useUserPreferences } from '@context/UserPreferences'
 import styles from './HistoryData.module.css'
@@ -11,10 +10,12 @@ import { CancelToken } from 'axios'
 import { useProfile } from '@context/Profile'
 import { useFilter, Filters } from '@context/Filter'
 import { useDebouncedCallback } from 'use-debounce'
-import Table, { TableOceanColumn } from '@shared/atoms/Table'
+import { TableOceanColumn } from '@shared/atoms/Table'
 import Time from '@shared/atoms/Time'
 import AssetTitle from '@shared/AssetListTitle'
 import NetworkName from '@shared/NetworkName'
+import HistoryTable from '@components/@shared/atoms/Table/HistoryTable'
+import formatRevenue from '../utils'
 
 const columns: TableOceanColumn<Asset>[] = [
   {
@@ -66,6 +67,8 @@ export default function HistoryData({
   const [queryResult, setQueryResult] = useState<PagedAssets>()
   const [isLoading, setIsLoading] = useState(true)
   const [page, setPage] = useState<number>(1)
+  const [revenue, setRevenue] = useState<Revenue[]>()
+  const [sales, setSales] = useState(0)
   const newCancelToken = useCancelToken()
   const getPublished = useDebouncedCallback(
     async (
@@ -87,7 +90,9 @@ export default function HistoryData({
           filters,
           page
         )
-        console.log('quryResult:', result)
+        const { totalOrders, totalRevenue } = result.aggregations
+        setSales(totalOrders.value)
+        setRevenue(totalRevenue.buckets)
         setQueryResult(result)
       } catch (error) {
         LoggerInstance.error(error.message)
@@ -132,13 +137,22 @@ export default function HistoryData({
       </div>
       {queryResult && (
         <div className={styles.tableContainer}>
-          <Table
+          <HistoryTable
             columns={columns}
             data={queryResult.results}
             paginationPerPage={10}
             isLoading={isLoading}
             emptyMessage={chainIds.length === 0 ? 'No network selected' : null}
             exportEnabled={true}
+            onPageChange={(newPage) => {
+              setPage(newPage)
+            }}
+            showPagination
+            page={queryResult?.page}
+            totalPages={queryResult?.totalPages}
+            revenue={formatRevenue(revenue)}
+            sales={sales}
+            items={queryResult?.totalResults}
           />
         </div>
       )}

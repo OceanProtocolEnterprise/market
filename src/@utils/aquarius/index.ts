@@ -361,6 +361,18 @@ export async function getPublishedAssets(
         sum: {
           field: SortTermOptions.Orders
         }
+      },
+      totalRevenue: {
+        terms: {
+          field: SortTermOptions.TokenSymbol
+        },
+        aggs: {
+          totalValue: {
+            sum: {
+              field: SortTermOptions.Price
+            }
+          }
+        }
       }
     },
     ignorePurgatory,
