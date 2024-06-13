@@ -369,7 +369,15 @@ export async function getPublishedAssets(
         aggs: {
           totalValue: {
             sum: {
-              field: SortTermOptions.Price
+              script: {
+                source:
+                  "doc['" +
+                  SortTermOptions.Price +
+                  "'].value * doc['" +
+                  SortTermOptions.Orders +
+                  "'].value",
+                lang: 'painless'
+              }
             }
           }
         }

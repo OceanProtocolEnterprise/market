@@ -92,6 +92,8 @@ export default function HistoryData({
         )
         const { totalOrders, totalRevenue } = result.aggregations
         setSales(totalOrders.value)
+        console.log('results:', result)
+        console.log('revenue:', totalRevenue)
         setRevenue(totalRevenue.buckets)
         setQueryResult(result)
       } catch (error) {
