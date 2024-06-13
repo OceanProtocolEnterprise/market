@@ -57,49 +57,40 @@ export default function HistoryTable({
   ...props
 }: TableOceanProps<any>): ReactElement {
   const { networksList } = useNetworkMetadata()
+  console.log('data:', data, columns)
   const handleExport = () => {
-    const csvRows = []
-
-    // Get the headers
-    const headers = columns.map((col) => col.name)
-    csvRows.push(headers.join(','))
-
-    data.forEach((asset) => {
-      const values = columns.map((col) => {
+    // Prepare data for export
+    const exportData = data.map((asset) => {
+      const exportedAsset = {}
+      columns.forEach((col) => {
         const value = col.selector(asset)
 
-        // Handle specific columns rendering logic
         if (col.name === 'Dataset') {
-          return asset.metadata?.name
+          exportedAsset[col.name as string] = asset.metadata?.name
         } else if (col.name === 'Network') {
           const networkData = getNetworkDataById(networksList, asset.chainId)
-          return getNetworkDisplayName(networkData)
+          exportedAsset[col.name as string] = getNetworkDisplayName(networkData)
         } else if (col.name === 'Time') {
-          return new Date(asset.event.datetime).toLocaleString()
-        } else if (typeof value === 'object' && value !== null) {
-          return JSON.stringify(value)
+          exportedAsset[col.name as string] = new Date(
+            asset.event.datetime
+          ).toLocaleString()
+        } else {
+          exportedAsset[col.name as string] = value
         }
-        return value
       })
-
-      const escapedValues = values.map((val) => {
-        if (typeof val === 'string' && val.includes(',')) {
-          return `"${val.replace(/"/g, '""')}"`
-        }
-        return val
-      })
-
-      csvRows.push(escapedValues.join(','))
+      return exportedAsset
     })
 
-    // Create a CSV string
-    const csvString = csvRows.join('\n')
-    const blob = new Blob([csvString], { type: 'text/csv' })
+    // Create JSON string
+    const jsonString = JSON.stringify(exportData, null, 2)
+
+    // Create Blob and download JSON file
+    const blob = new Blob([jsonString], { type: 'application/json' })
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.setAttribute('hidden', '')
     a.setAttribute('href', url)
-    a.setAttribute('download', 'historyData.csv')
+    a.setAttribute('download', 'historyData.json')
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -144,7 +135,7 @@ export default function HistoryTable({
       {exportEnabled && !isLoading && (
         <div className={styles.buttonContainer}>
           <Button onClick={handleExport} style="primary">
-            Export to CSV
+            Export data
           </Button>
         </div>
       )}

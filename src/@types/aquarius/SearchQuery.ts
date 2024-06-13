@@ -32,6 +32,11 @@ export enum FilterByAccessOptions {
   Compute = 'compute'
 }
 
+export enum FilterByTimeOptions {
+  Last3Months = '3',
+  Last6Months = '6'
+}
+
 declare global {
   interface SortOptions {
     sortBy: SortTermOptions

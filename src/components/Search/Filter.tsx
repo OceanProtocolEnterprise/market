@@ -4,6 +4,7 @@ import { addExistingParamsToUrl } from './utils'
 import Button from '@shared/atoms/Button'
 import {
   FilterByAccessOptions,
+  FilterByTimeOptions,
   FilterByTypeOptions
 } from '../../@types/aquarius/SearchQuery'
 import { useRouter } from 'next/router'
@@ -238,6 +239,34 @@ export default function Filter({
           </div>
         ))}
 
+        {/* {showTime && (
+          <div className={styles.compactFilterContainer}>
+            <Accordion title="Time" badgeNumber={2} compact>
+              <div className={styles.compactOptionsContainer}>
+                <Input
+                  name="3 months"
+                  type="checkbox"
+                  options={['Last 3 months']}
+                  checked={filters.time?.includes('6_months')}
+                  onChange={async () => {
+                    // handleSelectedFilter('6_months', 'time')
+                    console.log('time')
+                  }}
+                />
+                <Input
+                  name="6 months"
+                  type="checkbox"
+                  options={['Last 6 months']}
+                  checked={filters.time?.includes('6_months')}
+                  onChange={async () => {
+                    // handleSelectedFilter('6_months', 'time')
+                    console.log('time')
+                  }}
+                />
+              </div>
+            </Accordion>
+          </div>
+        )} */}
         {showPurgatoryOption && (
           <div className={styles.compactFilterContainer}>
             <Accordion

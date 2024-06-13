@@ -54,7 +54,6 @@ function getTabs(
     title: 'History',
     content: <HistoryData accountId={accountId} />
   }
-  // TODO only for logged user?
   // if (accountId === userAccountId) {
   //   defaultTabs.push(history)
   // }

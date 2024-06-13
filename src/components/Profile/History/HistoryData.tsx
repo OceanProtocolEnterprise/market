@@ -44,7 +44,12 @@ const columns: TableOceanColumn<Asset>[] = [
   },
   {
     name: 'Sales',
-    selector: (asset) => asset.stats.orders
+    selector: (asset) => asset.stats?.orders
+  },
+  {
+    name: 'Price',
+    selector: (asset) =>
+      `${asset.stats?.price?.value} ${asset.stats?.price?.tokenSymbol || ''}`
   },
   {
     name: 'Revenue',
@@ -92,8 +97,6 @@ export default function HistoryData({
         )
         const { totalOrders, totalRevenue } = result.aggregations
         setSales(totalOrders.value)
-        console.log('results:', result)
-        console.log('revenue:', totalRevenue)
         setRevenue(totalRevenue.buckets)
         setQueryResult(result)
       } catch (error) {
