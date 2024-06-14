@@ -138,7 +138,7 @@ export default function HistoryData({
   return accountId ? (
     <div className={styles.containerHistory}>
       <div className={styles.filterContainer}>
-        <Filter showPurgatoryOption={ownAccount} expanded showTime={true} />
+        <Filter showPurgatoryOption={ownAccount} expanded showTime />
       </div>
       {queryResult && (
         <div className={styles.tableContainer}>

@@ -57,7 +57,6 @@ export default function HistoryTable({
   ...props
 }: TableOceanProps<any>): ReactElement {
   const { networksList } = useNetworkMetadata()
-  console.log('data:', data, columns)
   const handleExport = () => {
     // Prepare data for export
     const exportData = data.map((asset) => {

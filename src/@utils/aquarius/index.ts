@@ -48,6 +48,19 @@ export function getFilterTerm(
   }
 }
 
+export function getRangeFilterTerm(
+  filterField: string,
+  gteValue: string
+): FilterTerm {
+  return {
+    range: {
+      [filterField]: {
+        gte: gteValue
+      }
+    }
+  }
+}
+
 export function parseFilters(
   filtersList: Filters,
   filterSets: { [key: string]: string[] }
@@ -55,7 +68,8 @@ export function parseFilters(
   const filterQueryPath = {
     accessType: 'services.type',
     serviceType: 'metadata.type',
-    filterSet: 'metadata.tags.keyword'
+    filterSet: 'metadata.tags.keyword',
+    filterTime: 'metadata.created'
   }
   if (filtersList) {
     const filterTerms = Object.keys(filtersList)?.map((key) => {
@@ -69,9 +83,15 @@ export function parseFilters(
           ? getFilterTerm(filterQueryPath[key], uniqueTags)
           : undefined
       }
-      if (filtersList[key].length > 0)
+      if (key === 'filterTime' && filtersList[key].length > 0) {
+        const now = new Date()
+        const targetDate = new Date(now.getTime() - Number(filtersList[key][0]))
+        const targetDateISOString = targetDate.toISOString()
+        return getRangeFilterTerm(filterQueryPath[key], targetDateISOString)
+      }
+      if (filtersList[key].length > 0) {
         return getFilterTerm(filterQueryPath[key], filtersList[key])
-
+      }
       return undefined
     })
 
@@ -342,13 +362,10 @@ export async function getPublishedAssets(
   page?: number
 ): Promise<PagedAssets> {
   if (!accountId) return
-
   const filters: FilterTerm[] = []
-
   filters.push(getFilterTerm('nft.state', [0, 4, 5]))
   filters.push(getFilterTerm('nft.owner', accountId.toLowerCase()))
   parseFilters(filtersList, filterSets).forEach((term) => filters.push(term))
-
   const baseQueryParams = {
     chainIds,
     filters,
