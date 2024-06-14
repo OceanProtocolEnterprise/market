@@ -57,8 +57,8 @@ export default function HistoryTable({
   ...props
 }: TableOceanProps<any>): ReactElement {
   const { networksList } = useNetworkMetadata()
+
   const handleExport = () => {
-    // Prepare data for export
     const exportData = data.map((asset) => {
       const exportedAsset = {}
       columns.forEach((col) => {
@@ -80,8 +80,14 @@ export default function HistoryTable({
       return exportedAsset
     })
 
-    // Create JSON string
-    const jsonString = JSON.stringify(exportData, null, 2)
+    const exportObject = {
+      dataset: exportData,
+      totalSales: sales,
+      totalPublished: items,
+      totalRevenue: revenue
+    }
+
+    const jsonString = JSON.stringify(exportObject, null, 2)
 
     // Create Blob and download JSON file
     const blob = new Blob([jsonString], { type: 'application/json' })
