@@ -10,11 +10,7 @@ import {
 import { getUserTokenOrders } from '@utils/subgraph'
 import { useUserPreferences } from '../UserPreferences'
 import { Asset, LoggerInstance } from '@oceanprotocol/lib'
-import {
-  getDownloadAssets,
-  getPublishedAssets,
-  getUserSales
-} from '@utils/aquarius'
+import { getDownloadAssets, getPublishedAssets } from '@utils/aquarius'
 import axios, { CancelToken } from 'axios'
 import { useMarketMetadata } from '../MarketMetadata'
 import { isAddress } from 'ethers/lib/utils'
@@ -28,6 +24,7 @@ interface ProfileProviderValue {
   isDownloadsLoading: boolean
   sales: number
   ownAccount: boolean
+  revenue: Revenue[]
 }
 
 interface ExtendedPagedAssets extends Omit<PagedAssets, 'totalResults'> {
@@ -54,7 +51,7 @@ function ProfileProvider({
 }): ReactElement {
   const { chainIds } = useUserPreferences()
   const { appConfig } = useMarketMetadata()
-
+  const [revenue, setRevenue] = useState<Revenue[]>()
   const [isEthAddress, setIsEthAddress] = useState<boolean>()
   //
   // Do nothing in all following effects
@@ -70,6 +67,7 @@ function ProfileProvider({
   //
   const [assets, setAssets] = useState<Asset[]>()
   const [assetsTotal, setAssetsTotal] = useState(0)
+  const [sales, setSales] = useState(0)
   // const [assetsWithPrices, setAssetsWithPrices] = useState<AssetListPrices[]>()
 
   useEffect(() => {
@@ -87,6 +85,10 @@ function ProfileProvider({
           ownAccount
         )
 
+        const { totalOrders, totalRevenue } = result.aggregations
+        setSales(totalOrders.value)
+        setRevenue(totalRevenue.buckets)
+        LoggerInstance.log(`[profile] Fetched sales number: ${result}.`, result)
         setAssets(result.results)
         setAssetsTotal(
           typeof result.totalResults === 'number'
@@ -139,19 +141,21 @@ function ProfileProvider({
         dtList.push(tokenOrders[i].datatoken.address)
       }
 
-      const downloads = await getDownloadAssets(
+      const downloadsResponse = await getDownloadAssets(
         dtList,
         tokenOrders,
         chainIds,
         cancelToken,
         ownAccount
       )
-      setDownloads(downloads)
-      setDownloadsTotal(downloads.length)
-      LoggerInstance.log(
-        `[profile] Fetched ${downloads.length} download orders.`,
-        downloads
-      )
+      if (downloadsResponse) {
+        setDownloads(downloadsResponse)
+        setDownloadsTotal(downloadsResponse.length)
+        LoggerInstance.log(
+          `[profile] Fetched ${downloadsResponse.length} download orders.`,
+          downloadsResponse
+        )
+      }
     },
     [accountId, chainIds, ownAccount]
   )
@@ -185,27 +189,6 @@ function ProfileProvider({
     }
   }, [fetchDownloads, appConfig.metadataCacheUri, downloadsInterval])
 
-  //
-  // SALES NUMBER
-  //
-  const [sales, setSales] = useState(0)
-  useEffect(() => {
-    if (!accountId || chainIds.length === 0) {
-      setSales(0)
-      return
-    }
-    async function getUserSalesNumber() {
-      try {
-        const result = await getUserSales(accountId, chainIds)
-        setSales(result)
-        LoggerInstance.log(`[profile] Fetched sales number: ${result}.`, result)
-      } catch (error) {
-        LoggerInstance.error(error.message)
-      }
-    }
-    getUserSalesNumber()
-  }, [accountId, chainIds])
-
   return (
     <ProfileContext.Provider
       value={{
@@ -216,7 +199,8 @@ function ProfileProvider({
         downloadsTotal,
         isDownloadsLoading,
         ownAccount,
-        sales
+        sales,
+        revenue
       }}
     >
       {children}

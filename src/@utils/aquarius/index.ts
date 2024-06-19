@@ -4,7 +4,6 @@ import axios, { CancelToken, AxiosResponse } from 'axios'
 import { OrdersData_orders as OrdersData } from '../../@types/subgraph/OrdersData'
 import { metadataCacheUri, allowDynamicPricing } from '../../../app.config'
 import {
-  FilterByTypeOptions,
   SortDirectionOptions,
   SortTermOptions
 } from '../../@types/aquarius/SearchQuery'
@@ -49,6 +48,19 @@ export function getFilterTerm(
   }
 }
 
+export function getRangeFilterTerm(
+  filterField: string,
+  gteValue: string
+): FilterTerm {
+  return {
+    range: {
+      [filterField]: {
+        gte: gteValue
+      }
+    }
+  }
+}
+
 export function parseFilters(
   filtersList: Filters,
   filterSets: { [key: string]: string[] }
@@ -56,27 +68,36 @@ export function parseFilters(
   const filterQueryPath = {
     accessType: 'services.type',
     serviceType: 'metadata.type',
-    filterSet: 'metadata.tags.keyword'
+    filterSet: 'metadata.tags.keyword',
+    filterTime: 'metadata.created'
   }
+  if (filtersList) {
+    const filterTerms = Object.keys(filtersList)?.map((key) => {
+      if (key === 'filterSet') {
+        const tags = filtersList[key].reduce(
+          (acc, set) => [...acc, ...filterSets[set]],
+          []
+        )
+        const uniqueTags = [...new Set(tags)]
+        return uniqueTags.length > 0
+          ? getFilterTerm(filterQueryPath[key], uniqueTags)
+          : undefined
+      }
+      if (key === 'filterTime' && filtersList[key].length > 0) {
+        const now = new Date()
+        const targetDate = new Date(now.getTime() - Number(filtersList[key][0]))
+        const targetDateISOString = targetDate.toISOString()
+        return getRangeFilterTerm(filterQueryPath[key], targetDateISOString)
+      }
+      if (filtersList[key].length > 0) {
+        return getFilterTerm(filterQueryPath[key], filtersList[key])
+      }
+      return undefined
+    })
 
-  const filterTerms = Object.keys(filtersList)?.map((key) => {
-    if (key === 'filterSet') {
-      const tags = filtersList[key].reduce(
-        (acc, set) => [...acc, ...filterSets[set]],
-        []
-      )
-      const uniqueTags = [...new Set(tags)]
-      return uniqueTags.length > 0
-        ? getFilterTerm(filterQueryPath[key], uniqueTags)
-        : undefined
-    }
-    if (filtersList[key].length > 0)
-      return getFilterTerm(filterQueryPath[key], filtersList[key])
-
-    return undefined
-  })
-
-  return filterTerms.filter((term) => term !== undefined)
+    return filterTerms.filter((term) => term !== undefined)
+  }
+  return []
 }
 
 export function getWhitelistShould(): FilterTerm[] {
@@ -341,13 +362,10 @@ export async function getPublishedAssets(
   page?: number
 ): Promise<PagedAssets> {
   if (!accountId) return
-
   const filters: FilterTerm[] = []
-
   filters.push(getFilterTerm('nft.state', [0, 4, 5]))
   filters.push(getFilterTerm('nft.owner', accountId.toLowerCase()))
   parseFilters(filtersList, filterSets).forEach((term) => filters.push(term))
-
   const baseQueryParams = {
     chainIds,
     filters,
@@ -359,6 +377,26 @@ export async function getPublishedAssets(
       totalOrders: {
         sum: {
           field: SortTermOptions.Orders
+        }
+      },
+      totalRevenue: {
+        terms: {
+          field: SortTermOptions.TokenSymbol
+        },
+        aggs: {
+          totalValue: {
+            sum: {
+              script: {
+                source:
+                  "doc['" +
+                  SortTermOptions.Price +
+                  "'].value * doc['" +
+                  SortTermOptions.Orders +
+                  "'].value",
+                lang: 'painless'
+              }
+            }
+          }
         }
       }
     },
@@ -373,8 +411,7 @@ export async function getPublishedAssets(
   const query = generateBaseQuery(baseQueryParams)
 
   try {
-    const result = await queryMetadata(query, cancelToken)
-    return result
+    return queryMetadata(query, cancelToken)
   } catch (error) {
     if (axios.isCancel(error)) {
       LoggerInstance.log(error.message)
@@ -458,19 +495,6 @@ export async function getTopAssetsPublishers(
   publishers.sort((a, b) => b.totalSales - a.totalSales)
 
   return publishers.slice(0, nrItems)
-}
-
-export async function getUserSales(
-  accountId: string,
-  chainIds: number[]
-): Promise<number> {
-  try {
-    const result = await getPublishedAssets(accountId, chainIds, null)
-    const { totalOrders } = result.aggregations
-    return totalOrders.value
-  } catch (error) {
-    LoggerInstance.error('Error getUserSales', error.message)
-  }
 }
 
 export async function getDownloadAssets(
