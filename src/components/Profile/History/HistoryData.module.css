@@ -20,3 +20,9 @@
   flex-direction: column;
   gap: calc(var(--spacer) / 4);
 }
+
+.empty {
+  color: var(--color-secondary);
+  font-size: var(--font-size-small);
+  font-style: italic;
+}

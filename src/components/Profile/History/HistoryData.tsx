@@ -95,6 +95,7 @@ export default function HistoryData({
           filters,
           page
         )
+        console.log('reuslt:', result)
         const { totalOrders, totalRevenue } = result.aggregations
         setSales(totalOrders.value)
         setRevenue(totalRevenue.buckets)
@@ -142,23 +143,29 @@ export default function HistoryData({
       </div>
       {queryResult && (
         <div className={styles.tableContainer}>
-          <HistoryTable
-            columns={columns}
-            data={queryResult.results}
-            paginationPerPage={10}
-            isLoading={isLoading}
-            emptyMessage={chainIds.length === 0 ? 'No network selected' : null}
-            exportEnabled={true}
-            onPageChange={(newPage) => {
-              setPage(newPage)
-            }}
-            showPagination
-            page={queryResult?.page}
-            totalPages={queryResult?.totalPages}
-            revenue={formatRevenue(revenue)}
-            sales={sales}
-            items={queryResult?.totalResults}
-          />
+          {queryResult?.results.length > 0 ? (
+            <HistoryTable
+              columns={columns}
+              data={queryResult.results}
+              paginationPerPage={10}
+              isLoading={isLoading}
+              emptyMessage={
+                chainIds.length === 0 ? 'No network selected' : null
+              }
+              exportEnabled={true}
+              onPageChange={(newPage) => {
+                setPage(newPage)
+              }}
+              showPagination
+              page={queryResult?.page}
+              totalPages={queryResult?.totalPages}
+              revenue={formatRevenue(revenue)}
+              sales={sales}
+              items={queryResult?.totalResults}
+            />
+          ) : (
+            <div className={styles.empty}>No results found</div>
+          )}
         </div>
       )}
     </div>
