@@ -115,9 +115,7 @@ export async function getOrderPriceAndFees(
  * @returns {Promise<AccessDetails>}
  */
 export async function getAccessDetails(
-  signer: Signer,
-  serviceStat: ServiceStat | undefined,
-  accountId: string
+  serviceStat: ServiceStat | undefined
 ): Promise<AccessDetails> {
   const accessDetails: AccessDetails = {
     type: 'NOT_SUPPORTED',

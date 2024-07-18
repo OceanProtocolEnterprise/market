@@ -137,11 +137,7 @@ function AssetProvider({
     const accessDetails = await Promise.all(
       asset.services.map((service: Service) =>
         getAccessDetails(
-          signer,
-          asset.offchain?.stats.services.find(
-            (s) => s.serviceId === service.id
-          ),
-          accountId
+          asset.offchain?.stats.services.find((s) => s.serviceId === service.id)
         )
       )
     )

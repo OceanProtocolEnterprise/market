@@ -8,12 +8,7 @@ import ButtonBuy from '../ButtonBuy'
 import PriceOutput from './PriceOutput'
 import { useAsset } from '@context/Asset'
 import content from '../../../../../content/pages/startComputeDataset.json'
-import {
-  Asset,
-  ComputeEnvironment,
-  Service,
-  ZERO_ADDRESS
-} from '@oceanprotocol/lib'
+import { Asset, ComputeEnvironment, Service } from '@oceanprotocol/lib'
 import { getAccessDetails } from '@utils/accessDetailsAndPricing'
 import { getTokenBalanceFromSymbol } from '@utils/wallet'
 import { MAX_DECIMALS } from '@utils/constants'
@@ -151,15 +146,15 @@ export default function FormStartCompute({
     if (!values.algorithm || !isConsumable) return
 
     async function fetchAlgorithmAssetExtended() {
-      const algorithmAsset = getAlgorithmAsset(values.algorithm)
+      // TODO test this type override
+      const algorithmAsset: AssetExtended = getAlgorithmAsset(values.algorithm)
 
       const algoAccessDetails = await Promise.all(
         algorithmAsset.services.map((service) =>
           getAccessDetails(
-            algorithmAsset.chainId,
-            service.datatokenAddress,
-            service.timeout,
-            accountId || ZERO_ADDRESS // if user is not connected, use ZERO_ADDRESS as accountId
+            algorithmAsset.offchain?.stats.services.find(
+              (s) => s.serviceId === service.id
+            )
           )
         )
       )
