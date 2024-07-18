@@ -7,7 +7,7 @@ import {
   useCallback,
   ReactNode
 } from 'react'
-import { Config, LoggerInstance, Purgatory } from '@oceanprotocol/lib'
+import { Config, LoggerInstance, Purgatory, Service } from '@oceanprotocol/lib'
 import { CancelToken } from 'axios'
 import { getAsset } from '@utils/aquarius'
 import { useCancelToken } from '@hooks/useCancelToken'
@@ -18,7 +18,7 @@ import { useMarketMetadata } from './MarketMetadata'
 import { assetStateToString } from '@utils/assetState'
 import { isValidDid } from '@utils/ddo'
 import { useAddressConfig } from '@hooks/useAddressConfig'
-import { useAccount, useNetwork } from 'wagmi'
+import { useAccount, useNetwork, useSigner } from 'wagmi'
 
 export interface AssetProviderValue {
   isInPurgatory: boolean
@@ -47,6 +47,7 @@ function AssetProvider({
   const { appConfig } = useMarketMetadata()
   const { address: accountId } = useAccount()
   const { chain } = useNetwork()
+  const { data: signer } = useSigner()
 
   const { isDDOWhitelisted } = useAddressConfig()
   const [isInPurgatory, setIsInPurgatory] = useState(false)
@@ -133,18 +134,31 @@ function AssetProvider({
   const fetchAccessDetails = useCallback(async (): Promise<void> => {
     if (!asset?.chainId || !asset?.services?.length) return
 
-    const accessDetails = await getAccessDetails(
-      asset.chainId,
-      asset.services[0].datatokenAddress,
-      asset.services[0].timeout,
-      accountId
+    const accessDetails = await Promise.all(
+      asset.services.map((service: Service) =>
+        getAccessDetails(
+          signer,
+          asset.offchain?.stats.services.find(
+            (s) => s.serviceId === service.id
+          ),
+          accountId
+        )
+      )
     )
+
     setAsset((prevState) => ({
       ...prevState,
       accessDetails
     }))
     LoggerInstance.log(`[asset] Got access details for ${did}`, accessDetails)
-  }, [asset?.chainId, asset?.services, accountId, did])
+  }, [
+    accountId,
+    asset?.chainId,
+    asset?.offchain?.stats.services,
+    asset?.services,
+    did,
+    signer
+  ])
 
   // -----------------------------------
   // 1. Get and set asset based on passed DID
