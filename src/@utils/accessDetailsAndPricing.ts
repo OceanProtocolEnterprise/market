@@ -1,6 +1,5 @@
 import {
   AssetPrice,
-  Datatoken,
   getErrorMessage,
   LoggerInstance,
   ProviderFees,

@@ -145,7 +145,7 @@ export default function AssetActions({
       }
     }
     init()
-  }, [web3Provider, accountId, asset, isAssetNetwork, service.datatokenAddress])
+  }, [web3Provider, accountId, isAssetNetwork, service.datatokenAddress])
 
   // Check user balance against price
   useEffect(() => {
