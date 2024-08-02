@@ -85,7 +85,7 @@ function MarketMetadataProvider({
           address: process.env.NEXT_PUBLIC_OCEAN_TOKEN_ADDRESS,
           decimals: 18,
           symbol: 'OCEAN',
-          name: 'Ocean token'
+          name: 'Ocean Token'
         }
       ]
       setApprovedBaseTokens(approvedTokensList)

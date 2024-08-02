@@ -29,7 +29,7 @@ export default function AssetContent({
   const { allowExternalContent, debug } = useUserPreferences()
   const [receipts, setReceipts] = useState([])
   const [nftPublisher, setNftPublisher] = useState<string>()
-  const [selectedService, setSelectedService] = useState<number>(-1)
+  const [selectedService, setSelectedService] = useState<number | undefined>()
 
   useEffect(() => {
     if (!receipts.length) return
@@ -78,7 +78,7 @@ export default function AssetContent({
             <p>Loading access details...</p>
           ) : (
             <>
-              {selectedService === -1 ? (
+              {selectedService === undefined ? (
                 <>
                   <h3>Available services:</h3>
                   {asset.services.map((service, index) => (
@@ -96,7 +96,7 @@ export default function AssetContent({
                   service={asset.services[selectedService]}
                   accessDetails={asset.accessDetails[selectedService]}
                   serviceIndex={selectedService}
-                  handleBack={() => setSelectedService(-1)}
+                  handleBack={() => setSelectedService(undefined)}
                 />
               )}
             </>
