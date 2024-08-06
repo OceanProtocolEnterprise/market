@@ -3,7 +3,8 @@ import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { InvoiceData } from '../../@types/invoice/InvoiceData'
 import NftFactory from '@oceanprotocol/contracts/artifacts/contracts/ERC721Factory.sol/ERC721Factory.json'
 import ERC20TemplateEnterprise from '@oceanprotocol/contracts/artifacts/contracts/templates/ERC20TemplateEnterprise.sol/ERC20TemplateEnterprise.json'
-import { nftFactoryAddress, rpcUrl } from 'app.config'
+import { rpcUrl } from 'app.config'
+import { getOceanConfig } from '@utils/ocean'
 
 function createInvoicePublish(
   txPublish: TransactionResponse,
@@ -64,9 +65,11 @@ function createInvoicePublish(
 
 export async function decodePublish(
   id: string,
-  txHash: string
+  txHash: string,
+  chainId: number
 ): Promise<InvoiceData> {
   try {
+    const { nftFactoryAddress } = getOceanConfig(chainId)
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl)
     const transactionPublish = await provider.getTransaction(txHash)
     const txReceipt = await provider.getTransactionReceipt(txHash)

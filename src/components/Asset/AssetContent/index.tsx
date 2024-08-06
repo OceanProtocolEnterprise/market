@@ -40,7 +40,7 @@ export default function AssetContent({
       setLoadingInvoice(true)
       let pdfUrlResponse: Blob[]
       if (!jsonInvoice) {
-        const response = await decodePublish(id, tx)
+        const response = await decodePublish(id, tx, asset.chainId)
         console.log('response:', response)
         setJsonInvoice(jsonInvoice)
         pdfUrlResponse = await getPdf([response])
@@ -64,7 +64,7 @@ export default function AssetContent({
     try {
       setLoadingInvoiceJson(true)
       if (!jsonInvoice) {
-        const response = await decodePublish(id, tx)
+        const response = await decodePublish(id, tx, asset.chainId)
         console.log('response:', response)
         setJsonInvoice(response)
       }

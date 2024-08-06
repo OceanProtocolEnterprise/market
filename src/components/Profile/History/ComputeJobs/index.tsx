@@ -55,6 +55,7 @@ export default function ComputeJobs({
         const response = await decodeBuyComputeJob(
           row.agreementId,
           asset.id,
+          asset.chainId,
           row.algoDID,
           asset.stats.price.tokenSymbol,
           assetAlgo.stats.price.tokenSymbol,
@@ -96,6 +97,7 @@ export default function ComputeJobs({
         const response = await decodeBuyComputeJob(
           row.agreementId,
           asset.id,
+          asset.chainId,
           row.algoDID,
           asset.stats.price.tokenSymbol,
           assetAlgo.stats.price.tokenSymbol,

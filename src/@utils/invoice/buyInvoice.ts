@@ -6,11 +6,11 @@ import FixedRateExchange from '@oceanprotocol/contracts/artifacts/contracts/pool
 import {
   consumeMarketFixedSwapFee,
   consumeMarketOrderFee,
-  fixedRateExchangeAddress,
   marketCommunityFee,
   rpcUrl
 } from 'app.config'
 import Decimal from 'decimal.js'
+import { getOceanConfig } from '@utils/ocean'
 
 function createInvoices(
   events: Event[],
@@ -516,6 +516,7 @@ function createInvoicesComputeJobs(
 export async function decodeBuyComputeJob(
   txHash: string,
   assetId: string,
+  chainId: number,
   algoId: string,
   tokenSymbolAsset: string,
   tokenSymbolAlgo: string,
@@ -531,7 +532,6 @@ export async function decodeBuyComputeJob(
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl)
     const transaction = await provider.getTransaction(txHash)
     const contractAddress = transaction.to // Extract contract address from transaction details
-    console.log('contractAddress:', contractAddress)
     const txReceipt = await provider.getTransactionReceipt(txHash)
     const gasPriceInGwei = Number(transaction.gasPrice) / 1e9
     const gasUsed = Number(txReceipt.gasUsed)
@@ -563,6 +563,7 @@ export async function decodeBuyComputeJob(
       return decodeBuyComputeJob(
         reusedEvent.args.orderTxId,
         assetId,
+        chainId,
         algoId,
         tokenSymbolAsset,
         tokenSymbolAlgo,
@@ -575,6 +576,7 @@ export async function decodeBuyComputeJob(
         transactionFee
       )
     } else {
+      const { fixedRateExchangeAddress } = getOceanConfig(chainId)
       const contractFixedRateExchange = new ethers.Contract(
         fixedRateExchangeAddress,
         FixedRateExchange.abi,
@@ -618,6 +620,7 @@ export async function decodeBuyComputeJob(
 export async function decodeBuy(
   provider: ethers.providers.JsonRpcProvider,
   txHash: string,
+  chainId: number,
   id: string,
   tokenSymbol: string,
   tokenAddress: string,
@@ -652,7 +655,7 @@ export async function decodeBuy(
         args: event.args
       })
     }
-
+    const { fixedRateExchangeAddress } = getOceanConfig(chainId)
     const contractFixedRateExchange = new ethers.Contract(
       fixedRateExchangeAddress,
       FixedRateExchange.abi,
@@ -689,6 +692,7 @@ export async function decodeBuy(
 export async function decodeBuyDataSet(
   id: string,
   dataTokenAddress: string,
+  chainId: number,
   tokenSymbol: string,
   tokenAddress: string,
   price: number,
@@ -708,6 +712,7 @@ export async function decodeBuyDataSet(
     return decodeBuy(
       provider,
       filteredEvents[0].transactionHash,
+      chainId,
       id,
       tokenSymbol,
       tokenAddress,

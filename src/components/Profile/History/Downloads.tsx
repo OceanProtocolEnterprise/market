@@ -31,6 +31,7 @@ export default function ComputeDownloads({
         const response = await decodeBuyDataSet(
           row.asset.id,
           row.asset.datatokens[0].address,
+          row.asset.chainId,
           row.asset.stats.price.tokenSymbol,
           row.asset.stats.price.tokenAddress,
           row.asset.stats.price.value,
@@ -59,6 +60,7 @@ export default function ComputeDownloads({
         const response = await decodeBuyDataSet(
           row.asset.id,
           row.asset.datatokens[0].address,
+          row.asset.chainId,
           row.asset.stats.price.tokenSymbol,
           row.asset.stats.price.tokenAddress,
           row.asset.stats.price.value,
