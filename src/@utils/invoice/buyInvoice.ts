@@ -231,7 +231,6 @@ function createInvoicesComputeJobs(
   ownerAsset: string,
   ownerAlgo: string
 ): InvoiceData[] {
-  console.log('here')
   try {
     const formattedInvoiceDate = invoiceDate.toLocaleDateString('en-US', {
       month: 'long',
