@@ -6,8 +6,7 @@ import FixedRateExchange from '@oceanprotocol/contracts/artifacts/contracts/pool
 import {
   consumeMarketFixedSwapFee,
   consumeMarketOrderFee,
-  marketCommunityFee,
-  rpcUrl
+  marketCommunityFee
 } from 'app.config'
 import Decimal from 'decimal.js'
 import { getOceanConfig } from '@utils/ocean'
@@ -528,7 +527,8 @@ export async function decodeBuyComputeJob(
   additionalFee: number = 0
 ): Promise<InvoiceData[]> {
   try {
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl)
+    const { nodeUri } = getOceanConfig(chainId)
+    const provider = new ethers.providers.JsonRpcProvider(nodeUri)
     const transaction = await provider.getTransaction(txHash)
     const contractAddress = transaction.to // Extract contract address from transaction details
     const txReceipt = await provider.getTransactionReceipt(txHash)
@@ -698,7 +698,8 @@ export async function decodeBuyDataSet(
   fromAddress: string
 ): Promise<InvoiceData[]> {
   try {
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl)
+    const { nodeUri } = getOceanConfig(chainId)
+    const provider = new ethers.providers.JsonRpcProvider(nodeUri)
     const contract = new ethers.Contract(
       dataTokenAddress,
       ERC20TemplateEnterprise.abi,

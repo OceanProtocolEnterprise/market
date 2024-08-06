@@ -41,8 +41,6 @@ module.exports = {
 
   marketCommunityFee: process.env.NEXT_PUBLIC_MARKET_COMMUNITY_FEE || '0.3',
 
-  rpcUrl: process.env.NEXT_PUBLIC_RPC_URI || '',
-
   // Config for https://github.com/oceanprotocol/use-dark-mode
   darkModeConfig: {
     classNameDark: 'dark',
