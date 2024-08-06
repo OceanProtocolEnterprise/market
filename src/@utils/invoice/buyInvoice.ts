@@ -1,8 +1,8 @@
 import { Event, ethers } from 'ethers'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { InvoiceData } from '../../@types/invoice/InvoiceData'
-import abi from './abis/abi'
-import abiFixedRateExchange from './abis/abiFixedRateExchange'
+import ERC20TemplateEnterprise from '@oceanprotocol/contracts/artifacts/contracts/templates/ERC20TemplateEnterprise.sol/ERC20TemplateEnterprise.json'
+import FixedRateExchange from '@oceanprotocol/contracts/artifacts/contracts/pools/fixedRate/FixedRateExchange.sol/FixedRateExchange.json'
 import {
   consumeMarketFixedSwapFee,
   consumeMarketOrderFee,
@@ -531,6 +531,7 @@ export async function decodeBuyComputeJob(
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl)
     const transaction = await provider.getTransaction(txHash)
     const contractAddress = transaction.to // Extract contract address from transaction details
+    console.log('contractAddress:', contractAddress)
     const txReceipt = await provider.getTransactionReceipt(txHash)
     const gasPriceInGwei = Number(transaction.gasPrice) / 1e9
     const gasUsed = Number(txReceipt.gasUsed)
@@ -539,7 +540,11 @@ export async function decodeBuyComputeJob(
     const time = await provider.getBlock(transaction.blockNumber)
     const timestamp = Number(time.timestamp)
     const invoiceDate = new Date(timestamp * 1000)
-    const contract = new ethers.Contract(contractAddress, abi, provider)
+    const contract = new ethers.Contract(
+      contractAddress,
+      ERC20TemplateEnterprise.abi,
+      provider
+    )
     const events = await contract.queryFilter(
       '*', // all events
       transaction.blockNumber,
@@ -572,7 +577,7 @@ export async function decodeBuyComputeJob(
     } else {
       const contractFixedRateExchange = new ethers.Contract(
         fixedRateExchangeAddress,
-        abiFixedRateExchange,
+        FixedRateExchange.abi,
         provider
       )
       const eventsFixedRate = await contractFixedRateExchange.queryFilter(
@@ -630,7 +635,11 @@ export async function decodeBuy(
     const time = await provider.getBlock(transaction.blockNumber)
     const timestamp = Number(time.timestamp)
     const invoiceDate = new Date(timestamp * 1000)
-    const contract = new ethers.Contract(contractAddress, abi, provider)
+    const contract = new ethers.Contract(
+      contractAddress,
+      ERC20TemplateEnterprise.abi,
+      provider
+    )
     const events = await contract.queryFilter(
       '*', // all events
       transaction.blockNumber,
@@ -646,7 +655,7 @@ export async function decodeBuy(
 
     const contractFixedRateExchange = new ethers.Contract(
       fixedRateExchangeAddress,
-      abiFixedRateExchange,
+      FixedRateExchange.abi,
       provider
     )
     const eventsFixedRate = await contractFixedRateExchange.queryFilter(
@@ -687,7 +696,11 @@ export async function decodeBuyDataSet(
 ): Promise<InvoiceData[]> {
   try {
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl)
-    const contract = new ethers.Contract(dataTokenAddress, abi, provider)
+    const contract = new ethers.Contract(
+      dataTokenAddress,
+      ERC20TemplateEnterprise.abi,
+      provider
+    )
     const events = await contract.queryFilter('Transfer')
     const filteredEvents = events.filter(
       (event) => event.args[1] === fromAddress

@@ -1,8 +1,8 @@
 import { Event, ethers } from 'ethers'
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { InvoiceData } from '../../@types/invoice/InvoiceData'
-import abiNft from './abis/abiNft'
-import abiInstance from './abis/abiInstance'
+import NftFactory from '@oceanprotocol/contracts/artifacts/contracts/ERC721Factory.sol/ERC721Factory.json'
+import ERC20TemplateEnterprise from '@oceanprotocol/contracts/artifacts/contracts/templates/ERC20TemplateEnterprise.sol/ERC20TemplateEnterprise.json'
 import { nftFactoryAddress, rpcUrl } from 'app.config'
 
 function createInvoicePublish(
@@ -78,7 +78,11 @@ export async function decodePublish(
     const timestamp = Number(time.timestamp)
     const invoiceDate = new Date(timestamp * 1000)
 
-    const contract = new ethers.Contract(nftFactoryAddress, abiNft, provider)
+    const contract = new ethers.Contract(
+      nftFactoryAddress,
+      NftFactory.abi,
+      provider
+    )
     const eventInstance = await contract.queryFilter(
       'InstanceDeployed',
       transactionPublish.blockNumber - 10, // fromBlockOrBlockhash
@@ -104,7 +108,7 @@ export async function decodePublish(
     // Get past events emitted by the contract instance
     const contractInstance = new ethers.Contract(
       eventInstance[eventInstance.length - 1].args.instance,
-      abiInstance,
+      ERC20TemplateEnterprise.abi,
       provider
     )
 
