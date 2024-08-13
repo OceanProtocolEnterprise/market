@@ -10,6 +10,7 @@ export default function AssetDetails({ uri }: { uri: string }): ReactElement {
   const router = useRouter()
   const { asset, title, error, isInPurgatory, loading } = useAsset()
   const [pageTitle, setPageTitle] = useState<string>()
+  console.log('asset:', asset, title)
 
   useEffect(() => {
     if (!asset || error) {
