@@ -18,7 +18,6 @@ export default function Time({
 }: TimeProps): ReactElement {
   const [dateIso, setDateIso] = useState<string>()
   const [dateNew, setDateNew] = useState<Date>()
-
   useEffect(() => {
     if (!date) return
 
