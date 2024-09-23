@@ -86,7 +86,6 @@ export async function fetchData(
 ): Promise<any> {
   try {
     const client = getUrqlClientInstance()
-
     const response = await client.query(query, variables, context).toPromise()
     return response
   } catch (error) {

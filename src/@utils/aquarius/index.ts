@@ -102,6 +102,7 @@ export function generateBaseQuery(
   baseQueryParams: BaseQueryParams
 ): SearchQuery {
   const generatedQuery = {
+    index: 'op_ddo_v4.1.0',
     from: baseQueryParams.esPaginationOptions?.from || 0,
     size:
       baseQueryParams.esPaginationOptions?.size >= 0
@@ -159,7 +160,7 @@ export function generateBaseQuery(
 }
 
 export function transformQueryResult(
-  queryResult: SearchResult[],
+  queryResult,
   from = 0,
   size = 21
 ): PagedAssets {
@@ -168,17 +169,15 @@ export function transformQueryResult(
     page: 0,
     totalPages: 0,
     totalResults: 0,
-    aggregations: []
+    aggregations: {}
   }
-  const flattenedResults = queryResult.flat()
+  result.results = queryResult.hits?.hits.map((hit: Asset) => hit._source) || []
 
-  result.results = flattenedResults.map((hit: any) => hit._source || hit)
-
-  result.totalResults = flattenedResults.length
+  result.totalResults = queryResult.hits?.total?.value || 0
 
   result.totalPages = Math.ceil(result.totalResults / size)
-
-  result.page = from ? Math.floor(from / size) + 1 : 1
+  result.page = from ? from + 1 : 1
+  result.aggregations = queryResult.aggregations || {}
   return result
 }
 
@@ -193,11 +192,7 @@ export async function queryMetadata(
       { cancelToken }
     )
     if (!response || response.status !== 200 || !response.data) return
-    return transformQueryResult(
-      response.data as any as SearchResult[],
-      query.from,
-      query.size
-    )
+    return transformQueryResult(response.data[0], query.from, query.size)
   } catch (error) {
     if (axios.isCancel(error)) {
       LoggerInstance.log(error.message)
@@ -326,13 +321,12 @@ export async function getPublishedAssets(
   page?: number
 ): Promise<PagedAssets> {
   if (!accountId) return
-
   const filters: FilterTerm[] = []
-
   filters.push(getFilterTerm('nft.state', [0, 4, 5]))
   filters.push(getFilterTerm('nft.owner', accountId.toLowerCase()))
-  parseFilters(filtersList, filterSets).forEach((term) => filters.push(term))
-
+  if (filtersList) {
+    parseFilters(filtersList, filterSets).forEach((term) => filters.push(term))
+  }
   const baseQueryParams = {
     chainIds,
     filters,
@@ -345,12 +339,32 @@ export async function getPublishedAssets(
         sum: {
           field: SortTermOptions.Orders
         }
+      },
+      totalRevenue: {
+        terms: {
+          field: SortTermOptions.TokenSymbol
+        },
+        aggs: {
+          totalValue: {
+            sum: {
+              script: {
+                source:
+                  "doc['" +
+                  SortTermOptions.Price +
+                  "'].value * doc['" +
+                  SortTermOptions.Orders +
+                  "'].value",
+                lang: 'painless'
+              }
+            }
+          }
+        }
       }
     },
     ignorePurgatory,
     ignoreState,
     esPaginationOptions: {
-      from: (Number(page) - 1 || 0) * 9,
+      from: Number(page) - 1 || 0,
       size: 9
     }
   } as BaseQueryParams
@@ -358,8 +372,7 @@ export async function getPublishedAssets(
   const query = generateBaseQuery(baseQueryParams)
 
   try {
-    const result = await queryMetadata(query, cancelToken)
-    return result
+    return queryMetadata(query, cancelToken)
   } catch (error) {
     if (axios.isCancel(error)) {
       LoggerInstance.log(error.message)
@@ -530,21 +543,13 @@ export async function getTagsList(
       { ...query },
       { cancelToken }
     )
-    if (
-      response?.status !== 200 ||
-      !response?.data ||
-      (Array.isArray(response.data) &&
-        response.data.every(
-          (item) => !Array.isArray(item) || item.length === 0
-        ))
-    ) {
+    if (response?.status !== 200 || !response?.data) {
       return []
     }
 
     const tagsSet: Set<string> = new Set()
-
     response.data.forEach((items) => {
-      items.forEach((item) => {
+      items.hits.hits.forEach((item) => {
         if (item._source?.metadata?.tags) {
           item._source.metadata.tags
             .filter((tag: string) => tag !== '')
