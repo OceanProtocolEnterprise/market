@@ -48,6 +48,7 @@ export interface FormPublishData {
   services: FormPublishService[]
   pricing: PricePublishOptions
   feedback?: PublishFeedback
+  customDDO?: string
 }
 
 export interface StepContent {
