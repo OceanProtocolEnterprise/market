@@ -325,6 +325,18 @@
       }
     ]
   },
+  "customDDO": {
+    "title": "Custom DDO",
+    "fields": [
+      {
+        "name": "customDDO",
+        "label": "Custom DDO",
+        "placeholder": "{ ... }",
+        "help": "Insert a custom DDO",
+        "type": "textarea"
+      }
+    ]
+  },
   "pricing": {
     "title": "Pricing",
     "fields": [
