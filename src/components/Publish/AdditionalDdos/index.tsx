@@ -1,13 +1,12 @@
 import Input from '@shared/FormInput'
 import { Field, useFormikContext } from 'formik'
-import { ReactElement } from 'react'
+import { ReactElement, useEffect } from 'react'
 import content from '../../../../content/publish/form.json'
 import { getFieldContent } from '@utils/form'
 import Button from '@components/@shared/atoms/Button'
 import { useAccount } from 'wagmi'
-import { FormPublishData } from '../_types'
+import { FormPublishAdditionalDdo, FormPublishData } from '../_types'
 import { Signer } from 'ethers'
-import { AdditionalDdo } from '@oceanprotocol/lib'
 
 export default function AdditionalDdosFields(): ReactElement {
   const account = useAccount()
@@ -21,18 +20,27 @@ export default function AdditionalDdosFields(): ReactElement {
     //  }
   }
 
+  useEffect(() => {
+    const newDdos: FormPublishAdditionalDdo[] = [
+      { id: '', type: 'test1', value: '' },
+      { id: '', type: 'test2', value: '' }
+    ]
+    setFieldValue('additionalDdos', newDdos)
+  }, [])
+
   return (
     <>
       {values.additionalDdos.map((ddo, index) => {
         return (
           <>
             <Field
+              id={index}
               {...getFieldContent(
-                'additionalDdo',
+                'additionalDdos',
                 content.additionalDdos.fields
               )}
               component={Input}
-              name="additionalDdos[]"
+              name={`additionalDdos[${index}].value`}
             />
             <Button style={'primary'} onClick={handleSigning}>
               Sign

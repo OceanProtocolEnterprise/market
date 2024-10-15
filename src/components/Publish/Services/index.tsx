@@ -100,15 +100,12 @@ export default function ServicesFields(): ReactElement {
         component={Input}
         name="services[0].timeout"
       />
-      <Field
-        {...getFieldContent('usesConsumerParameters', content.services.fields)}
-        component={Input}
-        name="services[0].usesConsumerParameters"
-      />
 
       {appConfig.ssiEnabled === true ? (
         <>
-          <div>Here insert the ssi fields</div>
+          <p>
+            <div>Here insert the ssi fields</div>
+          </p>
         </>
       ) : (
         <>
@@ -124,6 +121,12 @@ export default function ServicesFields(): ReactElement {
           />
         </>
       )}
+
+      <Field
+        {...getFieldContent('usesConsumerParameters', content.services.fields)}
+        component={Input}
+        name="services[0].usesConsumerParameters"
+      />
 
       {values.services[0].usesConsumerParameters && (
         <Field

@@ -21,6 +21,12 @@ export interface FormPublishService {
   deny?: string[]
 }
 
+export interface FormPublishAdditionalDdo {
+  type: string
+  id: string
+  value: string
+}
+
 export interface FormPublishData {
   user: {
     stepCurrent: number
