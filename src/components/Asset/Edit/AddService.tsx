@@ -24,24 +24,35 @@ import { setNftMetadata } from '@utils/nft'
 import { getEncryptedFiles } from '@utils/provider'
 import { useAccount, useNetwork, useSigner } from 'wagmi'
 import { transformConsumerParameters } from '@components/Publish/_utils'
-import { marketFeeAddress, publisherMarketFixedSwapFee } from 'app.config'
+import {
+  defaultDatatokenCap,
+  defaultDatatokenTemplateIndex,
+  marketFeeAddress,
+  publisherMarketFixedSwapFee
+} from 'app.config'
 import { ethers } from 'ethers'
 import FormAddService from './FormAddService'
 import { transformComputeFormToServiceComputeOptions } from '@utils/compute'
 import { useCancelToken } from '@hooks/useCancelToken'
 import { serviceValidationSchema } from './_validation'
+import DebugEditService from './DebugEditService'
+import styles from './index.module.css'
+import { useUserPreferences } from '@context/UserPreferences'
+import { getOceanConfig } from '@utils/ocean'
 
 export default function AddService({
   asset
 }: {
   asset: AssetExtended
 }): ReactElement {
+  const { debug } = useUserPreferences()
   const { fetchAsset, isAssetNetwork } = useAsset()
   const { address: accountId } = useAccount()
   const { chain } = useNetwork()
   const { data: signer } = useSigner()
   const newAbortController = useAbortController()
   const newCancelToken = useCancelToken()
+  const config = getOceanConfig(asset?.chainId)
 
   const [success, setSuccess] = useState<string>()
   const [error, setError] = useState<string>()
@@ -49,7 +60,6 @@ export default function AddService({
 
   // add new service
   async function handleSubmit(values: ServiceEditForm, resetForm: () => void) {
-    console.log('values', values)
     try {
       if (!isAssetNetwork) {
         setError('Please switch to the correct network.')
@@ -67,15 +77,15 @@ export default function AddService({
         accountId,
         values.paymentCollector,
         marketFeeAddress,
-        process.env.NEXT_PUBLIC_OCEAN_TOKEN_ADDRESS,
+        config.oceanTokenAddress,
         publisherMarketFixedSwapFee,
-        '100000000',
+        defaultDatatokenCap,
         'DataToken',
         'DT',
-        1
+        defaultDatatokenTemplateIndex
       )
 
-      console.log('Datatoken created.', datatokenAddress)
+      LoggerInstance.log('Datatoken created.', datatokenAddress)
 
       // --------------------------------------------------
       // 2. Create Pricing
@@ -84,13 +94,13 @@ export default function AddService({
 
       let pricingTransactionReceipt
       if (values.price > 0) {
-        console.log(
+        LoggerInstance.log(
           `Creating fixed rate exchange with price ${values.price} for datatoken ${datatokenAddress}`
         )
 
         const freParams: FreCreationParams = {
-          fixedRateAddress: process.env.NEXT_PUBLIC_FIXED_RATE_EXCHANGE_ADDRESS,
-          baseTokenAddress: process.env.NEXT_PUBLIC_OCEAN_TOKEN_ADDRESS,
+          fixedRateAddress: config.fixedRateExchangeAddress,
+          baseTokenAddress: config.oceanTokenAddress,
           owner: accountId,
           marketFeeCollector: marketFeeAddress,
           baseTokenDecimals: 18,
@@ -108,7 +118,9 @@ export default function AddService({
           freParams
         )
       } else {
-        console.log(`Creating dispenser for datatoken ${datatokenAddress}`)
+        LoggerInstance.log(
+          `Creating dispenser for datatoken ${datatokenAddress}`
+        )
 
         const dispenserParams: DispenserParams = {
           maxTokens: ethers.utils.parseEther('1').toString(),
@@ -119,20 +131,19 @@ export default function AddService({
         pricingTransactionReceipt = await datatoken.createDispenser(
           datatokenAddress,
           accountId,
-          process.env.NEXT_PUBLIC_DISPENSER_ADDRESS,
+          config.dispenserAddress,
           dispenserParams
         )
       }
 
-      const tx = await pricingTransactionReceipt.wait()
-      console.log('Pricing scheme created.')
+      await pricingTransactionReceipt.wait()
+      LoggerInstance.log('Pricing scheme created.')
 
       // --------------------------------------------------
       // 2. Update DDO
       // --------------------------------------------------
       let newFiles = asset.services[0].files // by default it could be the same file as in other services
       if (values.files[0]?.url) {
-        console.log('updating files')
         const file = {
           nftAddress: asset.nftAddress,
           datatokenAddress,
@@ -217,7 +228,7 @@ export default function AddService({
       {({ isSubmitting, values }) =>
         isSubmitting || hasFeedback ? (
           <EditFeedback
-            loading="Updating asset with new metadata..."
+            loading="Adding a new service..."
             error={error}
             success={success}
             setError={setError}
@@ -238,6 +249,26 @@ export default function AddService({
               accountId={accountId}
               isAssetNetwork={isAssetNetwork}
             />
+
+            {debug === true && (
+              <div className={styles.grid}>
+                <DebugEditService
+                  values={values}
+                  asset={asset}
+                  service={{
+                    id: 'WILL BE CALCULATED AFTER SUBMIT',
+                    type: 'access',
+                    datatokenAddress: 'WILL BE FILLED AFTER SUBMIT',
+                    name: '',
+                    description: '',
+                    files: asset.services[0].files,
+                    serviceEndpoint: asset.services[0].serviceEndpoint,
+                    timeout: 0,
+                    consumerParameters: []
+                  }}
+                />
+              </div>
+            )}
           </>
         )
       }

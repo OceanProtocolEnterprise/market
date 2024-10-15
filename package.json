@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "homepage": "https://github.com/OceanProtocolEnterprise",
   "scripts": {
-    "start": "npm run pregenerate && next dev -p 8000",
+    "start": "npm run pregenerate && next dev -p 8008",
     "build": "npm run pregenerate && next build",
     "build:static": "npm run build && next export",
     "serve": "serve -s public/",
@@ -29,7 +29,7 @@
     "@coingecko/cryptoformat": "^0.5.4",
     "@loadable/component": "^5.15.3",
     "@oceanprotocol/art": "^3.2.0",
-    "@oceanprotocol/lib": "^3.3.0",
+    "@oceanprotocol/lib": "^3.3.3",
     "@oceanprotocol/typographies": "^0.1.0",
     "@oceanprotocol/use-dark-mode": "^2.4.3",
     "@tippyjs/react": "^4.2.6",

@@ -19,7 +19,6 @@ export default function PriceUnit({
   explicitZero?: boolean
 }): ReactElement {
   const { locale } = useUserPreferences()
-
   return (
     <div className={`${styles.price} ${styles[size]} ${className}`}>
       {price === 0 && !explicitZero ? (
@@ -27,7 +26,7 @@ export default function PriceUnit({
       ) : (!price && price !== 0) || Number.isNaN(price) ? (
         <div>-</div>
       ) : (
-        <div>
+        <div className={`${styles.priceNumber} ${styles[size]}`}>
           {Number.isNaN(price) ? '-' : formatNumber(price, locale, decimals)}{' '}
           <span className={styles.symbol}>{symbol}</span>
         </div>

@@ -101,6 +101,7 @@ export async function getOrderPriceAndFees(
   }
 
   // calculate full price, we assume that all the values are in ocean, otherwise this will be incorrect
+  // TODO show decompose price?
   orderPriceAndFee.price = new Decimal(+orderPriceAndFee.price || 0)
     .add(new Decimal(+orderPriceAndFee?.consumeMarketOrderFee || 0))
     .add(new Decimal(+orderPriceAndFee?.publisherMarketOrderFee || 0))
@@ -139,8 +140,8 @@ export async function getAccessDetails(
       decimals: 0
     },
     paymentCollector: await datatoken.getPaymentCollector(datatokenAddress),
-    // TODO these 5 records
-    templateId: 1,
+    templateId: await datatoken.getId(datatokenAddress),
+    // TODO these 4 records
     isOwned: false,
     validOrderTx: '', // should be possible to get from ocean-node - orders collection in typesense
     isPurchasable: true,

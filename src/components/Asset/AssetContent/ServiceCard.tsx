@@ -11,6 +11,7 @@ export default function ServiceCard({
   accessDetails: AccessDetails
   onClick: () => void
 }): ReactElement {
+  if (!accessDetails) return null
   return (
     <div onClick={onClick} className={styles.service}>
       <span className={styles.title}>Name: </span>

@@ -10,6 +10,7 @@ import IconDownload from '@images/download.svg'
 import IconCompute from '@images/compute.svg'
 import FormEditComputeService from './FormEditComputeService'
 import { defaultServiceComputeOptions } from './_constants'
+import styles from './index.module.css'
 
 export default function FormEditService({
   data,
@@ -46,12 +47,8 @@ export default function FormEditService({
     }
   ]
 
-  const handleAccessChange = (value: string) => {
-    setFieldValue('access', value)
-  }
-
   return (
-    <Form style={{ margin: 20 }}>
+    <Form className={styles.form}>
       <Field {...getFieldContent('name', data)} component={Input} name="name" />
 
       <Field
@@ -65,7 +62,6 @@ export default function FormEditService({
         component={Input}
         name="access"
         options={accessTypeOptions}
-        onChange={handleAccessChange} // because BoxSelection component is not a Formik component and we have could have multiple Formiks on 1 page
         disabled={true}
       />
 

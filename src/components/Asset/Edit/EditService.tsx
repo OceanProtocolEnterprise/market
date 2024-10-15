@@ -23,6 +23,9 @@ import FormEditService from './FormEditService'
 import { transformComputeFormToServiceComputeOptions } from '@utils/compute'
 import { useCancelToken } from '@hooks/useCancelToken'
 import { serviceValidationSchema } from './_validation'
+import { useUserPreferences } from '@context/UserPreferences'
+import DebugEditService from './DebugEditService'
+import styles from './index.module.css'
 
 export default function EditService({
   asset,
@@ -33,6 +36,7 @@ export default function EditService({
   service: Service
   accessDetails: AccessDetails | undefined
 }): ReactElement {
+  const { debug } = useUserPreferences()
   const { fetchAsset, isAssetNetwork } = useAsset()
   const { address: accountId } = useAccount()
   const { chain } = useNetwork()
@@ -45,7 +49,6 @@ export default function EditService({
   const hasFeedback = error || success
 
   async function updateFixedPrice(newPrice: number) {
-    console.log('updateFixedPrice')
     const config = getOceanConfig(asset.chainId)
 
     const fixedRateInstance = new FixedRateExchange(
@@ -66,7 +69,6 @@ export default function EditService({
 
   // edit 1 service
   async function handleSubmit(values: ServiceEditForm, resetForm: () => void) {
-    console.log('values', values)
     try {
       // update fixed price if changed
       accessDetails.type === 'fixed' &&
@@ -75,7 +77,6 @@ export default function EditService({
 
       // update payment collector if changed
       if (values.paymentCollector !== accessDetails.paymentCollector) {
-        console.log('setting payment collector')
         const datatoken = new Datatoken(signer)
         await datatoken.setPaymentCollector(
           service.datatokenAddress,
@@ -86,7 +87,6 @@ export default function EditService({
 
       let updatedFiles = service.files
       if (values.files[0]?.url) {
-        console.log('updating files')
         const file = {
           nftAddress: asset.nftAddress,
           datatokenAddress: service.datatokenAddress,
@@ -173,7 +173,7 @@ export default function EditService({
       {({ isSubmitting, values }) =>
         isSubmitting || hasFeedback ? (
           <EditFeedback
-            loading="Updating asset with new metadata..."
+            loading="Updating service..."
             error={error}
             success={success}
             setError={setError}
@@ -199,6 +199,16 @@ export default function EditService({
               accountId={accountId}
               isAssetNetwork={isAssetNetwork}
             />
+
+            {debug === true && (
+              <div className={styles.grid}>
+                <DebugEditService
+                  values={values}
+                  asset={asset}
+                  service={service}
+                />
+              </div>
+            )}
           </>
         )
       }
