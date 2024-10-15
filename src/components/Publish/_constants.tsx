@@ -102,7 +102,8 @@ export const initialValues: FormPublishData = {
     type: allowFixedPricing === 'true' ? 'fixed' : 'free',
     freeAgreement: false
   },
-  customDDO: null
+  customDDO: '',
+  customDDOSignature: ''
 }
 
 export const algorithmContainerPresets: MetadataAlgorithmContainer[] = [

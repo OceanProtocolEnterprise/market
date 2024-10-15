@@ -264,7 +264,8 @@ export async function transformPublishFormToDdo(
         ...generateNftCreateData(values?.metadata.nft, accountId)
       }
     }),
-    customDDO: values?.customDDO ? values?.customDDO : ''
+    customDDO: values?.customDDO,
+    customDDOSignature: values?.customDDOSignature
   }
 
   return newDdo

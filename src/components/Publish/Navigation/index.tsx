@@ -25,14 +25,25 @@ export default function Navigation(): ReactElement {
     const isSuccessPricing =
       errors.pricing === undefined &&
       (touched.pricing?.price || touched.pricing?.freeAgreement)
+
+    const isCustomDDOSigned =
+      values.customDDO?.length > 0 && values.customDDOSignature?.length > 0
+    const isSuccessCustomDDO =
+      errors.customDDO === undefined &&
+      (isCustomDDOSigned || values.customDDO?.length === 0)
+
     const isSuccessPreview =
-      isSuccessMetadata && isSuccessServices && isSuccessPricing
+      isSuccessMetadata &&
+      isSuccessServices &&
+      isSuccessPricing &&
+      isSuccessCustomDDO
 
     const isSuccess =
       (step === 1 && isSuccessMetadata) ||
       (step === 2 && isSuccessServices) ||
       (step === 3 && isSuccessPricing) ||
-      (step === 4 && isSuccessPreview)
+      (step === 4 && isSuccessCustomDDO) ||
+      (step === 5 && isSuccessPreview)
 
     return isSuccess ? styles.success : null
   }
