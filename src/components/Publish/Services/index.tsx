@@ -7,6 +7,7 @@ import content from '../../../../content/publish/form.json'
 import consumerParametersContent from '../../../../content/publish/consumerParameters.json'
 import { getFieldContent } from '@utils/form'
 import { FormPublishData } from '../_types'
+import { useMarketMetadata } from '@context/MarketMetadata'
 
 const accessTypeOptionsTitles = getFieldContent(
   'access',
@@ -14,6 +15,8 @@ const accessTypeOptionsTitles = getFieldContent(
 ).options
 
 export default function ServicesFields(): ReactElement {
+  const { appConfig } = useMarketMetadata()
+
   // connect with Form state, use for conditional field rendering
   const { values, setFieldValue } = useFormikContext<FormPublishData>()
 
@@ -53,7 +56,8 @@ export default function ServicesFields(): ReactElement {
       values.services[0].algorithmPrivacy === true ? 'compute' : 'access'
     )
   }, [values.services[0].algorithmPrivacy, setFieldValue])
-
+  console.log(appConfig)
+  console.log(appConfig.ssiEnabled)
   return (
     <>
       <Field
@@ -102,16 +106,26 @@ export default function ServicesFields(): ReactElement {
         component={Input}
         name="services[0].usesConsumerParameters"
       />
-      <Field
-        {...getFieldContent('allow', content.services.fields)}
-        component={Input}
-        name="services[0].allow"
-      />
-      <Field
-        {...getFieldContent('deny', content.services.fields)}
-        component={Input}
-        name="services[0].deny"
-      />
+
+      {appConfig.ssiEnabled === true ? (
+        <>
+          <div>Here insert the ssi fields</div>
+        </>
+      ) : (
+        <>
+          <Field
+            {...getFieldContent('allow', content.services.fields)}
+            component={Input}
+            name="services[0].allow"
+          />
+          <Field
+            {...getFieldContent('deny', content.services.fields)}
+            component={Input}
+            name="services[0].deny"
+          />
+        </>
+      )}
+
       {values.services[0].usesConsumerParameters && (
         <Field
           {...getFieldContent(

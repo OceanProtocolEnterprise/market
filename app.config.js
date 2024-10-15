@@ -77,5 +77,8 @@ module.exports = {
     'https://dockerhub-proxy.oceanprotocol.com',
 
   // Display alert banner for the developer preview deployment
-  showPreviewAlert: process.env.NEXT_PUBLIC_SHOW_PREVIEW_ALERT || 'false'
+  showPreviewAlert: process.env.NEXT_PUBLIC_SHOW_PREVIEW_ALERT || 'false',
+
+  // This enables / disables the ssi support
+  ssiEnabled: Boolean(process.env.NEXT_PUBLIC_SSI_ENABLED) || false
 }
