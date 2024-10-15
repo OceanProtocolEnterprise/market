@@ -1,4 +1,8 @@
-import { FileInfo, ServiceComputeOptions } from '@oceanprotocol/lib'
+import {
+  AdditionalDdo,
+  FileInfo,
+  ServiceComputeOptions
+} from '@oceanprotocol/lib'
 import { NftMetadata } from '@utils/nft'
 import { ReactElement } from 'react'
 
@@ -48,8 +52,7 @@ export interface FormPublishData {
   services: FormPublishService[]
   pricing: PricePublishOptions
   feedback?: PublishFeedback
-  customDDO?: string
-  customDDOSignature?: string
+  additionalDdos: AdditionalDdo[]
 }
 
 export interface StepContent {

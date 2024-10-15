@@ -13,7 +13,7 @@ import Preview from './Preview'
 import Submission from './Submission'
 import { ServiceComputeOptions } from '@oceanprotocol/lib'
 import contentFeedback from '../../../content/publish/feedback.json'
-import AdditionalDDOFields from './AdditionalDDOs'
+import AdditionalDdosFields from './AdditionalDdos'
 
 export const wizardSteps: StepContent[] = [
   {
@@ -33,8 +33,8 @@ export const wizardSteps: StepContent[] = [
   },
   {
     step: 4,
-    title: content.additionalDDOs.title,
-    component: <AdditionalDDOFields />
+    title: content.additionalDdos.title,
+    component: <AdditionalDdosFields />
   },
   {
     step: 5,
@@ -102,8 +102,8 @@ export const initialValues: FormPublishData = {
     type: allowFixedPricing === 'true' ? 'fixed' : 'free',
     freeAgreement: false
   },
-  customDDO: '',
-  customDDOSignature: ''
+
+  additionalDdos: []
 }
 
 export const algorithmContainerPresets: MetadataAlgorithmContainer[] = [

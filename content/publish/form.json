@@ -325,14 +325,14 @@
       }
     ]
   },
-  "additionalDDOs": {
-    "title": "Additional DDOs",
+  "additionalDdos": {
+    "title": "Additional Ddos",
     "fields": [
       {
-        "name": "additionalDDO",
-        "label": "Additional DDO",
+        "name": "additionalDdos",
+        "label": "Additional Ddo",
         "placeholder": "{ ... }",
-        "help": "Insert a additional DDO",
+        "help": "Insert a additional Ddo",
         "type": "textarea"
       }
     ]
