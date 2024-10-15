@@ -13,7 +13,7 @@ import Preview from './Preview'
 import Submission from './Submission'
 import { ServiceComputeOptions } from '@oceanprotocol/lib'
 import contentFeedback from '../../../content/publish/feedback.json'
-import CustomDDOFields from './CustomDDO'
+import AdditionalDDOFields from './AdditionalDDOs'
 
 export const wizardSteps: StepContent[] = [
   {
@@ -33,8 +33,8 @@ export const wizardSteps: StepContent[] = [
   },
   {
     step: 4,
-    title: content.customDDO.title,
-    component: <CustomDDOFields />
+    title: content.additionalDDOs.title,
+    component: <AdditionalDDOFields />
   },
   {
     step: 5,

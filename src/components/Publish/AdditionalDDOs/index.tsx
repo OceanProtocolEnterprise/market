@@ -8,22 +8,25 @@ import { useAccount } from 'wagmi'
 import { FormPublishData } from '../_types'
 import { Signer } from 'ethers'
 
-export default function CustomDDOFields(): ReactElement {
+export default function AdditionalDDOFields(): ReactElement {
   const account = useAccount()
   const { values, setFieldValue } = useFormikContext<FormPublishData>()
 
   const handleSigning = async () => {
-    const signer: Signer = await account.connector.getSigner()
-    const signature = await signer.signMessage(values.customDDO)
-    await setFieldValue('customDDOSignature', signature)
+    const signer: Signer = await account.connector?.getSigner()
+
+    if (signer != null) {
+      const signature = await signer.signMessage(values.customDDO)
+      await setFieldValue('customDDOSignature', signature)
+    }
   }
 
   return (
     <>
       <Field
-        {...getFieldContent('customDDO', content.customDDO.fields)}
+        {...getFieldContent('additionalDDO', content.additionalDDOs.fields)}
         component={Input}
-        name="customDDO"
+        name="additionalDDO"
       />
       <Button style={'primary'} onClick={handleSigning}>
         Sign

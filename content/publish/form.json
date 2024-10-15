@@ -325,14 +325,14 @@
       }
     ]
   },
-  "customDDO": {
-    "title": "Custom DDO",
+  "additionalDDOs": {
+    "title": "Additional DDOs",
     "fields": [
       {
-        "name": "customDDO",
-        "label": "Custom DDO",
+        "name": "additionalDDO",
+        "label": "Additional DDO",
         "placeholder": "{ ... }",
-        "help": "Insert a custom DDO",
+        "help": "Insert a additional DDO",
         "type": "textarea"
       }
     ]
