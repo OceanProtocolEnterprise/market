@@ -56,8 +56,7 @@ export default function ServicesFields(): ReactElement {
       values.services[0].algorithmPrivacy === true ? 'compute' : 'access'
     )
   }, [values.services[0].algorithmPrivacy, setFieldValue])
-  console.log(appConfig)
-  console.log(appConfig.ssiEnabled)
+
   return (
     <>
       <Field
