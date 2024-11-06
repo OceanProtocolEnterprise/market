@@ -31,8 +31,6 @@ import {
   publisherMarketOrderFee,
   publisherMarketFixedSwapFee,
   defaultDatatokenTemplateIndex,
-  customProviderUrl,
-  defaultAccessTerms,
   defaultDatatokenCap
 } from '../../../app.config'
 import { sanitizeUrl } from '@utils/url'
@@ -265,7 +263,12 @@ export async function transformPublishFormToDdo(
         ...generateNftCreateData(values?.metadata.nft, accountId)
       }
     }),
-    additionalDdos: values?.additionalDdos
+    additionalDdos: values?.additionalDdos.map((ddo) => {
+      return {
+        data: ddo.signature?.length > 0 ? ddo.signature : ddo.data,
+        type: ddo.type
+      }
+    })
   }
 
   return newDdo

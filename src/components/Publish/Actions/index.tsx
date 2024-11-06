@@ -57,7 +57,7 @@ export default function Actions({
     (values.user.stepCurrent === 1 && errors.metadata !== undefined) ||
     (values.user.stepCurrent === 2 && errors.services !== undefined) ||
     (values.user.stepCurrent === 3 && errors.pricing !== undefined) ||
-    (values.user.stepCurrent === 4 && errors.customDDO !== undefined)
+    (values.user.stepCurrent === 4 && errors.additionalDdos !== undefined)
 
   const hasSubmitError =
     values.feedback?.[1].status === 'error' ||

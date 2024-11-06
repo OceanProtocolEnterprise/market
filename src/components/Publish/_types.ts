@@ -1,5 +1,5 @@
 import {
-  AdditionalDdo,
+  AdditionalVerifiableCredentials,
   FileInfo,
   ServiceComputeOptions
 } from '@oceanprotocol/lib'
@@ -21,10 +21,12 @@ export interface FormPublishService {
   deny?: string[]
 }
 
-export interface FormPublishAdditionalDdo {
+export interface FormAdditionalDdo {
+  signature: string
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any
   type: string
-  id: string
-  value: string
 }
 
 export interface FormPublishData {
@@ -58,7 +60,7 @@ export interface FormPublishData {
   services: FormPublishService[]
   pricing: PricePublishOptions
   feedback?: PublishFeedback
-  additionalDdos: AdditionalDdo[]
+  additionalDdos: FormAdditionalDdo[]
 }
 
 export interface StepContent {
