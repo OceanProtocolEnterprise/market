@@ -334,6 +334,12 @@
         "placeholder": "{ ... }",
         "help": "Insert an additional Ddo",
         "type": "textarea"
+      },
+      {
+        "name": "ssiKey",
+        "label": "SSI Primary Key",
+        "placeholder": "SSI Primary Key",
+        "required": true
       }
     ]
   },

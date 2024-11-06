@@ -1,6 +1,6 @@
 import Input from '@shared/FormInput'
 import { Field, useFormikContext } from 'formik'
-import { ReactElement } from 'react'
+import { ReactElement, useState } from 'react'
 import content from '../../../../content/publish/form.json'
 import styles from './index.module.css'
 import { getFieldContent } from '@utils/form'
@@ -8,12 +8,16 @@ import Button from '@components/@shared/atoms/Button'
 import { useAccount } from 'wagmi'
 import { FormAdditionalDdo, FormPublishData } from '../_types'
 import { Signer } from 'ethers'
+import jwt from 'jsonwebtoken'
+import { useMarketMetadata } from '@context/MarketMetadata'
 
 export default function AdditionalDdosFields(): ReactElement {
+  const { appConfig } = useMarketMetadata()
+
   const account = useAccount()
   const { values, setFieldValue } = useFormikContext<FormPublishData>()
 
-  const handleSigning = async () => {
+  const handleSigningWithWeb3Key = async () => {
     const signer: Signer = await account.connector?.getSigner()
     if (signer != null) {
       const signedDDOs: FormAdditionalDdo[] = []
@@ -30,6 +34,27 @@ export default function AdditionalDdosFields(): ReactElement {
       }
       await setFieldValue('additionalDdos', signedDDOs)
     }
+  }
+
+  const handleSigningWithSSIKey = async () => {
+    if (values.ssiKey?.length === 0) {
+      return
+    }
+
+    const signedDDOs: FormAdditionalDdo[] = []
+    for (const ddo of values.additionalDdos) {
+      if ((ddo.data as string).length === 0) {
+        continue
+      }
+
+      const token = jwt.sign(ddo.data, values.ssiKey)
+      signedDDOs.push({
+        data: ddo.data,
+        type: ddo.type,
+        signature: token
+      })
+    }
+    await setFieldValue('additionalDdos', signedDDOs)
   }
 
   const handleNewDdo = () => {
@@ -53,6 +78,13 @@ export default function AdditionalDdosFields(): ReactElement {
 
   return (
     <>
+      <p>
+        <Field
+          {...getFieldContent('ssiKey', content.additionalDdos.fields)}
+          component={Input}
+          name="ssiKey"
+        />
+      </p>
       <p>
         <Button type="button" style={'primary'} onClick={handleNewDdo}>
           New Ddo
@@ -86,9 +118,24 @@ export default function AdditionalDdosFields(): ReactElement {
         )
       })}
 
-      <Button type="button" style={'primary'} onClick={handleSigning}>
-        Sign
-      </Button>
+      {appConfig.ssiEnabled ? (
+        <Button
+          type="button"
+          style={'primary'}
+          disabled={values.ssiKey === undefined || values.ssiKey?.length === 0}
+          onClick={handleSigningWithSSIKey}
+        >
+          Sign
+        </Button>
+      ) : (
+        <Button
+          type="button"
+          style={'primary'}
+          onClick={handleSigningWithWeb3Key}
+        >
+          Sign
+        </Button>
+      )}
     </>
   )
 }
