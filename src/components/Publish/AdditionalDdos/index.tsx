@@ -59,23 +59,26 @@ export default function AdditionalDdosFields(): ReactElement {
       {values.additionalDdos.map((ddo, index) => {
         return (
           <div key={`${index}`} className={styles.inputLine}>
-            <Field
-              className={styles.ddoField}
-              {...getFieldContent(
-                'additionalDdos',
-                content.additionalDdos.fields
-              )}
-              component={Input}
-              name={`additionalDdos[${index}].data`}
-            />
-            <Button
-              className={styles.deleteBtn}
-              type="button"
-              style={'primary'}
-              onClick={() => handleDelete(index)}
-            >
-              Delete
-            </Button>
+            <div className={styles.ddoFieldColumn}>
+              <Field
+                {...getFieldContent(
+                  'additionalDdos',
+                  content.additionalDdos.fields
+                )}
+                component={Input}
+                name={`additionalDdos[${index}].data`}
+                rows={15}
+              />
+            </div>
+            <div className={styles.deleteBtnColumn}>
+              <Button
+                type="button"
+                style={'primary'}
+                onClick={() => handleDelete(index)}
+              >
+                Delete
+              </Button>
+            </div>
           </div>
         )
       })}

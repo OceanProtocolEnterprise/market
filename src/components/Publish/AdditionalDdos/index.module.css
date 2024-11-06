@@ -1,13 +1,15 @@
 .inputLine {
   display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
 }
 
-.ddoField {
-  width: auto;
+.ddoFieldColumn {
+  width: 100%;
 }
 
-.deleteBtn {
+.deleteBtnColumn {
   height: fit-content;
-  width: auto;
   margin-top: 26px;
+  width: auto;
 }
