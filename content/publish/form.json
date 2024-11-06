@@ -332,7 +332,7 @@
         "name": "additionalDdos",
         "label": "Additional Ddo",
         "placeholder": "{ ... }",
-        "help": "Insert a additional Ddo",
+        "help": "Insert an additional Ddo",
         "type": "textarea"
       }
     ]
