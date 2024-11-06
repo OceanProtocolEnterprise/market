@@ -18,6 +18,9 @@ export default function AdditionalDdosFields(): ReactElement {
     if (signer != null) {
       const signedDDOs: FormAdditionalDdo[] = []
       for (const ddo of values.additionalDdos) {
+        if ((ddo.data as string).length === 0) {
+          continue
+        }
         const signature = await signer.signMessage(ddo.data)
         signedDDOs.push({
           data: ddo.data,
