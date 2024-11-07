@@ -1,7 +1,15 @@
+.ssiKey {
+  margin-bottom: -2em;
+}
+
 .inputLine {
   display: flex;
   justify-content: flex-end;
   flex-shrink: 0;
+}
+
+.newDdoBtn {
+  margin-bottom: 1em;
 }
 
 .ddoFieldColumn {

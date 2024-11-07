@@ -103,7 +103,8 @@ export const initialValues: FormPublishData = {
     freeAgreement: false
   },
 
-  additionalDdos: []
+  additionalDdos: [],
+  ssiKey: ''
 }
 
 export const algorithmContainerPresets: MetadataAlgorithmContainer[] = [

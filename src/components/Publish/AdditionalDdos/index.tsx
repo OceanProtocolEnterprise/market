@@ -78,18 +78,17 @@ export default function AdditionalDdosFields(): ReactElement {
 
   return (
     <>
-      <p>
-        <Field
-          {...getFieldContent('ssiKey', content.additionalDdos.fields)}
-          component={Input}
-          name="ssiKey"
-        />
-      </p>
-      <p>
-        <Button type="button" style={'primary'} onClick={handleNewDdo}>
+      <Field
+        {...getFieldContent('ssiKey', content.additionalDdos.fields)}
+        component={Input}
+        className={styles.ssiKey}
+        name="ssiKey"
+      />
+      <div className={styles.newDdoBtn}>
+        <Button type="button" style="primary" onClick={handleNewDdo}>
           New Ddo
         </Button>
-      </p>
+      </div>
 
       {values.additionalDdos.map((ddo, index) => {
         return (

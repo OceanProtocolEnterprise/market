@@ -60,7 +60,9 @@ export interface FormPublishData {
   services: FormPublishService[]
   pricing: PricePublishOptions
   feedback?: PublishFeedback
+
   additionalDdos: FormAdditionalDdo[]
+  ssiKey: string
 }
 
 export interface StepContent {
