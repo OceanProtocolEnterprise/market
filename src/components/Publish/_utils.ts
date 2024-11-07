@@ -143,7 +143,8 @@ export async function transformPublishFormToDdo(
     dockerImageCustomEntrypoint,
     dockerImageCustomChecksum,
     usesConsumerParameters,
-    consumerParameters
+    consumerParameters,
+    accessTermsAndConditions
   } = metadata
   const { access, files, links, providerUrl, timeout, allow, deny } =
     services[0]
@@ -179,7 +180,8 @@ export async function transformPublishFormToDdo(
       values.metadata.license || 'https://market.oceanprotocol.com/terms',
     links: linksTransformed,
     additionalInformation: {
-      termsAndConditions
+      termsAndConditions,
+      accessTermsAndConditions
     },
     ...(type === 'algorithm' &&
       dockerImage !== '' && {

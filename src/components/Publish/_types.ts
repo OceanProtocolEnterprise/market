@@ -44,6 +44,7 @@ export interface FormPublishData {
     author: string
     termsAndConditions: boolean
     license?: string
+    accessTermsAndConditions?: string
     tags?: string[]
     dockerImage?: string
     dockerImageCustom?: string
@@ -98,4 +99,12 @@ export interface FormConsumerParameter {
   default: string | boolean | number
   options?: { key: string; value: string }[]
   value?: string | boolean | number
+}
+
+export interface SsiKey {
+  kty: string
+  d: string
+  crv: string
+  kid: string
+  x: string
 }
