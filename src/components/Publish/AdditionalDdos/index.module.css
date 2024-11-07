@@ -1,5 +1,5 @@
 .ssiKey {
-  margin-bottom: -2em;
+  margin-bottom: calc(var(--spacer) / 1.5);
 }
 
 .inputLine {
@@ -9,7 +9,7 @@
 }
 
 .newDdoBtn {
-  margin-bottom: 1em;
+  margin-bottom: calc(var(--spacer) / 1.5);
 }
 
 .ddoFieldColumn {

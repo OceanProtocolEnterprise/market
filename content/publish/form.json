@@ -300,6 +300,12 @@
         "required": true
       },
       {
+        "name": "policies",
+        "label": "Used Policies",
+        "type": "tags",
+        "placeholder": "e.g. PassPort"
+      },
+      {
         "name": "usesConsumerParameters",
         "label": "User defined parameters",
         "help": "User defined parameters are used to filter or query the published asset.",
