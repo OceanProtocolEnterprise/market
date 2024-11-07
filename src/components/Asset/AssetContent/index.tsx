@@ -18,6 +18,7 @@ import RelatedAssets from '../RelatedAssets'
 import Web3Feedback from '@components/@shared/Web3Feedback'
 import { useAccount } from 'wagmi'
 import ServiceCard from './ServiceCard'
+import Link from 'next/link'
 
 export default function AssetContent({
   asset
@@ -30,6 +31,8 @@ export default function AssetContent({
   const [receipts, setReceipts] = useState([])
   const [nftPublisher, setNftPublisher] = useState<string>()
   const [selectedService, setSelectedService] = useState<number | undefined>()
+  const [acceptTermsAndConditions, setAcceptTermsAndCondition] =
+    useState<boolean>(false)
 
   useEffect(() => {
     if (!receipts.length) return
@@ -39,6 +42,9 @@ export default function AssetContent({
     setNftPublisher(publisher)
   }, [receipts])
 
+  const handleAcceptTermsAndCondition = () => {
+    setAcceptTermsAndCondition(!acceptTermsAndConditions)
+  }
   return (
     <>
       <div className={styles.networkWrap}>
@@ -81,17 +87,44 @@ export default function AssetContent({
               {selectedService === undefined ? (
                 <>
                   <h3>Available services:</h3>
-                  <h4>Please select one of the following:</h4>
-                  <div className={styles.servicesGrid}>
-                    {asset.services.map((service, index) => (
-                      <ServiceCard
-                        key={service.id}
-                        service={service}
-                        accessDetails={asset.accessDetails[index]}
-                        onClick={() => setSelectedService(index)}
+
+                  {acceptTermsAndConditions ? (
+                    <>
+                      <h4>Please select one of the following:</h4>
+
+                      <div className={styles.servicesGrid}>
+                        {asset.services.map((service, index) => (
+                          <ServiceCard
+                            key={service.id}
+                            service={service}
+                            accessDetails={asset.accessDetails[index]}
+                            onClick={() => setSelectedService(index)}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={acceptTermsAndConditions}
+                        onChange={handleAcceptTermsAndCondition}
                       />
-                    ))}
-                  </div>
+                      <Link
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href={
+                          asset.metadata?.additionalInformation
+                            ?.accessTermsAndConditions
+                            ? asset.metadata?.additionalInformation
+                                ?.accessTermsAndConditions
+                            : '/terms'
+                        }
+                      >
+                        Accept Terms and Conditions
+                      </Link>
+                    </label>
+                  )}
                 </>
               ) : (
                 <AssetActions

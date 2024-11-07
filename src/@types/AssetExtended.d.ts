@@ -34,3 +34,11 @@ declare global {
     offchain?: OffChain // TODO - in future it will be directly included in Asset type in @oceanprotocol/lib
   }
 }
+
+interface MetadataExtended {
+  additionalInformation: AdditionInformation
+}
+
+interface AdditionInformation {
+  accessTermsAndConditions: string
+}
