@@ -110,6 +110,7 @@ export default function AssetContent({
                         checked={acceptTermsAndConditions}
                         onChange={handleAcceptTermsAndCondition}
                       />
+                      Accept&nbsp;
                       <Link
                         target="_blank"
                         rel="noopener noreferrer"
@@ -121,7 +122,7 @@ export default function AssetContent({
                             : '/terms'
                         }
                       >
-                        Accept Terms and Conditions
+                        Terms and Conditions
                       </Link>
                     </label>
                   )}
