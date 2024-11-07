@@ -6,10 +6,15 @@ import styles from './index.module.css'
 import { getFieldContent } from '@utils/form'
 import Button from '@components/@shared/atoms/Button'
 import { useAccount } from 'wagmi'
-import { FormAdditionalDdo, FormPublishData } from '../_types'
+import { FormAdditionalDdo, FormPublishData, SsiKey } from '../_types'
 import { Signer } from 'ethers'
 import jwt from 'jsonwebtoken'
 import { useMarketMetadata } from '@context/MarketMetadata'
+
+function parseTwiceIfNeeded<T>(jsonString: string): T {
+  const firstParse = JSON.parse(jsonString)
+  return typeof firstParse === 'string' ? JSON.parse(firstParse) : firstParse
+}
 
 export default function AdditionalDdosFields(): ReactElement {
   const { appConfig } = useMarketMetadata()
@@ -47,12 +52,21 @@ export default function AdditionalDdosFields(): ReactElement {
         continue
       }
 
-      const token = jwt.sign(ddo.data, values.ssiKey)
-      signedDDOs.push({
-        data: ddo.data,
-        type: ddo.type,
-        signature: token
-      })
+      try {
+        const ssiKey = parseTwiceIfNeeded<SsiKey>(values.ssiKey)
+        if (ssiKey.d === undefined || ssiKey.d?.length === 0) {
+          return console.error('No private key available')
+        }
+
+        const token = jwt.sign(ddo.data, ssiKey.d)
+        signedDDOs.push({
+          data: ddo.data,
+          type: ddo.type,
+          signature: token
+        })
+      } catch (e: any) {
+        return console.error(e)
+      }
     }
     await setFieldValue('additionalDdos', signedDDOs)
   }
