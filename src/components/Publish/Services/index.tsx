@@ -103,12 +103,20 @@ export default function ServicesFields(): ReactElement {
       />
 
       {appConfig.ssiEnabled === true ? (
-        <Field
-          className={styles.policyAutocomplete}
-          {...getFieldContent('policies', content.services.fields)}
-          component={Input}
-          name="services[0].policies"
-        />
+        <>
+          <Field
+            className={styles.policyAutocomplete}
+            {...getFieldContent('policies', content.services.fields)}
+            component={Input}
+            name="services[0].policies"
+          />
+          <Field
+            {...getFieldContent('customPolicies', content.services.fields)}
+            component={Input}
+            name="services[0].customPolicies"
+            rows={10}
+          />
+        </>
       ) : (
         <>
           <Field

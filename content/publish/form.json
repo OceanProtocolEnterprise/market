@@ -306,6 +306,12 @@
         "placeholder": "e.g. PassPort"
       },
       {
+        "name": "customPolicies",
+        "label": "Custom Policies",
+        "type": "textarea",
+        "placeholder": "Example:\n\npackage access\n\ndefault allow=false\n\nallow {\n\tinput.credentials.password.placeOfBirth=\"Paris\"\n}"
+      },
+      {
         "name": "usesConsumerParameters",
         "label": "User defined parameters",
         "help": "User defined parameters are used to filter or query the published asset.",

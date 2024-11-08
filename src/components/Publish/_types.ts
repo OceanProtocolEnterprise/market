@@ -1,8 +1,4 @@
-import {
-  AdditionalVerifiableCredentials,
-  FileInfo,
-  ServiceComputeOptions
-} from '@oceanprotocol/lib'
+import { FileInfo, ServiceComputeOptions } from '@oceanprotocol/lib'
 import { NftMetadata } from '@utils/nft'
 import { ReactElement } from 'react'
 
@@ -19,6 +15,8 @@ export interface FormPublishService {
   consumerParameters?: FormConsumerParameter[]
   allow?: string[]
   deny?: string[]
+  policies: string[]
+  customPolicies: string
 }
 
 export interface FormAdditionalDdo {
@@ -61,7 +59,6 @@ export interface FormPublishData {
   services: FormPublishService[]
   pricing: PricePublishOptions
   feedback?: PublishFeedback
-
   additionalDdos: FormAdditionalDdo[]
   ssiKey: string
 }
