@@ -302,7 +302,7 @@
       {
         "name": "policies",
         "label": "Used Policies",
-        "type": "tags",
+        "type": "policyList",
         "placeholder": "e.g. PassPort"
       },
       {

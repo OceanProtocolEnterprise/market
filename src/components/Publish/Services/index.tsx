@@ -1,6 +1,6 @@
 import Input from '@shared/FormInput'
 import { Field, useFormikContext } from 'formik'
-import { ReactElement, useEffect, useState } from 'react'
+import { ReactElement, useEffect } from 'react'
 import IconDownload from '@images/download.svg'
 import IconCompute from '@images/compute.svg'
 import content from '../../../../content/publish/form.json'
@@ -8,7 +8,6 @@ import consumerParametersContent from '../../../../content/publish/consumerParam
 import { getFieldContent } from '@utils/form'
 import { FormPublishData } from '../_types'
 import { useMarketMetadata } from '@context/MarketMetadata'
-import PolicyListAutoComplete from '@components/@shared/FormInput/InputElement/PolicyListAutoComplete'
 import styles from './index.module.css'
 
 const accessTypeOptionsTitles = getFieldContent(
@@ -104,12 +103,12 @@ export default function ServicesFields(): ReactElement {
       />
 
       {appConfig.ssiEnabled === true ? (
-        <div className={styles.policyAutocomplete}>
-          <PolicyListAutoComplete
-            {...getFieldContent('policies', content.services.fields)}
-            name="services[0].policies"
-          />
-        </div>
+        <Field
+          className={styles.policyAutocomplete}
+          {...getFieldContent('policies', content.services.fields)}
+          component={Input}
+          name="services[0].policies"
+        />
       ) : (
         <>
           <Field
