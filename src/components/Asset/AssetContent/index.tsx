@@ -104,7 +104,7 @@ export default function AssetContent({
                       </div>
                     </>
                   ) : (
-                    <label>
+                    <div className={styles.accessTaC}>
                       <input
                         type="checkbox"
                         checked={acceptTermsAndConditions}
@@ -124,7 +124,7 @@ export default function AssetContent({
                       >
                         Terms and Conditions
                       </Link>
-                    </label>
+                    </div>
                   )}
                 </>
               ) : (
