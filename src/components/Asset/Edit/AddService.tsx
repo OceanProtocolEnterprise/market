@@ -55,7 +55,7 @@ export default function AddService({
   const { data: signer } = useSigner()
   const newAbortController = useAbortController()
   const newCancelToken = useCancelToken()
-  const config = getOceanConfig(asset?.chainId)
+  const config = getOceanConfig(asset?.credentialSubject?.chainId)
 
   const [success, setSuccess] = useState<string>()
   const [error, setError] = useState<string>()
@@ -157,7 +157,7 @@ export default function AddService({
 
         const filesEncrypted = await getEncryptedFiles(
           file,
-          asset.chainId,
+          asset.credentialSubject?.chainId,
           values.providerUrl.url
         )
         newFiles = filesEncrypted
@@ -183,7 +183,7 @@ export default function AddService({
           compute: await transformComputeFormToServiceComputeOptions(
             values,
             defaultServiceComputeOptions,
-            asset.chainId,
+            asset.credentialSubject?.chainId,
             newCancelToken()
           )
         }),
@@ -226,7 +226,10 @@ export default function AddService({
   return (
     <Formik
       enableReinitialize
-      initialValues={getNewServiceInitialValues(accountId, asset.services[0])}
+      initialValues={getNewServiceInitialValues(
+        accountId,
+        asset.credentialSubject?.services[0]
+      )}
       validationSchema={serviceValidationSchema}
       onSubmit={async (values, { resetForm }) => {
         // move user's focus to top of screen
@@ -247,15 +250,18 @@ export default function AddService({
               onClick: async () => {
                 await fetchAsset()
               },
-              to: `/asset/${asset.id}`
+              to: `/asset/${asset.credentialSubject?.id}`
             }}
           />
         ) : (
           <>
-            <FormAddService data={content.form.data} chainId={asset.chainId} />
+            <FormAddService
+              data={content.form.data}
+              chainId={asset.credentialSubject?.chainId}
+            />
 
             <Web3Feedback
-              networkId={asset?.chainId}
+              networkId={asset?.credentialSubject?.chainId}
               accountId={accountId}
               isAssetNetwork={isAssetNetwork}
             />
@@ -271,8 +277,9 @@ export default function AddService({
                     datatokenAddress: 'WILL BE FILLED AFTER SUBMIT',
                     name: '',
                     description: '',
-                    files: asset.services[0].files,
-                    serviceEndpoint: asset.services[0].serviceEndpoint,
+                    files: asset.credentialSubject?.services[0].files,
+                    serviceEndpoint:
+                      asset.credentialSubject?.services[0].serviceEndpoint,
                     timeout: 0,
                     consumerParameters: []
                   }}

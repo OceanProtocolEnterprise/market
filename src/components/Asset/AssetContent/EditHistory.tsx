@@ -57,7 +57,7 @@ export default function EditHistory({
   useEffect(() => {
     if (!asset) return
 
-    const queryContext = getQueryContext(asset.chainId)
+    const queryContext = getQueryContext(asset.credentialSubject?.chainId)
     setQueryContext(queryContext)
   }, [asset])
 
@@ -84,7 +84,10 @@ export default function EditHistory({
       <ul className={styles.history}>
         {receipts?.map((receipt) => (
           <li key={receipt.id} className={styles.item}>
-            <ExplorerLink networkId={asset?.chainId} path={`/tx/${receipt.tx}`}>
+            <ExplorerLink
+              networkId={asset?.credentialSubject?.chainId}
+              path={`/tx/${receipt.tx}`}
+            >
               {getUpdateType(receipt.type)}{' '}
               <Time date={`${receipt.timestamp}`} relative isUnix />
             </ExplorerLink>

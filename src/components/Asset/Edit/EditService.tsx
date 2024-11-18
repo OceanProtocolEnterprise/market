@@ -52,7 +52,7 @@ export default function EditService({
   const hasFeedback = error || success
 
   async function updateFixedPrice(newPrice: number) {
-    const config = getOceanConfig(asset.chainId)
+    const config = getOceanConfig(asset.credentialSubject?.chainId)
 
     const fixedRateInstance = new FixedRateExchange(
       config.fixedRateExchangeAddress,
@@ -100,7 +100,7 @@ export default function EditService({
 
         const filesEncrypted = await getEncryptedFiles(
           file,
-          asset.chainId,
+          asset.credentialSubject?.chainId,
           service.serviceEndpoint
         )
         updatedFiles = filesEncrypted
@@ -123,7 +123,7 @@ export default function EditService({
           compute: await transformComputeFormToServiceComputeOptions(
             values,
             service.compute,
-            asset.chainId,
+            asset.credentialSubject?.chainId,
             newCancelToken()
           )
         })
@@ -135,9 +135,11 @@ export default function EditService({
       }
 
       // update asset with new service
-      const serviceIndex = asset.services.findIndex((s) => s.id === service.id)
+      const serviceIndex = asset.credentialSubject?.services.findIndex(
+        (s) => s.id === service.id
+      )
       const updatedAsset = { ...asset }
-      updatedAsset.services[serviceIndex] = updatedService
+      updatedAsset.credentialSubject?.services[serviceIndex] = updatedService
 
       // delete custom helper properties injected in the market so we don't write them on chain
       delete (updatedAsset as AssetExtended).accessDetails
@@ -192,20 +194,20 @@ export default function EditService({
               onClick: async () => {
                 await fetchAsset()
               },
-              to: `/asset/${asset.id}`
+              to: `/asset/${asset.credentialSubject?.id}`
             }}
           />
         ) : (
           <>
             <FormEditService
               data={content.form.data}
-              chainId={asset.chainId}
+              chainId={asset.credentialSubject?.chainId}
               service={service}
               accessDetails={accessDetails}
             />
 
             <Web3Feedback
-              networkId={asset?.chainId}
+              networkId={asset?.credentialSubject?.chainId}
               accountId={accountId}
               isAssetNetwork={isAssetNetwork}
             />

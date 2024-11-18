@@ -156,8 +156,8 @@ export default function FormStartCompute({
       // TODO test this type override
       const algorithmAsset: AssetExtended = getAlgorithmAsset(values.algorithm)
       const algoAccessDetails = await Promise.all(
-        algorithmAsset.services.map((service) =>
-          getAccessDetails(algorithmAsset.chainId, service)
+        algorithmAsset.credentialSubject?.services.map((service) =>
+          getAccessDetails(algorithmAsset.credentialSubject?.chainId, service)
         )
       )
 
@@ -387,9 +387,7 @@ export default function FormStartCompute({
               hasDatatokenSelectedComputeAsset={
                 hasDatatokenSelectedComputeAsset
               }
-              algorithmConsumeDetails={
-                selectedAlgorithmAsset?.accessDetails?.[0]
-              }
+              algorithmConsumeDetails={selectedAlgorithmAsset?.accessDetails[0]}
               symbol={datasetSymbol}
               algorithmSymbol={algorithmSymbol}
               datasetOrderPrice={datasetOrderPrice}
@@ -423,7 +421,7 @@ export default function FormStartCompute({
                 hasDatatoken={hasDatatokenSelectedComputeAsset}
                 price={new Decimal(
                   algoOrderPrice ||
-                    selectedAlgorithmAsset?.accessDetails?.[0]?.price ||
+                    selectedAlgorithmAsset?.accessDetails[0]?.price ||
                     0
                 )
                   .toDecimalPlaces(MAX_DECIMALS)
@@ -459,7 +457,7 @@ export default function FormStartCompute({
                   .mul(
                     new Decimal(
                       algoOrderPrice ||
-                        selectedAlgorithmAsset?.accessDetails?.[0]?.price ||
+                        selectedAlgorithmAsset?.accessDetails[0]?.price ||
                         0
                     )
                   )

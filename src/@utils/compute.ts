@@ -140,14 +140,14 @@ export function getValidUntilTime(
 export async function getComputeEnvironment(
   asset: Asset
 ): Promise<ComputeEnvironment> {
-  if (asset?.services[0]?.type !== 'compute') return null
+  if (asset?.credentialSubject?.services[0]?.type !== 'compute') return null
   try {
     const computeEnvs = await ProviderInstance.getComputeEnvironments(
-      asset.services[0].serviceEndpoint
+      asset.credentialSubject?.services[0].serviceEndpoint
     )
     const computeEnv = Array.isArray(computeEnvs)
       ? computeEnvs[0]
-      : computeEnvs[asset.chainId][0]
+      : computeEnvs[asset?.credentialSubject?.chainId][0]
 
     if (!computeEnv) return null
     return computeEnv
@@ -207,7 +207,7 @@ export async function getAlgorithmsForAsset(
     getQueryString(
       service.compute.publisherTrustedAlgorithms,
       service.compute.publisherTrustedAlgorithmPublishers,
-      asset.chainId
+      asset.credentialSubject?.chainId
     ),
     token
   )
@@ -273,13 +273,13 @@ async function getJobs(
 
       providersComputeJobsExtended.forEach((job) => {
         const did = job.inputDID[0]
-        const asset = assets.filter((x) => x.id === did)[0]
+        const asset = assets.filter((x) => x.credentialSubject?.id === did)[0]
         if (asset) {
           const compJob: ComputeJobMetaData = {
             ...job,
-            assetName: asset.metadata.name,
-            assetDtSymbol: asset.datatokens[0].symbol,
-            networkId: asset.chainId
+            assetName: asset.credentialSubject?.metadata?.name,
+            assetDtSymbol: asset.credentialSubject?.datatokens[0].symbol,
+            networkId: asset.credentialSubject.chainId
           }
           computeJobs.push(compJob)
         }
@@ -314,7 +314,7 @@ export async function getComputeJobs(
   const results = await fetchDataForMultipleChains(
     assetDTAddress ? getComputeOrdersByDatatokenAddress : getComputeOrders,
     variables,
-    assetDTAddress ? [asset.chainId] : chainIds
+    assetDTAddress ? [asset.credentialSubject?.chainId] : chainIds
   )
 
   let tokenOrders: TokenOrder[] = []
@@ -345,7 +345,7 @@ export async function getComputeJobs(
 
   const providerUrls: string[] = []
   assets.forEach((asset: Asset) =>
-    providerUrls.push(asset.services[0].serviceEndpoint)
+    providerUrls.push(asset.credentialSubject.services[0].serviceEndpoint)
   )
 
   computeResult.computeJobs = await getJobs(providerUrls, accountId, assets)
@@ -376,16 +376,17 @@ export async function createTrustedAlgorithmList(
 
   for (const selectedAlgorithm of selectedAssets) {
     const filesChecksum = await getFileDidInfo(
-      selectedAlgorithm?.id,
-      selectedAlgorithm?.services?.[0].id,
-      selectedAlgorithm?.services?.[0]?.serviceEndpoint,
+      selectedAlgorithm?.credentialSubject?.id,
+      selectedAlgorithm?.credentialSubject?.services?.[0].id,
+      selectedAlgorithm?.credentialSubject?.services?.[0]?.serviceEndpoint,
       true
     )
     const containerChecksum =
-      selectedAlgorithm.metadata.algorithm.container.entrypoint +
-      selectedAlgorithm.metadata.algorithm.container.checksum
+      selectedAlgorithm.credentialSubject?.metadata.algorithm.container
+        .entrypoint +
+      selectedAlgorithm.credentialSubject?.metadata.algorithm.container.checksum
     const trustedAlgorithm = {
-      did: selectedAlgorithm.id,
+      did: selectedAlgorithm.credentialSubject?.id,
       containerSectionChecksum: getHash(containerChecksum),
       filesChecksum: filesChecksum?.[0]?.checksum
     }

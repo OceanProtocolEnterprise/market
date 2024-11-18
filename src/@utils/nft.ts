@@ -112,8 +112,8 @@ export async function setNftMetadata(
   try {
     encryptedDdo = await ProviderInstance.encrypt(
       asset,
-      asset.chainId,
-      customProviderUrl || asset.services[0].serviceEndpoint,
+      asset.credentialSubject?.chainId,
+      customProviderUrl || asset.credentialSubject?.services[0].serviceEndpoint,
       signal
     )
   } catch (err) {
@@ -133,7 +133,7 @@ export async function setNftMetadata(
     asset.nftAddress,
     accountId,
     0,
-    asset.services[0].serviceEndpoint,
+    asset.credentialSubject?.services[0].serviceEndpoint,
     '',
     flags,
     encryptedDdo,
@@ -154,8 +154,8 @@ export async function setNFTMetadataAndTokenURI(
   try {
     encryptedDdo = await ProviderInstance.encrypt(
       asset,
-      asset.chainId,
-      customProviderUrl || asset.services[0].serviceEndpoint,
+      asset.credentialSubject?.chainId,
+      customProviderUrl || asset.credentialSubject?.services[0].serviceEndpoint,
       signal
     )
   } catch (err) {
@@ -173,7 +173,7 @@ export async function setNFTMetadataAndTokenURI(
   // add final did to external_url and asset link to description in nftMetadata before encoding
   const externalUrl = `${
     nftMetadata?.external_url || nftMetadataTemplate.external_url
-  }/asset/${asset.id}`
+  }/asset/${asset.credentialSubject?.id}`
   //  TODO: restore to old structure where nftMetadata is always provided
   const encodedMetadata = Buffer.from(
     JSON.stringify(

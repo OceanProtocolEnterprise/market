@@ -63,20 +63,27 @@ export default function ConsumerParameters({
       })
     }
     // TODO -
-    if (selectedAlgorithmAsset?.services[0]?.consumerParameters?.length > 0) {
+    if (
+      selectedAlgorithmAsset?.credentialSubject?.services[0]?.consumerParameters
+        ?.length > 0
+    ) {
       tabs.push({
         title: 'Algo Service',
         content: (
           <FormConsumerParameters
             name="algoServiceParams"
-            parameters={selectedAlgorithmAsset.services[0].consumerParameters}
+            parameters={
+              selectedAlgorithmAsset.credentialSubject?.services[0]
+                .consumerParameters
+            }
             disabled={isLoading}
           />
         )
       })
     }
     if (
-      selectedAlgorithmAsset?.metadata?.algorithm?.consumerParameters?.length
+      selectedAlgorithmAsset?.credentialSubject?.metadata?.algorithm
+        ?.consumerParameters?.length
     ) {
       tabs.push({
         title: 'Algo Params',
@@ -84,7 +91,8 @@ export default function ConsumerParameters({
           <FormConsumerParameters
             name="algoParams"
             parameters={
-              selectedAlgorithmAsset.metadata?.algorithm.consumerParameters
+              selectedAlgorithmAsset.credentialSubject?.metadata?.algorithm
+                .consumerParameters
             }
             disabled={isLoading}
           />

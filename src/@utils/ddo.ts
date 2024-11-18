@@ -32,14 +32,18 @@ export function getServiceByName(
 ): Service {
   if (!ddo) return
 
-  const service = ddo.services.filter((service) => service.type === name)[0]
+  const service = ddo.credentialSubject?.services.filter(
+    (service) => service.credentialSubject?.type === name
+  )[0]
   return service
 }
 
 export function getServiceById(ddo: Asset | DDO, serviceId: string): Service {
   if (!ddo) return
 
-  const service = ddo.services.find((s) => s.id === serviceId)
+  const service = ddo.credentialSubject?.services.find(
+    (s) => s.id === serviceId
+  )
   return service
 }
 
@@ -212,12 +216,12 @@ export function isAddressWhitelisted(
   ddo: AssetExtended,
   accountId: string
 ): boolean {
-  if (!ddo || !accountId) return false
+  if (!ddo || !ddo?.credentialSubject || !accountId) return false
 
   // All addresses can access
-  if (!ddo.credentials) return true
+  if (!ddo.credentialSubject?.credentials) return true
 
-  const { credentials } = ddo
+  const { credentials } = ddo.credentialSubject
 
   const isAddressWhitelisted =
     !credentials.allow ||

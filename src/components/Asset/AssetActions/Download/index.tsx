@@ -263,11 +263,11 @@ export default function Download({
       hasPreviousOrder={isOwned}
       hasDatatoken={hasDatatoken}
       btSymbol={accessDetails.baseToken?.symbol}
-      dtSymbol={asset.datatokens[serviceIndex]?.symbol} // TODO - check datatokens
+      dtSymbol={asset.credentialSubject?.datatokens[serviceIndex]?.symbol} // TODO - check datatokens
       dtBalance={dtBalance}
       type="submit"
       assetTimeout={secondsToString(service.timeout)}
-      assetType={asset.metadata?.type}
+      assetType={asset.credentialSubject?.metadata?.type}
       stepText={statusText}
       isLoading={isLoading}
       priceType={accessDetails.type}
@@ -323,7 +323,6 @@ export default function Download({
 
   const AssetActionBuy = ({ asset }: { asset: AssetExtended }) => {
     const { isValid } = useFormikContext()
-
     return (
       <div style={{ textAlign: 'left', marginTop: '2%' }}>
         {!isPriceLoading && new Decimal(price.value || 0).greaterThan(0) && (
@@ -429,11 +428,11 @@ export default function Download({
           {isOwned && (
             <div className={styles.confettiContainer}>
               <SuccessConfetti
-                success={`You successfully bought this ${asset.metadata.type} and are now able to download it.`}
+                success={`You successfully bought this ${asset.credentialSubject?.metadata?.type} and are now able to download it.`}
               />
             </div>
           )}
-          {asset.metadata?.type === 'algorithm' && (
+          {asset.credentialSubject?.metadata?.type === 'algorithm' && (
             <AlgorithmDatasetsListForCompute
               asset={asset}
               service={service}

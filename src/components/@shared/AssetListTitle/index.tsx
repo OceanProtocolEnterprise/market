@@ -21,7 +21,7 @@ export default function AssetListTitle({
   useEffect(() => {
     if (title || !appConfig.metadataCacheUri) return
     if (asset) {
-      setAssetTitle(asset.metadata.name)
+      setAssetTitle(asset.credentialSubject?.metadata.name)
       return
     }
 
@@ -41,7 +41,9 @@ export default function AssetListTitle({
 
   return (
     <h3 className={styles.title}>
-      <Link href={`/asset/${did || asset?.id}`}>{assetTitle}</Link>
+      <Link href={`/asset/${did || asset?.credentialSubject?.id}`}>
+        {assetTitle}
+      </Link>
     </h3>
   )
 }

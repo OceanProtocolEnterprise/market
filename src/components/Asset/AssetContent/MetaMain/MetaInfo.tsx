@@ -21,13 +21,14 @@ export default function MetaInfo({
   return (
     <div className={styles.wrapper}>
       <AssetType
-        type={asset?.metadata.type}
+        type={asset?.credentialSubject?.metadata.type}
         accessType={accessType}
         className={styles.assetType}
       />
       <div className={styles.byline}>
         <div>
-          Published <Time date={asset?.metadata.created} relative />
+          Published{' '}
+          <Time date={asset?.credentialSubject?.metadata.created} relative />
           {(verifiedServiceProviderName ||
             (nftPublisher && nftPublisher !== nftOwner)) && (
             <span>
@@ -38,11 +39,16 @@ export default function MetaInfo({
               />
             </span>
           )}
-          {asset?.metadata.created !== asset?.metadata.updated && (
+          {asset?.credentialSubject?.metadata.created !==
+            asset?.credentialSubject?.metadata.updated && (
             <>
               {' — '}
               <span className={styles.updated}>
-                updated <Time date={asset?.metadata.updated} relative />
+                updated{' '}
+                <Time
+                  date={asset?.credentialSubject?.metadata.updated}
+                  relative
+                />
               </span>
             </>
           )}

@@ -15,7 +15,9 @@ export default function MetaMain({
   asset: AssetExtended
   nftPublisher: string
 }): ReactElement {
-  const isBlockscoutExplorer = blockscoutNetworks.includes(asset?.chainId)
+  const isBlockscoutExplorer = blockscoutNetworks.includes(
+    asset?.credentialSubject?.chainId
+  )
 
   return (
     <aside className={styles.meta}>

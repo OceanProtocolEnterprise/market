@@ -23,24 +23,24 @@ export async function transformAssetToAssetSelection(
     ) {
       let selected = false
       selectedAlgorithms?.forEach((algorithm: PublisherTrustedAlgorithm) => {
-        if (algorithm.did === asset.id) {
+        if (algorithm.did === asset.credentialSubject?.id) {
           selected = true
         }
       })
 
       const accessDetails = await Promise.all(
         asset.services.map((service: Service) =>
-          getAccessDetails(asset.chainId, service)
+          getAccessDetails(asset.credentialSubject?.chainId, service)
         )
       )
       const price = getAvailablePrice(accessDetails[0])
       const algorithmAsset: AssetSelectionAsset = {
-        did: asset.id,
-        name: asset.metadata.name,
+        did: asset.credentialSubject?.id,
+        name: asset.credentialSubject?.metadata.name,
         price: price.value,
         tokenSymbol: price.tokenSymbol,
         checked: selected,
-        symbol: asset.datatokens[0].symbol,
+        symbol: asset.credentialSubject?.datatokens[0].symbol,
         isAccountIdWhitelisted: isAddressWhitelisted(asset, accountId)
       }
       selected

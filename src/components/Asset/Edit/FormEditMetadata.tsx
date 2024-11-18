@@ -38,32 +38,34 @@ export default function FormEditMetadata(): ReactElement {
   ]
 
   useEffect(() => {
-    const providerUrl = asset.services[0].serviceEndpoint
+    const providerUrl = asset.credentialSubject?.services[0].serviceEndpoint
 
     // if we have a sample file, we need to get the files' info before setting defaults links value
-    asset?.metadata?.links?.[0] &&
-      getFileInfo(asset.metadata.links[0], providerUrl, 'url').then(
-        (checkedFile) => {
-          // set valid false if url is using google drive
-          if (isGoogleUrl(asset.metadata.links[0])) {
-            setFieldValue('links', [
-              {
-                url: asset.metadata.links[0],
-                valid: false
-              }
-            ])
-            return
-          }
-          // initiate link with values from asset metadata
+    asset?.credentialSubject?.metadata?.links?.[0] &&
+      getFileInfo(
+        asset.credentialSubject?.metadata.links[0],
+        providerUrl,
+        'url'
+      ).then((checkedFile) => {
+        // set valid false if url is using google drive
+        if (isGoogleUrl(asset.credentialSubject?.metadata.links[0])) {
           setFieldValue('links', [
             {
-              url: asset.metadata.links[0],
-              type: 'url',
-              ...checkedFile[0]
+              url: asset.credentialSubject?.metadata.links[0],
+              valid: false
             }
           ])
+          return
         }
-      )
+        // initiate link with values from asset metadata
+        setFieldValue('links', [
+          {
+            url: asset.credentialSubject?.metadata.links[0],
+            type: 'url',
+            ...checkedFile[0]
+          }
+        ])
+      })
   }, [])
 
   return (
@@ -92,7 +94,7 @@ export default function FormEditMetadata(): ReactElement {
 
       <Field {...getFieldContent('tags', data)} component={Input} name="tags" />
 
-      {asset.metadata.type === 'algorithm' && (
+      {asset.credentialSubject?.metadata?.type === 'algorithm' && (
         <>
           <Field
             {...getFieldContent('usesConsumerParameters', data)}

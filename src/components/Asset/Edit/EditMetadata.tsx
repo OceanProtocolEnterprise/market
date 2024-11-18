@@ -42,7 +42,7 @@ export default function Edit({
       const linksTransformed = values.links?.length &&
         values.links[0].valid && [sanitizeUrl(values.links[0].url)]
       const updatedMetadata: Metadata = {
-        ...asset.metadata,
+        ...asset.credentialSubject?.metadata,
         name: values.name,
         description: values.description,
         links: linksTransformed,
@@ -50,11 +50,11 @@ export default function Edit({
         tags: values.tags,
         license: values.license,
         additionalInformation: {
-          ...asset.metadata?.additionalInformation
+          ...asset.credentialSubject?.metadata?.additionalInformation
         }
       }
 
-      if (asset.metadata.type === 'algorithm') {
+      if (asset.credentialSubject?.metadata.type === 'algorithm') {
         updatedMetadata.algorithm.consumerParameters =
           !values.usesConsumerParameters
             ? undefined
@@ -62,7 +62,7 @@ export default function Edit({
       }
 
       const updatedCredentials = generateCredentials(
-        asset?.credentials,
+        asset?.credentialSubject?.credentials,
         values?.allow,
         values?.deny
       )
@@ -119,8 +119,8 @@ export default function Edit({
     <Formik
       enableReinitialize
       initialValues={getInitialValues(
-        asset?.metadata,
-        asset?.credentials,
+        asset?.credentialSubject?.metadata,
+        asset?.credentialSubject?.credentials,
         assetState
       )}
       validationSchema={metadataValidationSchema}
@@ -143,7 +143,7 @@ export default function Edit({
               onClick: async () => {
                 await fetchAsset()
               },
-              to: `/asset/${asset.id}`
+              to: `/asset/${asset.credentialSubject?.id}`
             }}
           />
         ) : (
@@ -151,7 +151,7 @@ export default function Edit({
             <FormEditMetadata />
 
             <Web3Feedback
-              networkId={asset?.chainId}
+              networkId={asset?.credentialSubject?.chainId}
               accountId={accountId}
               isAssetNetwork={isAssetNetwork}
             />

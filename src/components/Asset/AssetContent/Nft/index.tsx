@@ -48,7 +48,7 @@ export default function Nft({
               nft={nftMetadata}
               nftImage={nftImage}
               address={asset?.nftAddress}
-              chainId={asset?.chainId}
+              chainId={asset?.credentialSubject?.chainId}
               isBlockscoutExplorer={isBlockscoutExplorer}
             />
           }

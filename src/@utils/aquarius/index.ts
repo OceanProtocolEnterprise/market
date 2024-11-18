@@ -270,7 +270,9 @@ export async function getAssetsFromDids(
     const result = await queryMetadata(query, cancelToken)
 
     didList.forEach((did: string) => {
-      const ddo = result.results.find((ddo: Asset) => ddo.id === did)
+      const ddo = result.results.find(
+        (ddo: Asset) => ddo.credentialSubject?.id === did
+      )
       if (ddo) orderedDDOListByDIDList.push(ddo)
     })
     return orderedDDOListByDIDList
@@ -482,12 +484,12 @@ export async function getDownloadAssets(
         const order = tokenOrders.find(
           ({ datatoken }) =>
             datatoken?.address.toLowerCase() ===
-            asset.services[0].datatokenAddress.toLowerCase()
+            asset.credentialSubject?.services[0].datatokenAddress.toLowerCase()
         )
 
         return {
           asset,
-          networkId: asset.chainId,
+          networkId: asset.credentialSubject?.chainId,
           dtSymbol: order?.datatoken?.symbol,
           timestamp: order?.createdTimestamp
         }

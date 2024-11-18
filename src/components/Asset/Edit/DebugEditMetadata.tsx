@@ -25,7 +25,7 @@ export default function DebugEditMetadata({
         values.links[0].valid && [sanitizeUrl(values.links[0].url)]
 
       const newMetadata: Metadata = {
-        ...asset?.metadata,
+        ...asset?.credentialSubject?.metadata,
         name: values.name,
         description: values.description,
         links: linksTransformed,
@@ -33,7 +33,7 @@ export default function DebugEditMetadata({
         tags: values.tags,
         license: values.license,
         additionalInformation: {
-          ...asset?.metadata?.additionalInformation
+          ...asset?.credentialSubject?.metadata?.additionalInformation
         }
       }
       if (asset.metadata.type === 'algorithm') {
@@ -44,7 +44,7 @@ export default function DebugEditMetadata({
       }
 
       const updatedCredentials: Credentials = generateCredentials(
-        asset?.credentials,
+        asset?.credentialSubject?.credentials,
         values?.allow,
         values?.deny
       )

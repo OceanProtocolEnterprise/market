@@ -40,7 +40,9 @@ export default function MostViews(): ReactElement {
         sortedAssets.forEach((asset) => {
           assetsWithViews.push({
             ...asset,
-            views: response.data.filter((x) => x.did === asset.id)?.[0]?.count
+            views: response.data.filter(
+              (x) => x.did === asset.credentialSubject?.id
+            )?.[0]?.count
           })
         })
         setMostViewed(assetsWithViews)

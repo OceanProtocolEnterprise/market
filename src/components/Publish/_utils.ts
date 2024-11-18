@@ -1,6 +1,6 @@
 import {
   Config,
-  DDO,
+  VerifiableCredentialType,
   FreCreationParams,
   generateDid,
   DatatokenCreateParams,

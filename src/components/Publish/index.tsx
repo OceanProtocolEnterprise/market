@@ -144,7 +144,7 @@ export default function PublishPage({
       try {
         ddoEncrypted = await ProviderInstance.encrypt(
           ddo,
-          ddo.chainId,
+          ddo.credentialSubject?.chainId,
           customProviderUrl || values.services[0].providerUrl.url,
           newAbortController()
         )
@@ -225,7 +225,7 @@ export default function PublishPage({
         }
       }))
 
-      return { did: ddo.id }
+      return { did: ddo.credentialSubject?.id }
     } catch (error) {
       LoggerInstance.error('[publish] error', error.message)
       setFeedback((prevState) => ({

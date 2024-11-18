@@ -50,14 +50,15 @@ export function getInitialValues(
   termsAndConditions?: boolean
 ): ComputeDatasetForm {
   return {
-    algorithm: selectedAlgorithmAsset?.id,
+    algorithm: selectedAlgorithmAsset?.credentialSubject?.id,
     computeEnv: selectedComputeEnv?.id,
     dataServiceParams: getDefaultValues(service.consumerParameters),
     algoServiceParams: getDefaultValues(
-      selectedAlgorithmAsset?.services[0].consumerParameters
+      selectedAlgorithmAsset?.credentialSubject?.services[0].consumerParameters
     ),
     algoParams: getDefaultValues(
-      selectedAlgorithmAsset?.metadata?.algorithm.consumerParameters
+      selectedAlgorithmAsset?.credentialSubject?.metadata?.algorithm
+        .consumerParameters
     ),
     termsAndConditions: !!termsAndConditions
   }

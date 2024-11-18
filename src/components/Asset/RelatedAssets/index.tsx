@@ -21,7 +21,7 @@ export default function RelatedAssets(): ReactElement {
       !chainIds?.length ||
       !asset?.nftAddress ||
       !asset?.nft ||
-      !asset?.metadata
+      !asset?.credentialSubject?.metadata
     ) {
       return
     }
@@ -33,9 +33,14 @@ export default function RelatedAssets(): ReactElement {
         let tagResults: Asset[] = []
 
         // safeguard against faults in the metadata
-        if (asset.metadata.tags instanceof Array) {
+        if (asset.credentialSubject?.metadata.tags instanceof Array) {
           const tagQuery = generateBaseQuery(
-            generateQuery(chainIds, asset.nftAddress, 4, asset.metadata.tags)
+            generateQuery(
+              chainIds,
+              asset.nftAddress,
+              4,
+              asset.credentialSubject?.metadata.tags
+            )
           )
 
           tagResults = (await queryMetadata(tagQuery, newCancelToken()))
@@ -63,7 +68,12 @@ export default function RelatedAssets(): ReactElement {
           // stolen from: https://stackoverflow.com/a/70326769/733677
           const bothResults = tagResults.concat(
             ownerResults?.filter(
-              (asset2) => !tagResults.find((asset1) => asset1.id === asset2.id)
+              (asset2) =>
+                !tagResults.find(
+                  (asset1) =>
+                    asset1.credentialSubject?.id ===
+                    asset2.credentialSubject?.id
+                )
             )
           )
           setRelatedAssets(bothResults)

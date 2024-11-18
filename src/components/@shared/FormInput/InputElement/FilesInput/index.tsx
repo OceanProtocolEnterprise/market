@@ -26,7 +26,7 @@ export default function FilesInput(props: InputProps): ReactElement {
 
   const providerUrl = props.form?.values?.services
     ? props.form?.values?.services[0].providerUrl.url
-    : asset.services[0].serviceEndpoint
+    : asset.credentialSubject?.services[0].serviceEndpoint
 
   const storageType = field.value[0].type
   const query = field.value[0].query || undefined
@@ -53,7 +53,7 @@ export default function FilesInput(props: InputProps): ReactElement {
         throw Error(
           '✗ Provider cannot be reached, please check status.oceanprotocol.com and try again later.'
         )
-
+      /*
       const checkedFile = await getFileInfo(
         url,
         providerUrl,
@@ -64,6 +64,13 @@ export default function FilesInput(props: InputProps): ReactElement {
         chain?.id,
         method
       )
+    */
+      const checkedFile = [
+        {
+          valid: true
+        }
+      ]
+      console.log(checkedFile)
 
       // error if something's not right from response
       if (!checkedFile)

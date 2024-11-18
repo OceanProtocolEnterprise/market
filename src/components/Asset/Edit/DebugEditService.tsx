@@ -40,14 +40,14 @@ export default function DebugEditService({
               normalizeFile(
                 values.files[0].type,
                 values.files[0],
-                asset.chainId
+                asset.credentialSubject?.chainId
               )
             ]
           }
 
           const filesEncrypted = await getEncryptedFiles(
             file,
-            asset.chainId,
+            asset.credentialSubject?.chainId,
             service.serviceEndpoint
           )
           updatedFiles = filesEncrypted
@@ -74,7 +74,7 @@ export default function DebugEditService({
           compute: await transformComputeFormToServiceComputeOptions(
             values,
             service.compute,
-            asset.chainId,
+            asset.credentialSubject?.chainId,
             newCancelToken()
           )
         })

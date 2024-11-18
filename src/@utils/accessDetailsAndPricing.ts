@@ -50,7 +50,7 @@ export async function getOrderPriceAndFees(
     initializeData =
       !providerFees &&
       (await ProviderInstance.initialize(
-        asset.id,
+        asset.credentialSubject?.id,
         service.id,
         0,
         accountId,
@@ -69,7 +69,7 @@ export async function getOrderPriceAndFees(
     ) {
       accountId !== ZERO_ADDRESS &&
         toast.error(
-          `Consumer address not found in allow list for service ${asset.id}. Access has been denied.`
+          `Consumer address not found in allow list for service ${asset.credentialSubject?.id}. Access has been denied.`
         )
       return
     }
@@ -82,7 +82,7 @@ export async function getOrderPriceAndFees(
     ) {
       accountId !== ZERO_ADDRESS &&
         toast.error(
-          `Consumer address found in deny list for service ${asset.id}. Access has been denied.`
+          `Consumer address found in deny list for service ${asset.credentialSubject?.id}. Access has been denied.`
         )
       return
     }
@@ -93,7 +93,11 @@ export async function getOrderPriceAndFees(
 
   // fetch price and swap fees
   if (accessDetails.type === 'fixed') {
-    const fixed = await getFixedBuyPrice(accessDetails, asset.chainId, signer)
+    const fixed = await getFixedBuyPrice(
+      accessDetails,
+      asset.credentialSubject?.chainId,
+      signer
+    )
     orderPriceAndFee.price = fixed.baseTokenAmount
     orderPriceAndFee.opcFee = fixed.oceanFeeAmount
     orderPriceAndFee.publisherMarketFixedSwapFee = fixed.marketFeeAmount

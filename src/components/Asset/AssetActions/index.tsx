@@ -62,7 +62,7 @@ export default function AssetActions({
 
   // Get and set file info
   useEffect(() => {
-    const oceanConfig = getOceanConfig(asset.chainId)
+    const oceanConfig = getOceanConfig(asset.credentialSubject?.chainId)
     if (!oceanConfig) return
 
     async function initFileInfo() {
@@ -95,7 +95,11 @@ export default function AssetActions({
               chain?.id,
               method
             )
-          : await getFileDidInfo(asset.id, service.id, providerUrl)
+          : await getFileDidInfo(
+              asset.credentialSubject?.id,
+              service.id,
+              providerUrl
+            )
 
         fileInfoResponse && setFileMetadata(fileInfoResponse[0])
 

@@ -16,10 +16,12 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
 
     async function getInitialPaymentCollector() {
       try {
-        const signer = await getDummySigner(ddo.chainId)
+        const signer = await getDummySigner(ddo.credentialSubject?.chainId)
         const datatoken = new Datatoken(signer)
         setPaymentCollector(
-          await datatoken.getPaymentCollector(ddo.datatokens[0].address)
+          await datatoken.getPaymentCollector(
+            ddo.credentialSubject?.datatokens[0].address
+          )
         )
       } catch (error) {
         LoggerInstance.error(
@@ -59,7 +61,10 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
       {ddo?.metadata?.type === 'algorithm' && ddo?.metadata?.algorithm && (
         <MetaItem title="Docker Image" content={<DockerImage />} />
       )}
-      <MetaItem title="DID" content={<code>{ddo?.id}</code>} />
+      <MetaItem
+        title="DID"
+        content={<code>{ddo?.credentialSubject?.id}</code>}
+      />
     </div>
   ) : null
 }

@@ -33,13 +33,13 @@ export async function initializeProviderForCompute(
   computeEnv: ComputeEnvironment = null
 ): Promise<ProviderComputeInitializeResults> {
   const computeAsset: ComputeAsset = {
-    documentId: dataset.id,
+    documentId: dataset.credentialSubject?.id,
     serviceId: datasetService.id,
     transferTxId: datasetAccessDetails.validOrderTx
   }
   const computeAlgo: ComputeAlgorithm = {
-    documentId: algorithm.id,
-    serviceId: algorithm.services[0].id,
+    documentId: algorithm.credentialSubject?.id,
+    serviceId: algorithm.credentialSubject?.services[0].id,
     transferTxId: algorithm.accessDetails?.[0]?.validOrderTx
   }
 
@@ -242,7 +242,7 @@ export async function downloadFile(
   let downloadUrl
   try {
     downloadUrl = await ProviderInstance.getDownloadUrl(
-      asset.id,
+      asset.credentialSubject?.id,
       service.id,
       0,
       validOrderTx || accessDetails.validOrderTx,
