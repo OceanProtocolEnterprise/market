@@ -1,3 +1,4 @@
+import { AssetExtended } from 'src/@types/AssetExtended'
 import addressConfig from '../../address.config'
 const {
   whitelists,

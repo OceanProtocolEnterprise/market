@@ -6,7 +6,6 @@ import {
   LoggerInstance,
   ProviderFees,
   ProviderInstance,
-  Service,
   ZERO_ADDRESS
 } from '@oceanprotocol/lib'
 import { getFixedBuyPrice } from './ocean/fixedRateExchange'
@@ -19,6 +18,8 @@ import {
 import { Signer } from 'ethers'
 import { toast } from 'react-toastify'
 import { getDummySigner } from './wallet'
+import { Service } from 'src/@types/ddo/Service'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 /**
  * This will be used to get price including fees before ordering

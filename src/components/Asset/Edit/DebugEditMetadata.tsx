@@ -1,4 +1,3 @@
-import { Asset, Credentials, Metadata } from '@oceanprotocol/lib'
 import { ReactElement, useEffect, useState } from 'react'
 import DebugOutput from '@shared/DebugOutput'
 import { MetadataEditForm } from './_types'
@@ -8,6 +7,10 @@ import {
   generateCredentials,
   transformConsumerParameters
 } from '@components/Publish/_utils'
+import { Asset } from 'src/@types/Asset'
+import { Metadata } from 'src/@types/ddo/Metadata'
+import { Credentials } from 'src/@types/ddo/Credentials'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export default function DebugEditMetadata({
   values,

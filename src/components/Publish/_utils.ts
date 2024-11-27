@@ -1,6 +1,5 @@
 import {
   Config,
-  VerifiableCredentialType,
   FreCreationParams,
   generateDid,
   DatatokenCreateParams,
@@ -11,10 +10,7 @@ import {
   NftFactory,
   ZERO_ADDRESS,
   getEventFromTx,
-  ConsumerParameter,
-  Metadata,
-  Service,
-  Credentials
+  ConsumerParameter
 } from '@oceanprotocol/lib'
 import { mapTimeoutStringToSeconds, normalizeFile } from '@utils/ddo'
 import { generateNftCreateData } from '@utils/nft'
@@ -31,13 +27,12 @@ import {
   publisherMarketOrderFee,
   publisherMarketFixedSwapFee,
   defaultDatatokenTemplateIndex,
-  customProviderUrl,
-  defaultAccessTerms,
   defaultDatatokenCap
 } from '../../../app.config'
 import { sanitizeUrl } from '@utils/url'
 import { getContainerChecksum } from '@utils/docker'
 import { parseEther } from 'ethers/lib/utils'
+import { Credentials } from 'src/@types/ddo/Credentials'
 
 function getUrlFileExtension(fileUrl: string): string {
   const splittedFileUrl = fileUrl.split('.')
@@ -129,7 +124,7 @@ export async function transformPublishFormToDdo(
   // so we can always assume if they are not passed, we are on preview.
   datatokenAddress?: string,
   nftAddress?: string
-): Promise<DDO> {
+): Promise<Asset> {
   const { metadata, services, user } = values
   const { chainId, accountId } = user
   const {
@@ -242,29 +237,41 @@ export async function transformPublishFormToDdo(
 
   const newCredentials = generateCredentials(undefined, allow, deny)
 
-  const newDdo: DDO = {
+  const newDdo: Asset = {
     '@context': ['https://w3id.org/did/v1'],
     id: did,
-    nftAddress,
-    version: '4.1.0',
-    chainId,
-    metadata: newMetadata,
-    services: [newService],
-    credentials: newCredentials,
-    // Only added for DDO preview, reflecting Asset response,
-    // again, we can assume if `datatokenAddress` is not passed,
-    // we are on preview.
-    ...(!datatokenAddress && {
+    version: '5.0.0',
+    credentialSubject: {
+      id: did,
+      chainId,
+      metadata: newMetadata,
+      services: [newService],
+      nftAddress,
+      credentials: newCredentials,
       datatokens: [
         {
           name: values.services[0].dataTokenOptions.name,
-          symbol: values.services[0].dataTokenOptions.symbol
+          symbol: values.services[0].dataTokenOptions.symbol,
+          address: '',
+          serviceId: ''
         }
-      ],
-      nft: {
-        ...generateNftCreateData(values?.metadata.nft, accountId)
-      }
-    })
+      ]
+    },
+    additionalDdos: [],
+    // Only added for DDO preview, reflecting Asset response,
+    // again, we can assume if `datatokenAddress` is not passed,
+    // we are on preview.
+    nft: {
+      ...generateNftCreateData(values?.metadata.nft, accountId)
+    },
+    event: undefined,
+    stats: undefined,
+    purgatory: undefined,
+    nftAddress: undefined,
+    chainId: undefined,
+    metadata: undefined,
+    services: undefined,
+    issuer: undefined
   }
 
   return newDdo
@@ -386,3 +393,177 @@ export function getFormattedCodeString(parsedCodeBlock: any): string {
   const formattedString = JSON.stringify(parsedCodeBlock, null, 2)
   return `\`\`\`\n${formattedString}\n\`\`\``
 }
+
+/*
+export async function createAssetV5(
+  name: string,
+  symbol: string,
+  owner: Signer,
+  assetUrl: any,
+  ddo: any,
+  providerUrl: string,
+  config: Config,
+  aquariusInstance: Aquarius,
+  macOsProviderUrl?: string,
+  encryptDDO: boolean = true
+) {
+  const { chainId } = await owner.provider.getNetwork()
+  const nft = new Nft(owner, chainId)
+  const nftFactory = new NftFactory(config.nftFactoryAddress, owner)
+
+  // Update the DDO to include the correct chainId
+  ddo.credentialSubject.chainId = parseInt(chainId.toString(10))
+
+  // Define the NFT creation parameters
+  const nftParamsAsset: NftCreateData = {
+    name,
+    symbol,
+    templateIndex: 1,
+    tokenURI: 'aaa',
+    transferable: true,
+    owner: await owner.getAddress()
+  }
+
+  // Define the Datatoken creation parameters
+  const datatokenParams: DatatokenCreateParams = {
+    templateIndex: 1,
+    cap: '100000',
+    feeAmount: '0',
+    paymentCollector: await owner.getAddress(),
+    feeToken: config.oceanTokenAddress,
+    minter: await owner.getAddress(),
+    mpFeeAddress: ZERO_ADDRESS
+  }
+
+  let bundleNFT
+  if (!ddo.stats.price.value) {
+    bundleNFT = await nftFactory.createNftWithDatatoken(
+      nftParamsAsset,
+      datatokenParams
+    )
+  } else if (ddo.stats.price.value === '0') {
+    const dispenserParams: DispenserCreationParams = {
+      dispenserAddress: config.dispenserAddress,
+      maxTokens: '1',
+      maxBalance: '100000000',
+      withMint: true,
+      allowedSwapper: ZERO_ADDRESS
+    }
+    bundleNFT = await nftFactory.createNftWithDatatokenWithDispenser(
+      nftParamsAsset,
+      datatokenParams,
+      dispenserParams
+    )
+  } else {
+    const fixedPriceParams: FreCreationParams = {
+      fixedRateAddress: config.fixedRateExchangeAddress,
+      baseTokenAddress: config.oceanTokenAddress,
+      owner: await owner.getAddress(),
+      marketFeeCollector: await owner.getAddress(),
+      baseTokenDecimals: 18,
+      datatokenDecimals: 18,
+      fixedRate: ddo.stats.price.value,
+      marketFee: '0',
+      allowedConsumer: await owner.getAddress(),
+      withMint: true
+    }
+    bundleNFT = await nftFactory.createNftWithDatatokenWithFixedRate(
+      nftParamsAsset,
+      datatokenParams,
+      fixedPriceParams
+    )
+  }
+
+  const trxReceipt = await bundleNFT.wait()
+  const nftCreatedEvent = getEventFromTx(trxReceipt, 'NFTCreated')
+  const tokenCreatedEvent = getEventFromTx(trxReceipt, 'TokenCreated')
+
+  const nftAddress = nftCreatedEvent.args.newTokenAddress
+  const datatokenAddressAsset = tokenCreatedEvent.args.newTokenAddress
+  assetUrl.datatokenAddress = datatokenAddressAsset
+  assetUrl.nftAddress = nftAddress
+  ddo.credentialSubject.services[0].files = await ProviderInstance.encrypt(
+    assetUrl,
+    chainId,
+    macOsProviderUrl || providerUrl
+  )
+  ddo.credentialSubject.services[0].datatokenAddress = datatokenAddressAsset
+  ddo.credentialSubject.services[0].serviceEndpoint = providerUrl
+
+  ddo.credentialSubject.services[0].nftAddress = nftAddress
+
+  ddo.credentialSubject.nftAddress = nftAddress
+
+  ddo.credentialSubject.id =
+    'did:op:' +
+    SHA256(ethers.utils.getAddress(nftAddress) + chainId.toString(10))
+
+  const proof = await signVC(ddo)
+
+  ddo.issuer = proof.issuer
+  const jwsDDO = {
+    header: proof.header,
+    payload: ddo,
+    signature: proof.jws
+  }
+  let metadataIPFS: string
+  let flags: number
+  const validateResult = await aquariusInstance.validate(ddo)
+  if (!validateResult.valid) {
+    throw new Error('Invalid ddo')
+  }
+
+  const stringMetadata = JSON.stringify(jwsDDO)
+  const bytesDDO = Buffer.from(stringMetadata)
+  const metadata = hexlify(bytesDDO)
+
+  const data = { encryptedData: metadata }
+  const ipfsHash = await uploadToIPFS(data)
+  const remoteDDO = {
+    remote: {
+      type: 'ipfs',
+      hash: ipfsHash
+    }
+  }
+  if (encryptDDO) {
+    metadataIPFS = await ProviderInstance.encrypt(
+      remoteDDO,
+      chainId,
+      macOsProviderUrl || providerUrl
+    )
+    flags = 2
+  } else {
+    const stringDDO = JSON.stringify(remoteDDO)
+    const bytes = Buffer.from(stringDDO)
+    metadataIPFS = hexlify(bytes)
+    flags = 0
+  }
+  const stringDDO = JSON.stringify(data)
+  const metadataIPFSHash =
+    '0x' + createHash('sha256').update(stringDDO).digest('hex')
+  // Set metadata for the NFT
+  try {
+    await nft.setMetadata(
+      nftAddress,
+      await owner.getAddress(),
+      0,
+      providerUrl,
+      '',
+      ethers.utils.hexlify(flags),
+      metadataIPFS,
+      metadataIPFSHash
+    )
+  } catch (error) {
+    console.log('error:', error)
+    throw new Error(error)
+  }
+  console.log('Version 5.0.0 Asset published. ID:', ddo.credentialSubject.id)
+}
+function SHA256(arg0: string) {
+  throw new Error('Function not implemented.')
+}
+
+function signVC(ddo: any) {
+  throw new Error('Function not implemented.')
+}
+*/

@@ -1,4 +1,4 @@
-import { Asset, Credentials, LoggerInstance, Service } from '@oceanprotocol/lib'
+import { LoggerInstance } from '@oceanprotocol/lib'
 import { ReactElement, useEffect, useState } from 'react'
 import DebugOutput from '@shared/DebugOutput'
 import { useCancelToken } from '@hooks/useCancelToken'
@@ -14,6 +14,9 @@ import {
   generateCredentials,
   transformConsumerParameters
 } from '@components/Publish/_utils'
+import { Service } from 'src/@types/ddo/Service'
+import { Asset } from 'src/@types/Asset'
+import { Credentials } from 'src/@types/ddo/Credentials'
 
 export default function DebugEditService({
   values,

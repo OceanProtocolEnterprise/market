@@ -13,11 +13,7 @@ import { opcQuery } from './_queries'
 import { MarketMetadataProviderValue, OpcFee } from './_types'
 import siteContent from '../../../content/site.json'
 import appConfig from '../../../app.config'
-import {
-  fetchData,
-  getQueryContext,
-  getOpcsApprovedTokens
-} from '@utils/subgraph'
+import { fetchData, getQueryContext } from '@utils/subgraph'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { useNetwork, useConnect } from 'wagmi'
 

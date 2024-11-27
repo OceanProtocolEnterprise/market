@@ -1,11 +1,11 @@
 import { useAsset } from '@context/Asset'
-import { Asset } from '@oceanprotocol/lib'
 import AddToken from '@shared/AddToken'
 import ExplorerLink from '@shared/ExplorerLink'
 import Publisher from '@shared/Publisher'
 import { ReactElement } from 'react'
 import { useAccount } from 'wagmi'
 import styles from './MetaAsset.module.css'
+import { Asset } from 'src/@types/Asset'
 
 export default function MetaAsset({
   asset,
@@ -17,7 +17,7 @@ export default function MetaAsset({
   const { isAssetNetwork } = useAsset()
   const { connector: activeConnector } = useAccount()
 
-  const dataTokenSymbol = asset?.credentialSubject?.datatokens[0]?.symbol
+  const dataTokenSymbol = asset?.datatokens?.at[0]?.symbol
 
   return (
     <div className={styles.wrapper}>
@@ -40,11 +40,9 @@ export default function MetaAsset({
           <span className={styles.addWrap}>
             <AddToken
               address={asset?.credentialSubject?.services[0].datatokenAddress}
-              symbol={
-                (asset as Asset)?.credentialSubject?.datatokens[0]?.symbol
-              }
+              symbol={(asset as Asset)?.datatokens.at[0]?.symbol}
               text={`Add ${
-                (asset as Asset)?.credentialSubject?.datatokens[0]?.symbol
+                (asset as Asset)?.datatokens?.at[0]?.symbol
               } to wallet`}
               className={styles.add}
               minimal

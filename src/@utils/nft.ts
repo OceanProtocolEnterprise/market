@@ -1,10 +1,8 @@
 import {
   LoggerInstance,
-  Asset,
   getHash,
   Nft,
   ProviderInstance,
-  DDO,
   MetadataAndTokenURI,
   NftCreateData,
   getErrorMessage
@@ -13,6 +11,7 @@ import { SvgWaves } from './SvgWaves'
 import { customProviderUrl } from '../../app.config'
 import { Signer, ethers } from 'ethers'
 import { toast } from 'react-toastify'
+import { Asset } from 'src/@types/Asset'
 
 // https://docs.opensea.io/docs/metadata-standards
 export interface NftMetadata {
@@ -103,7 +102,7 @@ export function decodeTokenURI(tokenURI: string): NftMetadata {
 }
 
 export async function setNftMetadata(
-  asset: Asset | DDO,
+  asset: Asset,
   accountId: string,
   signer: Signer,
   signal: AbortSignal
@@ -144,7 +143,7 @@ export async function setNftMetadata(
 }
 
 export async function setNFTMetadataAndTokenURI(
-  asset: Asset | DDO,
+  asset: Asset,
   accountId: string,
   signer: Signer,
   nftMetadata: NftMetadata | undefined,
@@ -184,13 +183,14 @@ export async function setNFTMetadataAndTokenURI(
             external_url: externalUrl
           }
         : {
-            name: (asset as AssetExtended).nft.name,
-            symbol: (asset as AssetExtended).nft.symbol,
+            name: (asset as Asset).nft.name,
+            symbol: (asset as Asset).nft.symbol,
             description: `${nftMetadataTemplate.description}\n\nView on Ocean Enterprise: ${externalUrl}`,
             external_url: externalUrl
           }
     )
   ).toString('base64')
+
   const nft = new Nft(signer)
 
   // theoretically used by aquarius or provider, not implemented yet, will remain hardcoded
@@ -198,7 +198,7 @@ export async function setNFTMetadataAndTokenURI(
 
   const metadataAndTokenURI: MetadataAndTokenURI = {
     metaDataState: 0,
-    metaDataDecryptorUrl: asset.services[0].serviceEndpoint,
+    metaDataDecryptorUrl: asset.credentialSubject?.services[0].serviceEndpoint,
     metaDataDecryptorAddress: '',
     flags,
     data: encryptedDdo,
@@ -209,7 +209,7 @@ export async function setNFTMetadataAndTokenURI(
   }
 
   const setMetadataAndTokenURITx = await nft.setMetadataAndTokenURI(
-    asset.nftAddress,
+    asset.credentialSubject?.nftAddress,
     accountId,
     metadataAndTokenURI
   )

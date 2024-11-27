@@ -11,6 +11,7 @@ import {
   getNetworkType,
   NetworkType
 } from '@hooks/useNetworkMetadata'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 const AllLocked = gql`
   query AllLockedQuery {

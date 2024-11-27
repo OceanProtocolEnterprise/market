@@ -1,4 +1,4 @@
-import { allowFixedPricing, defaultAccessTerms } from '../../../app.config'
+import { allowFixedPricing } from '../../../app.config'
 import {
   FormPublishData,
   MetadataAlgorithmContainer,

@@ -5,6 +5,7 @@ import AddService from './AddService'
 import ServiceCard from '../AssetContent/ServiceCard'
 import AddServiceCard from './AddServiceCard'
 import styles from './index.module.css'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export default function EditServices({
   asset

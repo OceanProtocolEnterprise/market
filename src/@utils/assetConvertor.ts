@@ -1,8 +1,10 @@
-import { PublisherTrustedAlgorithm, Asset, Service } from '@oceanprotocol/lib'
+import { PublisherTrustedAlgorithm } from '@oceanprotocol/lib'
 import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelection'
 import { getServiceByName, isAddressWhitelisted } from './ddo'
 import normalizeUrl from 'normalize-url'
 import { getAccessDetails, getAvailablePrice } from './accessDetailsAndPricing'
+import { Asset } from 'src/@types/Asset'
+import { Service } from 'src/@types/ddo/Service'
 
 export async function transformAssetToAssetSelection(
   datasetProviderEndpoint: string,
@@ -40,7 +42,7 @@ export async function transformAssetToAssetSelection(
         price: price.value,
         tokenSymbol: price.tokenSymbol,
         checked: selected,
-        symbol: asset.credentialSubject?.datatokens[0].symbol,
+        symbol: asset.datatokens[0].symbol,
         isAccountIdWhitelisted: isAddressWhitelisted(asset, accountId)
       }
       selected

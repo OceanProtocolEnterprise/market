@@ -1,4 +1,4 @@
-import { Asset } from '@oceanprotocol/lib'
+import { Asset } from 'src/@types/Asset'
 import { DDOVersion } from 'src/@types/DdoVersion'
 
 function convertFromV4(asset: Asset): Asset {

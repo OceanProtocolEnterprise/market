@@ -10,6 +10,7 @@ import styles from './index.module.css'
 import { getServiceByName } from '@utils/ddo'
 import { useUserPreferences } from '@context/UserPreferences'
 import { formatNumber } from '@utils/numbers'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export declare type AssetTeaserProps = {
   asset: AssetExtended
@@ -69,11 +70,7 @@ export default function AssetTeaser({
           {isUnsupportedPricing ? (
             <strong>No pricing schema available</strong>
           ) : (
-            <Price
-              price={price}
-              assetId={asset.credentialSubject?.id}
-              size="small"
-            />
+            <Price price={price} size="small" />
           )}
         </div>
         <footer className={styles.footer}>

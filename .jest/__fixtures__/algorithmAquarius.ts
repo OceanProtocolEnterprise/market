@@ -1,4 +1,4 @@
-import { Asset } from '@oceanprotocol/lib'
+import { Asset } from 'src/@types/Asset'
 
 export const algorithmAquarius: Asset = {
   '@context': ['https://w3id.org/did/v1'],
@@ -87,5 +87,13 @@ export const algorithmAquarius: Asset = {
   purgatory: {
     state: false,
     reason: ''
-  }
+  },
+  credentialSubject: {
+    id: '',
+    nftAddress: '',
+    chainId: 0,
+    metadata: undefined,
+    services: []
+  },
+  issuer: ''
 }

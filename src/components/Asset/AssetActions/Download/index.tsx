@@ -10,7 +10,6 @@ import {
   AssetPrice,
   FileInfo,
   LoggerInstance,
-  Service,
   UserCustomParameters,
   ZERO_ADDRESS
 } from '@oceanprotocol/lib'
@@ -42,6 +41,8 @@ import Decimal from 'decimal.js'
 import { MAX_DECIMALS } from '@utils/constants'
 import { consumeMarketFixedSwapFee } from 'app.config'
 import { Row } from '../Row'
+import { Service } from 'src/@types/ddo/Service'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export default function Download({
   accountId,
@@ -263,7 +264,7 @@ export default function Download({
       hasPreviousOrder={isOwned}
       hasDatatoken={hasDatatoken}
       btSymbol={accessDetails.baseToken?.symbol}
-      dtSymbol={asset.credentialSubject?.datatokens[serviceIndex]?.symbol} // TODO - check datatokens
+      dtSymbol={asset.datatokens[serviceIndex]?.symbol} // TODO - check datatokens
       dtBalance={dtBalance}
       type="submit"
       assetTimeout={secondsToString(service.timeout)}

@@ -1,7 +1,6 @@
 // TODO - selectedAlgorithmAsset works now only with first service
 import { useState, ReactElement, useEffect, useCallback } from 'react'
 import {
-  Asset,
   FileInfo,
   Datatoken,
   ProviderInstance,
@@ -16,8 +15,7 @@ import {
   ProviderFees,
   AssetPrice,
   UserCustomParameters,
-  getErrorMessage,
-  Service
+  getErrorMessage
 } from '@oceanprotocol/lib'
 import { toast } from 'react-toastify'
 import Price from '@shared/Price'
@@ -64,6 +62,9 @@ import WhitelistIndicator from './WhitelistIndicator'
 import { parseConsumerParameterValues } from '../ConsumerParameters'
 import { Signer } from 'ethers'
 import { useAccount } from 'wagmi'
+import { Service } from 'src/@types/ddo/Service'
+import { Asset } from 'src/@types/Asset'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 const refreshInterval = 10000 // 10 sec.
 

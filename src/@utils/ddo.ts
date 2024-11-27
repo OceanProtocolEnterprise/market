@@ -8,17 +8,16 @@ import {
 } from '@components/Publish/_types'
 import {
   Arweave,
-  Asset,
   ConsumerParameter,
-  DDO,
   FileInfo,
   GraphqlQuery,
   Ipfs,
-  Service,
   Smartcontract,
   UrlFile
 } from '@oceanprotocol/lib'
 import { checkJson } from './codemirror'
+import { Asset } from 'src/@types/Asset'
+import { Service } from 'src/@types/ddo/Service'
 
 export function isValidDid(did: string): boolean {
   const regex = /^did:op:[A-Za-z0-9]{64}$/
@@ -27,18 +26,18 @@ export function isValidDid(did: string): boolean {
 
 // TODO: this function doesn't make sense, since market is now supporting multiple services. We should remove it after checking all the flows where it's being used.
 export function getServiceByName(
-  ddo: Asset | DDO,
+  ddo: Asset,
   name: 'access' | 'compute'
 ): Service {
   if (!ddo) return
 
   const service = ddo.credentialSubject?.services.filter(
-    (service) => service.credentialSubject?.type === name
+    (service) => service.type === name
   )[0]
   return service
 }
 
-export function getServiceById(ddo: Asset | DDO, serviceId: string): Service {
+export function getServiceById(ddo: Asset, serviceId: string): Service {
   if (!ddo) return
 
   const service = ddo.credentialSubject?.services.find(
@@ -212,10 +211,7 @@ export function parseConsumerParameters(
   }))
 }
 
-export function isAddressWhitelisted(
-  ddo: AssetExtended,
-  accountId: string
-): boolean {
+export function isAddressWhitelisted(ddo: Asset, accountId: string): boolean {
   if (!ddo || !ddo?.credentialSubject || !accountId) return false
 
   // All addresses can access

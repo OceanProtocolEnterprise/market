@@ -3,8 +3,9 @@ import MetaItem from './MetaItem'
 import styles from './MetaFull.module.css'
 import Publisher from '@shared/Publisher'
 import { useAsset } from '@context/Asset'
-import { Asset, LoggerInstance, Datatoken } from '@oceanprotocol/lib'
+import { LoggerInstance, Datatoken } from '@oceanprotocol/lib'
 import { getDummySigner } from '@utils/wallet'
+import { Asset } from 'src/@types/Asset'
 
 export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
   const { isInPurgatory, assetState } = useAsset()
@@ -19,9 +20,7 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
         const signer = await getDummySigner(ddo.credentialSubject?.chainId)
         const datatoken = new Datatoken(signer)
         setPaymentCollector(
-          await datatoken.getPaymentCollector(
-            ddo.credentialSubject?.datatokens[0].address
-          )
+          await datatoken.getPaymentCollector(ddo.datatokens[0].address)
         )
       } catch (error) {
         LoggerInstance.error(

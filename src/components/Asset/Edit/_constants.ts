@@ -1,11 +1,8 @@
-import {
-  Credentials,
-  Metadata,
-  Service,
-  ServiceComputeOptions
-} from '@oceanprotocol/lib'
+import { ServiceComputeOptions } from '@oceanprotocol/lib'
 import { parseConsumerParameters, secondsToString } from '@utils/ddo'
 import { ComputeEditForm, MetadataEditForm, ServiceEditForm } from './_types'
+import { Metadata } from 'src/@types/ddo/Metadata'
+import { Credentials } from 'src/@types/ddo/Credentials'
 
 export const defaultServiceComputeOptions: ServiceComputeOptions = {
   allowRawAlgorithm: false,

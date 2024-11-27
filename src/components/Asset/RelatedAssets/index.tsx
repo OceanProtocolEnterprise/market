@@ -1,5 +1,5 @@
 import { ReactElement, useEffect, useState } from 'react'
-import { Asset, LoggerInstance } from '@oceanprotocol/lib'
+import { LoggerInstance } from '@oceanprotocol/lib'
 import { generateBaseQuery, queryMetadata } from '@utils/aquarius'
 import { useUserPreferences } from '@context/UserPreferences'
 import { useAsset } from '@context/Asset'
@@ -7,6 +7,7 @@ import styles from './index.module.css'
 import { useCancelToken } from '@hooks/useCancelToken'
 import AssetList from '@shared/AssetList'
 import { generateQuery } from './_utils'
+import { Asset } from 'src/@types/Asset'
 
 export default function RelatedAssets(): ReactElement {
   const { asset } = useAsset()

@@ -18,6 +18,7 @@ import RelatedAssets from '../RelatedAssets'
 import Web3Feedback from '@components/@shared/Web3Feedback'
 import { useAccount } from 'wagmi'
 import ServiceCard from './ServiceCard'
+import { LanguageValueObject } from '@oceanprotocol/lib/dist/types/@types/DDO/LanguageValueObject'
 
 export default function AssetContent({
   asset
@@ -39,6 +40,8 @@ export default function AssetContent({
     setNftPublisher(publisher)
   }, [receipts])
 
+  const isDescriptionIsString =
+    typeof asset.credentialSubject?.metadata?.description === 'string'
   return (
     <>
       <div className={styles.networkWrap}>
@@ -60,11 +63,28 @@ export default function AssetContent({
                 text={content.asset.description}
                 state="error"
               />
+            ) : isDescriptionIsString ? (
+              <>
+                <Markdown
+                  className={styles.description}
+                  text={
+                    (asset.credentialSubject?.metadata
+                      ?.description as string) || ''
+                  }
+                  blockImages={!allowExternalContent}
+                />
+                <MetaSecondary ddo={asset} />
+              </>
             ) : (
               <>
                 <Markdown
                   className={styles.description}
-                  text={asset.credentialSubject?.metadata?.description || ''}
+                  text={
+                    (
+                      asset.credentialSubject?.metadata
+                        ?.description as LanguageValueObject
+                    )['@value'] || ''
+                  }
                   blockImages={!allowExternalContent}
                 />
                 <MetaSecondary ddo={asset} />

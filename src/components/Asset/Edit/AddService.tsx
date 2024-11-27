@@ -3,7 +3,6 @@ import { Formik } from 'formik'
 import {
   LoggerInstance,
   Datatoken,
-  Service,
   Nft,
   FreCreationParams,
   DispenserParams,
@@ -42,6 +41,8 @@ import DebugEditService from './DebugEditService'
 import styles from './index.module.css'
 import { useUserPreferences } from '@context/UserPreferences'
 import { getOceanConfig } from '@utils/ocean'
+import { Service } from 'src/@types/ddo/Service'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export default function AddService({
   asset

@@ -4,6 +4,7 @@ import Publisher from '@shared/Publisher'
 import { getServiceByName } from '@utils/ddo'
 import { ReactElement } from 'react'
 import styles from './MetaInfo.module.css'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export default function MetaInfo({
   asset,

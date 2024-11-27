@@ -16,7 +16,6 @@ import useNftFactory from '@hooks/useNftFactory'
 import {
   ProviderInstance,
   LoggerInstance,
-  DDO,
   getErrorMessage
 } from '@oceanprotocol/lib'
 import { getOceanConfig } from '@utils/ocean'
@@ -25,6 +24,7 @@ import { useAbortController } from '@hooks/useAbortController'
 import { setNFTMetadataAndTokenURI } from '@utils/nft'
 import { customProviderUrl } from '../../../app.config'
 import { useAccount, useNetwork, useSigner } from 'wagmi'
+import { Asset } from 'src/@types/Asset'
 
 export default function PublishPage({
   content
@@ -47,7 +47,7 @@ export default function PublishPage({
   // Collecting output of each publish step, enabling retry of failed steps
   const [erc721Address, setErc721Address] = useState<string>()
   const [datatokenAddress, setDatatokenAddress] = useState<string>()
-  const [ddo, setDdo] = useState<DDO>()
+  const [ddo, setDdo] = useState<Asset>()
   const [ddoEncrypted, setDdoEncrypted] = useState<string>()
   const [did, setDid] = useState<string>()
 
@@ -115,7 +115,7 @@ export default function PublishPage({
     values: FormPublishData,
     erc721Address: string,
     datatokenAddress: string
-  ): Promise<{ ddo: DDO; ddoEncrypted: string }> {
+  ): Promise<{ ddo: Asset; ddoEncrypted: string }> {
     setFeedback((prevState) => ({
       ...prevState,
       '2': {
@@ -185,7 +185,7 @@ export default function PublishPage({
   // --------------------------------------------------
   async function publish(
     values: FormPublishData,
-    ddo: DDO,
+    ddo: Asset,
     ddoEncrypted: string
   ): Promise<{ did: string }> {
     setFeedback((prevState) => ({

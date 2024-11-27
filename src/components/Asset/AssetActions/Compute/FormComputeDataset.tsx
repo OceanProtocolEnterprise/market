@@ -8,7 +8,7 @@ import ButtonBuy from '../ButtonBuy'
 import PriceOutput from './PriceOutput'
 import { useAsset } from '@context/Asset'
 import content from '../../../../../content/pages/startComputeDataset.json'
-import { Asset, ComputeEnvironment, Service } from '@oceanprotocol/lib'
+import { ComputeEnvironment } from '@oceanprotocol/lib'
 import { getAccessDetails } from '@utils/accessDetailsAndPricing'
 import { getTokenBalanceFromSymbol } from '@utils/wallet'
 import { MAX_DECIMALS } from '@utils/constants'
@@ -21,6 +21,9 @@ import { ComputeDatasetForm } from './_constants'
 import CalculateButtonBuy from '../CalculateButtonBuy'
 import { consumeMarketOrderFee } from 'app.config'
 import { Row } from '../Row'
+import { Service } from 'src/@types/ddo/Service'
+import { Asset } from 'src/@types/Asset'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export default function FormStartCompute({
   asset,

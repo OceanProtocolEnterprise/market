@@ -1,6 +1,6 @@
 import { ReactElement, useState } from 'react'
 import { Formik } from 'formik'
-import { LoggerInstance, Asset, Nft, Metadata } from '@oceanprotocol/lib'
+import { LoggerInstance, Nft } from '@oceanprotocol/lib'
 import { metadataValidationSchema } from './_validation'
 import { getInitialValues } from './_constants'
 import { MetadataEditForm } from './_types'
@@ -21,6 +21,9 @@ import {
   transformConsumerParameters,
   generateCredentials
 } from '@components/Publish/_utils'
+import { Metadata } from 'src/@types/ddo/Metadata'
+import { Asset } from 'src/@types/Asset'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export default function Edit({
   asset

@@ -1,4 +1,4 @@
-import { Asset } from '@oceanprotocol/lib'
+import { Asset } from 'src/@types/Asset'
 
 export const datasetAquarius: Asset = {
   '@context': ['https://w3id.org/did/v1'],
@@ -76,5 +76,7 @@ export const datasetAquarius: Asset = {
   purgatory: {
     state: false,
     reason: ''
-  }
+  },
+  credentialSubject: undefined,
+  issuer: ''
 }

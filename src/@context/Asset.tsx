@@ -20,6 +20,7 @@ import { isValidDid } from '@utils/ddo'
 import { useAddressConfig } from '@hooks/useAddressConfig'
 import { useAccount, useNetwork } from 'wagmi'
 import { convertToLastDdoVersion } from '@utils/assetVersionConverter'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export interface AssetProviderValue {
   isInPurgatory: boolean

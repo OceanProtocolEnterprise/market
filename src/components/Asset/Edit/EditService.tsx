@@ -3,8 +3,7 @@ import { Formik } from 'formik'
 import {
   LoggerInstance,
   FixedRateExchange,
-  Datatoken,
-  Service
+  Datatoken
 } from '@oceanprotocol/lib'
 import { getServiceInitialValues } from './_constants'
 import { ServiceEditForm } from './_types'
@@ -29,6 +28,8 @@ import { serviceValidationSchema } from './_validation'
 import { useUserPreferences } from '@context/UserPreferences'
 import DebugEditService from './DebugEditService'
 import styles from './index.module.css'
+import { Service } from 'src/@types/ddo/Service'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export default function EditService({
   asset,
@@ -139,7 +140,9 @@ export default function EditService({
         (s) => s.id === service.id
       )
       const updatedAsset = { ...asset }
-      updatedAsset.credentialSubject?.services[serviceIndex] = updatedService
+      if (updatedAsset.credentialSubject) {
+        updatedAsset.credentialSubject.services[serviceIndex] = updatedService
+      }
 
       // delete custom helper properties injected in the market so we don't write them on chain
       delete (updatedAsset as AssetExtended).accessDetails

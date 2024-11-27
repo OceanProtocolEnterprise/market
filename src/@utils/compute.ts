@@ -1,12 +1,9 @@
 import {
-  Asset,
   ServiceComputeOptions,
   PublisherTrustedAlgorithm,
   getHash,
   LoggerInstance,
   ComputeAlgorithm,
-  DDO,
-  Service,
   ProviderInstance,
   ComputeEnvironment,
   ComputeJob,
@@ -28,6 +25,9 @@ import { transformAssetToAssetSelection } from './assetConvertor'
 import { ComputeEditForm } from '../components/Asset/Edit/_types'
 import { getFileDidInfo } from './provider'
 import { toast } from 'react-toastify'
+import { Asset } from 'src/@types/Asset'
+import { Service } from 'src/@types/ddo/Service'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 const getComputeOrders = gql`
   query ComputeOrders($user: String!) {
@@ -91,7 +91,7 @@ export async function isOrderable(
   asset: AssetExtended,
   serviceId: string,
   algorithm: ComputeAlgorithm,
-  algorithmDDO: Asset | DDO
+  algorithmDDO: Asset
 ): Promise<boolean> {
   const datasetService: Service = getServiceById(asset, serviceId)
   if (!datasetService) return false
@@ -278,7 +278,7 @@ async function getJobs(
           const compJob: ComputeJobMetaData = {
             ...job,
             assetName: asset.credentialSubject?.metadata?.name,
-            assetDtSymbol: asset.credentialSubject?.datatokens[0].symbol,
+            assetDtSymbol: asset.datatokens[0].symbol,
             networkId: asset.credentialSubject.chainId
           }
           computeJobs.push(compJob)

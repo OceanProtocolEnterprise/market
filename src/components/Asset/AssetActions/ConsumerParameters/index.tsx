@@ -2,11 +2,9 @@ import { ReactElement, useCallback, useEffect, useState } from 'react'
 import FormConsumerParameters from './FormConsumerParameters'
 import styles from './index.module.css'
 import Tabs, { TabsItem } from '@shared/atoms/Tabs'
-import {
-  ConsumerParameter,
-  Service,
-  UserCustomParameters
-} from '@oceanprotocol/lib'
+import { ConsumerParameter, UserCustomParameters } from '@oceanprotocol/lib'
+import { Service } from 'src/@types/ddo/Service'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export function parseConsumerParameterValues(
   formValues?: UserCustomParameters,
