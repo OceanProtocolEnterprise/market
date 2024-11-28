@@ -1,3 +1,4 @@
+import { SignedCredential } from '@oceanprotocol/lib/dist/types/@types/IssuerSignature'
 import { DDOv4Type } from './ddo/versions/DDOv4'
 import { VerifiableCredentialType } from './ddo/versions/VerifiableCredential'
 
@@ -170,4 +171,6 @@ export interface Asset extends DDOv4Type, VerifiableCredentialType {
    * @type {Purgatory}
    */
   purgatory: Purgatory
+
+  proof?: SignedCredential
 }

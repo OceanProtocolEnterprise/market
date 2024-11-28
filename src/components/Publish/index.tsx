@@ -2,7 +2,11 @@ import { ReactElement, useState, useRef } from 'react'
 import { Form, Formik } from 'formik'
 import { initialPublishFeedback, initialValues } from './_constants'
 import { useAccountPurgatory } from '@hooks/useAccountPurgatory'
-import { createTokensAndPricing, transformPublishFormToDdo } from './_utils'
+import {
+  createTokensAndPricing,
+  signAndAndUploadToIpfs,
+  transformPublishFormToDdo
+} from './_utils'
 import PageHeader from '@shared/Page/PageHeader'
 import Title from './Title'
 import styles from './index.module.css'
@@ -13,11 +17,7 @@ import { Steps } from './Steps'
 import { FormPublishData } from './_types'
 import { useUserPreferences } from '@context/UserPreferences'
 import useNftFactory from '@hooks/useNftFactory'
-import {
-  ProviderInstance,
-  LoggerInstance,
-  getErrorMessage
-} from '@oceanprotocol/lib'
+import { LoggerInstance, Nft } from '@oceanprotocol/lib'
 import { getOceanConfig } from '@utils/ocean'
 import { validationSchema } from './_validation'
 import { useAbortController } from '@hooks/useAbortController'
@@ -25,6 +25,7 @@ import { setNFTMetadataAndTokenURI } from '@utils/nft'
 import { customProviderUrl } from '../../../app.config'
 import { useAccount, useNetwork, useSigner } from 'wagmi'
 import { Asset } from 'src/@types/Asset'
+import { IssuerKeyJWK } from '@oceanprotocol/lib/dist/types/@types/IssuerSignature'
 
 export default function PublishPage({
   content
@@ -141,6 +142,22 @@ export default function PublishPage({
       LoggerInstance.log('[publish] Got new DDO', ddo)
 
       let ddoEncrypted: string
+
+      const issuerKey: IssuerKeyJWK = {}
+      const publicKey = ''
+      await signAndAndUploadToIpfs(
+        ddo,
+        signer,
+        new Nft(signer),
+        true,
+        customProviderUrl || values.services[0].providerUrl.url,
+        ddo.credentialSubject.chainId,
+        issuerKey,
+        publicKey,
+        null
+      )
+
+      /*
       try {
         ddoEncrypted = await ProviderInstance.encrypt(
           ddo,
@@ -155,7 +172,7 @@ export default function PublishPage({
 
       if (!ddoEncrypted)
         throw new Error('No encrypted DDO received. Please try again.')
-
+*/
       setDdoEncrypted(ddoEncrypted)
       LoggerInstance.log('[publish] Got encrypted DDO', ddoEncrypted)
 
