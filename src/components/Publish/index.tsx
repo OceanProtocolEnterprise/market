@@ -4,7 +4,8 @@ import { initialPublishFeedback, initialValues } from './_constants'
 import { useAccountPurgatory } from '@hooks/useAccountPurgatory'
 import {
   createTokensAndPricing,
-  signAndAndUploadToIpfs,
+  signAssetAndUploadToIpfs,
+  SigningResult,
   transformPublishFormToDdo
 } from './_utils'
 import PageHeader from '@shared/Page/PageHeader'
@@ -22,10 +23,10 @@ import { getOceanConfig } from '@utils/ocean'
 import { validationSchema } from './_validation'
 import { useAbortController } from '@hooks/useAbortController'
 import { setNFTMetadataAndTokenURI } from '@utils/nft'
-import { customProviderUrl } from '../../../app.config'
+import appConfig, { customProviderUrl } from '../../../app.config'
 import { useAccount, useNetwork, useSigner } from 'wagmi'
 import { Asset } from 'src/@types/Asset'
-import { IssuerKeyJWK } from '@oceanprotocol/lib/dist/types/@types/IssuerSignature'
+import { ethers } from 'ethers'
 
 export default function PublishPage({
   content
@@ -49,7 +50,8 @@ export default function PublishPage({
   const [erc721Address, setErc721Address] = useState<string>()
   const [datatokenAddress, setDatatokenAddress] = useState<string>()
   const [ddo, setDdo] = useState<Asset>()
-  const [ddoEncrypted, setDdoEncrypted] = useState<string>()
+  const [signAndUploadResult, setSignAndUploadResult] =
+    useState<SigningResult>()
   const [did, setDid] = useState<string>()
 
   // --------------------------------------------------
@@ -116,7 +118,7 @@ export default function PublishPage({
     values: FormPublishData,
     erc721Address: string,
     datatokenAddress: string
-  ): Promise<{ ddo: Asset; ddoEncrypted: string }> {
+  ): Promise<{ ddo: Asset; signingResult: SigningResult }> {
     setFeedback((prevState) => ({
       ...prevState,
       '2': {
@@ -130,7 +132,7 @@ export default function PublishPage({
       if (!datatokenAddress || !erc721Address)
         throw new Error('No NFT or Datatoken received. Please try again.')
 
-      const ddo = await transformPublishFormToDdo(
+      const ddo: Asset = await transformPublishFormToDdo(
         values,
         datatokenAddress,
         erc721Address
@@ -141,40 +143,25 @@ export default function PublishPage({
       setDdo(ddo)
       LoggerInstance.log('[publish] Got new DDO', ddo)
 
-      let ddoEncrypted: string
-
-      const issuerKey: IssuerKeyJWK = {}
-      const publicKey = ''
-      await signAndAndUploadToIpfs(
+      const signingResult: SigningResult = await signAssetAndUploadToIpfs(
         ddo,
         signer,
         new Nft(signer),
-        true,
+        false,
         customProviderUrl || values.services[0].providerUrl.url,
-        ddo.credentialSubject.chainId,
-        issuerKey,
-        publicKey,
+        appConfig.ipfsApiKey,
+        appConfig.ipfsSecretApiKey,
         null
       )
 
-      /*
-      try {
-        ddoEncrypted = await ProviderInstance.encrypt(
-          ddo,
-          ddo.credentialSubject?.chainId,
-          customProviderUrl || values.services[0].providerUrl.url,
-          newAbortController()
-        )
-      } catch (error) {
-        const message = getErrorMessage(error.message)
-        LoggerInstance.error('[Provider Encrypt] Error:', message)
-      }
-
-      if (!ddoEncrypted)
+      if (!signingResult)
         throw new Error('No encrypted DDO received. Please try again.')
-*/
-      setDdoEncrypted(ddoEncrypted)
-      LoggerInstance.log('[publish] Got encrypted DDO', ddoEncrypted)
+
+      setSignAndUploadResult(signingResult)
+      LoggerInstance.log(
+        '[publish] Got encrypted DDO',
+        signingResult.metadataIPFS
+      )
 
       setFeedback((prevState) => ({
         ...prevState,
@@ -183,7 +170,8 @@ export default function PublishPage({
           status: 'success'
         }
       }))
-      return { ddo, ddoEncrypted }
+
+      return { ddo, signingResult }
     } catch (error) {
       LoggerInstance.error('[publish] error', error.message)
       setFeedback((prevState) => ({
@@ -203,7 +191,7 @@ export default function PublishPage({
   async function publish(
     values: FormPublishData,
     ddo: Asset,
-    ddoEncrypted: string
+    signingResult: SigningResult
   ): Promise<{ did: string }> {
     setFeedback((prevState) => ({
       ...prevState,
@@ -215,11 +203,40 @@ export default function PublishPage({
     }))
 
     try {
-      if (!ddo || !ddoEncrypted)
+      console.log(signingResult)
+      if (!ddo || !signingResult)
         throw new Error('No DDO received. Please try again.')
 
+      // Set metadata for the NFT
+      const nft = new Nft(signer, ddo.credentialSubject.chainId)
+      await nft.setMetadata(
+        erc721Address,
+        await signer.getAddress(),
+        0,
+        customProviderUrl || values.services[0].providerUrl.url,
+        '',
+        ethers.utils.hexlify(signingResult.flags),
+        signingResult.metadataIPFS,
+        signingResult.metadataIPFSHash
+      )
+
+      console.log(
+        'Version 5.0.0 Asset published. ID:',
+        ddo.credentialSubject.id
+      )
+
+      setFeedback((prevState) => ({
+        ...prevState,
+        '3': {
+          ...prevState['3'],
+          status: 'success'
+        }
+      }))
+
+      /*
       const res = await setNFTMetadataAndTokenURI(
         ddo,
+        signingResult,
         accountId,
         signer,
         values.metadata.nft,
@@ -237,11 +254,11 @@ export default function PublishPage({
         ...prevState,
         '3': {
           ...prevState['3'],
-          status: tx ? 'success' : 'error',
+          status: success ? 'success' : 'error',
           txHash: tx?.transactionHash
         }
       }))
-
+*/
       return { did: ddo.credentialSubject?.id }
     } catch (error) {
       LoggerInstance.error('[publish] error', error.message)
@@ -264,7 +281,7 @@ export default function PublishPage({
     let _erc721Address = erc721Address
     let _datatokenAddress = datatokenAddress
     let _ddo = ddo
-    let _ddoEncrypted = ddoEncrypted
+    let _signingResult = signAndUploadResult
     let _did = did
 
     if (!_erc721Address || !_datatokenAddress) {
@@ -275,20 +292,20 @@ export default function PublishPage({
       setDatatokenAddress(datatokenAddress)
     }
 
-    if (!_ddo || !_ddoEncrypted) {
-      const { ddo, ddoEncrypted } = await encrypt(
+    if (!_ddo || !_signingResult) {
+      const { ddo, signingResult } = await encrypt(
         values,
         _erc721Address,
         _datatokenAddress
       )
       _ddo = ddo
-      _ddoEncrypted = ddoEncrypted
+      _signingResult = signingResult
       setDdo(ddo)
-      setDdoEncrypted(ddoEncrypted)
+      setSignAndUploadResult(signingResult)
     }
 
     if (!_did) {
-      const { did } = await publish(values, _ddo, _ddoEncrypted)
+      const { did } = await publish(values, _ddo, _signingResult)
       _did = did
       setDid(did)
     }

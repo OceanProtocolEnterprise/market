@@ -11,7 +11,6 @@ import {
   ZERO_ADDRESS,
   getEventFromTx,
   ConsumerParameter,
-  signCredential,
   ProviderInstance,
   Nft,
   Aquarius
@@ -40,11 +39,12 @@ import { Credentials } from 'src/@types/ddo/Credentials'
 import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
 import { Metadata } from 'src/@types/ddo/Metadata'
-import { asset } from '.jest/__fixtures__/datasetWithAccessDetails'
-import { IssuerKeyJWK } from '@oceanprotocol/lib/dist/types/@types/IssuerSignature'
 import { createHash } from 'crypto'
 import { ethers, Signer } from 'ethers'
 import { uploadToIPFS } from '@utils/ipfs'
+import { signCredentialWithWeb3Wallet } from '@utils/wallet/sign'
+import { DDOVersion } from 'src/@types/DdoVersion'
+import { SignedCredential } from '@oceanprotocol/lib/dist/types/@types/IssuerSignature'
 
 function getUrlFileExtension(fileUrl: string): string {
   const splittedFileUrl = fileUrl.split('.')
@@ -252,7 +252,7 @@ export async function transformPublishFormToDdo(
   const newDdo: any = {
     '@context': ['https://w3id.org/did/v1'],
     id: did,
-    version: '5.0.0',
+    version: DDOVersion.V5_0_0,
     credentialSubject: {
       id: did,
       chainId,
@@ -279,30 +279,33 @@ export async function transformPublishFormToDdo(
       state: 0,
       created: ''
     }
-    //    event: undefined,
-    //    stats: undefined,
-    //    purgatory: undefined,
-    //    issuer: undefined
   }
 
   return newDdo
 }
 
-export async function signAndAndUploadToIpfs(
+export interface SigningResult {
+  metadataIPFS: string
+  flags: number
+  metadataIPFSHash: string
+}
+
+export async function signAssetAndUploadToIpfs(
   asset: Asset,
   owner: Signer,
   nft: Nft,
   encryptAsset: boolean,
   providerUrl: string,
-  chainId: number,
-  issuerKeyJWK: IssuerKeyJWK,
-  publicKeyHex: string,
+  ipfsApiKey: string,
+  ipfsSecretApiKey: string,
   aquariusInstance: Aquarius
-) {
-  const proof = await signCredential(asset, issuerKeyJWK, publicKeyHex)
+): Promise<SigningResult> {
+  const proof: SignedCredential = await signCredentialWithWeb3Wallet(
+    owner,
+    asset
+  )
   asset.issuer = proof.issuer
-
-  console.log(proof)
+  asset.proof = proof
 
   const jwsAsset = {
     header: proof.header,
@@ -321,7 +324,7 @@ export async function signAndAndUploadToIpfs(
   const assetMetadata = hexlify(bytesAsset)
 
   const data = { encryptedData: assetMetadata }
-  const ipfsHash = await uploadToIPFS(data)
+  const ipfsHash = await uploadToIPFS(data, ipfsApiKey, ipfsSecretApiKey)
   const remoteAsset = {
     remote: {
       type: 'ipfs',
@@ -335,7 +338,7 @@ export async function signAndAndUploadToIpfs(
     try {
       metadataIPFS = await ProviderInstance.encrypt(
         remoteAsset,
-        chainId,
+        asset.credentialSubject?.chainId,
         providerUrl
       )
       flags = 2
@@ -343,8 +346,8 @@ export async function signAndAndUploadToIpfs(
       LoggerInstance.error('[Provider Encrypt] Error:', error.message)
     }
   } else {
-    const stringDDO = JSON.stringify(remoteAsset)
-    const bytes = Buffer.from(stringDDO)
+    const stringDDO: string = JSON.stringify(remoteAsset)
+    const bytes: Buffer = Buffer.from(stringDDO)
     metadataIPFS = hexlify(bytes)
     flags = 0
   }
@@ -356,23 +359,7 @@ export async function signAndAndUploadToIpfs(
   const metadataIPFSHash =
     '0x' + createHash('sha256').update(stringDDO).digest('hex')
 
-  // Set metadata for the NFT
-  try {
-    await nft.setMetadata(
-      asset.credentialSubject?.nftAddress,
-      await owner.getAddress(),
-      0,
-      providerUrl,
-      '',
-      ethers.utils.hexlify(flags),
-      metadataIPFS,
-      metadataIPFSHash
-    )
-  } catch (error) {
-    console.log('error:', error)
-    throw new Error(error)
-  }
-  console.log('Version 5.0.0 Asset published. ID:', asset.credentialSubject.id)
+  return { metadataIPFS, flags, metadataIPFSHash }
 }
 
 export async function createTokensAndPricing(

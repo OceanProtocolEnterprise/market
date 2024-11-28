@@ -5,10 +5,11 @@ export function isCID(value: string) {
   return isIPFS.cid(value)
 }
 
-const ipfsApiKey = process.env.IPFS_API_KEY
-const ipfsSecretApiKey = process.env.IPFS_SECRET_API_KEY
-
-export async function uploadToIPFS(data: any): Promise<string> {
+export async function uploadToIPFS(
+  data: any,
+  ipfsApiKey: string,
+  ipfsSecretApiKey: string
+): Promise<string> {
   try {
     if (!(ipfsApiKey && ipfsSecretApiKey)) {
       console.error('ERROR: SET IPFS_API_KEY and IPFS_SECRET_API_KEY')
