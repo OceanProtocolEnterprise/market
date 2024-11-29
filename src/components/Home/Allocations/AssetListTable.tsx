@@ -6,7 +6,7 @@ const columns: TableOceanColumn<AssetWithOwnAllocation>[] = [
   {
     name: 'Dataset',
     selector: (row) => {
-      const { metadata } = row.asset
+      const { metadata } = row.asset.credentialSubject
       return <AssetTitle title={metadata.name} asset={row.asset} />
     },
     maxWidth: '45rem',

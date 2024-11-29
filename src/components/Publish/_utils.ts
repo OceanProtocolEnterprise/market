@@ -40,11 +40,12 @@ import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
 import { Metadata } from 'src/@types/ddo/Metadata'
 import { createHash } from 'crypto'
-import { ethers, Signer } from 'ethers'
+import { Signer } from 'ethers'
 import { uploadToIPFS } from '@utils/ipfs'
 import { signCredentialWithWeb3Wallet } from '@utils/wallet/sign'
 import { DDOVersion } from 'src/@types/DdoVersion'
 import { SignedCredential } from '@oceanprotocol/lib/dist/types/@types/IssuerSignature'
+import { VerifiableCredentialType } from 'src/@types/ddo/versions/VerifiableCredential'
 
 function getUrlFileExtension(fileUrl: string): string {
   const splittedFileUrl = fileUrl.split('.')
@@ -293,17 +294,24 @@ export interface IpfsUpload {
 export async function signAssetAndUploadToIpfs(
   asset: Asset,
   owner: Signer,
-  nft: Nft,
   encryptAsset: boolean,
   providerUrl: string,
   ipfsApiKey: string,
   ipfsSecretApiKey: string,
   aquariusInstance: Aquarius
 ): Promise<IpfsUpload> {
+  const verifiableCredential: VerifiableCredentialType = {
+    credentialSubject: asset.credentialSubject,
+    issuer: await owner.getAddress(),
+    '@context': asset['@context'],
+    version: asset.version
+  }
+
   const proof: SignedCredential = await signCredentialWithWeb3Wallet(
     owner,
-    asset
+    verifiableCredential
   )
+  console.log(proof)
   asset.issuer = proof.issuer
   asset.proof = proof
 

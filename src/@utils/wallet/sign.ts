@@ -1,6 +1,4 @@
 import { SignedCredential } from '@oceanprotocol/lib/dist/types/@types/IssuerSignature'
-import { Sign } from 'crypto'
-import { addDays } from 'date-fns'
 import { ethers, Signer, Signature } from 'ethers'
 
 /**
@@ -61,8 +59,6 @@ export async function signCredentialWithWeb3Wallet(
     issuer: address,
     jws: `${headerBase64}.${payloadBase64}.${signatureBase64}`
   }
-
-  console.log(signatureBase64)
 
   return proof
 }

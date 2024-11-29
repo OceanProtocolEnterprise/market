@@ -31,7 +31,7 @@ export async function transformAssetToAssetSelection(
       })
 
       const accessDetails = await Promise.all(
-        asset.services.map((service: Service) =>
+        asset.credentialSubject?.services.map((service: Service) =>
           getAccessDetails(asset.credentialSubject?.chainId, service)
         )
       )

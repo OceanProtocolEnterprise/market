@@ -15,7 +15,7 @@ const columns: TableOceanColumn<AssetExtended>[] = [
   {
     name: 'Dataset',
     selector: (row) => {
-      const { metadata } = row
+      const { metadata } = row.credentialSubject
       return <AssetTitle title={metadata.name} asset={row} />
     },
     maxWidth: '45rem',

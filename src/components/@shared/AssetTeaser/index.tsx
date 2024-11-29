@@ -24,7 +24,7 @@ export default function AssetTeaser({
   noPublisher,
   noDescription
 }: AssetTeaserProps): ReactElement {
-  const { name, type, description } = asset.metadata
+  const { name, type, description } = asset.credentialSubject.metadata
   const { datatokens } = asset
   const isCompute = Boolean(getServiceByName(asset, 'compute'))
   const accessType = isCompute ? 'compute' : 'access'

@@ -195,7 +195,7 @@ export default function AddService({
 
       // update asset with new service
       const updatedAsset = { ...asset }
-      updatedAsset.services.push(newService)
+      updatedAsset.credentialSubject.services.push(newService)
 
       // delete custom helper properties injected in the market so we don't write them on chain
       delete (updatedAsset as AssetExtended).accessDetails

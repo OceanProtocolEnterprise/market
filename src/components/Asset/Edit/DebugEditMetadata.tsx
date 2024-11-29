@@ -54,8 +54,13 @@ export default function DebugEditMetadata({
 
       const tmpAsset: Asset = {
         ...asset,
-        metadata: newMetadata,
-        credentials: updatedCredentials
+        credentialSubject: {
+          ...asset.credentialSubject,
+          metadata: newMetadata,
+          credentials: {
+            ...updatedCredentials
+          }
+        }
       }
 
       // delete custom helper properties injected in the market that will not be written on chain

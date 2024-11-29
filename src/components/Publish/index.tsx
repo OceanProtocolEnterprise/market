@@ -142,7 +142,6 @@ export default function PublishPage({
       const ipfsUpload: IpfsUpload = await signAssetAndUploadToIpfs(
         ddo,
         signer,
-        new Nft(signer),
         true,
         customProviderUrl || values.services[0].providerUrl.url,
         appConfig.ipfsApiKey,

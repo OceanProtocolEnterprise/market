@@ -1,10 +1,13 @@
+import { LoggerInstance } from '@oceanprotocol/lib'
 import { Asset } from 'src/@types/Asset'
-import { DDOVersion } from 'src/@types/DdoVersion'
+import { DDOVersion, lastDdoVersion } from 'src/@types/DdoVersion'
 
 function convertFromV4(asset: any): Asset {
+  LoggerInstance.log('[convertFromV4] Convert Ddo from V4 to V5')
+  LoggerInstance.log('[convertFromV4] old version:', asset)
   const newAsset: Asset = {
     '@context': asset['@context'],
-    version: DDOVersion.V5_0_0,
+    version: lastDdoVersion(),
     id: asset.id,
     nft: asset.nft,
     datatokens: asset.datatokens,
@@ -23,11 +26,11 @@ function convertFromV4(asset: any): Asset {
     additionalDdos: [],
     event: asset.event
   }
+  LoggerInstance.log('[convertFromV4] new version:', newAsset)
   return newAsset
 }
 
 function convertToLastDdoVersion(asset: any): Asset {
-  console.log(asset)
   let newAsset: Asset
   switch (asset?.version) {
     case DDOVersion.V4_1_0:
@@ -43,7 +46,6 @@ function convertToLastDdoVersion(asset: any): Asset {
     default:
       console.error('Unsupported asset type or version')
   }
-  console.log(newAsset)
   return newAsset
 }
 

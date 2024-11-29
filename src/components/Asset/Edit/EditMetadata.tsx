@@ -9,21 +9,22 @@ import Web3Feedback from '@shared/Web3Feedback'
 import FormEditMetadata from './FormEditMetadata'
 import styles from './index.module.css'
 import content from '../../../../content/pages/editMetadata.json'
-import { useAbortController } from '@hooks/useAbortController'
 import DebugEditMetadata from './DebugEditMetadata'
 import EditFeedback from './EditFeedback'
 import { useAsset } from '@context/Asset'
-import { setNftMetadata } from '@utils/nft'
 import { sanitizeUrl } from '@utils/url'
-import { assetStateToNumber } from '@utils/assetState'
 import { useAccount, useSigner } from 'wagmi'
 import {
   transformConsumerParameters,
-  generateCredentials
+  generateCredentials,
+  signAssetAndUploadToIpfs,
+  IpfsUpload
 } from '@components/Publish/_utils'
 import { Metadata } from 'src/@types/ddo/Metadata'
 import { Asset } from 'src/@types/Asset'
 import { AssetExtended } from 'src/@types/AssetExtended'
+import appConfig, { customProviderUrl } from '../../../../app.config'
+import { ethers } from 'ethers'
 
 export default function Edit({
   asset
@@ -34,7 +35,6 @@ export default function Edit({
   const { fetchAsset, isAssetNetwork, assetState } = useAsset()
   const { address: accountId } = useAccount()
   const { data: signer } = useSigner()
-  const newAbortController = useAbortController()
 
   const [success, setSuccess] = useState<string>()
   const [error, setError] = useState<string>()
@@ -70,43 +70,50 @@ export default function Edit({
         values?.deny
       )
 
-      // TODO: remove version update at a later time
       const updatedAsset: Asset = {
         ...(asset as Asset),
-        version: '4.1.0',
-        metadata: updatedMetadata,
-        credentials: updatedCredentials
+        credentialSubject: {
+          ...(asset as Asset).credentialSubject,
+          metadata: updatedMetadata,
+          credentials: updatedCredentials
+        }
       }
 
       // delete custom helper properties injected in the market so we don't write them on chain
       delete (updatedAsset as AssetExtended).accessDetails
-      delete (updatedAsset as AssetExtended).datatokens
-      delete (updatedAsset as AssetExtended).stats
+      delete (updatedAsset as AssetExtended).views
       delete (updatedAsset as AssetExtended).offchain
 
-      const setMetadataTx = await setNftMetadata(
+      const ipfsUpload: IpfsUpload = await signAssetAndUploadToIpfs(
         updatedAsset,
-        accountId,
         signer,
-        newAbortController()
+        true,
+        customProviderUrl ||
+          updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+        appConfig.ipfsApiKey,
+        appConfig.ipfsSecretApiKey,
+        null
       )
 
-      if (values.assetState !== assetState) {
-        const nft = new Nft(signer)
+      if (ipfsUpload /* && values.assetState !== assetState */) {
+        const nft = new Nft(signer, updatedAsset.credentialSubject.chainId)
 
-        await nft.setMetadataState(
-          asset?.nftAddress,
-          accountId,
-          assetStateToNumber(values.assetState)
+        await nft.setMetadata(
+          updatedAsset.credentialSubject.nftAddress,
+          await signer.getAddress(),
+          0,
+          customProviderUrl ||
+            updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+          '',
+          ethers.utils.hexlify(ipfsUpload.flags),
+          ipfsUpload.metadataIPFS,
+          ipfsUpload.metadataIPFSHash
         )
-      }
 
-      LoggerInstance.log('[edit] setMetadata result', setMetadataTx)
-
-      if (!setMetadataTx) {
-        setError(content.form.error)
-        LoggerInstance.error(content.form.error)
-        return
+        console.log(
+          'Version 5.0.0 Asset updated. ID:',
+          updatedAsset.credentialSubject.id
+        )
       }
 
       // Edit succeeded
