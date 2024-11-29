@@ -211,11 +211,11 @@ export async function queryMetadata(
 export async function getAsset(
   did: string,
   cancelToken: CancelToken
-): Promise<Asset> {
+): Promise<any> {
   try {
     if (!isValidDid(did)) return
 
-    const response: AxiosResponse<Asset> = await axios.get(
+    const response: AxiosResponse<any> = await axios.get(
       `${metadataCacheUri}/api/aquarius/assets/ddo/${did}`,
       { cancelToken }
     )

@@ -39,7 +39,7 @@ export default function DebugEditMetadata({
           ...asset?.credentialSubject?.metadata?.additionalInformation
         }
       }
-      if (asset.metadata.type === 'algorithm') {
+      if (asset.credentialSubject?.metadata.type === 'algorithm') {
         newMetadata.algorithm.consumerParameters =
           !values.usesConsumerParameters
             ? undefined

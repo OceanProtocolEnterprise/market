@@ -5,7 +5,7 @@ import { useAccountPurgatory } from '@hooks/useAccountPurgatory'
 import {
   createTokensAndPricing,
   signAssetAndUploadToIpfs,
-  SigningResult,
+  IpfsUpload,
   transformPublishFormToDdo
 } from './_utils'
 import PageHeader from '@shared/Page/PageHeader'
@@ -21,8 +21,6 @@ import useNftFactory from '@hooks/useNftFactory'
 import { LoggerInstance, Nft } from '@oceanprotocol/lib'
 import { getOceanConfig } from '@utils/ocean'
 import { validationSchema } from './_validation'
-import { useAbortController } from '@hooks/useAbortController'
-import { setNFTMetadataAndTokenURI } from '@utils/nft'
 import appConfig, { customProviderUrl } from '../../../app.config'
 import { useAccount, useNetwork, useSigner } from 'wagmi'
 import { Asset } from 'src/@types/Asset'
@@ -40,7 +38,6 @@ export default function PublishPage({
   const { isInPurgatory, purgatoryData } = useAccountPurgatory(accountId)
   const scrollToRef = useRef()
   const nftFactory = useNftFactory()
-  const newAbortController = useAbortController()
 
   // This `feedback` state is auto-synced into Formik context under `values.feedback`
   // for use in other components. Syncing defined in ./Steps.tsx child component.
@@ -50,8 +47,7 @@ export default function PublishPage({
   const [erc721Address, setErc721Address] = useState<string>()
   const [datatokenAddress, setDatatokenAddress] = useState<string>()
   const [ddo, setDdo] = useState<Asset>()
-  const [signAndUploadResult, setSignAndUploadResult] =
-    useState<SigningResult>()
+  const [ipfsUpload, setIpdsUpload] = useState<IpfsUpload>()
   const [did, setDid] = useState<string>()
 
   // --------------------------------------------------
@@ -118,7 +114,7 @@ export default function PublishPage({
     values: FormPublishData,
     erc721Address: string,
     datatokenAddress: string
-  ): Promise<{ ddo: Asset; signingResult: SigningResult }> {
+  ): Promise<{ ddo: Asset; ipfsUpload: IpfsUpload }> {
     setFeedback((prevState) => ({
       ...prevState,
       '2': {
@@ -143,25 +139,22 @@ export default function PublishPage({
       setDdo(ddo)
       LoggerInstance.log('[publish] Got new DDO', ddo)
 
-      const signingResult: SigningResult = await signAssetAndUploadToIpfs(
+      const ipfsUpload: IpfsUpload = await signAssetAndUploadToIpfs(
         ddo,
         signer,
         new Nft(signer),
-        false,
+        true,
         customProviderUrl || values.services[0].providerUrl.url,
         appConfig.ipfsApiKey,
         appConfig.ipfsSecretApiKey,
         null
       )
 
-      if (!signingResult)
+      if (!ipfsUpload)
         throw new Error('No encrypted DDO received. Please try again.')
 
-      setSignAndUploadResult(signingResult)
-      LoggerInstance.log(
-        '[publish] Got encrypted DDO',
-        signingResult.metadataIPFS
-      )
+      setIpdsUpload(ipfsUpload)
+      LoggerInstance.log('[publish] Got encrypted DDO', ipfsUpload.metadataIPFS)
 
       setFeedback((prevState) => ({
         ...prevState,
@@ -171,7 +164,7 @@ export default function PublishPage({
         }
       }))
 
-      return { ddo, signingResult }
+      return { ddo, ipfsUpload }
     } catch (error) {
       LoggerInstance.error('[publish] error', error.message)
       setFeedback((prevState) => ({
@@ -191,7 +184,7 @@ export default function PublishPage({
   async function publish(
     values: FormPublishData,
     ddo: Asset,
-    signingResult: SigningResult
+    ipfsUpload: IpfsUpload
   ): Promise<{ did: string }> {
     setFeedback((prevState) => ({
       ...prevState,
@@ -203,8 +196,7 @@ export default function PublishPage({
     }))
 
     try {
-      console.log(signingResult)
-      if (!ddo || !signingResult)
+      if (!ddo || !ipfsUpload)
         throw new Error('No DDO received. Please try again.')
 
       // Set metadata for the NFT
@@ -215,9 +207,9 @@ export default function PublishPage({
         0,
         customProviderUrl || values.services[0].providerUrl.url,
         '',
-        ethers.utils.hexlify(signingResult.flags),
-        signingResult.metadataIPFS,
-        signingResult.metadataIPFSHash
+        ethers.utils.hexlify(ipfsUpload.flags),
+        ipfsUpload.metadataIPFS,
+        ipfsUpload.metadataIPFSHash
       )
 
       console.log(
@@ -233,32 +225,6 @@ export default function PublishPage({
         }
       }))
 
-      /*
-      const res = await setNFTMetadataAndTokenURI(
-        ddo,
-        signingResult,
-        accountId,
-        signer,
-        values.metadata.nft,
-        newAbortController()
-      )
-      const tx = await res.wait()
-      if (!tx?.transactionHash)
-        throw new Error(
-          'Metadata could not be written into the NFT. Please try again.'
-        )
-
-      LoggerInstance.log('[publish] setMetadata result', tx)
-
-      setFeedback((prevState) => ({
-        ...prevState,
-        '3': {
-          ...prevState['3'],
-          status: success ? 'success' : 'error',
-          txHash: tx?.transactionHash
-        }
-      }))
-*/
       return { did: ddo.credentialSubject?.id }
     } catch (error) {
       LoggerInstance.error('[publish] error', error.message)
@@ -281,7 +247,7 @@ export default function PublishPage({
     let _erc721Address = erc721Address
     let _datatokenAddress = datatokenAddress
     let _ddo = ddo
-    let _signingResult = signAndUploadResult
+    let _ipfsUpload = ipfsUpload
     let _did = did
 
     if (!_erc721Address || !_datatokenAddress) {
@@ -292,20 +258,20 @@ export default function PublishPage({
       setDatatokenAddress(datatokenAddress)
     }
 
-    if (!_ddo || !_signingResult) {
-      const { ddo, signingResult } = await encrypt(
+    if (!_ddo || !_ipfsUpload) {
+      const { ddo, ipfsUpload } = await encrypt(
         values,
         _erc721Address,
         _datatokenAddress
       )
       _ddo = ddo
-      _signingResult = signingResult
+      _ipfsUpload = ipfsUpload
       setDdo(ddo)
-      setSignAndUploadResult(signingResult)
+      setIpdsUpload(ipfsUpload)
     }
 
     if (!_did) {
-      const { did } = await publish(values, _ddo, _signingResult)
+      const { did } = await publish(values, _ddo, _ipfsUpload)
       _did = did
       setDid(did)
     }

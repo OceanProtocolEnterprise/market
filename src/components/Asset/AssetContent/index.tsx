@@ -18,7 +18,8 @@ import RelatedAssets from '../RelatedAssets'
 import Web3Feedback from '@components/@shared/Web3Feedback'
 import { useAccount } from 'wagmi'
 import ServiceCard from './ServiceCard'
-import { LanguageValueObject } from '@oceanprotocol/lib/dist/types/@types/DDO/LanguageValueObject'
+import { AssetExtended } from 'src/@types/AssetExtended'
+import { LanguageValueObject } from 'src/@types/ddo/LanguageValueObject'
 
 export default function AssetContent({
   asset

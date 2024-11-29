@@ -6,6 +6,7 @@ import { ReactElement } from 'react'
 import { useAccount } from 'wagmi'
 import styles from './MetaAsset.module.css'
 import { Asset } from 'src/@types/Asset'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export default function MetaAsset({
   asset,

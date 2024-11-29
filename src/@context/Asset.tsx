@@ -21,6 +21,7 @@ import { useAddressConfig } from '@hooks/useAddressConfig'
 import { useAccount, useNetwork } from 'wagmi'
 import { convertToLastDdoVersion } from '@utils/assetVersionConverter'
 import { AssetExtended } from 'src/@types/AssetExtended'
+import { Asset } from 'src/@types/Asset'
 
 export interface AssetProviderValue {
   isInPurgatory: boolean
@@ -82,8 +83,8 @@ function AssetProvider({
 
       LoggerInstance.log('[asset] Fetching asset...')
       setLoading(true)
-      const fetchedAsset = await getAsset(did, token)
-      const asset = convertToLastDdoVersion(fetchedAsset)
+      const fetchedAsset: any = await getAsset(did, token)
+      const asset: Asset = convertToLastDdoVersion(fetchedAsset)
 
       const isWhitelisted = isDDOWhitelisted(asset)
 

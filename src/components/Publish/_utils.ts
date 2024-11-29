@@ -284,7 +284,7 @@ export async function transformPublishFormToDdo(
   return newDdo
 }
 
-export interface SigningResult {
+export interface IpfsUpload {
   metadataIPFS: string
   flags: number
   metadataIPFSHash: string
@@ -299,7 +299,7 @@ export async function signAssetAndUploadToIpfs(
   ipfsApiKey: string,
   ipfsSecretApiKey: string,
   aquariusInstance: Aquarius
-): Promise<SigningResult> {
+): Promise<IpfsUpload> {
   const proof: SignedCredential = await signCredentialWithWeb3Wallet(
     owner,
     asset

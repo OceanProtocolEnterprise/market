@@ -139,7 +139,7 @@ export interface AssetLastEvent {
   datetime: string
 }
 
-export interface Asset extends DDOv4Type, VerifiableCredentialType {
+export interface Asset extends VerifiableCredentialType {
   /**
    * Contains information about the ERC721 NFT contract which represents the intellectual property of the publisher.
    * @type {string}

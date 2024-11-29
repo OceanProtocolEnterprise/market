@@ -1,13 +1,33 @@
 import { Asset } from 'src/@types/Asset'
 import { DDOVersion } from 'src/@types/DdoVersion'
 
-function convertFromV4(asset: Asset): Asset {
-  let newAsset: Asset
-
+function convertFromV4(asset: any): Asset {
+  const newAsset: Asset = {
+    '@context': asset['@context'],
+    version: DDOVersion.V5_0_0,
+    id: asset.id,
+    nft: asset.nft,
+    datatokens: asset.datatokens,
+    purgatory: asset.purgatory,
+    stats: asset.stats,
+    credentialSubject: {
+      id: asset.id,
+      chainId: asset.chainId,
+      metadata: asset.metadata,
+      nftAddress: asset.nftAddress,
+      services: asset.services,
+      credentials: asset.credentials,
+      event: undefined
+    },
+    issuer: '',
+    additionalDdos: [],
+    event: asset.event
+  }
   return newAsset
 }
 
-function convertToLastDdoVersion(asset: Asset): Asset {
+function convertToLastDdoVersion(asset: any): Asset {
+  console.log(asset)
   let newAsset: Asset
   switch (asset?.version) {
     case DDOVersion.V4_1_0:
@@ -23,6 +43,7 @@ function convertToLastDdoVersion(asset: Asset): Asset {
     default:
       console.error('Unsupported asset type or version')
   }
+  console.log(newAsset)
   return newAsset
 }
 

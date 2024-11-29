@@ -79,5 +79,8 @@ module.exports = {
     'https://dockerhub-proxy.oceanprotocol.com',
 
   // Display alert banner for the developer preview deployment
-  showPreviewAlert: process.env.NEXT_PUBLIC_SHOW_PREVIEW_ALERT || 'false'
+  showPreviewAlert: process.env.NEXT_PUBLIC_SHOW_PREVIEW_ALERT || 'false',
+
+  ipfsApiKey: process.env.NEXT_PUBLIC_IPFS_API_KEY,
+  ipfsSecretApiKey: process.env.NEXT_PUBLIC_IPFS_SECRET_API_KEY
 }
