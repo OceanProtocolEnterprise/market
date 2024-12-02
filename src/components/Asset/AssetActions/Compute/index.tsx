@@ -278,7 +278,7 @@ export default function Compute({
         getComputeFeedback(
           selectedAlgorithmAsset?.accessDetails[0]?.baseToken?.symbol,
           selectedAlgorithmAsset?.accessDetails[0]?.datatoken?.symbol,
-          selectedAlgorithmAsset?.metadata?.type
+          selectedAlgorithmAsset?.credentialSubject?.metadata?.type
         )[0]
       )
       await setAlgoPrice(initializedProvider?.algorithm?.providerFee)
@@ -448,7 +448,7 @@ export default function Compute({
         getComputeFeedback(
           accessDetails.baseToken?.symbol,
           accessDetails.datatoken?.symbol,
-          asset.metadata.type
+          asset.credentialSubject?.metadata.type
         )[accessDetails.type === 'fixed' ? 2 : 3]
       )
 
@@ -555,7 +555,8 @@ export default function Compute({
         )}
       </div>
 
-      {isUnsupportedPricing ? null : asset.metadata.type === 'algorithm' ? (
+      {isUnsupportedPricing ? null : asset.credentialSubject?.metadata.type ===
+        'algorithm' ? (
         <>
           {service.type === 'compute' && (
             <Alert

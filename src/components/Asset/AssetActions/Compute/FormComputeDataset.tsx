@@ -334,7 +334,7 @@ export default function FormStartCompute({
       dtSymbol={accessDetails.datatoken?.symbol}
       dtBalance={dtBalance}
       assetTimeout={assetTimeout}
-      assetType={asset.metadata.type}
+      assetType={asset.credentialSubject?.metadata.type}
       hasPreviousOrderSelectedComputeAsset={
         hasPreviousOrderSelectedComputeAsset
       }

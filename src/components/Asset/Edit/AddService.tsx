@@ -146,7 +146,7 @@ export default function AddService({
       // --------------------------------------------------
       // 2. Update DDO
       // --------------------------------------------------
-      let newFiles = asset.services[0].files // by default it could be the same file as in other services
+      let newFiles = asset.credentialSubject?.services[0].files // by default it could be the same file as in other services
       if (values.files[0]?.url) {
         const file = {
           nftAddress: asset.nftAddress,

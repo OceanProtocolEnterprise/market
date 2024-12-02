@@ -1,6 +1,4 @@
 import { Asset } from './Asset'
-import { Metadata } from './ddo/Metadata'
-import { Service } from './ddo/Service'
 
 export interface ServicePrice {
   type: 'fixedrate' | 'dispenser'
@@ -28,7 +26,5 @@ export interface OffChain {
 export interface AssetExtended extends Asset {
   accessDetails?: AccessDetails[]
   views?: number
-  metadata: Metadata
-  services: Service[]
   offchain?: OffChain // TODO - in future it will be directly included in Asset type in @oceanprotocol/lib
 }
