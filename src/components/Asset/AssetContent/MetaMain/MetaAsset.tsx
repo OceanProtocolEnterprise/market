@@ -18,7 +18,7 @@ export default function MetaAsset({
   const { isAssetNetwork } = useAsset()
   const { connector: activeConnector } = useAccount()
 
-  const dataTokenSymbol = asset?.datatokens[0]?.symbol
+  const dataTokenSymbol = asset?.credentialSubject?.datatokens[0]?.symbol
 
   return (
     <div className={styles.wrapper}>
@@ -41,8 +41,12 @@ export default function MetaAsset({
           <span className={styles.addWrap}>
             <AddToken
               address={asset?.credentialSubject?.services[0].datatokenAddress}
-              symbol={(asset as Asset)?.datatokens[0]?.symbol}
-              text={`Add ${(asset as Asset)?.datatokens[0]?.symbol} to wallet`}
+              symbol={
+                (asset as Asset).credentialSubject?.datatokens?.at[0]?.symbol
+              }
+              text={`Add ${
+                (asset as Asset)?.credentialSubject?.datatokens?.at[0]?.symbol
+              } to wallet`}
               className={styles.add}
               minimal
             />

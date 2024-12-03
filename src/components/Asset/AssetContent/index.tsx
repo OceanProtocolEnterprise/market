@@ -69,8 +69,7 @@ export default function AssetContent({
                 <Markdown
                   className={styles.description}
                   text={
-                    (asset.credentialSubject?.metadata
-                      ?.description as string) || ''
+                    asset.credentialSubject?.metadata?.description['@value']
                   }
                   blockImages={!allowExternalContent}
                 />

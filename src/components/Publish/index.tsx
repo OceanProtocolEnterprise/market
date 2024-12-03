@@ -183,7 +183,8 @@ export default function PublishPage({
   async function publish(
     values: FormPublishData,
     ddo: Asset,
-    ipfsUpload: IpfsUpload
+    ipfsUpload: IpfsUpload,
+    erc721Address: string
   ): Promise<{ did: string }> {
     setFeedback((prevState) => ({
       ...prevState,
@@ -251,6 +252,7 @@ export default function PublishPage({
 
     if (!_erc721Address || !_datatokenAddress) {
       const { erc721Address, datatokenAddress } = await create(values)
+
       _erc721Address = erc721Address
       _datatokenAddress = datatokenAddress
       setErc721Address(erc721Address)
@@ -270,7 +272,7 @@ export default function PublishPage({
     }
 
     if (!_did) {
-      const { did } = await publish(values, _ddo, _ipfsUpload)
+      const { did } = await publish(values, _ddo, _ipfsUpload, _erc721Address)
       _did = did
       setDid(did)
     }

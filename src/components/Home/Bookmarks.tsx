@@ -24,8 +24,8 @@ const columns: TableOceanColumn<AssetExtended>[] = [
   {
     name: 'Datatoken Symbol',
     selector: (row) => (
-      <Tooltip content={row.datatokens[0].name}>
-        <>{row.datatokens[0].symbol}</>
+      <Tooltip content={row.credentialSubject.datatokens[0].name}>
+        <>{row.credentialSubject.datatokens[0].symbol}</>
       </Tooltip>
     ),
     maxWidth: '10rem'

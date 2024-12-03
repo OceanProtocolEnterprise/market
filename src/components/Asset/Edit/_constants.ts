@@ -3,6 +3,7 @@ import { parseConsumerParameters, secondsToString } from '@utils/ddo'
 import { ComputeEditForm, MetadataEditForm, ServiceEditForm } from './_types'
 import { Metadata } from 'src/@types/ddo/Metadata'
 import { Credentials } from 'src/@types/ddo/Credentials'
+import { Service } from 'src/@types/ddo/Service'
 
 export const defaultServiceComputeOptions: ServiceComputeOptions = {
   allowRawAlgorithm: false,
@@ -18,7 +19,7 @@ export function getInitialValues(
 ): MetadataEditForm {
   return {
     name: metadata?.name,
-    description: metadata?.description,
+    description: metadata?.description?.['@value'],
     type: metadata?.type,
     links: [{ url: '', type: 'url' }],
     author: metadata?.author,
@@ -34,7 +35,7 @@ export function getInitialValues(
       credentials?.deny?.find((credential) => credential.type === 'address')
         ?.values || [],
     assetState,
-    license: metadata?.license
+    license: metadata?.license?.name
   }
 }
 
@@ -49,7 +50,7 @@ function getComputeSettingsInitialValues({
 
   return {
     allowAllPublishedAlgorithms,
-    publisherTrustedAlgorithms: publisherTrustedAlgorithmsForForm,
+    publisherTrustedAlgorithms: publisherTrustedAlgorithmsForForm || [],
     publisherTrustedAlgorithmPublishers
   }
 }
@@ -91,7 +92,7 @@ export const getServiceInitialValues = (
   )
   return {
     name: service.name,
-    description: service.description,
+    description: service.description?.['@value'],
     access: service.type as 'access' | 'compute',
     price: parseFloat(accessDetails.price),
     paymentCollector: accessDetails.paymentCollector,

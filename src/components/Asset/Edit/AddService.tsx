@@ -16,17 +16,18 @@ import { ServiceEditForm } from './_types'
 import Web3Feedback from '@shared/Web3Feedback'
 import { mapTimeoutStringToSeconds, normalizeFile } from '@utils/ddo'
 import content from '../../../../content/pages/editService.json'
-import { useAbortController } from '@hooks/useAbortController'
 import EditFeedback from './EditFeedback'
 import { useAsset } from '@context/Asset'
-import { setNftMetadata } from '@utils/nft'
 import { getEncryptedFiles } from '@utils/provider'
 import { useAccount, useNetwork, useSigner } from 'wagmi'
 import {
   generateCredentials,
+  IpfsUpload,
+  signAssetAndUploadToIpfs,
   transformConsumerParameters
 } from '@components/Publish/_utils'
-import {
+import appConfig, {
+  customProviderUrl,
   defaultDatatokenCap,
   defaultDatatokenTemplateIndex,
   marketFeeAddress,
@@ -54,7 +55,6 @@ export default function AddService({
   const { address: accountId } = useAccount()
   const { chain } = useNetwork()
   const { data: signer } = useSigner()
-  const newAbortController = useAbortController()
   const newCancelToken = useCancelToken()
   const config = getOceanConfig(asset?.credentialSubject?.chainId)
 
@@ -76,7 +76,7 @@ export default function AddService({
       const nft = new Nft(signer)
 
       const datatokenAddress = await nft.createDatatoken(
-        asset.nftAddress,
+        asset.credentialSubject.nftAddress,
         accountId,
         accountId,
         values.paymentCollector,
@@ -149,7 +149,7 @@ export default function AddService({
       let newFiles = asset.credentialSubject?.services[0].files // by default it could be the same file as in other services
       if (values.files[0]?.url) {
         const file = {
-          nftAddress: asset.nftAddress,
+          nftAddress: asset.credentialSubject.nftAddress,
           datatokenAddress,
           files: [
             normalizeFile(values.files[0].type, values.files[0], chain?.id)
@@ -174,7 +174,11 @@ export default function AddService({
         id: getHash(datatokenAddress + newFiles),
         type: values.access,
         name: values.name,
-        description: values.description,
+        description: {
+          '@value': values.description,
+          '@direction': '',
+          '@language': ''
+        },
         files: newFiles || '',
         datatokenAddress,
         serviceEndpoint: values.providerUrl.url,
@@ -199,22 +203,42 @@ export default function AddService({
 
       // delete custom helper properties injected in the market so we don't write them on chain
       delete (updatedAsset as AssetExtended).accessDetails
-      delete (updatedAsset as AssetExtended).datatokens
-      delete (updatedAsset as AssetExtended).stats
+      delete (updatedAsset as AssetExtended).views
       delete (updatedAsset as AssetExtended).offchain
+      delete (updatedAsset as AssetExtended).stats
 
-      const setMetadataTx = await setNftMetadata(
+      const ipfsUpload: IpfsUpload = await signAssetAndUploadToIpfs(
         updatedAsset,
-        accountId,
         signer,
-        newAbortController()
+        true,
+        customProviderUrl ||
+          updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+        appConfig.ipfsApiKey,
+        appConfig.ipfsSecretApiKey,
+        null
       )
 
-      if (!setMetadataTx) {
-        setError(content.form.error)
-        LoggerInstance.error(content.form.error)
-        return
+      if (ipfsUpload /* && values.assetState !== assetState */) {
+        const nft = new Nft(signer, updatedAsset.credentialSubject.chainId)
+
+        await nft.setMetadata(
+          updatedAsset.credentialSubject.nftAddress,
+          await signer.getAddress(),
+          0,
+          customProviderUrl ||
+            updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+          '',
+          ethers.utils.hexlify(ipfsUpload.flags),
+          ipfsUpload.metadataIPFS,
+          ipfsUpload.metadataIPFSHash
+        )
+
+        console.log(
+          'Version 5.0.0 Asset updated. ID:',
+          updatedAsset.credentialSubject.id
+        )
       }
+
       // Edit succeeded
       setSuccess(content.form.success)
       resetForm()
@@ -277,7 +301,11 @@ export default function AddService({
                     type: 'access',
                     datatokenAddress: 'WILL BE FILLED AFTER SUBMIT',
                     name: '',
-                    description: '',
+                    description: {
+                      '@value': '',
+                      '@direction': '',
+                      '@language': ''
+                    },
                     files: asset.credentialSubject?.services[0].files,
                     serviceEndpoint:
                       asset.credentialSubject?.services[0].serviceEndpoint,

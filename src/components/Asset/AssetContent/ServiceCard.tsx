@@ -18,24 +18,14 @@ export default function ServiceCard({
       <span className={styles.title}>Name: </span>
       {service.name || 'Unknown'}
       <br />
-
-      {typeof service?.description === 'string' ? (
-        <>
-          <span className={styles.title}>Description: </span>
-          <span>{service?.description}</span>
-        </>
-      ) : (
-        <>
-          <span className={styles.title}>Description: </span>
-          <span>{service.description?.['@value']}</span>
-          <br />
-          <span className={styles.title}>Direction: </span>
-          <span>{service.description?.['@direction']}</span>
-          <br />
-          <span className={styles.title}>Language: </span>
-          <span>{service.description?.['@language']}</span>
-        </>
-      )}
+      <span className={styles.title}>Description: </span>
+      <span>{service.description?.['@value']}</span>
+      <br />
+      <span className={styles.title}>Direction: </span>
+      <span>{service.description?.['@direction']}</span>
+      <br />
+      <span className={styles.title}>Language: </span>
+      <span>{service.description?.['@language']}</span>
       <br />
       <span className={styles.title}>Type: </span>
       {service.type}

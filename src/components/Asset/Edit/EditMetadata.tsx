@@ -25,6 +25,7 @@ import { Asset } from 'src/@types/Asset'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import appConfig, { customProviderUrl } from '../../../../app.config'
 import { ethers } from 'ethers'
+import { Credential } from 'src/@types/ddo/Credentials'
 
 export default function Edit({
   asset
@@ -47,11 +48,17 @@ export default function Edit({
       const updatedMetadata: Metadata = {
         ...asset.credentialSubject?.metadata,
         name: values.name,
-        description: values.description,
+        description: {
+          '@value': values.description,
+          '@direction': '',
+          '@language': ''
+        },
         links: linksTransformed,
         author: values.author,
         tags: values.tags,
-        license: values.license,
+        license: {
+          name: values.license
+        },
         additionalInformation: {
           ...asset.credentialSubject?.metadata?.additionalInformation
         }
@@ -64,7 +71,7 @@ export default function Edit({
             : transformConsumerParameters(values.consumerParameters)
       }
 
-      const updatedCredentials = generateCredentials(
+      const updatedCredentials: Credential[] = generateCredentials(
         asset?.credentialSubject?.credentials,
         values?.allow,
         values?.deny
@@ -83,6 +90,7 @@ export default function Edit({
       delete (updatedAsset as AssetExtended).accessDetails
       delete (updatedAsset as AssetExtended).views
       delete (updatedAsset as AssetExtended).offchain
+      delete (updatedAsset as AssetExtended).stats
 
       const ipfsUpload: IpfsUpload = await signAssetAndUploadToIpfs(
         updatedAsset,

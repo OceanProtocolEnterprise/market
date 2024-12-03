@@ -40,14 +40,14 @@ export default function Nft({
         <div className={styles.placeholder} />
       )}
 
-      {(nftMetadata || asset?.nftAddress) && (
+      {(nftMetadata || asset?.credentialSubject?.nftAddress) && (
         <Tooltip
           className={styles.tooltip}
           content={
             <NftTooltip
               nft={nftMetadata}
               nftImage={nftImage}
-              address={asset?.nftAddress}
+              address={asset?.credentialSubject?.nftAddress}
               chainId={asset?.credentialSubject?.chainId}
               isBlockscoutExplorer={isBlockscoutExplorer}
             />

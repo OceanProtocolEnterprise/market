@@ -20,7 +20,7 @@ export default function RelatedAssets(): ReactElement {
   useEffect(() => {
     if (
       !chainIds?.length ||
-      !asset?.nftAddress ||
+      !asset?.credentialSubject?.nftAddress ||
       !asset?.nft ||
       !asset?.credentialSubject?.metadata
     ) {
@@ -38,7 +38,7 @@ export default function RelatedAssets(): ReactElement {
           const tagQuery = generateBaseQuery(
             generateQuery(
               chainIds,
-              asset.nftAddress,
+              asset.credentialSubject.nftAddress,
               4,
               asset.credentialSubject?.metadata.tags
             )
@@ -54,7 +54,7 @@ export default function RelatedAssets(): ReactElement {
           const ownerQuery = generateBaseQuery(
             generateQuery(
               chainIds,
-              asset.nftAddress,
+              asset.credentialSubject.nftAddress,
               4 - tagResults.length,
               null,
               asset.nft.owner

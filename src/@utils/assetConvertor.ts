@@ -42,7 +42,7 @@ export async function transformAssetToAssetSelection(
         price: price.value,
         tokenSymbol: price.tokenSymbol,
         checked: selected,
-        symbol: asset.datatokens[0].symbol,
+        symbol: asset.credentialSubject?.datatokens[0].symbol,
         isAccountIdWhitelisted: isAddressWhitelisted(asset, accountId)
       }
       selected

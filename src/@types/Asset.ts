@@ -1,6 +1,4 @@
-import { SignedCredential } from '@oceanprotocol/lib/dist/types/@types/IssuerSignature'
-import { DDOv4Type } from './ddo/versions/DDOv4'
-import { VerifiableCredentialType } from './ddo/versions/VerifiableCredential'
+import { VerifiableCredential } from './ddo/VerifiableCredential'
 
 export interface AssetNft {
   /**
@@ -139,18 +137,12 @@ export interface AssetLastEvent {
   datetime: string
 }
 
-export interface Asset extends VerifiableCredentialType {
+export interface Asset extends VerifiableCredential {
   /**
    * Contains information about the ERC721 NFT contract which represents the intellectual property of the publisher.
    * @type {string}
    */
   nft: AssetNft
-
-  /**
-   * Contains information about the ERC20 Datatokens attached to asset services.
-   * @type {string}
-   */
-  datatokens: AssetDatatoken[]
 
   /**
    * Contains information about the last transaction that created or updated the DDO.
@@ -171,6 +163,4 @@ export interface Asset extends VerifiableCredentialType {
    * @type {Purgatory}
    */
   purgatory: Purgatory
-
-  proof?: SignedCredential
 }

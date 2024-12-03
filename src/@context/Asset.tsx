@@ -83,6 +83,12 @@ function AssetProvider({
 
       LoggerInstance.log('[asset] Fetching asset...')
       setLoading(true)
+
+      if (!token) {
+        LoggerInstance.error(`[asset] Token is undefined`)
+        return
+      }
+
       const fetchedAsset: any = await getAsset(did, token)
       const asset: Asset = convertToLastDdoVersion(fetchedAsset)
 

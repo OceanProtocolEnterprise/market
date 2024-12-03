@@ -10,7 +10,6 @@ function convertFromV4(asset: any): Asset {
     version: lastDdoVersion(),
     id: asset.id,
     nft: asset.nft,
-    datatokens: asset.datatokens,
     purgatory: asset.purgatory,
     stats: asset.stats,
     credentialSubject: {
@@ -20,7 +19,8 @@ function convertFromV4(asset: any): Asset {
       nftAddress: asset.nftAddress,
       services: asset.services,
       credentials: asset.credentials,
-      event: undefined
+      event: undefined,
+      datatokens: asset.datatokens
     },
     issuer: '',
     additionalDdos: [],

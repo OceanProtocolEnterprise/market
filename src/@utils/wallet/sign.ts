@@ -1,12 +1,12 @@
-import { SignedCredential } from '@oceanprotocol/lib/dist/types/@types/IssuerSignature'
 import { ethers, Signer, Signature } from 'ethers'
+import { Proof } from 'src/@types/ddo/Proof'
 
 /**
  * Encodes a string into Base64-url format.
  * @param {string} input - The string to encode.
  * @returns {string} - The Base64-url encoded string.
  */
-function base64UrlEncode(input) {
+function base64UrlEncode(input: string) {
   return Buffer.from(input)
     .toString('base64')
     .replace(/=/g, '')
@@ -23,7 +23,7 @@ function base64UrlEncode(input) {
 export async function signCredentialWithWeb3Wallet(
   signer: Signer,
   credential: any
-): Promise<SignedCredential> {
+): Promise<Proof> {
   const address: string = await signer.getAddress()
   const data = JSON.stringify(credential)
   const signedMessage: string = await signer.signMessage(data)
@@ -53,10 +53,11 @@ export async function signCredentialWithWeb3Wallet(
 
   // Base64-url encode the signature
   const signatureBase64: string = base64UrlEncode(derSignature)
-
-  const proof: SignedCredential = {
-    header,
-    issuer: address,
+  const proof: Proof = {
+    type: 'jws',
+    proofPurpose: '',
+    created: new Date(),
+    verificationMethod: 'web3',
     jws: `${headerBase64}.${payloadBase64}.${signatureBase64}`
   }
 

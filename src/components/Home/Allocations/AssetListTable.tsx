@@ -14,7 +14,7 @@ const columns: TableOceanColumn<AssetWithOwnAllocation>[] = [
   },
   {
     name: 'Datatoken Symbol',
-    selector: (row) => row.asset.datatokens[0].symbol,
+    selector: (row) => row.asset.credentialSubject?.datatokens[0].symbol,
     maxWidth: '10rem'
   },
   {

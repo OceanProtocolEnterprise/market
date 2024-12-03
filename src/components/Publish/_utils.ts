@@ -12,7 +12,6 @@ import {
   getEventFromTx,
   ConsumerParameter,
   ProviderInstance,
-  Nft,
   Aquarius
 } from '@oceanprotocol/lib'
 import { mapTimeoutStringToSeconds, normalizeFile } from '@utils/ddo'
@@ -35,7 +34,6 @@ import {
 import { sanitizeUrl } from '@utils/url'
 import { getContainerChecksum } from '@utils/docker'
 import { hexlify, parseEther } from 'ethers/lib/utils'
-import { Credentials } from 'src/@types/ddo/Credentials'
 import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
 import { Metadata } from 'src/@types/ddo/Metadata'
@@ -44,8 +42,10 @@ import { Signer } from 'ethers'
 import { uploadToIPFS } from '@utils/ipfs'
 import { signCredentialWithWeb3Wallet } from '@utils/wallet/sign'
 import { DDOVersion } from 'src/@types/DdoVersion'
-import { SignedCredential } from '@oceanprotocol/lib/dist/types/@types/IssuerSignature'
-import { VerifiableCredentialType } from 'src/@types/ddo/versions/VerifiableCredential'
+import { Proof } from 'src/@types/ddo/Proof'
+import { Credential } from 'src/@types/ddo/Credentials'
+import { VerifiableCredential } from 'src/@types/ddo/VerifiableCredential'
+import { asset } from '.jest/__fixtures__/datasetWithAccessDetails'
 
 function getUrlFileExtension(fileUrl: string): string {
   const splittedFileUrl = fileUrl.split('.')
@@ -103,10 +103,10 @@ export function transformConsumerParameters(
 }
 
 export function generateCredentials(
-  oldCredentials: Credentials | undefined,
+  oldCredentials: Credential[] | undefined,
   updatedAllow: string[],
   updatedDeny: string[]
-): Credentials {
+): Credential[] {
   const updatedCredentials = {
     allow: oldCredentials?.allow || [],
     deny: oldCredentials?.deny || []
@@ -182,11 +182,16 @@ export async function transformPublishFormToDdo(
     updated: currentTime,
     type,
     name,
-    description,
+    description: {
+      '@value': description,
+      '@direction': '',
+      '@language': ''
+    },
     tags: transformTags(tags),
     author,
-    license:
-      values.metadata.license || 'https://market.oceanprotocol.com/terms',
+    license: {
+      name: values.metadata.license || 'https://market.oceanprotocol.com/terms'
+    },
     links: linksTransformed,
     additionalInformation: {
       termsAndConditions
@@ -245,7 +250,10 @@ export async function transformPublishFormToDdo(
     }),
     consumerParameters: values.services[0].usesConsumerParameters
       ? transformConsumerParameters(values.services[0].consumerParameters)
-      : undefined
+      : undefined,
+    name: '',
+    state: asset.stats[0],
+    credentials: []
   }
 
   const newCredentials = generateCredentials(undefined, allow, deny)
@@ -260,16 +268,16 @@ export async function transformPublishFormToDdo(
       metadata: newMetadata,
       services: [newService],
       nftAddress,
-      credentials: newCredentials
+      credentials: newCredentials,
+      datatokens: [
+        {
+          name: values.services[0].dataTokenOptions.name,
+          symbol: values.services[0].dataTokenOptions.symbol,
+          address: '',
+          serviceId: ''
+        }
+      ]
     },
-    datatokens: [
-      {
-        name: values.services[0].dataTokenOptions.name,
-        symbol: values.services[0].dataTokenOptions.symbol,
-        address: '',
-        serviceId: ''
-      }
-    ],
     additionalDdos: [],
     // Only added for DDO preview, reflecting Asset response,
     // again, we can assume if `datatokenAddress` is not passed,
@@ -300,26 +308,21 @@ export async function signAssetAndUploadToIpfs(
   ipfsSecretApiKey: string,
   aquariusInstance: Aquarius
 ): Promise<IpfsUpload> {
-  const verifiableCredential: VerifiableCredentialType = {
+  const verifiableCredential: VerifiableCredential = {
     credentialSubject: asset.credentialSubject,
     issuer: await owner.getAddress(),
     '@context': asset['@context'],
-    version: asset.version
+    version: asset.version,
+    type: asset.type,
+    proof: undefined
   }
 
-  const proof: SignedCredential = await signCredentialWithWeb3Wallet(
+  const proof: Proof = await signCredentialWithWeb3Wallet(
     owner,
     verifiableCredential
   )
-  console.log(proof)
-  asset.issuer = proof.issuer
+  asset.issuer = await owner.getAddress()
   asset.proof = proof
-
-  const jwsAsset = {
-    header: proof.header,
-    payload: asset,
-    signature: proof.jws
-  }
 
   // ToDo: aquariusInstance.validate just takes an DDO type and not an Asset type
   // const validateResult = await aquariusInstance.validate(asset)
@@ -327,7 +330,7 @@ export async function signAssetAndUploadToIpfs(
   //  throw new Error('Invalid ddo')
   // }
 
-  const stringMetadata = JSON.stringify(jwsAsset)
+  const stringMetadata = JSON.stringify({ payload: asset })
   const bytesAsset = Buffer.from(stringMetadata)
   const assetMetadata = hexlify(bytesAsset)
 

@@ -1,10 +1,10 @@
-export interface RequestCredential {
-  type: string
-  format: string
-  policies?: (string | Record<string, string | number | boolean>)[]
+export interface Credential {
+  allow?: (CredentialAddressBased | CredentialPolicyBased)[]
+  deny?: (CredentialAddressBased | CredentialPolicyBased)[]
 }
+
 export interface CredentialAddressBased {
-  type: string
+  type: 'address'
   values: string[]
 }
 
@@ -14,7 +14,8 @@ export interface CredentialPolicyBased {
   requestCredentials: RequestCredential[]
 }
 
-export interface Credentials {
-  allow: CredentialAddressBased[] | CredentialPolicyBased[]
-  deny: CredentialAddressBased[] | CredentialPolicyBased[]
+export interface RequestCredential {
+  type: string
+  format: string
+  policies?: (string | Record<string, string | number | boolean>)[]
 }

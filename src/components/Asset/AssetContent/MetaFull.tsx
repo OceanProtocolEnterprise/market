@@ -20,7 +20,9 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
         const signer = await getDummySigner(ddo.credentialSubject?.chainId)
         const datatoken = new Datatoken(signer)
         setPaymentCollector(
-          await datatoken.getPaymentCollector(ddo.datatokens[0].address)
+          await datatoken.getPaymentCollector(
+            ddo.credentialSubject.datatokens[0].address
+          )
         )
       } catch (error) {
         LoggerInstance.error(
@@ -33,7 +35,7 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
   }, [ddo])
 
   function DockerImage() {
-    const containerInfo = ddo?.metadata?.algorithm?.container
+    const containerInfo = ddo?.credentialSubject.metadata?.algorithm?.container
     const { image, tag } = containerInfo
     return <span>{`${image}:${tag}`}</span>
   }
@@ -41,7 +43,10 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
   return ddo ? (
     <div className={styles.metaFull}>
       {!isInPurgatory && (
-        <MetaItem title="Data Author" content={ddo?.metadata?.author} />
+        <MetaItem
+          title="Data Author"
+          content={ddo?.credentialSubject.metadata?.author}
+        />
       )}
       <MetaItem
         title="Owner"
@@ -57,9 +62,10 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
         />
       )}
 
-      {ddo?.metadata?.type === 'algorithm' && ddo?.metadata?.algorithm && (
-        <MetaItem title="Docker Image" content={<DockerImage />} />
-      )}
+      {ddo?.credentialSubject.metadata?.type === 'algorithm' &&
+        ddo?.credentialSubject.metadata?.algorithm && (
+          <MetaItem title="Docker Image" content={<DockerImage />} />
+        )}
       <MetaItem
         title="DID"
         content={<code>{ddo?.credentialSubject?.id}</code>}

@@ -129,7 +129,7 @@ export async function setNftMetadata(
   const flags = ethers.utils.hexlify(2)
 
   const setMetadataTx = await nft.setMetadata(
-    asset.nftAddress,
+    asset.credentialSubject.nftAddress,
     accountId,
     0,
     asset.credentialSubject?.services[0].serviceEndpoint,

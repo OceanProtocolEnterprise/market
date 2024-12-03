@@ -66,7 +66,9 @@ export default function Allocations(): ReactElement {
 
         result?.results.forEach((asset) => {
           const allocation = allocations.find(
-            (x) => x.nftAddress.toLowerCase() === asset.nftAddress.toLowerCase()
+            (x) =>
+              x.nftAddress.toLowerCase() ===
+              asset.credentialSubject.nftAddress.toLowerCase()
           )
           assetsWithAllocation.push({
             asset,

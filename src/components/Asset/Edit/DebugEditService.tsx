@@ -37,7 +37,7 @@ export default function DebugEditService({
       try {
         if (values.files[0]?.url) {
           const file = {
-            nftAddress: asset.nftAddress,
+            nftAddress: asset.credentialSubject.nftAddress,
             datatokenAddress: service.datatokenAddress,
             files: [
               normalizeFile(
@@ -68,7 +68,11 @@ export default function DebugEditService({
       const updatedService: Service = {
         ...service,
         name: values.name,
-        description: values.description,
+        description: {
+          '@value': values.description,
+          '@language': '',
+          '@direction': ''
+        },
         type: values.access,
         timeout: mapTimeoutStringToSeconds(values.timeout),
         files: updatedFiles, // TODO: check if this works,
