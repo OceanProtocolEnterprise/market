@@ -39,19 +39,19 @@ export default function FormEditMetadata(): ReactElement {
 
   useEffect(() => {
     const providerUrl = asset.credentialSubject?.services[0].serviceEndpoint
+    let links = []
+    if (asset?.credentialSubject?.metadata?.links) {
+      links = Object.values(asset?.credentialSubject?.metadata?.links)
+    }
 
     // if we have a sample file, we need to get the files' info before setting defaults links value
-    asset?.credentialSubject?.metadata?.links?.[0] &&
-      getFileInfo(
-        asset.credentialSubject?.metadata.links[0],
-        providerUrl,
-        'url'
-      ).then((checkedFile) => {
+    links[0] &&
+      getFileInfo(links[0], providerUrl, 'url').then((checkedFile) => {
         // set valid false if url is using google drive
-        if (isGoogleUrl(asset.credentialSubject?.metadata.links[0])) {
+        if (isGoogleUrl(links[0])) {
           setFieldValue('links', [
             {
-              url: asset.credentialSubject?.metadata.links[0],
+              url: links[0],
               valid: false
             }
           ])
@@ -60,7 +60,7 @@ export default function FormEditMetadata(): ReactElement {
         // initiate link with values from asset metadata
         setFieldValue('links', [
           {
-            url: asset.credentialSubject?.metadata.links[0],
+            url: links[0],
             type: 'url',
             ...checkedFile[0]
           }

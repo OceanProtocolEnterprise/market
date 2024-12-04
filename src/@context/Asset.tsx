@@ -19,7 +19,7 @@ import { assetStateToString } from '@utils/assetState'
 import { isValidDid } from '@utils/ddo'
 import { useAddressConfig } from '@hooks/useAddressConfig'
 import { useAccount, useNetwork } from 'wagmi'
-import { convertToLastDdoVersion } from '@utils/assetVersionConverter'
+import { convertToLatestDdoVersion } from '@utils/assetVersionConverter'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { Asset } from 'src/@types/Asset'
 
@@ -89,8 +89,9 @@ function AssetProvider({
         return
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const fetchedAsset: any = await getAsset(did, token)
-      const asset: Asset = convertToLastDdoVersion(fetchedAsset)
+      const asset: Asset = convertToLatestDdoVersion(fetchedAsset)
 
       const isWhitelisted = isDDOWhitelisted(asset)
 

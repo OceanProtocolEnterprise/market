@@ -383,8 +383,7 @@ export async function createTrustedAlgorithmList(
     )
     const containerChecksum =
       selectedAlgorithm.credentialSubject?.metadata.algorithm.container
-        .entrypoint +
-      selectedAlgorithm.credentialSubject?.metadata.algorithm.container.checksum
+        .entrypoint
     const trustedAlgorithm = {
       did: selectedAlgorithm.credentialSubject?.id,
       containerSectionChecksum: getHash(containerChecksum),

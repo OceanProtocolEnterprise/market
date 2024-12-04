@@ -35,9 +35,9 @@ import { getContainerChecksum } from '@utils/docker'
 import { hexlify, parseEther } from 'ethers/lib/utils'
 import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
-import { Metadata } from 'src/@types/ddo/Metadata'
+import { Metadata, Option } from 'src/@types/ddo/Metadata'
 import { createHash } from 'crypto'
-import { ethers, Signer } from 'ethers'
+import { Signer } from 'ethers'
 import { uploadToIPFS } from '@utils/ipfs'
 import { signCredentialWithWeb3Wallet } from '@utils/wallet/sign'
 import { DDOVersion } from 'src/@types/DdoVersion'
@@ -45,6 +45,7 @@ import { Proof } from 'src/@types/ddo/Proof'
 import { Credential } from 'src/@types/ddo/Credentials'
 import { VerifiableCredential } from 'src/@types/ddo/VerifiableCredential'
 import { asset } from '.jest/__fixtures__/datasetWithAccessDetails'
+import { convertLinks } from '@utils/links'
 
 function getUrlFileExtension(fileUrl: string): string {
   const splittedFileUrl = fileUrl.split('.')
@@ -76,7 +77,7 @@ function transformTags(originalTags: string[]): string[] {
 
 export function transformConsumerParameters(
   parameters: FormConsumerParameter[]
-): ConsumerParameter[] {
+): Record<string, string | number | boolean | Option[]> {
   if (!parameters?.length) return
 
   const transformedValues = parameters.map((param) => {
@@ -98,7 +99,7 @@ export function transformConsumerParameters(
     }
   })
 
-  return transformedValues as ConsumerParameter[]
+  return transformedValues
 }
 
 export function generateCredentials(
@@ -191,7 +192,7 @@ export async function transformPublishFormToDdo(
     license: {
       name: values.metadata.license || 'https://market.oceanprotocol.com/terms'
     },
-    links: linksTransformed,
+    links: convertLinks(linksTransformed),
     additionalInformation: {
       termsAndConditions
     },
@@ -222,7 +223,9 @@ export async function transformPublishFormToDdo(
           },
           consumerParameters: consumerParametersTransformed
         }
-      })
+      }),
+    copyrightHolder: '',
+    providedBy: ''
   }
 
   const file = {

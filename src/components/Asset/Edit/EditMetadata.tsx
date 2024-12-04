@@ -26,6 +26,7 @@ import { AssetExtended } from 'src/@types/AssetExtended'
 import appConfig, { customProviderUrl } from '../../../../app.config'
 import { ethers } from 'ethers'
 import { Credential } from 'src/@types/ddo/Credentials'
+import { convertLinks } from '@utils/links'
 
 export default function Edit({
   asset
@@ -53,7 +54,7 @@ export default function Edit({
           '@direction': '',
           '@language': ''
         },
-        links: linksTransformed,
+        links: convertLinks(linksTransformed),
         author: values.author,
         tags: values.tags,
         license: {
@@ -65,7 +66,7 @@ export default function Edit({
       }
 
       if (asset.credentialSubject?.metadata.type === 'algorithm') {
-        updatedMetadata.algorithm.consumerParameters =
+        updatedMetadata.algorithm.consumeParameters =
           !values.usesConsumerParameters
             ? undefined
             : transformConsumerParameters(values.consumerParameters)

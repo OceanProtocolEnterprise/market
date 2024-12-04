@@ -785,8 +785,11 @@ export const assets: AssetExtended[] = [
           termsAndConditions: true
         },
         algorithm: {
-          container:
-            'sha256:a981ed6282271fc5492c382cd11d5045641880f738c05a855ed6de8d0eecea8f',
+          container: {
+            entrypoint: 'python $algo',
+            image: 'https://docker.com/test.img',
+            tag: 'latest'
+          },
           language: 'py',
           version: '0.1'
         },

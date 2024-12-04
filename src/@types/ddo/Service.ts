@@ -24,7 +24,7 @@ export interface Compute {
 
 export interface Service {
   id: string
-  type: string
+  type: ServiceType | string
   name: string
   displayName?: LanguageValueObject
   description?: LanguageValueObject

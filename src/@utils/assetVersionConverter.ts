@@ -37,7 +37,7 @@ function convertFromV4(asset: any): Asset {
   return newAsset
 }
 
-function convertToLastDdoVersion(asset: any): Asset {
+function convertToLatestDdoVersion(asset: any): Asset {
   let newAsset: Asset
   switch (asset?.version) {
     case DDOVersion.V4_1_0:
@@ -56,4 +56,4 @@ function convertToLastDdoVersion(asset: any): Asset {
   return newAsset
 }
 
-export { convertFromV4, convertToLastDdoVersion }
+export { convertFromV4, convertToLatestDdoVersion }

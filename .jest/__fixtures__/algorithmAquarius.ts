@@ -85,7 +85,11 @@ export const algorithmAquarius: Asset = {
       algorithm: {
         language: 'json',
         version: '0.1',
-        container: 'https://docker.com/test.img'
+        container: {
+          entrypoint: 'python $algo',
+          image: 'https://docker.com/test.img',
+          tag: 'latest'
+        }
       },
       copyrightHolder: '',
       providedBy: ''

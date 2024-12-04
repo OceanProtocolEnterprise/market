@@ -11,6 +11,7 @@ import { Asset } from 'src/@types/Asset'
 import { Metadata } from 'src/@types/ddo/Metadata'
 import { Credential } from 'src/@types/ddo/Credentials'
 import { AssetExtended } from 'src/@types/AssetExtended'
+import { convertLinks } from '@utils/links'
 
 export default function DebugEditMetadata({
   values,
@@ -35,7 +36,7 @@ export default function DebugEditMetadata({
           '@direction': '',
           '@language': ''
         },
-        links: linksTransformed,
+        links: convertLinks(linksTransformed),
         author: values.author,
         tags: values.tags,
         license: {
@@ -47,10 +48,9 @@ export default function DebugEditMetadata({
       }
 
       if (asset.credentialSubject?.metadata.type === 'algorithm') {
-        newMetadata.algorithm.consumerParameters =
-          !values.usesConsumerParameters
-            ? undefined
-            : transformConsumerParameters(values.consumerParameters)
+        newMetadata.algorithm.consumeParameters = !values.usesConsumerParameters
+          ? undefined
+          : transformConsumerParameters(values.consumerParameters)
       }
 
       const updatedCredentials: Credential[] = generateCredentials(

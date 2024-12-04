@@ -10,8 +10,14 @@ export interface Option {
   [key: string]: string | number | boolean | OptionDetail[]
 }
 
+export interface Container {
+  entrypoint: string
+  image: string
+  tag: string
+}
+
 export interface Algorithm {
-  container: string
+  container: Container
   language?: string
   version?: string
   consumeParameters?: Record<string, string | number | boolean | Option[]>
