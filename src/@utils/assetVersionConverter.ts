@@ -19,12 +19,19 @@ function convertFromV4(asset: any): Asset {
       nftAddress: asset.nftAddress,
       services: asset.services,
       credentials: asset.credentials,
-      event: undefined,
+      event: {
+        block: asset.event.block,
+        contract: asset.event.contract,
+        datetime: asset.event.datetime,
+        from: asset.event.from,
+        txid: asset.event.tx
+      },
       datatokens: asset.datatokens
     },
     issuer: '',
     additionalDdos: [],
-    event: asset.event
+    type: asset.type,
+    proof: undefined
   }
   LoggerInstance.log('[convertFromV4] new version:', newAsset)
   return newAsset

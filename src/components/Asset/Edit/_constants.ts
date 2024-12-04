@@ -2,7 +2,7 @@ import { ServiceComputeOptions } from '@oceanprotocol/lib'
 import { parseConsumerParameters, secondsToString } from '@utils/ddo'
 import { ComputeEditForm, MetadataEditForm, ServiceEditForm } from './_types'
 import { Metadata } from 'src/@types/ddo/Metadata'
-import { Credentials } from 'src/@types/ddo/Credentials'
+import { Credential } from 'src/@types/ddo/Credentials'
 import { Service } from 'src/@types/ddo/Service'
 
 export const defaultServiceComputeOptions: ServiceComputeOptions = {
@@ -14,7 +14,7 @@ export const defaultServiceComputeOptions: ServiceComputeOptions = {
 
 export function getInitialValues(
   metadata: Metadata,
-  credentials: Credentials,
+  credentials: Credential,
   assetState: string
 ): MetadataEditForm {
   return {

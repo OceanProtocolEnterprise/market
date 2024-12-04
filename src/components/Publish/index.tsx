@@ -145,8 +145,7 @@ export default function PublishPage({
         true,
         customProviderUrl || values.services[0].providerUrl.url,
         appConfig.ipfsApiKey,
-        appConfig.ipfsSecretApiKey,
-        null
+        appConfig.ipfsSecretApiKey
       )
 
       if (!ipfsUpload)

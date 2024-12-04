@@ -145,12 +145,6 @@ export interface Asset extends VerifiableCredential {
   nft: AssetNft
 
   /**
-   * Contains information about the last transaction that created or updated the DDO.
-   * @type {string}
-   */
-  event: AssetLastEvent
-
-  /**
    * The stats section contains different statistics fields. This section is added by Aquarius
    * @type {Stats}
    */

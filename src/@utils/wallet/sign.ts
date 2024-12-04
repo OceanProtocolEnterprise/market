@@ -1,31 +1,41 @@
 import { ethers, Signer, Signature } from 'ethers'
 import { Proof } from 'src/@types/ddo/Proof'
+import base64url from 'base64url'
 
-/**
- * Encodes a string into Base64-url format.
- * @param {string} input - The string to encode.
- * @returns {string} - The Base64-url encoded string.
- */
-function base64UrlEncode(input: string) {
-  return Buffer.from(input)
-    .toString('base64')
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
+function generateJwk(
+  address: string,
+  data: string,
+  signature: Signature,
+  base64Encoding: boolean
+): string {
+  const messageHash = ethers.utils.hashMessage(data)
+  const publicKey = ethers.utils.recoverPublicKey(messageHash, signature)
+
+  const publicKeyBytes = ethers.utils.arrayify(publicKey).slice(1) // Erster Byte entfernen (Punktkompression)
+  const x = publicKeyBytes.slice(0, 32)
+  const y = publicKeyBytes.slice(32)
+
+  const jwk = {
+    kty: 'EC',
+    crv: 'secp256k1',
+    x: base64url(Buffer.from(x)),
+    y: base64url(Buffer.from(y)),
+    alg: 'ES256K',
+    use: 'sig',
+    kid: base64url(address)
+  }
+
+  const jwkString = JSON.stringify(jwk)
+
+  return base64Encoding ? base64url(jwkString) : jwkString
 }
 
-/**
- * Signs a message using MetaMask and converts the signature into JWS format.
- * @param {Signer} signer
- * @param {string} data - The data to be signed.
- * @returns {Promise<string>} - The generated JWS as a string.
- */
 export async function signCredentialWithWeb3Wallet(
   signer: Signer,
   credential: any
 ): Promise<Proof> {
   const address: string = await signer.getAddress()
-  const data = JSON.stringify(credential)
+  const data: string = JSON.stringify(credential)
   const signedMessage: string = await signer.signMessage(data)
 
   const signature: Signature = ethers.utils.splitSignature(signedMessage)
@@ -34,16 +44,14 @@ export async function signCredentialWithWeb3Wallet(
   // Ensure v is in the JWS-compatible range (27 or 28)
   const adjustedV: number = v < 27 ? v + 27 : v
 
-  // JWS Header
   const header = {
-    alg: 'ES256K', // ECDSA with secp256k1
+    alg: 'ES256K',
     typ: 'JWT',
-    kid: address // Optional: Ethereum address as Key ID
+    kid: base64url(address)
   }
-  const headerBase64 = base64UrlEncode(JSON.stringify(header))
-
-  // JWS Payload
-  const payloadBase64: string = base64UrlEncode(data)
+  const headerString: string = JSON.stringify(header)
+  const headerBase64: string = base64url(headerString)
+  const payloadBase64: string = base64url(data)
 
   // Convert ECDSA signature to DER format
   const derSignature: string = ethers.utils.joinSignature({
@@ -51,13 +59,15 @@ export async function signCredentialWithWeb3Wallet(
     v: adjustedV
   })
 
+  const jwk = generateJwk(address, data, signature, false)
+
   // Base64-url encode the signature
-  const signatureBase64: string = base64UrlEncode(derSignature)
+  const signatureBase64: string = base64url(derSignature)
   const proof: Proof = {
-    type: 'jws',
-    proofPurpose: '',
+    type: 'JsonWebSignature2020',
+    proofPurpose: 'assertionMethod',
     created: new Date(),
-    verificationMethod: 'web3',
+    verificationMethod: `did:jwk:${jwk}`,
     jws: `${headerBase64}.${payloadBase64}.${signatureBase64}`
   }
 

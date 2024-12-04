@@ -99,8 +99,7 @@ export default function Edit({
         customProviderUrl ||
           updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
         appConfig.ipfsApiKey,
-        appConfig.ipfsSecretApiKey,
-        null
+        appConfig.ipfsSecretApiKey
       )
 
       if (ipfsUpload /* && values.assetState !== assetState */) {

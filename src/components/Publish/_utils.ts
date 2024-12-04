@@ -11,8 +11,7 @@ import {
   ZERO_ADDRESS,
   getEventFromTx,
   ConsumerParameter,
-  ProviderInstance,
-  Aquarius
+  ProviderInstance
 } from '@oceanprotocol/lib'
 import { mapTimeoutStringToSeconds, normalizeFile } from '@utils/ddo'
 import { generateNftCreateData } from '@utils/nft'
@@ -38,7 +37,7 @@ import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
 import { Metadata } from 'src/@types/ddo/Metadata'
 import { createHash } from 'crypto'
-import { Signer } from 'ethers'
+import { ethers, Signer } from 'ethers'
 import { uploadToIPFS } from '@utils/ipfs'
 import { signCredentialWithWeb3Wallet } from '@utils/wallet/sign'
 import { DDOVersion } from 'src/@types/DdoVersion'
@@ -305,8 +304,7 @@ export async function signAssetAndUploadToIpfs(
   encryptAsset: boolean,
   providerUrl: string,
   ipfsApiKey: string,
-  ipfsSecretApiKey: string,
-  aquariusInstance: Aquarius
+  ipfsSecretApiKey: string
 ): Promise<IpfsUpload> {
   const verifiableCredential: VerifiableCredential = {
     credentialSubject: asset.credentialSubject,
@@ -317,18 +315,15 @@ export async function signAssetAndUploadToIpfs(
     proof: undefined
   }
 
+  delete verifiableCredential.credentialSubject.datatokens
+  delete verifiableCredential.credentialSubject.event
+
   const proof: Proof = await signCredentialWithWeb3Wallet(
     owner,
     verifiableCredential
   )
   asset.issuer = await owner.getAddress()
   asset.proof = proof
-
-  // ToDo: aquariusInstance.validate just takes an DDO type and not an Asset type
-  // const validateResult = await aquariusInstance.validate(asset)
-  // if (!validateResult.valid) {
-  //  throw new Error('Invalid ddo')
-  // }
 
   const stringMetadata = JSON.stringify({ payload: asset })
   const bytesAsset = Buffer.from(stringMetadata)

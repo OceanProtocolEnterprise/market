@@ -21,16 +21,21 @@ const SampleButton = ({ url }: { url: string }) => (
 export default function MetaSecondary({ ddo }: { ddo: Asset }): ReactElement {
   return (
     <aside className={styles.metaSecondary}>
-      {ddo?.credentialSubject?.metadata?.links?.length > 0 && (
-        <div className={styles.samples}>
-          <MetaItem
-            title="Sample Data"
-            content={
-              <SampleButton url={ddo?.credentialSubject?.metadata.links[0]} />
-            }
-          />
-        </div>
-      )}
+      {ddo?.credentialSubject?.metadata?.links &&
+        Object.values(ddo?.credentialSubject?.metadata?.links).length > 0 && (
+          <div className={styles.samples}>
+            <MetaItem
+              title="Sample Data"
+              content={
+                <SampleButton
+                  url={
+                    Object.values(ddo?.credentialSubject?.metadata?.links)[0]
+                  }
+                />
+              }
+            />
+          </div>
+        )}
       {ddo?.credentialSubject?.metadata?.tags?.length > 0 && (
         <Tags items={ddo?.credentialSubject?.metadata?.tags} />
       )}

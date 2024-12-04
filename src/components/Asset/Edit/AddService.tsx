@@ -214,8 +214,7 @@ export default function AddService({
         customProviderUrl ||
           updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
         appConfig.ipfsApiKey,
-        appConfig.ipfsSecretApiKey,
-        null
+        appConfig.ipfsSecretApiKey
       )
 
       if (ipfsUpload /* && values.assetState !== assetState */) {
