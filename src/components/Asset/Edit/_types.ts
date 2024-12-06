@@ -1,5 +1,6 @@
 import { FormConsumerParameter } from '@components/Publish/_types'
 import { FileInfo } from '@oceanprotocol/lib'
+import { License } from '../../../@types/ddo/License'
 
 export interface MetadataEditForm {
   name: string
@@ -13,7 +14,7 @@ export interface MetadataEditForm {
   allow?: string[]
   deny?: string[]
   assetState?: string
-  license?: string
+  license?: License
 }
 
 export interface ServiceEditForm {

@@ -35,7 +35,7 @@ export function getInitialValues(
       credentials?.deny?.find((credential) => credential.type === 'address')
         ?.values || [],
     assetState,
-    license: metadata?.license?.name
+    license: metadata?.license
   }
 }
 

@@ -10,7 +10,6 @@ import {
   NftFactory,
   ZERO_ADDRESS,
   getEventFromTx,
-  ConsumerParameter,
   ProviderInstance
 } from '@oceanprotocol/lib'
 import { mapTimeoutStringToSeconds, normalizeFile } from '@utils/ddo'
@@ -189,9 +188,7 @@ export async function transformPublishFormToDdo(
     },
     tags: transformTags(tags),
     author,
-    license: {
-      name: values.metadata.license || 'https://market.oceanprotocol.com/terms'
-    },
+    license: metadata.license,
     links: convertLinks(linksTransformed),
     additionalInformation: {
       termsAndConditions
@@ -259,7 +256,8 @@ export async function transformPublishFormToDdo(
   }
 
   const newCredentials = generateCredentials(undefined, allow, deny)
-
+  console.log('Jetzt')
+  console.log(newMetadata)
   const newDdo: any = {
     '@context': ['https://w3id.org/did/v1'],
     id: did,

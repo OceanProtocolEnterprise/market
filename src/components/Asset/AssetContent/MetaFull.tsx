@@ -6,6 +6,8 @@ import { useAsset } from '@context/Asset'
 import { LoggerInstance, Datatoken } from '@oceanprotocol/lib'
 import { getDummySigner } from '@utils/wallet'
 import { Asset } from 'src/@types/Asset'
+import { IpfsRemoteSource } from '@components/@shared/IpfsRemoteSource'
+import Label from '@components/@shared/FormInput/Label'
 
 export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
   const { isInPurgatory, assetState } = useAsset()
@@ -70,6 +72,17 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
         title="DID"
         content={<code>{ddo?.credentialSubject?.id}</code>}
       />
+      <div>
+        <Label htmlFor="license">
+          <strong>License</strong>
+        </Label>
+        <IpfsRemoteSource
+          noDocumentLabel="No license document available"
+          remoteSource={ddo.credentialSubject?.metadata?.license?.licenseDocuments
+            ?.at(0)
+            ?.mirrors?.at(0)}
+        ></IpfsRemoteSource>
+      </div>
     </div>
   ) : null
 }

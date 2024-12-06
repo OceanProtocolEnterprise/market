@@ -57,9 +57,7 @@ export default function Edit({
         links: convertLinks(linksTransformed),
         author: values.author,
         tags: values.tags,
-        license: {
-          name: values.license
-        },
+        license: values.license,
         additionalInformation: {
           ...asset.credentialSubject?.metadata?.additionalInformation
         }

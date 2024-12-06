@@ -3,8 +3,7 @@ import styles from './index.module.css'
 import MetaAsset from './MetaAsset'
 import MetaInfo from './MetaInfo'
 import Nft from '../Nft'
-import VerifiedBadge from '@components/@shared/VerifiedBadge'
-import { useAsset } from '@context/Asset'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 const blockscoutNetworks = [1287, 2021000, 2021001, 44787, 246, 1285]
 

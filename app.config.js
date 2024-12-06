@@ -82,5 +82,6 @@ module.exports = {
   showPreviewAlert: process.env.NEXT_PUBLIC_SHOW_PREVIEW_ALERT || 'false',
 
   ipfsApiKey: process.env.NEXT_PUBLIC_IPFS_API_KEY,
-  ipfsSecretApiKey: process.env.NEXT_PUBLIC_IPFS_SECRET_API_KEY
+  ipfsSecretApiKey: process.env.NEXT_PUBLIC_IPFS_SECRET_API_KEY,
+  ipfsGateway: process.env.NEXT_PUBLIC_IPFS_GATEWAY
 }

@@ -1,6 +1,7 @@
 import { FileInfo, ServiceComputeOptions } from '@oceanprotocol/lib'
 import { NftMetadata } from '@utils/nft'
 import { ReactElement } from 'react'
+import { License } from 'src/@types/ddo/License'
 
 export interface FormPublishService {
   files: FileInfo[]
@@ -31,7 +32,7 @@ export interface FormPublishData {
     description: string
     author: string
     termsAndConditions: boolean
-    license?: string
+    license?: License
     tags?: string[]
     dockerImage?: string
     dockerImageCustom?: string
