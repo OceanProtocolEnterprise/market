@@ -2,6 +2,7 @@ import { FileInfo, ServiceComputeOptions } from '@oceanprotocol/lib'
 import { NftMetadata } from '@utils/nft'
 import { ReactElement } from 'react'
 import { License } from 'src/@types/ddo/License'
+import { Option } from 'src/@types/ddo/Option'
 
 export interface FormPublishService {
   files: FileInfo[]
@@ -81,7 +82,7 @@ export interface FormConsumerParameter {
   label: string
   required: string
   description: string
-  default: string | boolean | number
+  default: string | boolean | number | Option[]
   options?: { key: string; value: string }[]
   value?: string | boolean | number
 }

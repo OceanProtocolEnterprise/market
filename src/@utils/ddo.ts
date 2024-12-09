@@ -185,38 +185,31 @@ export function previewDebugPatch(
 }
 
 export function parseConsumerParameters(
-  consumerParameters: Record<string, string | number | boolean | Option[]>
+  consumerParameters: Record<string, string | number | boolean | Option[]>[]
 ): FormConsumerParameter[] {
-  if (Array.isArray(consumerParameters.parameters)) {
-    const parameters: FormConsumerParameter[] =
-      consumerParameters.parameters.map((param) => {
-        let transformedOptions
-        if (Array.isArray(param.options)) {
-          transformedOptions = param.options.map((option) => {
-            const key = Object.keys(option)[0]
-            return {
-              key,
-              value: option[key]
-            }
-          })
-        }
-
+  return consumerParameters.map((param) => {
+    let transformedOptions
+    if (Array.isArray(param.options)) {
+      transformedOptions = param.options.map((option) => {
+        const key = Object.keys(option)[0]
         return {
-          ...param,
-          required: param.required ? 'required' : 'optional',
-          options: param.type === 'select' ? transformedOptions : [],
-          default:
-            param.type === 'boolean'
-              ? param.default === 'true'
-              : param.type === 'number'
-              ? Number(param.default)
-              : param.default
+          key,
+          value: option[key]
         }
       })
-    return parameters
-  } else {
-    return []
-  }
+    }
+    return {
+      ...param,
+      required: param.required ? 'required' : 'optional',
+      options: param.type === 'select' ? transformedOptions : [],
+      default:
+        param.type === 'boolean'
+          ? param.default === 'true'
+          : param.type === 'number'
+          ? Number(param.default)
+          : param.default
+    }
+  })
 }
 
 export function isAddressWhitelisted(ddo: Asset, accountId: string): boolean {

@@ -77,11 +77,14 @@ function transformTags(originalTags: string[]): string[] {
 
 export function transformConsumerParameters(
   parameters: FormConsumerParameter[]
-): Record<string, string | number | boolean | Option[]> {
+): Record<string, string | number | boolean | Option[]>[] {
   if (!parameters?.length) return
 
-  const optionValues: Option[] = parameters.map((param) => {
-    const options: OptionDetail[] =
+  const transformedValues: Record<
+    string,
+    string | number | boolean | Option[]
+  >[] = parameters.map((param) => {
+    const options: Option[] =
       param.type === 'select'
         ? // Transform from { key: string, value: string } into { key: value }
           param.options?.map((opt) => ({ [opt.key]: opt.value }))
@@ -97,9 +100,7 @@ export function transformConsumerParameters(
     }
   })
 
-  return {
-    parameters: optionValues
-  }
+  return transformedValues
 }
 
 export function generateCredentials(

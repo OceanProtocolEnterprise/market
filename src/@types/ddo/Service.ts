@@ -35,7 +35,7 @@ export interface Service {
   timeout: number
   // required for type compute
   compute?: Compute
-  consumerParameters?: Record<string, string | number | boolean | Option[]>
+  consumerParameters?: Record<string, string | number | boolean | Option[]>[]
   additionalInformation?: Record<string, string | number | boolean>
   state: State
   credentials: Credential[]

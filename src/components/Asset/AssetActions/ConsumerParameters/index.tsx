@@ -9,7 +9,7 @@ import { Option } from 'src/@types/ddo/Option'
 
 export function parseConsumerParameterValues(
   formValues?: UserCustomParameters,
-  consumerParameters?: Record<string, string | number | boolean | Option[]>
+  consumerParameters?: Record<string, string | number | boolean | Option[]>[]
 ): UserCustomParameters {
   if (!formValues) return
 
@@ -17,19 +17,15 @@ export function parseConsumerParameterValues(
   Object.entries(formValues)?.forEach((userCustomParameter) => {
     const [userCustomParameterKey, userCustomParameterValue] =
       userCustomParameter
-    let typeString
-    if (Array.isArray(consumerParameters.parameters)) {
-      const { type } = consumerParameters.parameters.find(
-        (param) => param.name === userCustomParameterKey
-      )
-      typeString = type
-    }
+    const { type } = consumerParameters.find(
+      (param) => param.name === userCustomParameterKey
+    )
 
     Object.assign(parsedValues, {
       [userCustomParameterKey]:
-        typeString === 'select' && userCustomParameterValue === ''
+        type === 'select' && userCustomParameterValue === ''
           ? undefined
-          : typeString === 'boolean'
+          : type === 'boolean'
           ? userCustomParameterValue === 'true'
           : userCustomParameterValue
     })
@@ -52,10 +48,7 @@ export default function ConsumerParameters({
 
   const updateTabs = useCallback(() => {
     const tabs = []
-    if (
-      Array.isArray(service.consumerParameters.parameters) &&
-      service.consumerParameters.parameters.length > 0
-    ) {
+    if (service.consumerParameters.length > 0) {
       tabs.push({
         title: 'Data Service',
         content: (
@@ -69,10 +62,6 @@ export default function ConsumerParameters({
     }
     // TODO -
     if (
-      Array.isArray(
-        selectedAlgorithmAsset?.credentialSubject?.services[0]
-          ?.consumerParameters
-      ) &&
       selectedAlgorithmAsset?.credentialSubject?.services[0]?.consumerParameters
         .length > 0
     ) {

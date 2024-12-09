@@ -10,23 +10,20 @@ import { Option } from 'src/@types/ddo/Option'
 const cx = classNames.bind(styles)
 
 export function getDefaultValues(
-  consumerParameters: Record<string, string | number | boolean | Option[]>
+  consumerParameters: Record<string, string | number | boolean | Option[]>[]
 ): UserCustomParameters {
   const defaults = {}
 
-  if (Array.isArray(consumerParameters.parameters)) {
-    consumerParameters.parameters.forEach((param) => {
-      Object.assign(defaults, {
-        [param.name]:
-          param.type === 'number'
-            ? Number(param.default)
-            : param.type === 'boolean'
-            ? param.default.toString()
-            : param.default
-      })
+  consumerParameters.forEach((param) => {
+    Object.assign(defaults, {
+      [param.name]:
+        param.type === 'number'
+          ? Number(param.default)
+          : param.type === 'boolean'
+          ? param.default.toString()
+          : param.default
     })
-  }
-  console.log(defaults)
+  })
   return defaults
 }
 
@@ -36,12 +33,14 @@ export default function FormConsumerParameters({
   disabled
 }: {
   name: string
-  parameters: Record<string, string | number | boolean | Option[]>
+  parameters: Record<string, string | number | boolean | Option[]>[]
   disabled?: boolean
 }): ReactElement {
   const [field] = useField<UserCustomParameters[]>(name)
 
-  const getParameterOptions = (parameter: Option): string[] => {
+  const getParameterOptions = (
+    parameter: Record<string, string | number | boolean | Option[]>
+  ): string[] => {
     if (!parameter.options && parameter.type !== 'boolean') return []
     let transformedOptions
     if (Array.isArray(parameter.options)) {
@@ -74,29 +73,25 @@ export default function FormConsumerParameters({
           parametersContainerDisabled: disabled
         })}
       >
-        {Array.isArray(parameters.parameters) ? (
-          parameters.parameters?.map((param) => {
-            const { default: paramDefault, ...rest } = param
+        {parameters.map((param) => {
+          const { default: paramDefault, ...rest } = param
 
-            return (
-              <div key={param.name} className={styles.parameter}>
-                <Field
-                  {...rest}
-                  component={Input}
-                  disabled={disabled}
-                  help={param.description}
-                  name={`${name}.${param.name}`}
-                  options={getParameterOptions(param)}
-                  size="small"
-                  type={param.type === 'boolean' ? 'select' : param.type}
-                  value={field.value[param.name]}
-                />
-              </div>
-            )
-          })
-        ) : (
-          <></>
-        )}
+          return (
+            <div key={param.name} className={styles.parameter}>
+              <Field
+                {...rest}
+                component={Input}
+                disabled={disabled}
+                help={param.description}
+                name={`${name}.${param.name}`}
+                options={getParameterOptions(param)}
+                size="small"
+                type={param.type === 'boolean' ? 'select' : param.type}
+                value={field.value[param.name]}
+              />
+            </div>
+          )
+        })}
       </div>
     </div>
   )

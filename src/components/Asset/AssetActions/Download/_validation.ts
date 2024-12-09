@@ -3,9 +3,9 @@ import { getUserCustomParameterValidationSchema } from '../ConsumerParameters/_v
 import { Option } from 'src/@types/ddo/Option'
 
 export function getDownloadValidationSchema(
-  parameters: Record<string, string | number | boolean | Option[]>
+  parameters: Record<string, string | number | boolean | Option[]>[]
 ): Yup.SchemaOf<{
-  dataServiceParams: any
+  dataServiceParams: Record<string, string | number | boolean | Option[]>[]
   termsAndConditions: boolean
 }> {
   return Yup.object().shape({

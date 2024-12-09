@@ -13,7 +13,7 @@ export interface Algorithm {
   container: Container
   language?: string
   version?: string
-  consumerParameters?: Record<string, string | number | boolean | Option[]>
+  consumerParameters?: Record<string, string | number | boolean | Option[]>[]
 }
 
 export interface Metadata {
