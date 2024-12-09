@@ -24,7 +24,8 @@ export function getInitialValues(
     links: [{ url: '', type: 'url' }],
     author: metadata?.author,
     tags: metadata?.tags,
-    usesConsumerParameters: metadata?.algorithm?.consumerParameters?.length > 0,
+    usesConsumerParameters:
+      Object.values(metadata?.algorithm?.consumerParameters).length > 0,
     consumerParameters: parseConsumerParameters(
       metadata?.algorithm?.consumerParameters
     ),
@@ -103,7 +104,8 @@ export const getServiceInitialValues = (
     },
     files: [{ url: '', type: 'hidden' }],
     timeout: secondsToString(service.timeout),
-    usesConsumerParameters: service.consumerParameters?.length > 0,
+    usesConsumerParameters:
+      Object.assign(service.consumerParameters).length > 0,
     consumerParameters: parseConsumerParameters(service.consumerParameters),
     allow:
       service.credentials?.allow?.find(

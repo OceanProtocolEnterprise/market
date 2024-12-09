@@ -64,7 +64,7 @@ export default function Edit({
       }
 
       if (asset.credentialSubject?.metadata.type === 'algorithm') {
-        updatedMetadata.algorithm.consumeParameters =
+        updatedMetadata.algorithm.consumerParameters =
           !values.usesConsumerParameters
             ? undefined
             : transformConsumerParameters(values.consumerParameters)

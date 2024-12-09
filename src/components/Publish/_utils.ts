@@ -34,7 +34,8 @@ import { getContainerChecksum } from '@utils/docker'
 import { hexlify, parseEther } from 'ethers/lib/utils'
 import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
-import { Metadata, Option } from 'src/@types/ddo/Metadata'
+import { Metadata } from 'src/@types/ddo/Metadata'
+import { Option, OptionDetail } from 'src/@types/ddo/Option'
 import { createHash } from 'crypto'
 import { Signer } from 'ethers'
 import { uploadToIPFS } from '@utils/ipfs'
@@ -79,13 +80,11 @@ export function transformConsumerParameters(
 ): Record<string, string | number | boolean | Option[]> {
   if (!parameters?.length) return
 
-  const transformedValues = parameters.map((param) => {
-    const options =
+  const optionValues: Option[] = parameters.map((param) => {
+    const options: OptionDetail[] =
       param.type === 'select'
         ? // Transform from { key: string, value: string } into { key: value }
-          JSON.stringify(
-            param.options?.map((opt) => ({ [opt.key]: opt.value }))
-          )
+          param.options?.map((opt) => ({ [opt.key]: opt.value }))
         : undefined
 
     const required = param.required === 'required'
@@ -98,7 +97,9 @@ export function transformConsumerParameters(
     }
   })
 
-  return transformedValues
+  return {
+    parameters: optionValues
+  }
 }
 
 export function generateCredentials(

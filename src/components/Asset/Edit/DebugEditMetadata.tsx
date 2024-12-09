@@ -46,9 +46,10 @@ export default function DebugEditMetadata({
       }
 
       if (asset.credentialSubject?.metadata.type === 'algorithm') {
-        newMetadata.algorithm.consumeParameters = !values.usesConsumerParameters
-          ? undefined
-          : transformConsumerParameters(values.consumerParameters)
+        newMetadata.algorithm.consumerParameters =
+          !values.usesConsumerParameters
+            ? undefined
+            : transformConsumerParameters(values.consumerParameters)
       }
 
       const updatedCredentials: Credential[] = generateCredentials(

@@ -2,6 +2,7 @@ import { LanguageValueObject } from './LanguageValueObject'
 import { RemoteObject } from './RemoteObject'
 import { State } from './State'
 import { Credential } from './Credentials'
+import { Option } from './Option'
 
 export enum ServiceType {
   Access = 'access',
@@ -34,7 +35,7 @@ export interface Service {
   timeout: number
   // required for type compute
   compute?: Compute
-  consumerParameters?: any
+  consumerParameters?: Record<string, string | number | boolean | Option[]>
   additionalInformation?: Record<string, string | number | boolean>
   state: State
   credentials: Credential[]

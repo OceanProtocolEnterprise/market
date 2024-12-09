@@ -8,7 +8,6 @@ import {
 } from '@components/Publish/_types'
 import {
   Arweave,
-  ConsumerParameter,
   FileInfo,
   GraphqlQuery,
   Ipfs,
@@ -18,6 +17,7 @@ import {
 import { checkJson } from './codemirror'
 import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
+import { Option, OptionDetail } from 'src/@types/ddo/Option'
 
 export function isValidDid(did: string): boolean {
   const regex = /^did:op:[A-Za-z0-9]{64}$/
@@ -185,30 +185,38 @@ export function previewDebugPatch(
 }
 
 export function parseConsumerParameters(
-  consumerParameters: ConsumerParameter[]
+  consumerParameters: Record<string, string | number | boolean | Option[]>
 ): FormConsumerParameter[] {
-  if (!consumerParameters?.length) return []
-
-  return consumerParameters.map((param) => ({
-    ...param,
-    required: param.required ? 'required' : 'optional',
-    options:
-      param.type === 'select'
-        ? JSON.parse(param.options)?.map((option) => {
+  if (Array.isArray(consumerParameters.parameters)) {
+    const parameters: FormConsumerParameter[] =
+      consumerParameters.parameters.map((param) => {
+        let transformedOptions
+        if (Array.isArray(param.options)) {
+          transformedOptions = param.options.map((option) => {
             const key = Object.keys(option)[0]
             return {
               key,
               value: option[key]
             }
           })
-        : [],
-    default:
-      param.type === 'boolean'
-        ? param.default === 'true'
-        : param.type === 'number'
-        ? Number(param.default)
-        : param.default
-  }))
+        }
+
+        return {
+          ...param,
+          required: param.required ? 'required' : 'optional',
+          options: param.type === 'select' ? transformedOptions : [],
+          default:
+            param.type === 'boolean'
+              ? param.default === 'true'
+              : param.type === 'number'
+              ? Number(param.default)
+              : param.default
+        }
+      })
+    return parameters
+  } else {
+    return []
+  }
 }
 
 export function isAddressWhitelisted(ddo: Asset, accountId: string): boolean {

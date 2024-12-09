@@ -2,13 +2,14 @@ import { ReactElement, useCallback, useEffect, useState } from 'react'
 import FormConsumerParameters from './FormConsumerParameters'
 import styles from './index.module.css'
 import Tabs, { TabsItem } from '@shared/atoms/Tabs'
-import { ConsumerParameter, UserCustomParameters } from '@oceanprotocol/lib'
+import { UserCustomParameters } from '@oceanprotocol/lib'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
+import { Option } from 'src/@types/ddo/Option'
 
 export function parseConsumerParameterValues(
   formValues?: UserCustomParameters,
-  parameters?: ConsumerParameter[]
+  consumerParameters?: Record<string, string | number | boolean | Option[]>
 ): UserCustomParameters {
   if (!formValues) return
 
@@ -16,16 +17,19 @@ export function parseConsumerParameterValues(
   Object.entries(formValues)?.forEach((userCustomParameter) => {
     const [userCustomParameterKey, userCustomParameterValue] =
       userCustomParameter
-
-    const { type } = parameters.find(
-      (param) => param.name === userCustomParameterKey
-    )
+    let typeString
+    if (Array.isArray(consumerParameters.parameters)) {
+      const { type } = consumerParameters.parameters.find(
+        (param) => param.name === userCustomParameterKey
+      )
+      typeString = type
+    }
 
     Object.assign(parsedValues, {
       [userCustomParameterKey]:
-        type === 'select' && userCustomParameterValue === ''
+        typeString === 'select' && userCustomParameterValue === ''
           ? undefined
-          : type === 'boolean'
+          : typeString === 'boolean'
           ? userCustomParameterValue === 'true'
           : userCustomParameterValue
     })
@@ -48,7 +52,10 @@ export default function ConsumerParameters({
 
   const updateTabs = useCallback(() => {
     const tabs = []
-    if (service.consumerParameters?.length > 0) {
+    if (
+      Array.isArray(service.consumerParameters.parameters) &&
+      service.consumerParameters.parameters.length > 0
+    ) {
       tabs.push({
         title: 'Data Service',
         content: (
@@ -62,8 +69,12 @@ export default function ConsumerParameters({
     }
     // TODO -
     if (
+      Array.isArray(
+        selectedAlgorithmAsset?.credentialSubject?.services[0]
+          ?.consumerParameters
+      ) &&
       selectedAlgorithmAsset?.credentialSubject?.services[0]?.consumerParameters
-        ?.length > 0
+        .length > 0
     ) {
       tabs.push({
         title: 'Algo Service',

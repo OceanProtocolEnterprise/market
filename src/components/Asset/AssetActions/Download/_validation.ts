@@ -1,9 +1,9 @@
 import * as Yup from 'yup'
 import { getUserCustomParameterValidationSchema } from '../ConsumerParameters/_validation'
-import { ConsumerParameter } from '@oceanprotocol/lib'
+import { Option } from 'src/@types/ddo/Option'
 
 export function getDownloadValidationSchema(
-  parameters: ConsumerParameter[]
+  parameters: Record<string, string | number | boolean | Option[]>
 ): Yup.SchemaOf<{
   dataServiceParams: any
   termsAndConditions: boolean

@@ -1,14 +1,7 @@
 import { LanguageValueObject } from './LanguageValueObject'
 import { License } from './License'
 import { RemoteObject } from './RemoteObject'
-
-export interface OptionDetail {
-  [key: string]: string
-}
-
-export interface Option {
-  [key: string]: string | number | boolean | OptionDetail[]
-}
+import { Option } from './Option'
 
 export interface Container {
   entrypoint: string
@@ -20,7 +13,7 @@ export interface Algorithm {
   container: Container
   language?: string
   version?: string
-  consumeParameters?: Record<string, string | number | boolean | Option[]>
+  consumerParameters?: Record<string, string | number | boolean | Option[]>
 }
 
 export interface Metadata {

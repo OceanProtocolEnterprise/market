@@ -16,7 +16,6 @@ import {
 } from '@components/Publish/_utils'
 import { Service } from 'src/@types/ddo/Service'
 import { Asset } from 'src/@types/Asset'
-import { Credentials } from 'src/@types/ddo/Credentials'
 
 export default function DebugEditService({
   values,
@@ -59,7 +58,7 @@ export default function DebugEditService({
         LoggerInstance.error('Error encrypting files:', error.message)
       }
 
-      const credentials: Credentials = generateCredentials(
+      const credentials: Credential = generateCredentials(
         service.credentials,
         values.allow,
         values.deny
