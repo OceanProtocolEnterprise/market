@@ -38,8 +38,28 @@
       {
         "name": "license",
         "label": "License",
-        "placeholder": "e.g. MIT",
-        "help": "A SPDX identifier of the license applicable to this service."
+        "prominentHelp": false,
+        "type": "tabs",
+        "fields": [
+          {
+            "value": "url",
+            "title": "URL",
+            "label": "File",
+            "placeholder": "e.g. https://file.com/license.json",
+            "help": "A SPDX identifier of the license applicable to this service.",
+            "computeHelp": "For a compute dataset, your file should match the file type required by the algorithm, and should not exceed 1 GB in file size. ",
+            "prominentHelp": true,
+            "type": "files",
+            "required": false
+          }
+        ],
+        "required": false
+      },
+      {
+        "name": "licenseTypeSelection",
+        "label": "Use Remote License",
+        "type": "checkbox",
+        "options": ["Select if you want to upload a license file"]
       },
       {
         "name": "accessTermsAndConditions",

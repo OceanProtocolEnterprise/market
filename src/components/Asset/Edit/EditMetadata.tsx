@@ -23,10 +23,11 @@ import {
 import { Metadata } from 'src/@types/ddo/Metadata'
 import { Asset } from 'src/@types/Asset'
 import { AssetExtended } from 'src/@types/AssetExtended'
-import appConfig, { customProviderUrl } from '../../../../app.config'
+import { customProviderUrl } from '../../../../app.config'
 import { ethers } from 'ethers'
 import { Credential } from 'src/@types/ddo/Credentials'
 import { convertLinks } from '@utils/links'
+import { License } from 'src/@types/ddo/License'
 
 export default function Edit({
   asset
@@ -46,6 +47,28 @@ export default function Edit({
     try {
       const linksTransformed = values.links?.length &&
         values.links[0].valid && [sanitizeUrl(values.links[0].url)]
+
+      let license: License
+      if (!values.useRemoteLicense && values.licenseUrl[0]) {
+        license = {
+          name: values.licenseUrl[0].url,
+          licenseDocuments: [
+            {
+              name: values.licenseUrl[0].url,
+              fileType: values.licenseUrl[0].contentType,
+              sha256: values.licenseUrl[0].checksum,
+              mirrors: [
+                {
+                  type: values.licenseUrl[0].type,
+                  method: values.licenseUrl[0].method,
+                  url: values.licenseUrl[0].url
+                }
+              ]
+            }
+          ]
+        }
+      }
+
       const updatedMetadata: Metadata = {
         ...asset.credentialSubject?.metadata,
         name: values.name,
@@ -57,7 +80,7 @@ export default function Edit({
         links: convertLinks(linksTransformed),
         author: values.author,
         tags: values.tags,
-        license: values.license,
+        license: values.useRemoteLicense ? values.uploadedLicense : license,
         additionalInformation: {
           ...asset.credentialSubject?.metadata?.additionalInformation
         }
@@ -90,15 +113,13 @@ export default function Edit({
       delete (updatedAsset as AssetExtended).views
       delete (updatedAsset as AssetExtended).offchain
       delete (updatedAsset as AssetExtended).stats
-
+      console.log(updatedAsset)
       const ipfsUpload: IpfsUpload = await signAssetAndUploadToIpfs(
         updatedAsset,
         signer,
         true,
         customProviderUrl ||
-          updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
-        appConfig.ipfsApiKey,
-        appConfig.ipfsSecretApiKey
+          updatedAsset.credentialSubject.services[0]?.serviceEndpoint
       )
 
       if (ipfsUpload /* && values.assetState !== assetState */) {
@@ -116,7 +137,7 @@ export default function Edit({
           ipfsUpload.metadataIPFSHash
         )
 
-        console.log(
+        LoggerInstance.log(
           'Version 5.0.0 Asset updated. ID:',
           updatedAsset.credentialSubject.id
         )

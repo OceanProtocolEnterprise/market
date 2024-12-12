@@ -788,7 +788,8 @@ export const assets: AssetExtended[] = [
           container: {
             entrypoint: 'python $algo',
             image: 'https://docker.com/test.img',
-            tag: 'latest'
+            tag: 'latest',
+            checksum: ''
           },
           language: 'py',
           version: '0.1'

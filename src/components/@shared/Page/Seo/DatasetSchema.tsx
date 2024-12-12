@@ -60,16 +60,16 @@ const DatasetSchema = (): object => {
     datePublished: asset?.credentialSubject?.metadata?.created,
     dateModified: asset?.credentialSubject?.metadata?.updated,
     license: asset?.credentialSubject?.metadata?.license,
-    ...(asset?.accessDetails?.at[0]?.type === 'free'
+    ...(asset?.accessDetails?.[0]?.type === 'free'
       ? { isAccessibleForFree: true }
       : {
           isAccessibleForFree: false,
           paymentAccepted: 'Cryptocurrency',
-          currenciesAccepted: asset?.accessDetails?.at[0]?.baseToken?.symbol,
+          currenciesAccepted: asset?.accessDetails?.[0]?.baseToken?.symbol,
           offers: {
             '@type': 'Offer',
-            price: asset?.accessDetails?.at[0]?.price,
-            priceCurrency: asset?.accessDetails?.at[0]?.baseToken?.symbol
+            price: asset?.accessDetails?.[0]?.price,
+            priceCurrency: asset?.accessDetails?.[0]?.baseToken?.symbol
           }
         }),
     creator: {

@@ -35,7 +35,7 @@ import { hexlify, parseEther } from 'ethers/lib/utils'
 import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
 import { Metadata } from 'src/@types/ddo/Metadata'
-import { Option, OptionDetail } from 'src/@types/ddo/Option'
+import { Option } from 'src/@types/ddo/Option'
 import { createHash } from 'crypto'
 import { Signer } from 'ethers'
 import { uploadToIPFS } from '@utils/ipfs'
@@ -46,6 +46,7 @@ import { Credential } from 'src/@types/ddo/Credentials'
 import { VerifiableCredential } from 'src/@types/ddo/VerifiableCredential'
 import { asset } from '.jest/__fixtures__/datasetWithAccessDetails'
 import { convertLinks } from '@utils/links'
+import { License } from 'src/@types/ddo/License'
 
 function getUrlFileExtension(fileUrl: string): string {
   const splittedFileUrl = fileUrl.split('.')
@@ -178,6 +179,27 @@ export async function transformPublishFormToDdo(
     ? transformConsumerParameters(consumerParameters)
     : undefined
 
+  let license: License
+  if (!values.useRemoteLicense && values.licenseUrl[0]) {
+    license = {
+      name: values.licenseUrl[0].url,
+      licenseDocuments: [
+        {
+          name: values.licenseUrl[0].url,
+          fileType: values.licenseUrl[0].contentType,
+          sha256: values.licenseUrl[0].checksum,
+          mirrors: [
+            {
+              type: values.licenseUrl[0].type,
+              method: values.licenseUrl[0].method,
+              url: values.licenseUrl[0].url
+            }
+          ]
+        }
+      ]
+    }
+  }
+
   const newMetadata: Metadata = {
     created: currentTime,
     updated: currentTime,
@@ -190,7 +212,7 @@ export async function transformPublishFormToDdo(
     },
     tags: transformTags(tags),
     author,
-    license: metadata.license,
+    license: values.useRemoteLicense ? values.uploadedLicense : license,
     links: convertLinks(linksTransformed),
     additionalInformation: {
       termsAndConditions
@@ -258,8 +280,7 @@ export async function transformPublishFormToDdo(
   }
 
   const newCredentials = generateCredentials(undefined, allow, deny)
-  console.log('Jetzt')
-  console.log(newMetadata)
+
   const newDdo: any = {
     '@context': ['https://w3id.org/did/v1'],
     id: did,
@@ -305,9 +326,7 @@ export async function signAssetAndUploadToIpfs(
   asset: Asset,
   owner: Signer,
   encryptAsset: boolean,
-  providerUrl: string,
-  ipfsApiKey: string,
-  ipfsSecretApiKey: string
+  providerUrl: string
 ): Promise<IpfsUpload> {
   const verifiableCredential: VerifiableCredential = {
     credentialSubject: asset.credentialSubject,
@@ -320,20 +339,21 @@ export async function signAssetAndUploadToIpfs(
 
   delete verifiableCredential.credentialSubject.datatokens
   delete verifiableCredential.credentialSubject.event
-
+  /*
   const proof: Proof = await signCredentialWithWeb3Wallet(
     owner,
     verifiableCredential
   )
   asset.issuer = await owner.getAddress()
   asset.proof = proof
-
+*/
   const stringMetadata = JSON.stringify({ payload: asset })
   const bytesAsset = Buffer.from(stringMetadata)
   const assetMetadata = hexlify(bytesAsset)
 
   const data = { encryptedData: assetMetadata }
-  const ipfsHash = await uploadToIPFS(data, ipfsApiKey, ipfsSecretApiKey)
+  const ipfsHash = await uploadToIPFS(data)
+
   const remoteAsset = {
     remote: {
       type: 'ipfs',

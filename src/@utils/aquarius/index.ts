@@ -7,7 +7,7 @@ import {
   SortDirectionOptions,
   SortTermOptions
 } from '../../@types/aquarius/SearchQuery'
-import { transformAssetToAssetSelection } from '../assetConvertor'
+import { transformAssetToAssetSelection } from '../assetConverter'
 import addressConfig from '../../../address.config'
 import { isValidDid } from '@utils/ddo'
 import { Filters } from '@context/Filter'

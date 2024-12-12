@@ -1,4 +1,4 @@
-import { ReactElement, useEffect } from 'react'
+import { ReactElement, useEffect, useRef, useState } from 'react'
 import { Field, Form, useFormikContext } from 'formik'
 import Input from '@shared/FormInput'
 import FormActions from './FormActions'
@@ -14,8 +14,7 @@ import IconAlgorithm from '@images/algorithm.svg'
 import { BoxSelectionOption } from '@components/@shared/FormInput/InputElement/BoxSelection'
 import { FileDrop } from '@shared/FileDrop'
 import Label from '@components/@shared/FormInput/Label'
-import appConfig from 'app.config'
-import { uploadFileItemToIPFS } from '@utils/ipfs'
+import { deleteIpfsFile, uploadFileItemToIPFS } from '@utils/ipfs'
 import { FileItem } from '@utils/fileItem'
 import { License } from '../../../@types/ddo/License'
 import { IpfsRemoteSource } from 'src/components/@shared/IpfsRemoteSource'
@@ -23,8 +22,6 @@ import { RemoteObject } from '../../../@types/ddo/RemoteObject'
 import { sha256 } from 'ohash'
 import Button from '@components/@shared/atoms/Button'
 import styles from './index.module.css'
-import { Success } from '@components/@shared/AnnouncementBanner/index.stories'
-import { errorMonitor } from 'events'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
@@ -32,6 +29,7 @@ const assetTypeOptionsTitles = getFieldContent('type', data).options
 export default function FormEditMetadata(): ReactElement {
   const { asset } = useAsset()
   const { values, setFieldValue } = useFormikContext<MetadataEditForm>()
+  const firstPageLoad = useRef<boolean>(true)
 
   // BoxSelection component is not a Formik component
   // so we need to handle checked state manually.
@@ -88,15 +86,11 @@ export default function FormEditMetadata(): ReactElement {
   ) {
     try {
       fileItems.forEach(async (fileItem: FileItem) => {
-        const remoteSource = await uploadFileItemToIPFS(
-          fileItem,
-          appConfig.ipfsApiKey,
-          appConfig.ipfsSecretApiKey
-        )
+        const remoteSource = await uploadFileItemToIPFS(fileItem)
 
         const remoteObject: RemoteObject = {
-          name: fileItem.file.name,
-          fileType: fileItem.file.name.split('.').pop(),
+          name: fileItem.name,
+          fileType: fileItem.name.split('.').pop(),
           sha256: sha256(fileItem.content),
           additionalInformation: {},
           description: {
@@ -105,7 +99,7 @@ export default function FormEditMetadata(): ReactElement {
             '@language': ''
           },
           displayName: {
-            '@value': fileItem.file.name,
+            '@value': fileItem.name,
             '@language': '',
             '@direction': ''
           },
@@ -113,21 +107,50 @@ export default function FormEditMetadata(): ReactElement {
         }
 
         const license: License = {
-          name: fileItem.file.name,
+          name: fileItem.name,
           licenseDocuments: [remoteObject]
         }
 
-        await setFieldValue('license', license)
+        setFieldValue('uploadedLicense', license)
 
-        setSuccess()
+        setSuccess('License uploaded', 4000)
       })
     } catch (err) {
-      setError(err)
+      setError(err, 4000)
     }
   }
 
+  // Resets license data after type change
+  useEffect(() => {
+    async function deleteRemoteFile() {
+      if (values.uploadedLicense) {
+        const ipfsHash =
+          values.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]?.ipfsCid
+        if (ipfsHash) {
+          await deleteIpfsFile(ipfsHash)
+        }
+        setFieldValue('uploadedLicense', undefined)
+      }
+    }
+
+    if (firstPageLoad.current) {
+      firstPageLoad.current = false
+      return
+    }
+
+    setFieldValue('licenseUrl', [{ url: '', type: 'url' }])
+    deleteRemoteFile()
+  }, [values.useRemoteLicense])
+
   async function handleLicenseRemove() {
-    await setFieldValue('license', null)
+    setFieldValue('uploadedLicense', undefined)
+
+    const ipfsHash =
+      values.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]?.ipfsCid
+    if (ipfsHash) {
+      await deleteIpfsFile(ipfsHash)
+    }
+    setFieldValue('uploadedLicense', undefined)
   }
 
   return (
@@ -182,28 +205,45 @@ export default function FormEditMetadata(): ReactElement {
         name="assetState"
       />
 
-      <Label htmlFor="license">License</Label>
-      <div className={styles.license}>
-        <IpfsRemoteSource
-          className={styles.licenseitem}
-          noDocumentLabel="No license document available"
-          remoteSource={values.license?.licenseDocuments?.at(0)?.mirrors?.at(0)}
-        ></IpfsRemoteSource>
-        <Button
-          type="button"
-          style="primary"
-          onClick={handleLicenseRemove}
-          disabled={!values.license?.licenseDocuments?.at(0)?.mirrors?.at(0)}
-        >
-          Delete
-        </Button>
-      </div>
-      <FileDrop
-        dropAreaLabel="Drop a license file here"
-        buttonLabel="Upload"
-        onApply={handleLicenseFileUpload}
-        singleFile={true}
-      ></FileDrop>
+      {/*
+       Licensing and Terms
+      */}
+      <Field
+        {...getFieldContent('licenseTypeSelection', content.form.data)}
+        component={Input}
+        name="useRemoteLicense"
+      />
+      {values.useRemoteLicense ? (
+        <>
+          <Label htmlFor="license">License</Label>
+          <div className={styles.license}>
+            <IpfsRemoteSource
+              className={styles.licenseitem}
+              noDocumentLabel="No license document available"
+              remoteSource={
+                values.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]
+              }
+            ></IpfsRemoteSource>
+            <Button type="button" style="primary" onClick={handleLicenseRemove}>
+              Delete
+            </Button>
+          </div>
+          <FileDrop
+            dropAreaLabel="Drop a license file here"
+            buttonLabel="Upload"
+            onApply={handleLicenseFileUpload}
+            singleFile={true}
+          ></FileDrop>
+        </>
+      ) : (
+        <>
+          <Field
+            {...getFieldContent('license', content.form.data)}
+            component={Input}
+            name="licenseUrl"
+          />
+        </>
+      )}
 
       <FormActions />
     </Form>

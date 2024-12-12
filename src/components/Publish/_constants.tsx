@@ -95,7 +95,9 @@ export const initialValues: FormPublishData = {
     price: 0,
     type: allowFixedPricing === 'true' ? 'fixed' : 'free',
     freeAgreement: false
-  }
+  },
+  useRemoteLicense: false,
+  licenseUrl: [{ url: '', type: 'url' }]
 }
 
 export const algorithmContainerPresets: MetadataAlgorithmContainer[] = [

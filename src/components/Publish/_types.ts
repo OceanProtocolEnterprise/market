@@ -50,6 +50,9 @@ export interface FormPublishData {
   services: FormPublishService[]
   pricing: PricePublishOptions
   feedback?: PublishFeedback
+  useRemoteLicense: boolean
+  licenseUrl: FileInfo[]
+  uploadedLicense: License
 }
 
 export interface StepContent {

@@ -1,4 +1,6 @@
 export interface FileItem {
-  file: File
+  name: string
+  size: number
   content: string
+  checksum: string
 }

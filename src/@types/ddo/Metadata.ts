@@ -7,6 +7,7 @@ export interface Container {
   entrypoint: string
   image: string
   tag: string
+  checksum: string
 }
 
 export interface Algorithm {

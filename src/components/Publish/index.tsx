@@ -143,9 +143,7 @@ export default function PublishPage({
         ddo,
         signer,
         true,
-        customProviderUrl || values.services[0].providerUrl.url,
-        appConfig.ipfsApiKey,
-        appConfig.ipfsSecretApiKey
+        customProviderUrl || values.services[0].providerUrl.url
       )
 
       if (!ipfsUpload)
@@ -211,7 +209,7 @@ export default function PublishPage({
         ipfsUpload.metadataIPFSHash
       )
 
-      console.log(
+      LoggerInstance.log(
         'Version 5.0.0 Asset published. ID:',
         ddo.credentialSubject.id
       )

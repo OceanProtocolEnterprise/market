@@ -88,7 +88,8 @@ export const algorithmAquarius: Asset = {
         container: {
           entrypoint: 'python $algo',
           image: 'https://docker.com/test.img',
-          tag: 'latest'
+          tag: 'latest',
+          checksum: ''
         }
       },
       copyrightHolder: '',

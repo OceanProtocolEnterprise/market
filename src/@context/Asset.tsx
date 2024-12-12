@@ -19,9 +19,9 @@ import { assetStateToString } from '@utils/assetState'
 import { isValidDid } from '@utils/ddo'
 import { useAddressConfig } from '@hooks/useAddressConfig'
 import { useAccount, useNetwork } from 'wagmi'
-import { convertToLatestDdoVersion } from '@utils/assetVersionConverter'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { Asset } from 'src/@types/Asset'
+import { convertToLatestDdoVersion } from '@utils/assetConverter'
 
 export interface AssetProviderValue {
   isInPurgatory: boolean

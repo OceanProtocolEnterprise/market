@@ -15,6 +15,9 @@ export interface MetadataEditForm {
   deny?: string[]
   assetState?: string
   license?: License
+  useRemoteLicense: boolean
+  licenseUrl: FileInfo[]
+  uploadedLicense: License
 }
 
 export interface ServiceEditForm {

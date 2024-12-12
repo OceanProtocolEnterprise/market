@@ -10,14 +10,13 @@ import { FormPublishData } from '../_types'
 import Button from '@components/@shared/atoms/Button'
 import { FileDrop } from '@components/@shared/FileDrop'
 import Label from '@components/@shared/FormInput/Label'
-import { IpfsRemoteSource } from '@components/@shared/IpfsRemoteSource'
 import styles from './index.module.css'
 import { FileItem } from '@utils/fileItem'
-import { uploadFileItemToIPFS } from '@utils/ipfs'
-import appConfig from 'app.config'
-import { License } from 'src/@types/ddo/License'
+import { deleteIpfsFile, uploadFileItemToIPFS } from '@utils/ipfs'
 import { RemoteObject } from 'src/@types/ddo/RemoteObject'
 import { sha256 } from 'ohash'
+import { License } from 'src/@types/ddo/License'
+import { IpfsRemoteSource } from '@components/@shared/IpfsRemoteSource'
 
 const accessTypeOptionsTitles = getFieldContent(
   'access',
@@ -72,15 +71,11 @@ export default function ServicesFields(): ReactElement {
   ) {
     try {
       fileItems.forEach(async (fileItem: FileItem) => {
-        const remoteSource = await uploadFileItemToIPFS(
-          fileItem,
-          appConfig.ipfsApiKey,
-          appConfig.ipfsSecretApiKey
-        )
+        const remoteSource = await uploadFileItemToIPFS(fileItem)
 
         const remoteObject: RemoteObject = {
-          name: fileItem.file.name,
-          fileType: fileItem.file.name.split('.').pop(),
+          name: fileItem.name,
+          fileType: fileItem.name.split('.').pop(),
           sha256: sha256(fileItem.content),
           additionalInformation: {},
           description: {
@@ -89,7 +84,7 @@ export default function ServicesFields(): ReactElement {
             '@language': ''
           },
           displayName: {
-            '@value': fileItem.file.name,
+            '@value': fileItem.name,
             '@language': '',
             '@direction': ''
           },
@@ -97,21 +92,45 @@ export default function ServicesFields(): ReactElement {
         }
 
         const license: License = {
-          name: fileItem.file.name,
+          name: fileItem.name,
           licenseDocuments: [remoteObject]
         }
 
-        await setFieldValue('metadata.license', license)
+        setFieldValue('uploadedLicense', license)
 
-        setSuccess()
+        setSuccess('License uploaded', 4000)
       })
     } catch (err) {
-      setError(err)
+      setError(err, 4000)
     }
   }
 
+  // Resets license data after type change
+  useEffect(() => {
+    async function deleteRemoteFile() {
+      if (values.uploadedLicense) {
+        const ipfsHash =
+          values.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]?.ipfsCid
+        if (ipfsHash) {
+          await deleteIpfsFile(ipfsHash)
+        }
+        setFieldValue('uploadedLicense', undefined)
+      }
+    }
+
+    setFieldValue('licenseUrl', [{ url: '', type: 'url' }])
+    deleteRemoteFile()
+  }, [values.useRemoteLicense])
+
   async function handleLicenseRemove() {
-    await setFieldValue('metadata.license', null)
+    setFieldValue('uploadedLicense', undefined)
+
+    const ipfsHash =
+      values.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]?.ipfsCid
+    if (ipfsHash) {
+      await deleteIpfsFile(ipfsHash)
+    }
+    setFieldValue('uploadedLicense', undefined)
   }
 
   return (
@@ -186,32 +205,50 @@ export default function ServicesFields(): ReactElement {
       {/*
        Licensing and Terms
       */}
-      <Label htmlFor="license">License</Label>
-      <div className={styles.license}>
-        <IpfsRemoteSource
-          className={styles.licenseitem}
-          noDocumentLabel="No license document available"
-          remoteSource={values.metadata?.license?.licenseDocuments
-            ?.at(0)
-            ?.mirrors?.at(0)}
-        ></IpfsRemoteSource>
-        <Button
-          type="button"
-          style="primary"
-          onClick={handleLicenseRemove}
-          disabled={
-            !values.metadata?.license?.licenseDocuments?.at(0)?.mirrors?.at(0)
-          }
-        >
-          Delete
-        </Button>
-      </div>
-      <FileDrop
-        dropAreaLabel="Drop a license file here"
-        buttonLabel="Upload"
-        onApply={handleLicenseFileUpload}
-        singleFile={true}
-      ></FileDrop>
+      <Field
+        {...getFieldContent('licenseTypeSelection', content.metadata.fields)}
+        component={Input}
+        name="useRemoteLicense"
+      />
+      {values.useRemoteLicense ? (
+        <>
+          <Label htmlFor="license">License</Label>
+          {values.uploadedLicense ? (
+            <>
+              <div className={styles.license}>
+                <IpfsRemoteSource
+                  className={styles.licenseitem}
+                  noDocumentLabel="No license document available"
+                  remoteSource={values.uploadedLicense?.licenseDocuments
+                    ?.at(0)
+                    ?.mirrors?.at(0)}
+                ></IpfsRemoteSource>
+                <Button
+                  type="button"
+                  style="primary"
+                  onClick={handleLicenseRemove}
+                >
+                  Delete
+                </Button>
+              </div>
+            </>
+          ) : null}
+          <FileDrop
+            dropAreaLabel="Drop a license file here"
+            buttonLabel="Upload"
+            onApply={handleLicenseFileUpload}
+            singleFile={true}
+          ></FileDrop>
+        </>
+      ) : (
+        <>
+          <Field
+            {...getFieldContent('license', content.metadata.fields)}
+            component={Input}
+            name="licenseUrl"
+          />
+        </>
+      )}
     </>
   )
 }

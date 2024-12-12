@@ -42,10 +42,10 @@ export default function MetaAsset({
             <AddToken
               address={asset?.credentialSubject?.services[0].datatokenAddress}
               symbol={
-                (asset as Asset).credentialSubject?.datatokens?.at[0]?.symbol
+                (asset as Asset).credentialSubject?.datatokens?.[0]?.symbol
               }
               text={`Add ${
-                (asset as Asset)?.credentialSubject?.datatokens?.at[0]?.symbol
+                (asset as Asset)?.credentialSubject?.datatokens?.[0]?.symbol
               } to wallet`}
               className={styles.add}
               minimal

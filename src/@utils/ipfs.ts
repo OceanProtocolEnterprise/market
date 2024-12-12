@@ -13,42 +13,102 @@ export function isCID(value: string) {
   return isIPFS.cid(value)
 }
 
-export async function uploadToIPFS(
+export async function serverSideUploadToIpfs(
   data: any,
   ipfsApiKey: string,
   ipfsSecretApiKey: string
 ): Promise<string> {
-  try {
-    if (!(ipfsApiKey && ipfsSecretApiKey)) {
-      console.error('ERROR: SET IPFS_API_KEY and IPFS_SECRET_API_KEY')
-    }
+  if (typeof window !== 'undefined') {
+    throw new Error(
+      '[serverSideUploadToIpfs] serverSideUploadToIpfs is not allowed to run on client side'
+    )
+  }
 
+  if (!(ipfsApiKey && ipfsSecretApiKey)) {
+    throw new Error(
+      '[serverSideUploadToIpfs] Set NEXT_PUBLIC_IPFS_API_KEY and NEXT_PUBLIC_IPFS_SECRET_API_KEY'
+    )
+  }
+
+  try {
     // eslint-disable-next-line new-cap
     const pinata = new pinataSDK(ipfsApiKey, ipfsSecretApiKey)
     const result = await pinata.pinJSONToIPFS(data)
-    return result.IpfsHash // This is the IPFS CID
+    return result.IpfsHash
   } catch (error) {
-    console.log('error:', error)
-    throw new Error('Failed to upload data to Pinata')
+    throw new Error(`[serverSideUploadToIpfs] ${error.message}`)
+  }
+}
+
+export async function uploadToIPFS(data: any): Promise<string> {
+  try {
+    const res = await fetch('/api/ipfs', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+
+    const result = await res.json()
+    if (!result.success) {
+      throw new Error(result.message)
+    }
+    return result.data
+  } catch (error) {
+    throw new Error(`[uploadToIPFS] ${error.message}`)
+  }
+}
+
+export async function serverSideDeleteIpfsFile(
+  ipfsHash: string,
+  ipfsApiKey: string,
+  ipfsSecretApiKey: string
+) {
+  if (typeof window !== 'undefined') {
+    throw new Error(
+      '[serverSideDeleteIpfsFile] serverSideDeleteIpfsFile is not allowed to run on client side'
+    )
+  }
+
+  if (!(ipfsApiKey && ipfsSecretApiKey)) {
+    throw new Error(
+      '[serverSideDeleteIpfsFile] Set NEXT_PUBLIC_IPFS_API_KEY and NEXT_PUBLIC_IPFS_SECRET_API_KEY'
+    )
+  }
+
+  try {
+    // eslint-disable-next-line new-cap
+    const pinata = new pinataSDK(ipfsApiKey, ipfsSecretApiKey)
+    await pinata.unpin(ipfsHash)
+  } catch (error) {
+    throw new Error(`[serverSideDeleteIpfsFile] ${error.message}`)
+  }
+}
+
+export async function deleteIpfsFile(ipfsHash: string) {
+  try {
+    const res = await fetch('/api/ipfs', {
+      method: 'DELETE',
+      body: ipfsHash
+    })
+
+    const result = await res.json()
+    console.log(result)
+    if (!result.success) {
+      throw new Error(result.message)
+    }
+  } catch (error) {
+    throw new Error(`[deleteIpfsFile] ${error.message}`)
   }
 }
 
 export async function uploadFileItemToIPFS(
-  fileItem: FileItem,
-  ipfsApiKey: string,
-  ipfsSecretApiKey: string
+  fileItem: FileItem
 ): Promise<RemoteSource> {
   const remoteDocument: IpfsRemoteDocument = {
     content: fileItem.content,
-    filename: fileItem.file.name
+    filename: fileItem.name
   }
 
-  const ipfsHash = await uploadToIPFS(
-    remoteDocument,
-    ipfsApiKey,
-    ipfsSecretApiKey
-  )
-
+  const ipfsHash = await uploadToIPFS(remoteDocument)
   return {
     type: 'ipfs',
     ipfsCid: ipfsHash,
@@ -61,18 +121,13 @@ export async function downloadRemoteSourceFromIpfs(
   ipfsGateway: string
 ): Promise<IpfsRemoteDocument | null> {
   if (!ipfsGateway) {
-    console.error('ERROR: SET IPFS_GATEWAY')
-    return null
+    throw new Error('[downloadRemoteSourceFromIpfs] Set IPFS_GATEWAY')
   }
 
   try {
-    console.log(`${ipfsGateway}/ipfs/${ipfsHash}`)
     const response = await axios.get(`${ipfsGateway}/ipfs/${ipfsHash}`)
-
-    console.log('File content:', response.data)
-
     return response.data
   } catch (error) {
-    console.error('Error fetching the file from IPFS:', error)
+    throw new Error(`[downloadRemoteSourceFromIpfs] ${error.message}`)
   }
 }

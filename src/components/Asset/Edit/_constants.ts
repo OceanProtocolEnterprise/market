@@ -1,4 +1,4 @@
-import { ServiceComputeOptions } from '@oceanprotocol/lib'
+import { FileInfo, ServiceComputeOptions } from '@oceanprotocol/lib'
 import { parseConsumerParameters, secondsToString } from '@utils/ddo'
 import { ComputeEditForm, MetadataEditForm, ServiceEditForm } from './_types'
 import { Metadata } from 'src/@types/ddo/Metadata'
@@ -17,6 +17,27 @@ export function getInitialValues(
   credentials: Credential,
   assetState: string
 ): MetadataEditForm {
+  const useRemoteLicense =
+    metadata.license?.licenseDocuments?.[0]?.mirrors?.[0]?.type !== 'url'
+
+  let fileInfo: FileInfo
+  if (
+    !useRemoteLicense &&
+    metadata.license?.licenseDocuments?.[0].mirrors?.[0]
+  ) {
+    const licenseItem = metadata.license?.licenseDocuments?.[0]
+    fileInfo = {
+      type: licenseItem.mirrors[0].type,
+      checksum: licenseItem.sha256,
+      contentLength: '',
+      contentType: licenseItem.fileType,
+      index: 0,
+      method: licenseItem.mirrors[0].method,
+      url: licenseItem.mirrors[0].url,
+      valid: true
+    }
+  }
+
   return {
     name: metadata?.name,
     description: metadata?.description?.['@value'],
@@ -24,8 +45,9 @@ export function getInitialValues(
     links: [{ url: '', type: 'url' }],
     author: metadata?.author,
     tags: metadata?.tags,
-    usesConsumerParameters:
-      Object.values(metadata?.algorithm?.consumerParameters).length > 0,
+    usesConsumerParameters: metadata?.algorithm?.consumerParameters
+      ? Object.values(metadata?.algorithm?.consumerParameters).length > 0
+      : false,
     consumerParameters: parseConsumerParameters(
       metadata?.algorithm?.consumerParameters
     ),
@@ -36,7 +58,9 @@ export function getInitialValues(
       credentials?.deny?.find((credential) => credential.type === 'address')
         ?.values || [],
     assetState,
-    license: metadata?.license
+    licenseUrl: !useRemoteLicense ? [fileInfo] : undefined,
+    uploadedLicense: useRemoteLicense ? metadata.license : undefined,
+    useRemoteLicense
   }
 }
 

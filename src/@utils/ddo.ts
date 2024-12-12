@@ -187,6 +187,10 @@ export function previewDebugPatch(
 export function parseConsumerParameters(
   consumerParameters: Record<string, string | number | boolean | Option[]>[]
 ): FormConsumerParameter[] {
+  if (!consumerParameters) {
+    return []
+  }
+
   return consumerParameters.map((param) => {
     let transformedOptions
     if (Array.isArray(param.options)) {

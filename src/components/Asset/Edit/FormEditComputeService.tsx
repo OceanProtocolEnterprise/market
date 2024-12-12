@@ -14,7 +14,7 @@ import {
 } from '@oceanprotocol/lib'
 import { useCancelToken } from '@hooks/useCancelToken'
 import { SortTermOptions } from '../../../@types/aquarius/SearchQuery'
-import { transformAssetToAssetSelection } from '@utils/assetConvertor'
+import { transformAssetToAssetSelection } from '@utils/assetConverter'
 import { ServiceEditForm } from './_types'
 import content from '../../../../content/pages/editComputeDataset.json'
 import { getFieldContent } from '@utils/form'

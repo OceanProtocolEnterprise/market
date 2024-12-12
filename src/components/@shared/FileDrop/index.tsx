@@ -2,13 +2,14 @@ import { DragEvent, ReactElement, useState } from 'react'
 import styles from './index.module.css'
 import Button from '@shared/atoms/Button'
 import { FileItem } from '@utils/fileItem'
+import { sha256 } from 'ohash'
 
 export interface FileDropProps {
   dropAreaLabel: string
   onApply: (
     fileItems: FileItem[],
-    success: () => void,
-    error: (message: string) => void
+    success: (message: string, msgDelay: number) => void,
+    error: (message: string, msgDelay: number) => void
   ) => void
   singleFile?: boolean
   buttonLabel?: string
@@ -56,23 +57,17 @@ export function FileDrop({
           content = decoder.decode(uint8Array)
         }
 
+        const newFileItem: FileItem = {
+          checksum: sha256(content),
+          content,
+          size: content.length,
+          name: file.name
+        }
+
         if (singleFile) {
-          setFiles(() => [
-            {
-              file,
-              content
-            }
-          ])
+          setFiles(() => [newFileItem])
         } else {
-          setFiles((prevList) => [
-            ...prevList,
-            ...[
-              {
-                file,
-                content
-              }
-            ]
-          ])
+          setFiles((prevList) => [...prevList, ...[newFileItem]])
         }
       }
 
@@ -85,26 +80,27 @@ export function FileDrop({
       reader.readAsDataURL(file)
       return reader
     })
+    console.log(files)
     setMessage('')
   }
 
   function handleApply() {
-    function success() {
-      setMessage('All files uploaded')
-
-      setTimeout(function () {
-        setMessage('')
-      }, 4000)
-
-      setFiles([])
-    }
-
-    function error(message: string) {
+    function success(message: string, msgDelay: number) {
       setMessage(message)
 
       setTimeout(function () {
         setMessage('')
-      }, 4000)
+      }, msgDelay)
+
+      setFiles([])
+    }
+
+    function error(message: string, msgDelay: number) {
+      setMessage(message)
+
+      setTimeout(function () {
+        setMessage('')
+      }, msgDelay)
 
       setFiles([])
     }
@@ -112,9 +108,9 @@ export function FileDrop({
     onApply(files, success, error)
   }
 
-  function handleDelete(itemToDelete: FileItem) {
+  function handleRemove(itemToRemove: FileItem) {
     const newList = files.filter((item) => {
-      return item.file !== itemToDelete.file
+      return item !== itemToRemove
     })
     setFiles(newList)
     setMessage('')
@@ -144,16 +140,16 @@ export function FileDrop({
       </div>
       <div>
         {files.map((item: FileItem) => (
-          <div className={styles.dropitem} key={item.file.name}>
-            <Button style="primary" onClick={() => handleDelete(item)}>
-              Delete
+          <div className={styles.dropitem} key={item.name}>
+            <Button style="primary" onClick={() => handleRemove(item)}>
+              Remove
             </Button>
             <a
               className={styles.dropitemtext}
               href={item.content}
-              download={item.file.name}
+              download={item.name}
             >
-              {item.file.name}
+              {item.name}
             </a>
           </div>
         ))}

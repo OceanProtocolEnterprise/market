@@ -32,7 +32,7 @@ import DebugEditService from './DebugEditService'
 import styles from './index.module.css'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
-import appConfig, { customProviderUrl } from 'app.config'
+import { customProviderUrl } from 'app.config'
 import { ethers } from 'ethers'
 
 export default function EditService({
@@ -163,9 +163,7 @@ export default function EditService({
         signer,
         true,
         customProviderUrl ||
-          updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
-        appConfig.ipfsApiKey,
-        appConfig.ipfsSecretApiKey
+          updatedAsset.credentialSubject.services[0]?.serviceEndpoint
       )
 
       if (ipfsUpload /* && values.assetState !== assetState */) {
@@ -183,7 +181,7 @@ export default function EditService({
           ipfsUpload.metadataIPFSHash
         )
 
-        console.log(
+        LoggerInstance.log(
           'Version 5.0.0 Asset updated. ID:',
           updatedAsset.credentialSubject.id
         )

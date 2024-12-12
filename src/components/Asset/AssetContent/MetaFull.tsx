@@ -76,12 +76,26 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
         <Label htmlFor="license">
           <strong>License</strong>
         </Label>
-        <IpfsRemoteSource
-          noDocumentLabel="No license document available"
-          remoteSource={ddo.credentialSubject?.metadata?.license?.licenseDocuments
-            ?.at(0)
-            ?.mirrors?.at(0)}
-        ></IpfsRemoteSource>
+        {ddo.credentialSubject.metadata.license?.licenseDocuments?.[0]
+          ?.mirrors?.[0]?.type === 'url' ? (
+          <a
+            target="_blank"
+            href={
+              ddo.credentialSubject.metadata.license.licenseDocuments[0]
+                .mirrors[0].url
+            }
+            rel="noreferrer"
+          >
+            {ddo.credentialSubject.metadata.license.licenseDocuments[0].name}
+          </a>
+        ) : (
+          <IpfsRemoteSource
+            noDocumentLabel="No license document available"
+            remoteSource={ddo.credentialSubject?.metadata?.license?.licenseDocuments
+              ?.at(0)
+              ?.mirrors?.at(0)}
+          ></IpfsRemoteSource>
+        )}
       </div>
     </div>
   ) : null
