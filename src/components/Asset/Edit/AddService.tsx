@@ -44,6 +44,7 @@ import { useUserPreferences } from '@context/UserPreferences'
 import { getOceanConfig } from '@utils/ocean'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
+import { State } from 'src/@types/ddo/State'
 
 export default function AddService({
   asset
@@ -194,7 +195,8 @@ export default function AddService({
         }),
         consumerParameters: transformConsumerParameters(
           values.consumerParameters
-        )
+        ),
+        state: State.Active
       }
 
       // update asset with new service

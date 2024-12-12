@@ -1,8 +1,9 @@
-import { FileInfo, ServiceComputeOptions } from '@oceanprotocol/lib'
+import { FileInfo } from '@oceanprotocol/lib'
 import { NftMetadata } from '@utils/nft'
 import { ReactElement } from 'react'
 import { License } from 'src/@types/ddo/License'
 import { Option } from 'src/@types/ddo/Option'
+import { Compute } from 'src/@types/ddo/Service'
 
 export interface FormPublishService {
   files: FileInfo[]
@@ -12,7 +13,7 @@ export interface FormPublishService {
   access: 'Download' | 'Compute' | string
   providerUrl: { url: string; valid: boolean; custom: boolean }
   algorithmPrivacy?: boolean
-  computeOptions?: ServiceComputeOptions
+  computeOptions?: Compute
   usesConsumerParameters?: boolean
   consumerParameters?: FormConsumerParameter[]
   allow?: string[]

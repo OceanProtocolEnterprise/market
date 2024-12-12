@@ -1,11 +1,12 @@
-import { FileInfo, ServiceComputeOptions } from '@oceanprotocol/lib'
+import { FileInfo } from '@oceanprotocol/lib'
 import { parseConsumerParameters, secondsToString } from '@utils/ddo'
 import { ComputeEditForm, MetadataEditForm, ServiceEditForm } from './_types'
 import { Metadata } from 'src/@types/ddo/Metadata'
 import { Credential } from 'src/@types/ddo/Credentials'
-import { Service } from 'src/@types/ddo/Service'
+import { Compute, Service } from 'src/@types/ddo/Service'
+import { isCredentialAddressBased } from '@utils/credentials'
 
-export const defaultServiceComputeOptions: ServiceComputeOptions = {
+export const defaultServiceComputeOptions: Compute = {
   allowRawAlgorithm: false,
   allowNetworkAccess: true,
   publisherTrustedAlgorithmPublishers: [],
@@ -14,7 +15,7 @@ export const defaultServiceComputeOptions: ServiceComputeOptions = {
 
 export function getInitialValues(
   metadata: Metadata,
-  credentials: Credential,
+  credentials: Credential[],
   assetState: string
 ): MetadataEditForm {
   const useRemoteLicense =
@@ -38,6 +39,25 @@ export function getInitialValues(
     }
   }
 
+  let newAllowAddresses = []
+  let newDenyAddresses = []
+  if (credentials) {
+    credentials.forEach((credential) => {
+      credential.allow?.forEach((allowCredential) => {
+        if (isCredentialAddressBased(allowCredential)) {
+          newAllowAddresses = [...newAllowAddresses, ...allowCredential.values]
+        }
+      })
+      credential.deny?.forEach((denyCredential) => {
+        if (isCredentialAddressBased(denyCredential)) {
+          newDenyAddresses = [...newDenyAddresses, ...denyCredential.values]
+        }
+      })
+    })
+    newAllowAddresses = Array.from(new Set(newAllowAddresses))
+    newDenyAddresses = Array.from(new Set(newDenyAddresses))
+  }
+
   return {
     name: metadata?.name,
     description: metadata?.description?.['@value'],
@@ -51,12 +71,8 @@ export function getInitialValues(
     consumerParameters: parseConsumerParameters(
       metadata?.algorithm?.consumerParameters
     ),
-    allow:
-      credentials?.allow?.find((credential) => credential.type === 'address')
-        ?.values || [],
-    deny:
-      credentials?.deny?.find((credential) => credential.type === 'address')
-        ?.values || [],
+    allow: newAllowAddresses,
+    deny: newDenyAddresses,
     assetState,
     licenseUrl: !useRemoteLicense ? [fileInfo] : undefined,
     uploadedLicense: useRemoteLicense ? metadata.license : undefined,
@@ -67,7 +83,7 @@ export function getInitialValues(
 function getComputeSettingsInitialValues({
   publisherTrustedAlgorithms,
   publisherTrustedAlgorithmPublishers
-}: ServiceComputeOptions): ComputeEditForm {
+}: Compute): ComputeEditForm {
   const allowAllPublishedAlgorithms = publisherTrustedAlgorithms === null
   const publisherTrustedAlgorithmsForForm = allowAllPublishedAlgorithms
     ? null
@@ -128,8 +144,9 @@ export const getServiceInitialValues = (
     },
     files: [{ url: '', type: 'hidden' }],
     timeout: secondsToString(service.timeout),
-    usesConsumerParameters:
-      Object.assign(service.consumerParameters).length > 0,
+    usesConsumerParameters: service.consumerParameters
+      ? Object.assign(service.consumerParameters).length > 0
+      : undefined,
     consumerParameters: parseConsumerParameters(service.consumerParameters),
     allow:
       service.credentials?.allow?.find(

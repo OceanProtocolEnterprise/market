@@ -167,18 +167,17 @@ export async function signCredentialWithWeb3Wallet(
 
   console.log('signature')
   console.log(`${headerBase64}.${payloadBase64}.${messageSignatureBase64}`)
-try {
-  const result = await verifyJwsSignature(
-    data,
-    messageSignatureBase64,
-    publicJwk
-  )
-  console.log('result')
-  console.log(result)
-
-} catch (error) {
-  console.log(error)
-}
+  try {
+    const result = await verifyJwsSignature(
+      data,
+      messageSignatureBase64,
+      publicJwk
+    )
+    console.log('result')
+    console.log(result)
+  } catch (error) {
+    console.log(error)
+  }
   /*
   const messageHash = ethers.utils.hashMessage(data)
   const publicKey = ethers.utils.recoverPublicKey(messageHash, signature)

@@ -11,7 +11,7 @@ export function parseConsumerParameterValues(
   formValues?: UserCustomParameters,
   consumerParameters?: Record<string, string | number | boolean | Option[]>[]
 ): UserCustomParameters {
-  if (!formValues) return
+  if (!formValues || !consumerParameters) return
 
   const parsedValues = {}
   Object.entries(formValues)?.forEach((userCustomParameter) => {

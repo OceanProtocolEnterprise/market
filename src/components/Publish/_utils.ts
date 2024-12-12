@@ -42,7 +42,7 @@ import { uploadToIPFS } from '@utils/ipfs'
 import { signCredentialWithWeb3Wallet } from '@utils/wallet/sign'
 import { DDOVersion } from 'src/@types/DdoVersion'
 import { Proof } from 'src/@types/ddo/Proof'
-import { Credential } from 'src/@types/ddo/Credentials'
+import { Credential, CredentialAddressBased } from 'src/@types/ddo/Credentials'
 import { VerifiableCredential } from 'src/@types/ddo/VerifiableCredential'
 import { asset } from '.jest/__fixtures__/datasetWithAccessDetails'
 import { convertLinks } from '@utils/links'
@@ -109,28 +109,27 @@ export function generateCredentials(
   updatedAllow: string[],
   updatedDeny: string[]
 ): Credential[] {
-  const updatedCredentials = {
-    allow: oldCredentials?.allow || [],
-    deny: oldCredentials?.deny || []
+  let newCredentials: Credential
+  if (updatedAllow?.length !== 0 || updatedDeny?.length !== 0) {
+    const newAllowList: CredentialAddressBased = {
+      type: 'address',
+      values: updatedAllow
+    }
+
+    const newDenyList: CredentialAddressBased = {
+      type: 'address',
+      values: updatedDeny
+    }
+
+    newCredentials = {
+      allow: [newAllowList],
+      deny: [newDenyList]
+    }
+
+    return [newCredentials]
+  } else {
+    return []
   }
-
-  const credentialTypes = [
-    { type: 'allow', values: updatedAllow },
-    { type: 'deny', values: updatedDeny }
-  ]
-
-  credentialTypes.forEach((credentialType) => {
-    updatedCredentials[credentialType.type] = [
-      ...updatedCredentials[credentialType.type].filter(
-        (credential) => credential?.type !== 'address'
-      ),
-      ...(credentialType.values.length > 0
-        ? [{ type: 'address', values: credentialType.values }]
-        : [])
-    ]
-  })
-
-  return updatedCredentials
 }
 
 export async function transformPublishFormToDdo(

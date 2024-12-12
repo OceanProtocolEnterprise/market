@@ -5,7 +5,7 @@ import { License } from '../../../@types/ddo/License'
 export interface MetadataEditForm {
   name: string
   description: string
-  type: 'dataset' | 'algorithm'
+  type: string
   links?: FileInfo[]
   author?: string
   tags?: string[]

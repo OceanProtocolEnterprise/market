@@ -63,9 +63,7 @@ export default function DebugEditMetadata({
         credentialSubject: {
           ...asset.credentialSubject,
           metadata: newMetadata,
-          credentials: {
-            ...updatedCredentials
-          }
+          credentials: updatedCredentials
         }
       }
 

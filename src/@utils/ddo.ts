@@ -17,7 +17,8 @@ import {
 import { checkJson } from './codemirror'
 import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
-import { Option, OptionDetail } from 'src/@types/ddo/Option'
+import { Option } from 'src/@types/ddo/Option'
+import { isCredentialAddressBased } from './credentials'
 
 export function isValidDid(did: string): boolean {
   const regex = /^did:op:[A-Za-z0-9]{64}$/
@@ -220,34 +221,49 @@ export function isAddressWhitelisted(ddo: Asset, accountId: string): boolean {
   if (!ddo || !ddo?.credentialSubject || !accountId) return false
 
   // All addresses can access
-  if (!ddo.credentialSubject?.credentials) return true
+  if (
+    !ddo.credentialSubject?.credentials ||
+    ddo.credentialSubject?.credentials?.length === 0
+  )
+    return true
 
   const { credentials } = ddo.credentialSubject
 
-  const isAddressWhitelisted =
-    !credentials.allow ||
-    credentials.allow?.length === 0 ||
-    credentials.allow?.some((credential) => {
-      if (credential.type === 'address') {
-        return credential.values.some(
-          (address) => address.toLowerCase() === accountId.toLowerCase()
-        )
+  let isAddressWhitelisted = false
+  let isAddressBlacklisted = false
+  credentials.forEach((credential) => {
+    credential.allow?.forEach((allowCredential) => {
+      if (isAddressWhitelisted) {
+        return
       }
 
-      return true
+      if (isCredentialAddressBased(allowCredential)) {
+        if (
+          allowCredential.values.some(
+            (address) => address.toLowerCase() === accountId.toLowerCase()
+          )
+        ) {
+          isAddressWhitelisted = true
+        }
+      }
     })
 
-  const isAddressBlacklisted =
-    credentials.deny?.length > 0 &&
-    credentials.deny?.some((credential) => {
-      if (credential.type === 'address') {
-        return credential.values.some(
-          (address) => address.toLowerCase() === accountId.toLowerCase()
-        )
+    credential.deny?.forEach((denyCredential) => {
+      if (isAddressBlacklisted) {
+        return
       }
 
-      return false
+      if (isCredentialAddressBased(denyCredential)) {
+        if (
+          denyCredential.values.some(
+            (address) => address.toLowerCase() === accountId.toLowerCase()
+          )
+        ) {
+          isAddressBlacklisted = true
+        }
+      }
     })
+  })
 
   return isAddressWhitelisted && !isAddressBlacklisted
 }

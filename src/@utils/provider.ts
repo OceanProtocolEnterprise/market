@@ -282,6 +282,6 @@ export async function getComputeEnvironments(
 
     return computeEnvs
   } catch (error) {
-    LoggerInstance.error(error.message)
+    LoggerInstance.error(`[getComputeEnvironments] ${error.message}`)
   }
 }

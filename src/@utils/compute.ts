@@ -1,13 +1,11 @@
 import {
-  ServiceComputeOptions,
-  PublisherTrustedAlgorithm,
   getHash,
   LoggerInstance,
-  ComputeAlgorithm,
   ProviderInstance,
   ComputeEnvironment,
   ComputeJob,
-  getErrorMessage
+  getErrorMessage,
+  ComputeAlgorithm
 } from '@oceanprotocol/lib'
 import { CancelToken } from 'axios'
 import { gql } from 'urql'
@@ -26,7 +24,11 @@ import { ComputeEditForm } from '../components/Asset/Edit/_types'
 import { getFileDidInfo } from './provider'
 import { toast } from 'react-toastify'
 import { Asset } from 'src/@types/Asset'
-import { Service } from 'src/@types/ddo/Service'
+import {
+  Compute,
+  Service,
+  PublisherTrustedAlgorithms
+} from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 
 const getComputeOrders = gql`
@@ -162,7 +164,7 @@ export async function getComputeEnvironment(
 }
 
 export function getQueryString(
-  trustedAlgorithmList: PublisherTrustedAlgorithm[],
+  trustedAlgorithmList: PublisherTrustedAlgorithms[],
   trustedPublishersList: string[],
   chainId?: number
 ): SearchQuery {
@@ -358,8 +360,8 @@ export async function createTrustedAlgorithmList(
   selectedAlgorithms: string[], // list of DIDs,
   assetChainId: number,
   cancelToken: CancelToken
-): Promise<PublisherTrustedAlgorithm[]> {
-  const trustedAlgorithms: PublisherTrustedAlgorithm[] = []
+): Promise<PublisherTrustedAlgorithms[]> {
+  const trustedAlgorithms: PublisherTrustedAlgorithms[] = []
 
   // Condition to prevent app from hitting Aquarius with empty DID list
   // when nothing is selected in the UI.
@@ -384,10 +386,11 @@ export async function createTrustedAlgorithmList(
     const containerChecksum =
       selectedAlgorithm.credentialSubject?.metadata.algorithm.container
         .entrypoint
-    const trustedAlgorithm = {
+    const trustedAlgorithm: PublisherTrustedAlgorithms = {
       did: selectedAlgorithm.credentialSubject?.id,
       containerSectionChecksum: getHash(containerChecksum),
-      filesChecksum: filesChecksum?.[0]?.checksum
+      filesChecksum: filesChecksum?.[0]?.checksum,
+      serviceId: ''
     }
     trustedAlgorithms.push(trustedAlgorithm)
   }
@@ -396,10 +399,10 @@ export async function createTrustedAlgorithmList(
 
 export async function transformComputeFormToServiceComputeOptions(
   values: ComputeEditForm,
-  currentOptions: ServiceComputeOptions,
+  currentOptions: Compute,
   assetChainId: number,
   cancelToken: CancelToken
-): Promise<ServiceComputeOptions> {
+): Promise<Compute> {
   const publisherTrustedAlgorithms = values.allowAllPublishedAlgorithms
     ? null
     : await createTrustedAlgorithmList(
@@ -413,7 +416,7 @@ export async function transformComputeFormToServiceComputeOptions(
   // to be trusted.
   const publisherTrustedAlgorithmPublishers: string[] = []
 
-  const privacy: ServiceComputeOptions = {
+  const privacy: Compute = {
     ...currentOptions,
     publisherTrustedAlgorithms,
     publisherTrustedAlgorithmPublishers
