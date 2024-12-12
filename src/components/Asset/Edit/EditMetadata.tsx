@@ -25,7 +25,6 @@ import { Asset } from 'src/@types/Asset'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { customProviderUrl } from '../../../../app.config'
 import { ethers } from 'ethers'
-import { Credential } from 'src/@types/ddo/Credentials'
 import { convertLinks } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
 
@@ -93,7 +92,7 @@ export default function Edit({
             : transformConsumerParameters(values.consumerParameters)
       }
 
-      const updatedCredentials: Credential[] = generateCredentials(
+      const updatedCredentials = generateCredentials(
         asset?.credentialSubject?.credentials,
         values?.allow,
         values?.deny

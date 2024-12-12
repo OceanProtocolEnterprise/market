@@ -131,6 +131,26 @@ export const getServiceInitialValues = (
   const computeSettings = getComputeSettingsInitialValues(
     service.compute || defaultServiceComputeOptions
   )
+
+  let allowAdresses = []
+  let denyAddresses = []
+  if (service.credentials) {
+    service.credentials.forEach((credential) => {
+      credential.allow?.forEach((allowCredential) => {
+        if (isCredentialAddressBased(allowCredential)) {
+          allowAdresses = [...allowAdresses, ...allowCredential.values]
+        }
+      })
+      credential.deny?.forEach((denyCredential) => {
+        if (isCredentialAddressBased(denyCredential)) {
+          denyAddresses = [...denyAddresses, ...denyCredential.values]
+        }
+      })
+    })
+    allowAdresses = Array.from(new Set(allowAdresses))
+    denyAddresses = Array.from(new Set(denyAddresses))
+  }
+
   return {
     name: service.name,
     description: service.description?.['@value'],
@@ -148,14 +168,8 @@ export const getServiceInitialValues = (
       ? Object.assign(service.consumerParameters).length > 0
       : undefined,
     consumerParameters: parseConsumerParameters(service.consumerParameters),
-    allow:
-      service.credentials?.allow?.find(
-        (credential) => credential.type === 'address'
-      )?.values || [],
-    deny:
-      service.credentials?.deny?.find(
-        (credential) => credential.type === 'address'
-      )?.values || [],
+    allow: allowAdresses,
+    deny: denyAddresses,
     ...computeSettings
   }
 }
