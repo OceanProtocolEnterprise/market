@@ -25,6 +25,14 @@
       "options": ["Terms and Conditions"],
       "prefixes": ["I agree to the"],
       "actions": ["/terms"]
+    },
+    "acceptPublishingLicense": {
+      "name": "acceptPublishingLicense",
+      "type": "checkbox",
+      "options": [""],
+      "prefixes": ["I agree the Publishing License"],
+      "actions": ["/terms"],
+      "required": true
     }
   }
 }

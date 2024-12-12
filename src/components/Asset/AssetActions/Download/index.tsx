@@ -382,7 +382,8 @@ export default function Download({
     <Formik
       initialValues={{
         dataServiceParams: getDefaultValues(service.consumerParameters),
-        termsAndConditions: false
+        termsAndConditions: false,
+        acceptPublishingLicense: false
       }}
       validateOnMount
       validationSchema={getDownloadValidationSchema(service.consumerParameters)}
@@ -418,6 +419,14 @@ export default function Download({
                 options={['Terms and Conditions']}
                 prefixes={['I agree to the']}
                 actions={['/terms']}
+                disabled={isLoading}
+              />
+              <Field
+                component={Input}
+                name="acceptPublishingLicense"
+                type="checkbox"
+                options={['']}
+                prefixes={['I agree the Publishing License']}
                 disabled={isLoading}
               />
             </>

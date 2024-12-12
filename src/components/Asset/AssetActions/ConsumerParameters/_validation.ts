@@ -7,7 +7,7 @@ export function getUserCustomParameterValidationSchema(
 ): SchemaLike {
   const shape = {}
 
-  consumerParameters.forEach((parameter) => {
+  consumerParameters?.forEach((parameter) => {
     const schemaBase =
       parameter.type === 'number'
         ? Yup.number()

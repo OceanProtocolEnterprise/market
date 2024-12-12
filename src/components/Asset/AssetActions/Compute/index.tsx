@@ -119,6 +119,8 @@ export default function Compute({
   const [selectedComputeEnv, setSelectedComputeEnv] =
     useState<ComputeEnvironment>()
   const [termsAndConditions, setTermsAndConditions] = useState<boolean>(false)
+  const [acceptPublishingLicense, setAcceptPublishingLicense] =
+    useState<boolean>(false)
   const [initializedProviderResponse, setInitializedProviderResponse] =
     useState<ProviderComputeInitializeResults>()
   const [providerFeeAmount, setProviderFeeAmount] = useState<string>('0')
@@ -505,7 +507,12 @@ export default function Compute({
   }
 
   const onSubmit = async (values: ComputeDatasetForm) => {
-    if (!values.algorithm || !values.computeEnv || !values.termsAndConditions)
+    if (
+      !values.algorithm ||
+      !values.computeEnv ||
+      !values.termsAndConditions ||
+      !values.acceptPublishingLicense
+    )
       return
 
     const userCustomParameters = {
@@ -578,7 +585,8 @@ export default function Compute({
             service,
             selectedAlgorithmAsset,
             selectedComputeEnv,
-            termsAndConditions
+            termsAndConditions,
+            acceptPublishingLicense
           )}
           validateOnMount
           validationSchema={getComputeValidationSchema(
@@ -630,6 +638,7 @@ export default function Compute({
             computeEnvs={computeEnvs}
             setSelectedComputeEnv={setSelectedComputeEnv}
             setTermsAndConditions={setTermsAndConditions}
+            setAcceptPublishingLicense={setAcceptPublishingLicense}
             // lazy comment when removing pricingStepText
             stepText={computeStatusText}
             isConsumable={isConsumablePrice}

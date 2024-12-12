@@ -13,6 +13,7 @@ export interface ComputeDatasetForm {
   algoServiceParams: UserCustomParameters
   algoParams: UserCustomParameters
   termsAndConditions: boolean
+  acceptPublishingLicense: boolean
 }
 
 export function getComputeValidationSchema(
@@ -26,6 +27,7 @@ export function getComputeValidationSchema(
   algoServiceParams: Record<string, string | number | boolean | Option[]>[]
   algoParams: Record<string, string | number | boolean | Option[]>[]
   termsAndConditions: boolean
+  acceptPublishingLicense: boolean
 }> {
   return Yup.object().shape({
     algorithm: Yup.string().required('Required'),
@@ -37,7 +39,10 @@ export function getComputeValidationSchema(
     algoParams: getUserCustomParameterValidationSchema(algoParams),
     termsAndConditions: Yup.boolean()
       .required('Required')
-      .isTrue('Please agree to the Terms and Conditions.')
+      .isTrue('Please agree to the Terms and Conditions.'),
+    acceptPublishingLicense: Yup.boolean()
+      .required('Required')
+      .isTrue('Please agree to the Publishing License')
   })
 }
 
@@ -45,7 +50,8 @@ export function getInitialValues(
   service: Service,
   selectedAlgorithmAsset?: AssetExtended,
   selectedComputeEnv?: ComputeEnvironment,
-  termsAndConditions?: boolean
+  termsAndConditions?: boolean,
+  acceptPublishingLicense?: boolean
 ): ComputeDatasetForm {
   return {
     algorithm: selectedAlgorithmAsset?.credentialSubject?.id,
@@ -58,6 +64,7 @@ export function getInitialValues(
       selectedAlgorithmAsset?.credentialSubject?.metadata?.algorithm
         .consumerParameters
     ),
-    termsAndConditions: !!termsAndConditions
+    termsAndConditions,
+    acceptPublishingLicense
   }
 }

@@ -48,7 +48,7 @@ export default function ConsumerParameters({
 
   const updateTabs = useCallback(() => {
     const tabs = []
-    if (service.consumerParameters.length > 0) {
+    if (service.consumerParameters?.length > 0) {
       tabs.push({
         title: 'Data Service',
         content: (

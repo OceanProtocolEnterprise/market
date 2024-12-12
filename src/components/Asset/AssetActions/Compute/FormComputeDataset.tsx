@@ -52,6 +52,7 @@ export default function FormStartCompute({
   computeEnvs,
   setSelectedComputeEnv,
   setTermsAndConditions,
+  setAcceptPublishingLicense,
   stepText,
   isConsumable,
   consumableFeedback,
@@ -89,6 +90,7 @@ export default function FormStartCompute({
     React.SetStateAction<ComputeEnvironment>
   >
   setTermsAndConditions: React.Dispatch<React.SetStateAction<boolean>>
+  setAcceptPublishingLicense: React.Dispatch<React.SetStateAction<boolean>>
   stepText: string
   isConsumable: boolean
   consumableFeedback: string

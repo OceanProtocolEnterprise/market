@@ -14,7 +14,7 @@ export function getDefaultValues(
 ): UserCustomParameters {
   const defaults = {}
 
-  consumerParameters.forEach((param) => {
+  consumerParameters?.forEach((param) => {
     Object.assign(defaults, {
       [param.name]:
         param.type === 'number'
