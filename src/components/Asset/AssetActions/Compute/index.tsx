@@ -637,8 +637,6 @@ export default function Compute({
             )}
             computeEnvs={computeEnvs}
             setSelectedComputeEnv={setSelectedComputeEnv}
-            setTermsAndConditions={setTermsAndConditions}
-            setAcceptPublishingLicense={setAcceptPublishingLicense}
             // lazy comment when removing pricingStepText
             stepText={computeStatusText}
             isConsumable={isConsumablePrice}

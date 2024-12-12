@@ -425,8 +425,8 @@ export default function Download({
                 component={Input}
                 name="acceptPublishingLicense"
                 type="checkbox"
-                options={['']}
-                prefixes={['I agree the Publishing License']}
+                options={['Publishing License']}
+                prefixes={['I agree the']}
                 disabled={isLoading}
               />
             </>

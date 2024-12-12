@@ -29,9 +29,8 @@
     "acceptPublishingLicense": {
       "name": "acceptPublishingLicense",
       "type": "checkbox",
-      "options": [""],
-      "prefixes": ["I agree the Publishing License"],
-      "actions": ["/terms"],
+      "options": ["Publishing License"],
+      "prefixes": ["I agree the"],
       "required": true
     }
   }

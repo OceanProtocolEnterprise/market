@@ -51,8 +51,6 @@ export default function FormStartCompute({
   selectedComputeAssetTimeout,
   computeEnvs,
   setSelectedComputeEnv,
-  setTermsAndConditions,
-  setAcceptPublishingLicense,
   stepText,
   isConsumable,
   consumableFeedback,
@@ -89,8 +87,6 @@ export default function FormStartCompute({
   setSelectedComputeEnv: React.Dispatch<
     React.SetStateAction<ComputeEnvironment>
   >
-  setTermsAndConditions: React.Dispatch<React.SetStateAction<boolean>>
-  setAcceptPublishingLicense: React.Dispatch<React.SetStateAction<boolean>>
   stepText: string
   isConsumable: boolean
   consumableFeedback: string
@@ -548,6 +544,14 @@ export default function FormStartCompute({
             options={['Terms and Conditions']}
             prefixes={['I agree to the']}
             actions={['/terms']}
+            disabled={isLoading}
+          />
+          <Field
+            component={Input}
+            name="acceptPublishingLicense"
+            type="checkbox"
+            options={['Publishing License']}
+            prefixes={['I agree the']}
             disabled={isLoading}
           />
         </>
