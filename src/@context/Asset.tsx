@@ -7,7 +7,7 @@ import {
   useCallback,
   ReactNode
 } from 'react'
-import { Config, LoggerInstance, Purgatory, Service } from '@oceanprotocol/lib'
+import { Config, LoggerInstance } from '@oceanprotocol/lib'
 import { CancelToken } from 'axios'
 import { getAsset } from '@utils/aquarius'
 import { useCancelToken } from '@hooks/useCancelToken'
@@ -20,8 +20,9 @@ import { isValidDid } from '@utils/ddo'
 import { useAddressConfig } from '@hooks/useAddressConfig'
 import { useAccount, useNetwork } from 'wagmi'
 import { AssetExtended } from 'src/@types/AssetExtended'
-import { Asset } from 'src/@types/Asset'
+import { Asset, Purgatory } from 'src/@types/Asset'
 import { convertToLatestDdoVersion } from '@utils/assetConverter'
+import { Service } from 'src/@types/ddo/Service'
 
 export interface AssetProviderValue {
   isInPurgatory: boolean
@@ -149,8 +150,8 @@ function AssetProvider({
     )
       return
 
-    const accessDetails = await Promise.all(
-      asset.credentialSubject?.services.map((service: Service) =>
+    const accessDetails: AccessDetails[] = await Promise.all(
+      asset.credentialSubject?.services?.map((service: Service) =>
         getAccessDetails(asset.credentialSubject?.chainId, service)
       )
     )

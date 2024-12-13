@@ -26,7 +26,7 @@ import {
   signAssetAndUploadToIpfs,
   transformConsumerParameters
 } from '@components/Publish/_utils'
-import appConfig, {
+import {
   customProviderUrl,
   defaultDatatokenCap,
   defaultDatatokenTemplateIndex,
@@ -309,7 +309,9 @@ export default function AddService({
                     serviceEndpoint:
                       asset.credentialSubject?.services[0].serviceEndpoint,
                     timeout: 0,
-                    consumerParameters: []
+                    consumerParameters: [],
+                    credentials: [],
+                    state: State.Active
                   }}
                 />
               </div>

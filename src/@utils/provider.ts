@@ -47,7 +47,7 @@ export async function initializeProviderForCompute(
   const validUntil = getValidUntilTime(
     computeEnv?.maxJobDuration,
     datasetService.timeout,
-    algorithm.services[0].timeout
+    algorithm.credentialSubject.services[0].timeout
   )
 
   try {

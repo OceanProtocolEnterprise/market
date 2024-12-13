@@ -8,10 +8,6 @@ import {
   getFilterTerm,
   queryMetadata
 } from '@utils/aquarius'
-import {
-  PublisherTrustedAlgorithm,
-  ServiceComputeOptions
-} from '@oceanprotocol/lib'
 import { useCancelToken } from '@hooks/useCancelToken'
 import { SortTermOptions } from '../../../@types/aquarius/SearchQuery'
 import { transformAssetToAssetSelection } from '@utils/assetConverter'
@@ -19,6 +15,7 @@ import { ServiceEditForm } from './_types'
 import content from '../../../../content/pages/editComputeDataset.json'
 import { getFieldContent } from '@utils/form'
 import { useAccount } from 'wagmi'
+import { Compute, PublisherTrustedAlgorithms } from 'src/@types/ddo/Service'
 
 export default function FormEditComputeService({
   chainId,
@@ -27,7 +24,7 @@ export default function FormEditComputeService({
 }: {
   chainId: number
   serviceEndpoint: string
-  serviceCompute: ServiceComputeOptions
+  serviceCompute: Compute
 }): ReactElement {
   const { address: accountId } = useAccount()
   const { values }: FormikContextType<ServiceEditForm> = useFormikContext()
@@ -37,7 +34,7 @@ export default function FormEditComputeService({
 
   const getAlgorithmList = useCallback(
     async (
-      publisherTrustedAlgorithms: PublisherTrustedAlgorithm[]
+      publisherTrustedAlgorithms: PublisherTrustedAlgorithms[]
     ): Promise<AssetSelectionAsset[]> => {
       const baseParams = {
         chainIds: [chainId],

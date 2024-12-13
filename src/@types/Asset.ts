@@ -109,6 +109,7 @@ export interface AssetPrice {
    */
   tokenAddress?: string
 }
+
 export interface Stats {
   /**
    * How often an asset was consumed, meaning how often it was either downloaded or used as part of a compute job.

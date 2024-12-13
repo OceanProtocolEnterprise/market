@@ -7,7 +7,6 @@ import { secondsToString } from '@utils/ddo'
 import styles from './index.module.css'
 import AlgorithmDatasetsListForCompute from '../Compute/AlgorithmDatasetsListForCompute'
 import {
-  AssetPrice,
   FileInfo,
   LoggerInstance,
   UserCustomParameters,
@@ -43,6 +42,7 @@ import { consumeMarketFixedSwapFee } from 'app.config'
 import { Row } from '../Row'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
+import { AssetPrice } from 'src/@types/Asset'
 
 export default function Download({
   accountId,

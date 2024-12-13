@@ -13,7 +13,6 @@ import {
   ProviderComputeInitializeResults,
   unitsToAmount,
   ProviderFees,
-  AssetPrice,
   UserCustomParameters,
   getErrorMessage
 } from '@oceanprotocol/lib'
@@ -63,7 +62,7 @@ import { parseConsumerParameterValues } from '../ConsumerParameters'
 import { Signer } from 'ethers'
 import { useAccount } from 'wagmi'
 import { Service } from 'src/@types/ddo/Service'
-import { Asset } from 'src/@types/Asset'
+import { Asset, AssetPrice } from 'src/@types/Asset'
 import { AssetExtended } from 'src/@types/AssetExtended'
 
 const refreshInterval = 10000 // 10 sec.
