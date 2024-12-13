@@ -1,10 +1,11 @@
 import { FormConsumerParameter } from '@components/Publish/_types'
 import { FileInfo } from '@oceanprotocol/lib'
+import { License } from '../../../@types/ddo/License'
 
 export interface MetadataEditForm {
   name: string
   description: string
-  type: 'dataset' | 'algorithm'
+  type: string
   links?: FileInfo[]
   author?: string
   tags?: string[]
@@ -13,7 +14,10 @@ export interface MetadataEditForm {
   allow?: string[]
   deny?: string[]
   assetState?: string
-  license?: string
+  license?: License
+  useRemoteLicense: boolean
+  licenseUrl: FileInfo[]
+  uploadedLicense: License
 }
 
 export interface ServiceEditForm {
@@ -27,6 +31,8 @@ export interface ServiceEditForm {
   timeout: string
   usesConsumerParameters: boolean
   consumerParameters: FormConsumerParameter[]
+  allow: string[]
+  deny: string[]
   // compute
   allowAllPublishedAlgorithms: boolean
   publisherTrustedAlgorithms: string[]

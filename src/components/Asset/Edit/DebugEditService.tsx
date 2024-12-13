@@ -1,4 +1,4 @@
-import { Asset, LoggerInstance, Service } from '@oceanprotocol/lib'
+import { LoggerInstance } from '@oceanprotocol/lib'
 import { ReactElement, useEffect, useState } from 'react'
 import DebugOutput from '@shared/DebugOutput'
 import { useCancelToken } from '@hooks/useCancelToken'
@@ -10,7 +10,13 @@ import {
   previewDebugPatch
 } from '@utils/ddo'
 import { getEncryptedFiles } from '@utils/provider'
-import { transformConsumerParameters } from '@components/Publish/_utils'
+import {
+  generateCredentials,
+  transformConsumerParameters
+} from '@components/Publish/_utils'
+import { Service } from 'src/@types/ddo/Service'
+import { Asset } from 'src/@types/Asset'
+import { Credential } from 'src/@types/ddo/Credentials'
 
 export default function DebugEditService({
   values,
@@ -31,20 +37,20 @@ export default function DebugEditService({
       try {
         if (values.files[0]?.url) {
           const file = {
-            nftAddress: asset.nftAddress,
+            nftAddress: asset.credentialSubject.nftAddress,
             datatokenAddress: service.datatokenAddress,
             files: [
               normalizeFile(
                 values.files[0].type,
                 values.files[0],
-                asset.chainId
+                asset.credentialSubject?.chainId
               )
             ]
           }
 
           const filesEncrypted = await getEncryptedFiles(
             file,
-            asset.chainId,
+            asset.credentialSubject?.chainId,
             service.serviceEndpoint
           )
           updatedFiles = filesEncrypted
@@ -53,18 +59,29 @@ export default function DebugEditService({
         LoggerInstance.error('Error encrypting files:', error.message)
       }
 
+      const credentials: Credential[] = generateCredentials(
+        service.credentials,
+        values.allow,
+        values.deny
+      )
+
       const updatedService: Service = {
         ...service,
         name: values.name,
-        description: values.description,
+        description: {
+          '@value': values.description,
+          '@language': '',
+          '@direction': ''
+        },
         type: values.access,
         timeout: mapTimeoutStringToSeconds(values.timeout),
-        files: updatedFiles, // TODO: check if this works
+        files: updatedFiles, // TODO: check if this works,
+        credentials,
         ...(values.access === 'compute' && {
           compute: await transformComputeFormToServiceComputeOptions(
             values,
             service.compute,
-            asset.chainId,
+            asset.credentialSubject?.chainId,
             newCancelToken()
           )
         })

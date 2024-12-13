@@ -1,5 +1,4 @@
 import {
-  amountToUnits,
   approve,
   approveWei,
   Datatoken,
@@ -12,8 +11,7 @@ import {
   ProviderFees,
   ProviderInstance,
   ProviderInitialize,
-  getErrorMessage,
-  Service
+  getErrorMessage
 } from '@oceanprotocol/lib'
 import { Signer, ethers } from 'ethers'
 import { getOceanConfig } from './ocean'
@@ -24,6 +22,8 @@ import {
   customProviderUrl
 } from '../../app.config'
 import { toast } from 'react-toastify'
+import { Service } from 'src/@types/ddo/Service'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 async function initializeProvider(
   asset: AssetExtended,
@@ -34,7 +34,7 @@ async function initializeProvider(
   if (providerFees) return
   try {
     const provider = await ProviderInstance.initialize(
-      asset.id,
+      asset.credentialSubject?.id,
       service.id,
       0,
       accountId,
@@ -69,7 +69,7 @@ export async function order(
   computeConsumerAddress?: string
 ): Promise<ethers.providers.TransactionResponse> {
   const datatoken = new Datatoken(signer)
-  const config = getOceanConfig(asset.chainId)
+  const config = getOceanConfig(asset.credentialSubject?.chainId)
 
   const initializeData = await initializeProvider(
     asset,
@@ -234,10 +234,10 @@ async function approveProviderFee(
   signer: Signer,
   providerFeeAmount: string
 ): Promise<ethers.providers.TransactionResponse> {
-  const config = getOceanConfig(asset.chainId)
+  const config = getOceanConfig(asset.credentialSubject?.chainId)
   const baseToken =
     accessDetails.type === 'free'
-      ? getOceanConfig(asset.chainId).oceanTokenAddress
+      ? getOceanConfig(asset.credentialSubject?.chainId).oceanTokenAddress
       : accessDetails.baseToken?.address
   const txApproveWei = await approveWei(
     signer,
@@ -277,7 +277,7 @@ export async function handleComputeOrder(
 ): Promise<string> {
   LoggerInstance.log(
     '[compute] Handle compute order for asset type: ',
-    asset.metadata.type
+    asset.credentialSubject?.metadata?.type
   )
   LoggerInstance.log('[compute] Using initializeData: ', initializeData)
 

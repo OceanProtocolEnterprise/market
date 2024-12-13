@@ -1,4 +1,4 @@
-import { allowFixedPricing, defaultAccessTerms } from '../../../app.config'
+import { allowFixedPricing } from '../../../app.config'
 import {
   FormPublishData,
   MetadataAlgorithmContainer,
@@ -11,8 +11,8 @@ import MetadataFields from './Metadata'
 import ServicesFields from './Services'
 import Preview from './Preview'
 import Submission from './Submission'
-import { ServiceComputeOptions } from '@oceanprotocol/lib'
 import contentFeedback from '../../../content/publish/feedback.json'
+import { Compute } from 'src/@types/ddo/Service'
 import AdditionalDdosFields from './AdditionalDdos'
 
 export const wizardSteps: StepContent[] = [
@@ -48,7 +48,7 @@ export const wizardSteps: StepContent[] = [
   }
 ]
 
-const computeOptions: ServiceComputeOptions = {
+const computeOptions: Compute = {
   allowRawAlgorithm: false,
   allowNetworkAccess: true,
   publisherTrustedAlgorithmPublishers: [],
@@ -93,7 +93,9 @@ export const initialValues: FormPublishData = {
       usesConsumerParameters: false,
       consumerParameters: [],
       allow: [],
-      deny: []
+      deny: [],
+      policies: [],
+      customPolicies: ''
     }
   ],
   pricing: {
@@ -104,7 +106,9 @@ export const initialValues: FormPublishData = {
   },
 
   additionalDdos: [],
-  ssiKey: ''
+  useRemoteLicense: false,
+  licenseUrl: [{ url: '', type: 'url' }],
+  uploadedLicense: undefined
 }
 
 export const algorithmContainerPresets: MetadataAlgorithmContainer[] = [

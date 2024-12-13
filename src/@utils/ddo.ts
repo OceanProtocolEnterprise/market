@@ -8,17 +8,17 @@ import {
 } from '@components/Publish/_types'
 import {
   Arweave,
-  Asset,
-  ConsumerParameter,
-  DDO,
   FileInfo,
   GraphqlQuery,
   Ipfs,
-  Service,
   Smartcontract,
   UrlFile
 } from '@oceanprotocol/lib'
 import { checkJson } from './codemirror'
+import { Asset } from 'src/@types/Asset'
+import { Service } from 'src/@types/ddo/Service'
+import { Option } from 'src/@types/ddo/Option'
+import { isCredentialAddressBased } from './credentials'
 
 export function isValidDid(did: string): boolean {
   const regex = /^did:op:[A-Za-z0-9]{64}$/
@@ -27,19 +27,23 @@ export function isValidDid(did: string): boolean {
 
 // TODO: this function doesn't make sense, since market is now supporting multiple services. We should remove it after checking all the flows where it's being used.
 export function getServiceByName(
-  ddo: Asset | DDO,
+  ddo: Asset,
   name: 'access' | 'compute'
 ): Service {
   if (!ddo) return
 
-  const service = ddo.services.filter((service) => service.type === name)[0]
+  const service = ddo.credentialSubject?.services.filter(
+    (service) => service.type === name
+  )[0]
   return service
 }
 
-export function getServiceById(ddo: Asset | DDO, serviceId: string): Service {
+export function getServiceById(ddo: Asset, serviceId: string): Service {
   if (!ddo) return
 
-  const service = ddo.services.find((s) => s.id === serviceId)
+  const service = ddo.credentialSubject?.services.find(
+    (s) => s.id === serviceId
+  )
   return service
 }
 
@@ -182,67 +186,84 @@ export function previewDebugPatch(
 }
 
 export function parseConsumerParameters(
-  consumerParameters: ConsumerParameter[]
+  consumerParameters: Record<string, string | number | boolean | Option[]>[]
 ): FormConsumerParameter[] {
-  if (!consumerParameters?.length) return []
+  if (!consumerParameters) {
+    return []
+  }
 
-  return consumerParameters.map((param) => ({
-    ...param,
-    required: param.required ? 'required' : 'optional',
-    options:
-      param.type === 'select'
-        ? JSON.parse(param.options)?.map((option) => {
-            const key = Object.keys(option)[0]
-            return {
-              key,
-              value: option[key]
-            }
-          })
-        : [],
-    default:
-      param.type === 'boolean'
-        ? param.default === 'true'
-        : param.type === 'number'
-        ? Number(param.default)
-        : param.default
-  }))
+  return consumerParameters.map((param) => {
+    let transformedOptions
+    if (Array.isArray(param.options)) {
+      transformedOptions = param.options.map((option) => {
+        const key = Object.keys(option)[0]
+        return {
+          key,
+          value: option[key]
+        }
+      })
+    }
+    return {
+      ...param,
+      required: param.required ? 'required' : 'optional',
+      options: param.type === 'select' ? transformedOptions : [],
+      default:
+        param.type === 'boolean'
+          ? param.default === 'true'
+          : param.type === 'number'
+          ? Number(param.default)
+          : param.default
+    }
+  })
 }
 
-export function isAddressWhitelisted(
-  ddo: AssetExtended,
-  accountId: string
-): boolean {
-  if (!ddo || !accountId) return false
+export function isAddressWhitelisted(ddo: Asset, accountId: string): boolean {
+  if (!ddo || !ddo?.credentialSubject || !accountId) return false
 
   // All addresses can access
-  if (!ddo.credentials) return true
+  if (
+    !ddo.credentialSubject?.credentials ||
+    ddo.credentialSubject?.credentials?.length === 0
+  )
+    return true
 
-  const { credentials } = ddo
+  const { credentials } = ddo.credentialSubject
 
-  const isAddressWhitelisted =
-    !credentials.allow ||
-    credentials.allow?.length === 0 ||
-    credentials.allow?.some((credential) => {
-      if (credential.type === 'address') {
-        return credential.values.some(
-          (address) => address.toLowerCase() === accountId.toLowerCase()
-        )
+  let isAddressWhitelisted = false
+  let isAddressBlacklisted = false
+  credentials.forEach((credential) => {
+    credential.allow?.forEach((allowCredential) => {
+      if (isAddressWhitelisted) {
+        return
       }
 
-      return true
+      if (isCredentialAddressBased(allowCredential)) {
+        if (
+          allowCredential.values.some(
+            (address) => address.toLowerCase() === accountId.toLowerCase()
+          )
+        ) {
+          isAddressWhitelisted = true
+        }
+      }
     })
 
-  const isAddressBlacklisted =
-    credentials.deny?.length > 0 &&
-    credentials.deny?.some((credential) => {
-      if (credential.type === 'address') {
-        return credential.values.some(
-          (address) => address.toLowerCase() === accountId.toLowerCase()
-        )
+    credential.deny?.forEach((denyCredential) => {
+      if (isAddressBlacklisted) {
+        return
       }
 
-      return false
+      if (isCredentialAddressBased(denyCredential)) {
+        if (
+          denyCredential.values.some(
+            (address) => address.toLowerCase() === accountId.toLowerCase()
+          )
+        ) {
+          isAddressBlacklisted = true
+        }
+      }
     })
+  })
 
   return isAddressWhitelisted && !isAddressBlacklisted
 }

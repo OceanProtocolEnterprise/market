@@ -1,12 +1,7 @@
 import { ReactElement, useState, useEffect } from 'react'
 import Compute from './Compute'
 import Download from './Download'
-import {
-  FileInfo,
-  LoggerInstance,
-  Datatoken,
-  Service
-} from '@oceanprotocol/lib'
+import { FileInfo, LoggerInstance, Datatoken } from '@oceanprotocol/lib'
 import { compareAsBN } from '@utils/numbers'
 import { useAsset } from '@context/Asset'
 import { getFileDidInfo, getFileInfo } from '@utils/provider'
@@ -22,6 +17,8 @@ import { isAddressWhitelisted } from '@utils/ddo'
 import { useAccount, useProvider, useNetwork, useSigner } from 'wagmi'
 import useBalance from '@hooks/useBalance'
 import Button from '@components/@shared/atoms/Button'
+import { Service } from 'src/@types/ddo/Service'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export default function AssetActions({
   asset,
@@ -62,7 +59,7 @@ export default function AssetActions({
 
   // Get and set file info
   useEffect(() => {
-    const oceanConfig = getOceanConfig(asset.chainId)
+    const oceanConfig = getOceanConfig(asset.credentialSubject?.chainId)
     if (!oceanConfig) return
 
     async function initFileInfo() {
@@ -95,7 +92,11 @@ export default function AssetActions({
               chain?.id,
               method
             )
-          : await getFileDidInfo(asset.id, service.id, providerUrl)
+          : await getFileDidInfo(
+              asset.credentialSubject?.id,
+              service.id,
+              providerUrl
+            )
 
         fileInfoResponse && setFileMetadata(fileInfoResponse[0])
 

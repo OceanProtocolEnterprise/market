@@ -1,6 +1,9 @@
-import { FileInfo, ServiceComputeOptions } from '@oceanprotocol/lib'
+import { FileInfo } from '@oceanprotocol/lib'
 import { NftMetadata } from '@utils/nft'
 import { ReactElement } from 'react'
+import { License } from 'src/@types/ddo/License'
+import { Option } from 'src/@types/ddo/Option'
+import { Compute } from 'src/@types/ddo/Service'
 
 export interface FormPublishService {
   files: FileInfo[]
@@ -10,7 +13,7 @@ export interface FormPublishService {
   access: 'Download' | 'Compute' | string
   providerUrl: { url: string; valid: boolean; custom: boolean }
   algorithmPrivacy?: boolean
-  computeOptions?: ServiceComputeOptions
+  computeOptions?: Compute
   usesConsumerParameters?: boolean
   consumerParameters?: FormConsumerParameter[]
   allow?: string[]
@@ -41,8 +44,7 @@ export interface FormPublishData {
     description: string
     author: string
     termsAndConditions: boolean
-    license?: string
-    accessTermsAndConditions?: string
+    license?: License
     tags?: string[]
     dockerImage?: string
     dockerImageCustom?: string
@@ -60,7 +62,9 @@ export interface FormPublishData {
   pricing: PricePublishOptions
   feedback?: PublishFeedback
   additionalDdos: FormAdditionalDdo[]
-  ssiKey: string
+  useRemoteLicense: boolean
+  licenseUrl: FileInfo[]
+  uploadedLicense: License
 }
 
 export interface StepContent {
@@ -93,7 +97,7 @@ export interface FormConsumerParameter {
   label: string
   required: string
   description: string
-  default: string | boolean | number
+  default: string | boolean | number | Option[]
   options?: { key: string; value: string }[]
   value?: string | boolean | number
 }

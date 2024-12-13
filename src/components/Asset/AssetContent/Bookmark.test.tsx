@@ -4,7 +4,7 @@ import { datasetAquarius } from '../../../../.jest/__fixtures__/datasetAquarius'
 
 describe('src/components/Asset/AssetContent/Bookmark.tsx', () => {
   it('renders Add Bookmark button', () => {
-    render(<Bookmark did={datasetAquarius.id} />)
+    render(<Bookmark did={datasetAquarius.credentialSubject?.id} />)
     expect(screen.getByTitle('Add Bookmark')).toBeInTheDocument()
   })
 })

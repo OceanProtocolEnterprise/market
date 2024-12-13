@@ -3,7 +3,6 @@ import { Formik } from 'formik'
 import {
   LoggerInstance,
   Datatoken,
-  Service,
   Nft,
   FreCreationParams,
   DispenserParams,
@@ -17,14 +16,18 @@ import { ServiceEditForm } from './_types'
 import Web3Feedback from '@shared/Web3Feedback'
 import { mapTimeoutStringToSeconds, normalizeFile } from '@utils/ddo'
 import content from '../../../../content/pages/editService.json'
-import { useAbortController } from '@hooks/useAbortController'
 import EditFeedback from './EditFeedback'
 import { useAsset } from '@context/Asset'
-import { setNftMetadata } from '@utils/nft'
 import { getEncryptedFiles } from '@utils/provider'
 import { useAccount, useNetwork, useSigner } from 'wagmi'
-import { transformConsumerParameters } from '@components/Publish/_utils'
 import {
+  generateCredentials,
+  IpfsUpload,
+  signAssetAndUploadToIpfs,
+  transformConsumerParameters
+} from '@components/Publish/_utils'
+import {
+  customProviderUrl,
   defaultDatatokenCap,
   defaultDatatokenTemplateIndex,
   marketFeeAddress,
@@ -39,6 +42,9 @@ import DebugEditService from './DebugEditService'
 import styles from './index.module.css'
 import { useUserPreferences } from '@context/UserPreferences'
 import { getOceanConfig } from '@utils/ocean'
+import { Service } from 'src/@types/ddo/Service'
+import { AssetExtended } from 'src/@types/AssetExtended'
+import { State } from 'src/@types/ddo/State'
 
 export default function AddService({
   asset
@@ -50,9 +56,8 @@ export default function AddService({
   const { address: accountId } = useAccount()
   const { chain } = useNetwork()
   const { data: signer } = useSigner()
-  const newAbortController = useAbortController()
   const newCancelToken = useCancelToken()
-  const config = getOceanConfig(asset?.chainId)
+  const config = getOceanConfig(asset?.credentialSubject?.chainId)
 
   const [success, setSuccess] = useState<string>()
   const [error, setError] = useState<string>()
@@ -72,7 +77,7 @@ export default function AddService({
       const nft = new Nft(signer)
 
       const datatokenAddress = await nft.createDatatoken(
-        asset.nftAddress,
+        asset.credentialSubject.nftAddress,
         accountId,
         accountId,
         values.paymentCollector,
@@ -142,10 +147,10 @@ export default function AddService({
       // --------------------------------------------------
       // 2. Update DDO
       // --------------------------------------------------
-      let newFiles = asset.services[0].files // by default it could be the same file as in other services
+      let newFiles = asset.credentialSubject?.services[0].files // by default it could be the same file as in other services
       if (values.files[0]?.url) {
         const file = {
-          nftAddress: asset.nftAddress,
+          nftAddress: asset.credentialSubject.nftAddress,
           datatokenAddress,
           files: [
             normalizeFile(values.files[0].type, values.files[0], chain?.id)
@@ -154,56 +159,85 @@ export default function AddService({
 
         const filesEncrypted = await getEncryptedFiles(
           file,
-          asset.chainId,
+          asset.credentialSubject?.chainId,
           values.providerUrl.url
         )
         newFiles = filesEncrypted
       }
 
+      const credentials = generateCredentials(
+        undefined,
+        values.allow,
+        values.deny
+      )
+
       const newService: Service = {
         id: getHash(datatokenAddress + newFiles),
         type: values.access,
         name: values.name,
-        description: values.description,
+        description: {
+          '@value': values.description,
+          '@direction': '',
+          '@language': ''
+        },
         files: newFiles || '',
         datatokenAddress,
         serviceEndpoint: values.providerUrl.url,
         timeout: mapTimeoutStringToSeconds(values.timeout),
+        credentials,
         ...(values.access === 'compute' && {
           compute: await transformComputeFormToServiceComputeOptions(
             values,
             defaultServiceComputeOptions,
-            asset.chainId,
+            asset.credentialSubject?.chainId,
             newCancelToken()
           )
         }),
         consumerParameters: transformConsumerParameters(
           values.consumerParameters
-        )
+        ),
+        state: State.Active
       }
 
       // update asset with new service
       const updatedAsset = { ...asset }
-      updatedAsset.services.push(newService)
+      updatedAsset.credentialSubject.services.push(newService)
 
       // delete custom helper properties injected in the market so we don't write them on chain
       delete (updatedAsset as AssetExtended).accessDetails
-      delete (updatedAsset as AssetExtended).datatokens
-      delete (updatedAsset as AssetExtended).stats
+      delete (updatedAsset as AssetExtended).views
       delete (updatedAsset as AssetExtended).offchain
+      delete (updatedAsset as AssetExtended).stats
 
-      const setMetadataTx = await setNftMetadata(
+      const ipfsUpload: IpfsUpload = await signAssetAndUploadToIpfs(
         updatedAsset,
-        accountId,
         signer,
-        newAbortController()
+        true,
+        customProviderUrl ||
+          updatedAsset.credentialSubject.services[0]?.serviceEndpoint
       )
 
-      if (!setMetadataTx) {
-        setError(content.form.error)
-        LoggerInstance.error(content.form.error)
-        return
+      if (ipfsUpload /* && values.assetState !== assetState */) {
+        const nft = new Nft(signer, updatedAsset.credentialSubject.chainId)
+
+        await nft.setMetadata(
+          updatedAsset.credentialSubject.nftAddress,
+          await signer.getAddress(),
+          0,
+          customProviderUrl ||
+            updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+          '',
+          ethers.utils.hexlify(ipfsUpload.flags),
+          ipfsUpload.metadataIPFS,
+          ipfsUpload.metadataIPFSHash
+        )
+
+        console.log(
+          'Version 5.0.0 Asset updated. ID:',
+          updatedAsset.credentialSubject.id
+        )
       }
+
       // Edit succeeded
       setSuccess(content.form.success)
       resetForm()
@@ -216,7 +250,10 @@ export default function AddService({
   return (
     <Formik
       enableReinitialize
-      initialValues={getNewServiceInitialValues(accountId, asset.services[0])}
+      initialValues={getNewServiceInitialValues(
+        accountId,
+        asset.credentialSubject?.services[0]
+      )}
       validationSchema={serviceValidationSchema}
       onSubmit={async (values, { resetForm }) => {
         // move user's focus to top of screen
@@ -237,15 +274,18 @@ export default function AddService({
               onClick: async () => {
                 await fetchAsset()
               },
-              to: `/asset/${asset.id}`
+              to: `/asset/${asset.credentialSubject?.id}`
             }}
           />
         ) : (
           <>
-            <FormAddService data={content.form.data} chainId={asset.chainId} />
+            <FormAddService
+              data={content.form.data}
+              chainId={asset.credentialSubject?.chainId}
+            />
 
             <Web3Feedback
-              networkId={asset?.chainId}
+              networkId={asset?.credentialSubject?.chainId}
               accountId={accountId}
               isAssetNetwork={isAssetNetwork}
             />
@@ -260,11 +300,18 @@ export default function AddService({
                     type: 'access',
                     datatokenAddress: 'WILL BE FILLED AFTER SUBMIT',
                     name: '',
-                    description: '',
-                    files: asset.services[0].files,
-                    serviceEndpoint: asset.services[0].serviceEndpoint,
+                    description: {
+                      '@value': '',
+                      '@direction': '',
+                      '@language': ''
+                    },
+                    files: asset.credentialSubject?.services[0].files,
+                    serviceEndpoint:
+                      asset.credentialSubject?.services[0].serviceEndpoint,
                     timeout: 0,
-                    consumerParameters: []
+                    consumerParameters: [],
+                    credentials: [],
+                    state: State.Active
                   }}
                 />
               </div>

@@ -1,82 +1,45 @@
 import {
-  Asset,
-  ServiceComputeOptions,
-  PublisherTrustedAlgorithm,
   getHash,
   LoggerInstance,
-  ComputeAlgorithm,
-  DDO,
-  Service,
   ProviderInstance,
   ComputeEnvironment,
   ComputeJob,
-  getErrorMessage
+  getErrorMessage,
+  ComputeAlgorithm
 } from '@oceanprotocol/lib'
 import { CancelToken } from 'axios'
-import { gql } from 'urql'
 import {
   queryMetadata,
   getFilterTerm,
   generateBaseQuery,
   getAssetsFromDids
 } from './aquarius'
-import { fetchDataForMultipleChains } from './subgraph'
 import { getServiceById } from './ddo'
 import { SortTermOptions } from '../@types/aquarius/SearchQuery'
 import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelection'
-import { transformAssetToAssetSelection } from './assetConvertor'
+import { transformAssetToAssetSelection } from './assetConverter'
 import { ComputeEditForm } from '../components/Asset/Edit/_types'
 import { getFileDidInfo } from './provider'
 import { toast } from 'react-toastify'
-
-const getComputeOrders = gql`
-  query ComputeOrders($user: String!) {
-    orders(
-      orderBy: createdTimestamp
-      orderDirection: desc
-      where: { payer: $user }
-    ) {
-      id
-      serviceIndex
-      datatoken {
-        address
-      }
-      tx
-      createdTimestamp
-    }
-  }
-`
-
-const getComputeOrdersByDatatokenAddress = gql`
-  query ComputeOrdersByDatatokenAddress(
-    $user: String!
-    $datatokenAddress: String!
-  ) {
-    orders(
-      orderBy: createdTimestamp
-      orderDirection: desc
-      where: { payer: $user, datatoken: $datatokenAddress }
-    ) {
-      id
-      serviceIndex
-      datatoken {
-        address
-      }
-      tx
-      createdTimestamp
-    }
-  }
-`
+import { Asset } from 'src/@types/Asset'
+import {
+  Compute,
+  Service,
+  PublisherTrustedAlgorithms
+} from 'src/@types/ddo/Service'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 async function getAssetMetadata(
   queryDtList: string[],
   cancelToken: CancelToken,
-  chainIds: number[]
+  chainIds: number[],
+  index?: string
 ): Promise<Asset[]> {
   const baseQueryparams = {
+    index: index ?? 'op_ddo_v4.1.0',
     chainIds,
     filters: [
-      getFilterTerm('services.datatokenAddress', queryDtList),
+      getFilterTerm('services.datatokenAddress.keyword', queryDtList),
       getFilterTerm('services.type', 'compute'),
       getFilterTerm('metadata.type', 'dataset')
     ],
@@ -91,7 +54,7 @@ export async function isOrderable(
   asset: AssetExtended,
   serviceId: string,
   algorithm: ComputeAlgorithm,
-  algorithmDDO: Asset | DDO
+  algorithmDDO: Asset
 ): Promise<boolean> {
   const datasetService: Service = getServiceById(asset, serviceId)
   if (!datasetService) return false
@@ -140,14 +103,14 @@ export function getValidUntilTime(
 export async function getComputeEnvironment(
   asset: Asset
 ): Promise<ComputeEnvironment> {
-  if (asset?.services[0]?.type !== 'compute') return null
+  if (asset?.credentialSubject?.services[0]?.type !== 'compute') return null
   try {
     const computeEnvs = await ProviderInstance.getComputeEnvironments(
-      asset.services[0].serviceEndpoint
+      asset.credentialSubject?.services[0].serviceEndpoint
     )
     const computeEnv = Array.isArray(computeEnvs)
       ? computeEnvs[0]
-      : computeEnvs[asset.chainId][0]
+      : computeEnvs[asset?.credentialSubject?.chainId][0]
 
     if (!computeEnv) return null
     return computeEnv
@@ -162,7 +125,7 @@ export async function getComputeEnvironment(
 }
 
 export function getQueryString(
-  trustedAlgorithmList: PublisherTrustedAlgorithm[],
+  trustedAlgorithmList: PublisherTrustedAlgorithms[],
   trustedPublishersList: string[],
   chainId?: number
 ): SearchQuery {
@@ -207,7 +170,7 @@ export async function getAlgorithmsForAsset(
     getQueryString(
       service.compute.publisherTrustedAlgorithms,
       service.compute.publisherTrustedAlgorithmPublishers,
-      asset.chainId
+      asset.credentialSubject?.chainId
     ),
     token
   )
@@ -244,14 +207,12 @@ async function getJobs(
   const uniqueProviders = [...new Set(providerUrls)]
   const providersComputeJobsExtended: ComputeJobExtended[] = []
   const computeJobs: ComputeJobMetaData[] = []
-
   try {
     for (let i = 0; i < uniqueProviders.length; i++) {
       const providerComputeJobs = (await ProviderInstance.computeStatus(
         uniqueProviders[i],
         accountId
       )) as ComputeJob[]
-
       providerComputeJobs.forEach((job) =>
         providersComputeJobsExtended.push({
           ...job,
@@ -273,13 +234,13 @@ async function getJobs(
 
       providersComputeJobsExtended.forEach((job) => {
         const did = job.inputDID[0]
-        const asset = assets.filter((x) => x.id === did)[0]
+        const asset = assets.filter((x) => x.credentialSubject?.id === did)[0]
         if (asset) {
           const compJob: ComputeJobMetaData = {
             ...job,
-            assetName: asset.metadata.name,
-            assetDtSymbol: asset.datatokens[0].symbol,
-            networkId: asset.chainId
+            assetName: asset.credentialSubject?.metadata?.name,
+            assetDtSymbol: asset.credentialSubject?.datatokens[0].symbol,
+            networkId: asset.credentialSubject.chainId
           }
           computeJobs.push(compJob)
         }
@@ -301,42 +262,12 @@ export async function getComputeJobs(
   cancelToken?: CancelToken
 ): Promise<ComputeResults> {
   if (!accountId) return
-  const assetDTAddress = service.datatokenAddress
+  const datatokenAddressList = [service.datatokenAddress]
   const computeResult: ComputeResults = {
     computeJobs: [],
     isLoaded: false
   }
-  const variables = {
-    user: accountId.toLowerCase(),
-    datatokenAddress: assetDTAddress.toLowerCase()
-  }
-
-  const results = await fetchDataForMultipleChains(
-    assetDTAddress ? getComputeOrdersByDatatokenAddress : getComputeOrders,
-    variables,
-    assetDTAddress ? [asset.chainId] : chainIds
-  )
-
-  let tokenOrders: TokenOrder[] = []
-  results.map((result) =>
-    result.orders.forEach((tokenOrder: TokenOrder) =>
-      tokenOrders.push(tokenOrder)
-    )
-  )
-  if (tokenOrders.length === 0) {
-    computeResult.isLoaded = true
-    return computeResult
-  }
-
-  tokenOrders = tokenOrders.sort(
-    (a, b) => b.createdTimestamp - a.createdTimestamp
-  )
-
-  const datatokenAddressList = tokenOrders.map(
-    (tokenOrder: TokenOrder) => tokenOrder.datatoken.address
-  )
   if (!datatokenAddressList) return
-
   const assets = await getAssetMetadata(
     datatokenAddressList,
     cancelToken,
@@ -345,7 +276,7 @@ export async function getComputeJobs(
 
   const providerUrls: string[] = []
   assets.forEach((asset: Asset) =>
-    providerUrls.push(asset.services[0].serviceEndpoint)
+    providerUrls.push(asset.credentialSubject.services[0].serviceEndpoint)
   )
 
   computeResult.computeJobs = await getJobs(providerUrls, accountId, assets)
@@ -358,8 +289,8 @@ export async function createTrustedAlgorithmList(
   selectedAlgorithms: string[], // list of DIDs,
   assetChainId: number,
   cancelToken: CancelToken
-): Promise<PublisherTrustedAlgorithm[]> {
-  const trustedAlgorithms: PublisherTrustedAlgorithm[] = []
+): Promise<PublisherTrustedAlgorithms[]> {
+  const trustedAlgorithms: PublisherTrustedAlgorithms[] = []
 
   // Condition to prevent app from hitting Aquarius with empty DID list
   // when nothing is selected in the UI.
@@ -376,18 +307,19 @@ export async function createTrustedAlgorithmList(
 
   for (const selectedAlgorithm of selectedAssets) {
     const filesChecksum = await getFileDidInfo(
-      selectedAlgorithm?.id,
-      selectedAlgorithm?.services?.[0].id,
-      selectedAlgorithm?.services?.[0]?.serviceEndpoint,
+      selectedAlgorithm?.credentialSubject?.id,
+      selectedAlgorithm?.credentialSubject?.services?.[0].id,
+      selectedAlgorithm?.credentialSubject?.services?.[0]?.serviceEndpoint,
       true
     )
     const containerChecksum =
-      selectedAlgorithm.metadata.algorithm.container.entrypoint +
-      selectedAlgorithm.metadata.algorithm.container.checksum
-    const trustedAlgorithm = {
-      did: selectedAlgorithm.id,
+      selectedAlgorithm.credentialSubject?.metadata.algorithm.container
+        .entrypoint
+    const trustedAlgorithm: PublisherTrustedAlgorithms = {
+      did: selectedAlgorithm.credentialSubject?.id,
       containerSectionChecksum: getHash(containerChecksum),
-      filesChecksum: filesChecksum?.[0]?.checksum
+      filesChecksum: filesChecksum?.[0]?.checksum,
+      serviceId: ''
     }
     trustedAlgorithms.push(trustedAlgorithm)
   }
@@ -396,10 +328,10 @@ export async function createTrustedAlgorithmList(
 
 export async function transformComputeFormToServiceComputeOptions(
   values: ComputeEditForm,
-  currentOptions: ServiceComputeOptions,
+  currentOptions: Compute,
   assetChainId: number,
   cancelToken: CancelToken
-): Promise<ServiceComputeOptions> {
+): Promise<Compute> {
   const publisherTrustedAlgorithms = values.allowAllPublishedAlgorithms
     ? null
     : await createTrustedAlgorithmList(
@@ -413,7 +345,7 @@ export async function transformComputeFormToServiceComputeOptions(
   // to be trusted.
   const publisherTrustedAlgorithmPublishers: string[] = []
 
-  const privacy: ServiceComputeOptions = {
+  const privacy: Compute = {
     ...currentOptions,
     publisherTrustedAlgorithms,
     publisherTrustedAlgorithmPublishers

@@ -41,36 +41,6 @@ export default function AdditionalDdosFields(): ReactElement {
     }
   }
 
-  const handleSigningWithSSIKey = async () => {
-    if (values.ssiKey?.length === 0) {
-      return
-    }
-
-    const signedDDOs: FormAdditionalDdo[] = []
-    for (const ddo of values.additionalDdos) {
-      if ((ddo.data as string).length === 0) {
-        continue
-      }
-
-      try {
-        const ssiKey = parseTwiceIfNeeded<SsiKey>(values.ssiKey)
-        if (ssiKey.d === undefined || ssiKey.d?.length === 0) {
-          return console.error('No private key available')
-        }
-
-        const token = jwt.sign(ddo.data, ssiKey.d)
-        signedDDOs.push({
-          data: ddo.data,
-          type: ddo.type,
-          signature: token
-        })
-      } catch (e: any) {
-        return console.error(e)
-      }
-    }
-    await setFieldValue('additionalDdos', signedDDOs)
-  }
-
   const handleNewDdo = () => {
     const ddos = values.additionalDdos.slice()
     const newDDO: FormAdditionalDdo = {
@@ -92,12 +62,6 @@ export default function AdditionalDdosFields(): ReactElement {
 
   return (
     <>
-      <Field
-        {...getFieldContent('ssiKey', content.additionalDdos.fields)}
-        component={Input}
-        className={styles.ssiKey}
-        name="ssiKey"
-      />
       <div className={styles.newDdoBtn}>
         <Button type="button" style="primary" onClick={handleNewDdo}>
           New Ddo
@@ -130,25 +94,6 @@ export default function AdditionalDdosFields(): ReactElement {
           </div>
         )
       })}
-
-      {appConfig.ssiEnabled ? (
-        <Button
-          type="button"
-          style={'primary'}
-          disabled={values.ssiKey === undefined || values.ssiKey?.length === 0}
-          onClick={handleSigningWithSSIKey}
-        >
-          Sign
-        </Button>
-      ) : (
-        <Button
-          type="button"
-          style={'primary'}
-          onClick={handleSigningWithWeb3Key}
-        >
-          Sign
-        </Button>
-      )}
     </>
   )
 }

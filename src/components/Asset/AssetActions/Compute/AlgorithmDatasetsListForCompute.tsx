@@ -5,7 +5,8 @@ import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelecti
 import AssetComputeList from './AssetComputeList'
 import { useCancelToken } from '@hooks/useCancelToken'
 import { useAccount } from 'wagmi'
-import { Service } from '@oceanprotocol/lib'
+import { Service } from 'src/@types/ddo/Service'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export default function AlgorithmDatasetsListForCompute({
   asset,
@@ -26,15 +27,16 @@ export default function AlgorithmDatasetsListForCompute({
 
     async function getDatasetsAllowedForCompute() {
       const datasets = await getAlgorithmDatasetsForCompute(
-        asset.id,
+        asset.credentialSubject?.id,
         service.serviceEndpoint,
         accountId,
-        asset.chainId,
+        asset.credentialSubject?.chainId,
         newCancelToken()
       )
       setDatasetsForCompute(datasets)
     }
-    asset.metadata.type === 'algorithm' && getDatasetsAllowedForCompute()
+    asset.credentialSubject?.metadata.type === 'algorithm' &&
+      getDatasetsAllowedForCompute()
   }, [accessDetails, accountId, asset, newCancelToken, service])
 
   return (

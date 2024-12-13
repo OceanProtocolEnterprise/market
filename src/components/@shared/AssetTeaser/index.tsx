@@ -10,6 +10,7 @@ import styles from './index.module.css'
 import { getServiceByName } from '@utils/ddo'
 import { useUserPreferences } from '@context/UserPreferences'
 import { formatNumber } from '@utils/numbers'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export declare type AssetTeaserProps = {
   asset: AssetExtended
@@ -23,21 +24,25 @@ export default function AssetTeaser({
   noPublisher,
   noDescription
 }: AssetTeaserProps): ReactElement {
-  const { name, type, description } = asset.metadata
+  const { name, type, description } = asset.credentialSubject.metadata
   const { datatokens } = asset
   const isCompute = Boolean(getServiceByName(asset, 'compute'))
   const accessType = isCompute ? 'compute' : 'access'
   const owner = asset.nft?.owner
   const { orders, allocated, price } = asset.stats || {}
   const isUnsupportedPricing =
-    !asset.services.length ||
+    !asset.credentialSubject?.services?.length ||
     price?.value === undefined ||
-    (asset?.accessDetails && asset?.accessDetails[0].type === 'NOT_SUPPORTED')
+    (asset?.accessDetails &&
+      asset?.accessDetails?.[0]?.type === 'NOT_SUPPORTED')
   const { locale } = useUserPreferences()
 
   return (
     <article className={`${styles.teaser} ${styles[type]}`}>
-      <Link href={`/asset/${asset.id}`} className={styles.link}>
+      <Link
+        href={`/asset/${asset.credentialSubject?.id}`}
+        className={styles.link}
+      >
         <aside className={styles.detailLine}>
           <AssetType
             className={styles.typeLabel}
@@ -65,7 +70,7 @@ export default function AssetTeaser({
           {isUnsupportedPricing ? (
             <strong>No pricing schema available</strong>
           ) : (
-            <Price price={price} assetId={asset.id} size="small" />
+            <Price price={price} size="small" />
           )}
         </div>
         <footer className={styles.footer}>
@@ -107,7 +112,7 @@ export default function AssetTeaser({
             ) : null}
           </div>
           <NetworkName
-            networkId={asset.chainId}
+            networkId={asset.credentialSubject?.chainId}
             className={styles.networkName}
           />
         </footer>
