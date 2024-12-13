@@ -49,7 +49,6 @@ export default function EditService({
   const { address: accountId } = useAccount()
   const { chain } = useNetwork()
   const { data: signer } = useSigner()
-  const newAbortController = useAbortController()
   const newCancelToken = useCancelToken()
 
   const [success, setSuccess] = useState<string>()

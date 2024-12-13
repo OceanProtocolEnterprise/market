@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Router as FactoryRouter } from '@oceanprotocol/lib'
+import { Router as FactoryRouter, LoggerInstance } from '@oceanprotocol/lib'
 import { getOceanConfig } from '@utils/ocean'
 import { useNetwork, useSigner } from 'wagmi'
 import { ethers } from 'ethers'
@@ -99,28 +99,36 @@ function useFactoryRouter() {
       const config = getOceanConfig(chainId)
       return !!config?.routerFactoryAddress
     })
-    const opcData = await Promise.all(
-      validChainIds.map(async (chainId) => {
-        const config = getOceanConfig(chainId)
-        const factory = new FactoryRouter(config?.routerFactoryAddress, signer)
-        const fees = await fetchFees(factory)
-        const approvedTokensAddresses =
-          await factory.contract.getApprovedTokens()
-        const tokenDetails: TokenDetails[] = await Promise.all(
-          approvedTokensAddresses.map((tokenAddress) =>
-            fetchTokenDetails(tokenAddress)
+    try {
+      const opcData = await Promise.all(
+        validChainIds.map(async (chainId) => {
+          const config = getOceanConfig(chainId)
+          const factory = new FactoryRouter(
+            config?.routerFactoryAddress,
+            signer
           )
-        )
-        return {
-          chainId,
-          approvedTokens: tokenDetails.map((token) => token.address),
-          swapApprovedFee: fees.swapOceanFee,
-          swapNotApprovedFee: fees.swapNonOceanFee
-        }
-      })
-    )
+          const fees = await fetchFees(factory)
+          const approvedTokensAddresses =
+            await factory.contract.getApprovedTokens()
+          const tokenDetails: TokenDetails[] = await Promise.all(
+            approvedTokensAddresses.map((tokenAddress) =>
+              fetchTokenDetails(tokenAddress)
+            )
+          )
+          return {
+            chainId,
+            approvedTokens: tokenDetails.map((token) => token.address),
+            swapApprovedFee: fees.swapOceanFee,
+            swapNotApprovedFee: fees.swapNonOceanFee
+          }
+        })
+      )
 
-    return opcData as OpcFee[]
+      return opcData as OpcFee[]
+    } catch (error) {
+      LoggerInstance.error('Error fetching fees:', error)
+      return []
+    }
   }
 
   return { approvedTokens, fees, signer, getOpcData }

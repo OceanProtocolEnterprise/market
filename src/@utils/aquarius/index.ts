@@ -452,6 +452,10 @@ export async function getTopAssetsPublishers(
   const result = await getTopPublishers(chainIds, null)
   const { topPublishers } = result.aggregations
 
+  if (!topPublishers?.buckets) {
+    return []
+  }
+
   for (let i = 0; i < topPublishers.buckets.length; i++) {
     publishers.push({
       id: topPublishers.buckets[i].key,
