@@ -64,7 +64,7 @@ export function getInitialValues(
       selectedAlgorithmAsset?.credentialSubject?.metadata?.algorithm
         .consumerParameters
     ),
-    termsAndConditions,
+    termsAndConditions: !!termsAndConditions,
     acceptPublishingLicense
   }
 }
