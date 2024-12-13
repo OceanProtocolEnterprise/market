@@ -134,6 +134,7 @@ export function FileDrop({
           style="primary"
           className={styles.applybutton}
           onClick={handleApply}
+          disabled={files.length === 0}
         >
           {buttonLabel || 'Apply'}
         </Button>
