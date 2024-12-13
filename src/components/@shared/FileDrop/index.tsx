@@ -80,7 +80,7 @@ export function FileDrop({
       reader.readAsDataURL(file)
       return reader
     })
-    console.log(files)
+
     setMessage('')
   }
 
