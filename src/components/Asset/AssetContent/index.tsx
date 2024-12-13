@@ -9,7 +9,6 @@ import { useAsset } from '@context/Asset'
 import Alert from '@shared/atoms/Alert'
 import DebugOutput from '@shared/DebugOutput'
 import MetaMain from './MetaMain'
-import EditHistory from './EditHistory'
 import styles from './index.module.css'
 import NetworkName from '@shared/NetworkName'
 import content from '../../../../content/purgatory.json'
@@ -91,7 +90,6 @@ export default function AssetContent({
               </>
             )}
             <MetaFull ddo={asset} />
-            <EditHistory receipts={receipts} setReceipts={setReceipts} />
             {debug === true && <DebugOutput title="DDO" output={asset} />}
           </div>
         </div>
