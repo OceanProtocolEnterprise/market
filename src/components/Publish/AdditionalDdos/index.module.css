@@ -1,6 +1,6 @@
 .inputLine {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
   flex-shrink: 0;
 }
 
@@ -8,12 +8,11 @@
   margin-bottom: calc(var(--spacer) / 1.5);
 }
 
-.ddoFieldColumn {
+.ddoField {
   width: 100%;
+  margin-bottom: -40px;
 }
 
-.deleteBtnColumn {
-  height: fit-content;
-  margin-top: 26px;
-  width: auto;
+.deleteBtn {
+  margin-bottom: 40px;
 }

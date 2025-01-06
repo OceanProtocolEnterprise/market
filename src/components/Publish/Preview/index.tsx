@@ -12,7 +12,7 @@ import { AssetExtended } from 'src/@types/AssetExtended'
 export default function Preview(): ReactElement {
   const [asset, setAsset] = useState<AssetExtended>()
   const { address: accountId } = useAccount()
-  const { values } = useFormikContext<FormPublishData>()
+  const { values, setFieldValue } = useFormikContext<FormPublishData>()
 
   useEffect(() => {
     async function makeDdo() {
@@ -53,6 +53,13 @@ export default function Preview(): ReactElement {
     }
     makeDdo()
   }, [accountId, values])
+
+  useEffect(() => {
+    if (values.previewPageVisited) {
+      return
+    }
+    setFieldValue('previewPageVisited', true)
+  })
 
   return (
     <div className={styles.preview}>

@@ -1,55 +1,23 @@
 import Input from '@shared/FormInput'
 import { Field, useFormikContext } from 'formik'
-import { ReactElement, useState } from 'react'
+import { ReactElement, useEffect } from 'react'
 import content from '../../../../content/publish/form.json'
 import styles from './index.module.css'
 import { getFieldContent } from '@utils/form'
 import Button from '@components/@shared/atoms/Button'
-import { useAccount } from 'wagmi'
-import { FormAdditionalDdo, FormPublishData, SsiKey } from '../_types'
-import { Signer } from 'ethers'
-import jwt from 'jsonwebtoken'
-import { useMarketMetadata } from '@context/MarketMetadata'
-
-function parseTwiceIfNeeded<T>(jsonString: string): T {
-  const firstParse = JSON.parse(jsonString)
-  return typeof firstParse === 'string' ? JSON.parse(firstParse) : firstParse
-}
+import { FormAdditionalDdo, FormPublishData } from '../_types'
 
 export default function AdditionalDdosFields(): ReactElement {
-  const { appConfig } = useMarketMetadata()
-
-  const account = useAccount()
   const { values, setFieldValue } = useFormikContext<FormPublishData>()
 
-  const handleSigningWithWeb3Key = async () => {
-    const signer: Signer = await account.connector?.getSigner()
-    if (signer != null) {
-      const signedDDOs: FormAdditionalDdo[] = []
-      for (const ddo of values.additionalDdos) {
-        if ((ddo.data as string).length === 0) {
-          continue
-        }
-        const signature = await signer.signMessage(ddo.data)
-        signedDDOs.push({
-          data: ddo.data,
-          type: ddo.type,
-          signature
-        })
-      }
-      await setFieldValue('additionalDdos', signedDDOs)
-    }
-  }
-
-  const handleNewDdo = () => {
+  const handleNewDdo = async () => {
     const ddos = values.additionalDdos.slice()
     const newDDO: FormAdditionalDdo = {
       data: '',
-      type: 'raw',
-      signature: ''
+      type: 'raw'
     }
     ddos.push(newDDO)
-    setFieldValue('additionalDdos', ddos)
+    await setFieldValue('additionalDdos', ddos)
   }
 
   const handleDelete = async (index: number) => {
@@ -59,6 +27,13 @@ export default function AdditionalDdosFields(): ReactElement {
     ]
     await setFieldValue('additionalDdos', ddos)
   }
+
+  useEffect(() => {
+    if (values.additionalDdosPageVisited) {
+      return
+    }
+    setFieldValue('additionalDdosPageVisited', true)
+  })
 
   return (
     <>
@@ -71,7 +46,7 @@ export default function AdditionalDdosFields(): ReactElement {
       {values.additionalDdos.map((ddo, index) => {
         return (
           <div key={`${index}`} className={styles.inputLine}>
-            <div className={styles.ddoFieldColumn}>
+            <div className={styles.ddoField}>
               <Field
                 {...getFieldContent(
                   'additionalDdos',
@@ -82,7 +57,7 @@ export default function AdditionalDdosFields(): ReactElement {
                 rows={15}
               />
             </div>
-            <div className={styles.deleteBtnColumn}>
+            <div className={styles.deleteBtn}>
               <Button
                 type="button"
                 style={'primary'}

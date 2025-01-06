@@ -82,7 +82,7 @@ module.exports = {
   showPreviewAlert: process.env.NEXT_PUBLIC_SHOW_PREVIEW_ALERT || 'false',
 
   // This enables / disables the ssi support
-  ssiEnabled: Boolean(process.env.NEXT_PUBLIC_SSI_ENABLED) || false,
+  ssiEnabled: JSON.parse(process.env.NEXT_PUBLIC_SSI_ENABLED) || false,
 
   ipfsApiKey: process.env.NEXT_PUBLIC_IPFS_API_KEY,
   ipfsSecretApiKey: process.env.NEXT_PUBLIC_IPFS_SECRET_API_KEY,

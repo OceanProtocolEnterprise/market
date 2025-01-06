@@ -4,6 +4,7 @@ import { getMaxDecimalsValidation } from '@utils/numbers'
 import * as Yup from 'yup'
 import { testLinks } from '@utils/yup'
 import { validationConsumerParameters } from '@components/@shared/FormInput/InputElement/ConsumerParameters/_validation'
+import { FormAdditionalDdo } from './_types'
 
 // TODO: conditional validation
 // e.g. when algo is selected, Docker image is required
@@ -143,5 +144,13 @@ export const validationSchema: Yup.SchemaOf<any> = Yup.object().shape({
   }),
   metadata: Yup.object().shape(validationMetadata),
   services: Yup.array().of(Yup.object().shape(validationService)),
-  pricing: Yup.object().shape(validationPricing)
+  pricing: Yup.object().shape(validationPricing),
+  additionalDdos: Yup.array()
+    .of(
+      Yup.object().shape({
+        data: Yup.string().required('Required'),
+        type: Yup.string()
+      })
+    )
+    .nullable()
 })

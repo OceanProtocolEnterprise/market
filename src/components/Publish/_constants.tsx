@@ -106,9 +106,11 @@ export const initialValues: FormPublishData = {
   },
 
   additionalDdos: [],
+  additionalDdosPageVisited: false,
   useRemoteLicense: false,
   licenseUrl: [{ url: '', type: 'url' }],
-  uploadedLicense: undefined
+  uploadedLicense: undefined,
+  previewPageVisited: false
 }
 
 export const algorithmContainerPresets: MetadataAlgorithmContainer[] = [

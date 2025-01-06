@@ -23,8 +23,6 @@ export interface FormPublishService {
 }
 
 export interface FormAdditionalDdo {
-  signature: string
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any
   type: string
@@ -62,9 +60,11 @@ export interface FormPublishData {
   pricing: PricePublishOptions
   feedback?: PublishFeedback
   additionalDdos: FormAdditionalDdo[]
+  additionalDdosPageVisited: boolean
   useRemoteLicense: boolean
   licenseUrl: FileInfo[]
   uploadedLicense: License
+  previewPageVisited: boolean
 }
 
 export interface StepContent {
@@ -100,12 +100,4 @@ export interface FormConsumerParameter {
   default: string | boolean | number | Option[]
   options?: { key: string; value: string }[]
   value?: string | boolean | number
-}
-
-export interface SsiKey {
-  kty: string
-  d: string
-  crv: string
-  kid: string
-  x: string
 }

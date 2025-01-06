@@ -26,17 +26,19 @@ export default function Navigation(): ReactElement {
       errors.pricing === undefined &&
       (touched.pricing?.price || touched.pricing?.freeAgreement)
 
-    const isCustomDDOSigned =
-      values.customDDO?.length > 0 && values.customDDOSignature?.length > 0
+    const additionalDdosAreValid =
+      values.additionalDdosPageVisited &&
+      values.additionalDdos?.map((ddo) => ddo.data?.length > 0).every(Boolean)
+
     const isSuccessCustomDDO =
-      errors.customDDO === undefined &&
-      (isCustomDDOSigned || values.customDDO?.length === 0)
+      errors.additionalDdos === undefined && additionalDdosAreValid
 
     const isSuccessPreview =
       isSuccessMetadata &&
       isSuccessServices &&
       isSuccessPricing &&
-      isSuccessCustomDDO
+      isSuccessCustomDDO &&
+      values.previewPageVisited
 
     const isSuccess =
       (step === 1 && isSuccessMetadata) ||
