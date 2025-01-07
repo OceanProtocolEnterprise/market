@@ -1,4 +1,4 @@
-import { forwardRef, FormEvent } from 'react'
+import { forwardRef, FormEvent, useEffect } from 'react'
 import Caret from '@images/caret.svg'
 import { accountTruncate } from '@utils/wallet'
 // import Loader from '@shared/atoms/Loader'
@@ -6,6 +6,12 @@ import styles from './Account.module.css'
 import Avatar from '@shared/atoms/Avatar'
 import { useAccount } from 'wagmi'
 import { useModal } from 'connectkit'
+import {
+  connectToSsiWallet,
+  disconnectFromSsiWallet,
+  getSsiWalletAccessToken
+} from '@utils/wallet/ssiWallet'
+import { LoggerInstance } from '@oceanprotocol/lib'
 
 // Forward ref for Tippy.js
 // eslint-disable-next-line
@@ -19,6 +25,16 @@ const Account = forwardRef((props, ref: any) => {
 
     setOpen(true)
   }
+
+  useEffect(() => {
+    if (accountId === undefined) {
+      disconnectFromSsiWallet().catch((error) => LoggerInstance.error(error))
+    } else {
+      connectToSsiWallet()
+        .then((result) => console.log(result))
+        .catch((error) => LoggerInstance.error(error))
+    }
+  }, [accountId])
 
   return accountId ? (
     <button
@@ -41,7 +57,7 @@ const Account = forwardRef((props, ref: any) => {
       // the Tippy to show in this state.
       ref={ref}
     >
-      Connect <span>Wallet</span>
+      Connect Wallet
     </button>
   )
 })
