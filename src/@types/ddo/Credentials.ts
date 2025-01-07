@@ -9,13 +9,24 @@ export interface CredentialAddressBased {
 }
 
 export interface CredentialPolicyBased {
-  vpPolicies?: string[]
-  vcPolicies?: string[]
+  type: 'verifiableCredential'
   requestCredentials: RequestCredential[]
 }
 
-export interface RequestCredential {
+export type RequestCredential = string | DetailedCredential
+
+export interface DetailedCredential {
+  credential?: string
+  policies?: Policy[]
+}
+
+export type Policy = string | PolicyDetail
+
+export interface PolicyDetail {
+  policy: string
+  args: PolicyArgs
+}
+
+export interface PolicyArgs {
   type: string
-  format: string
-  policies?: (string | Record<string, string | number | boolean>)[]
 }

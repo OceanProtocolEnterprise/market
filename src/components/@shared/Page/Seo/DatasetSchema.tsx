@@ -36,40 +36,35 @@ const DatasetSchema = (): object => {
     }
   }
 
-  let description = ''
-  if (typeof asset?.credentialSubject?.metadata?.description === 'string') {
-    description = asset?.credentialSubject?.metadata?.description?.substring(
-      0,
-      5000
-    )
-  } else if (
-    typeof asset?.credentialSubject?.metadata?.description === 'object'
-  ) {
-    description = asset?.credentialSubject?.metadata?.description?.[
-      '@value'
-    ]?.substring(0, 5000)
-  }
+  const description = asset?.credentialSubject?.metadata?.description?.[
+    '@value'
+  ]?.substring(0, 5000)
 
   // https://developers.google.com/search/docs/advanced/structured-data/dataset
   const datasetSchema = {
     '@context': 'https://schema.org/',
     '@type': 'Dataset',
     name: asset?.credentialSubject?.metadata?.name,
-    description: removeMarkdown(description),
+    description: removeMarkdown(
+      asset?.credentialSubject?.metadata?.description?.['@value']?.substring(
+        0,
+        5000
+      ) || ''
+    ),
     keywords: asset?.credentialSubject?.metadata?.tags,
     datePublished: asset?.credentialSubject?.metadata?.created,
     dateModified: asset?.credentialSubject?.metadata?.updated,
     license: asset?.credentialSubject?.metadata?.license,
-    ...(asset?.accessDetails?.[0]?.type === 'free'
+    ...(asset?.accessDetails[0]?.type === 'free'
       ? { isAccessibleForFree: true }
       : {
           isAccessibleForFree: false,
           paymentAccepted: 'Cryptocurrency',
-          currenciesAccepted: asset?.accessDetails?.[0]?.baseToken?.symbol,
+          currenciesAccepted: asset?.accessDetails[0]?.baseToken?.symbol,
           offers: {
             '@type': 'Offer',
-            price: asset?.accessDetails?.[0]?.price,
-            priceCurrency: asset?.accessDetails?.[0]?.baseToken?.symbol
+            price: asset?.accessDetails[0]?.price,
+            priceCurrency: asset?.accessDetails[0]?.baseToken?.symbol
           }
         }),
     creator: {
