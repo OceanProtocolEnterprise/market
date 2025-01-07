@@ -39,14 +39,14 @@ import { Option } from 'src/@types/ddo/Option'
 import { createHash } from 'crypto'
 import { Signer } from 'ethers'
 import { uploadToIPFS } from '@utils/ipfs'
-import { signCredentialWithWeb3Wallet } from '@utils/wallet/sign'
 import { DDOVersion } from 'src/@types/DdoVersion'
-import { Proof } from 'src/@types/ddo/Proof'
 import { Credential, CredentialAddressBased } from 'src/@types/ddo/Credentials'
 import { VerifiableCredential } from 'src/@types/ddo/VerifiableCredential'
 import { asset } from '.jest/__fixtures__/datasetWithAccessDetails'
 import { convertLinks } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
+import { JWTHeaderParameters, JWTPayload } from 'jose'
+import base64url from 'base64url'
 
 function getUrlFileExtension(fileUrl: string): string {
   const splittedFileUrl = fileUrl.split('.')
@@ -321,6 +321,43 @@ export interface IpfsUpload {
   metadataIPFSHash: string
 }
 
+async function createJwtAndSign(
+  verifiableCredential: VerifiableCredential,
+  owner: Signer
+): Promise<string> {
+  const header: JWTHeaderParameters = {
+    alg: 'ES256'
+  }
+  const headerString = JSON.stringify(header)
+  const headerBase64 = Buffer.from(JSON.stringify(headerString)).toString(
+    'base64'
+  )
+
+  const payload: JWTPayload = {
+    verifiableCredential,
+    iss: `did:oe:${await owner.getAddress()}`
+  }
+  const payloadString = JSON.stringify(payload)
+  const payloadBase64 = base64url(
+    Buffer.from(JSON.stringify(payloadString)).toString('base64')
+  )
+
+  const signature: string = await owner.signMessage(
+    `${headerBase64}.${payloadBase64}`
+  )
+  const signatureBase64 = base64url(
+    Buffer.from(JSON.stringify(signature)).toString('base64')
+  )
+
+  console.log(
+    `${JSON.stringify(headerString)}.${JSON.stringify(
+      payloadString
+    )}.${signature}`
+  )
+
+  return `${headerBase64}.${payloadBase64}.${signatureBase64}`
+}
+
 export async function signAssetAndUploadToIpfs(
   asset: Asset,
   owner: Signer,
@@ -329,7 +366,7 @@ export async function signAssetAndUploadToIpfs(
 ): Promise<IpfsUpload> {
   const verifiableCredential: VerifiableCredential = {
     credentialSubject: asset.credentialSubject,
-    issuer: await owner.getAddress(),
+    issuer: `did:oe:${await owner.getAddress()}`,
     '@context': asset['@context'],
     version: asset.version,
     type: asset.type,
@@ -338,19 +375,29 @@ export async function signAssetAndUploadToIpfs(
 
   delete verifiableCredential.credentialSubject.datatokens
   delete verifiableCredential.credentialSubject.event
-  /*
-  const proof: Proof = await signCredentialWithWeb3Wallet(
-    owner,
-    verifiableCredential
-  )
-  asset.issuer = await owner.getAddress()
-  asset.proof = proof
-*/
-  const stringMetadata = JSON.stringify({ payload: asset })
-  const bytesAsset = Buffer.from(stringMetadata)
-  const assetMetadata = hexlify(bytesAsset)
 
-  const data = { encryptedData: assetMetadata }
+  const jwt = await createJwtAndSign(verifiableCredential, owner)
+  console.log(jwt)
+
+  let encryptedPayload: string
+  // eslint-disable-next-line no-constant-condition
+  if (false /* encryptAsset */) {
+    try {
+      encryptedPayload = await ProviderInstance.encrypt(
+        { payload: asset },
+        asset.credentialSubject?.chainId,
+        providerUrl
+      )
+    } catch (error) {
+      LoggerInstance.error('[Provider Encrypt] Error:', error.message)
+    }
+  } else {
+    const payloadString = JSON.stringify({ payload: asset })
+    const bytes: Buffer = Buffer.from(payloadString)
+    encryptedPayload = hexlify(bytes)
+  }
+
+  const data = { encryptedData: encryptedPayload }
   const ipfsHash = await uploadToIPFS(data)
 
   const remoteAsset = {
