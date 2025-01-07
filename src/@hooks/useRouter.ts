@@ -31,7 +31,6 @@ function useFactoryRouter() {
         router.contract.getOPCConsumeFee(),
         router.contract.getOPCProviderFee()
       ])
-
       return {
         swapOceanFee: ethers.utils.formatUnits(opcFees[0], 18),
         swapNonOceanFee: ethers.utils.formatUnits(opcFees[1], 18),
@@ -93,23 +92,17 @@ function useFactoryRouter() {
       fetchApprovedTokens()
     }
   }, [factoryRouter])
-
   const getOpcData = async (chainIds: number[]) => {
-    const validChainIds = chainIds.filter((chainId) => {
-      const config = getOceanConfig(chainId)
-      return !!config?.routerFactoryAddress
-    })
-    try {
+    const fetchOpcData = async (chainIds: number[]) => {
+      const validChainIds = chainIds.filter((chainId) => {
+        const config = getOceanConfig(chainId)
+        return !!config?.routerFactoryAddress
+      })
       const opcData = await Promise.all(
         validChainIds.map(async (chainId) => {
-          const config = getOceanConfig(chainId)
-          const factory = new FactoryRouter(
-            config?.routerFactoryAddress,
-            signer
-          )
-          const fees = await fetchFees(factory)
+          const fees = await fetchFees(factoryRouter)
           const approvedTokensAddresses =
-            await factory.contract.getApprovedTokens()
+            await factoryRouter.contract.getApprovedTokens()
           const tokenDetails: TokenDetails[] = await Promise.all(
             approvedTokensAddresses.map((tokenAddress) =>
               fetchTokenDetails(tokenAddress)
@@ -125,9 +118,10 @@ function useFactoryRouter() {
       )
 
       return opcData as OpcFee[]
-    } catch (error) {
-      LoggerInstance.error('Error fetching fees:', error)
-      return []
+    }
+
+    if (factoryRouter) {
+      return fetchOpcData(chainIds)
     }
   }
 

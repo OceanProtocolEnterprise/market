@@ -16,7 +16,9 @@ import Button from '@shared/atoms/Button'
 import RelatedAssets from '../RelatedAssets'
 import Web3Feedback from '@components/@shared/Web3Feedback'
 import { useAccount } from 'wagmi'
+import { decodePublish } from '@utils/invoice/publishInvoice'
 import ServiceCard from './ServiceCard'
+import { getPdf } from '@utils/invoice/createInvoice'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { LanguageValueObject } from 'src/@types/ddo/LanguageValueObject'
 
@@ -31,6 +33,56 @@ export default function AssetContent({
   const [receipts, setReceipts] = useState([])
   const [nftPublisher, setNftPublisher] = useState<string>()
   const [selectedService, setSelectedService] = useState<number | undefined>()
+
+  const [loadingInvoice, setLoadingInvoice] = useState(false)
+  const [pdfUrl, setPdfUrl] = useState(null)
+  const [loadingInvoiceJson, setLoadingInvoiceJson] = useState(false)
+  const [jsonInvoice, setJsonInvoice] = useState(null)
+
+  async function handleGeneratePdf(id: string, tx: string) {
+    try {
+      setLoadingInvoice(true)
+      let pdfUrlResponse: Blob[]
+      if (!jsonInvoice) {
+        const response = await decodePublish(
+          id,
+          tx,
+          asset.credentialSubject.chainId
+        )
+        setJsonInvoice(jsonInvoice)
+        pdfUrlResponse = await getPdf([response])
+      } else {
+        pdfUrlResponse = await getPdf([jsonInvoice])
+      }
+      if (pdfUrlResponse.length > 0) {
+        setPdfUrl(pdfUrlResponse[0])
+      }
+    } catch (error) {
+      // Handle error
+      console.error('Error:', error)
+    } finally {
+      setLoadingInvoice(false)
+    }
+  }
+
+  async function handleGenerateJson(id: string, tx: string) {
+    try {
+      setLoadingInvoiceJson(true)
+      if (!jsonInvoice) {
+        const response = await decodePublish(
+          id,
+          tx,
+          asset.credentialSubject.chainId
+        )
+        setJsonInvoice(response)
+      }
+    } catch (error) {
+      // Handle error
+      console.error('Error:', error)
+    } finally {
+      setLoadingInvoiceJson(false)
+    }
+  }
 
   useEffect(() => {
     if (!receipts.length) return
@@ -138,6 +190,67 @@ export default function AssetContent({
               </Button>
             </div>
           )}
+
+          {isOwner && isAssetNetwork && (
+            <div className={styles.ownerActions}>
+              {pdfUrl ? (
+                <a
+                  href={URL.createObjectURL(pdfUrl)}
+                  download={`${asset.id}.pdf`}
+                >
+                  Download Publish Invoice PDF
+                </a>
+              ) : (
+                <Button
+                  style="text"
+                  size="small"
+                  onClick={() =>
+                    handleGeneratePdf(
+                      asset.id,
+                      asset.credentialSubject.event.txid
+                    )
+                  }
+                  disabled={loadingInvoice}
+                >
+                  {loadingInvoice
+                    ? 'Generating invoice PDF...'
+                    : 'Generate Publish Invoice PDF'}
+                </Button>
+              )}
+            </div>
+          )}
+
+          {isOwner && isAssetNetwork && (
+            <div className={styles.ownerActions}>
+              {jsonInvoice ? (
+                <a
+                  href={`data:text/json;charset=utf-8,${encodeURIComponent(
+                    JSON.stringify(jsonInvoice)
+                  )}`}
+                  download={`${asset.id}.json`}
+                >
+                  Download Publish Invoice JSON
+                </a>
+              ) : (
+                <Button
+                  style="text"
+                  size="small"
+                  onClick={() =>
+                    handleGenerateJson(
+                      asset.id,
+                      asset.credentialSubject.event.txid
+                    )
+                  }
+                  disabled={loadingInvoiceJson}
+                >
+                  {loadingInvoiceJson
+                    ? 'Generating invoice JSON...'
+                    : 'Generate Publish Invoice JSON'}
+                </Button>
+              )}
+            </div>
+          )}
+
           <Web3Feedback
             networkId={asset.credentialSubject?.chainId}
             accountId={accountId}

@@ -30,10 +30,31 @@ export const assets: AssetExtended[] = [
       }
     },
     version: '5.0.0',
-    accessDetails: {
-      templateId: 1,
-      type: 'NOT_SUPPORTED'
-    } as any,
+    accessDetails: [
+      {
+        templateId: 1,
+        publisherMarketOrderFee: '0',
+        type: 'fixed',
+        addressOrId:
+          '0x403f7f69caa8c0db7cd2f14d8f90b488ec7e70e83ff1c30d7bbdcd9d3605c529',
+        price: '100',
+        isPurchasable: true,
+        baseToken: {
+          address: '0x282d8efce846a88b159800bd4130ad77443fa1a1',
+          name: 'Ocean Token (PoS)',
+          symbol: 'mOCEAN',
+          decimals: 18
+        },
+        datatoken: {
+          address: '0xe5e5056a988eae27f1624cf1212895f5b01d487b',
+          name: 'Limpid Ray Token',
+          symbol: 'LIMRAY-96'
+        },
+        isOwned: false,
+        validOrderTx: null,
+        paymentCollector: ''
+      }
+    ],
     credentialSubject: {
       id: 'did:op:48406caf76d092e08af6703dde5bbab79ed7528939d8bbe733134284faf39075',
       chainId: 5,
@@ -1516,9 +1537,31 @@ export const assets: AssetExtended[] = [
       }
     },
     version: '5.0.0',
-    accessDetails: {
-      type: 'NOT_SUPPORTED'
-    } as any,
+    accessDetails: [
+      {
+        templateId: 1,
+        publisherMarketOrderFee: '0',
+        type: 'fixed',
+        addressOrId:
+          '0x403f7f69caa8c0db7cd2f14d8f90b488ec7e70e83ff1c30d7bbdcd9d3605c529',
+        price: '100',
+        isPurchasable: true,
+        baseToken: {
+          address: '0x282d8efce846a88b159800bd4130ad77443fa1a1',
+          name: 'Ocean Token (PoS)',
+          symbol: 'mOCEAN',
+          decimals: 18
+        },
+        datatoken: {
+          address: '0xe5e5056a988eae27f1624cf1212895f5b01d487b',
+          name: 'Limpid Ray Token',
+          symbol: 'LIMRAY-96'
+        },
+        isOwned: false,
+        validOrderTx: null,
+        paymentCollector: ''
+      }
+    ],
     credentialSubject: {
       id: 'did:op:f4b49d04ee8c6973e4f844754805dbfe9e682812121131abbfc1bdf6d6b6eef1',
       chainId: 137,
