@@ -300,12 +300,7 @@ export async function transformPublishFormToDdo(
         }
       ]
     },
-    additionalDdos: values?.additionalDdos.map((ddo) => {
-      return {
-        data: ddo.signature?.length > 0 ? ddo.signature : ddo.data,
-        type: ddo.type
-      }
-    }),
+    additionalDdos: values?.additionalDdos,
     // Only added for DDO preview, reflecting Asset response,
     // again, we can assume if `datatokenAddress` is not passed,
     // we are on preview.

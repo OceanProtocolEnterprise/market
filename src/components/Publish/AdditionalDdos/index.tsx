@@ -43,7 +43,7 @@ export default function AdditionalDdosFields(): ReactElement {
         </Button>
       </div>
 
-      {values.additionalDdos.map((ddo, index) => {
+      {values.additionalDdos?.map((ddo, index) => {
         return (
           <div key={`${index}`} className={styles.inputLine}>
             <div className={styles.ddoField}>
