@@ -21,7 +21,6 @@ import { useAddressConfig } from '@hooks/useAddressConfig'
 import { useAccount, useNetwork } from 'wagmi'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { Asset, Purgatory } from 'src/@types/Asset'
-import { convertToLatestDdoVersion } from '@utils/assetConverter'
 import { Service } from 'src/@types/ddo/Service'
 
 export interface AssetProviderValue {
@@ -91,8 +90,7 @@ function AssetProvider({
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fetchedAsset: any = await getAsset(did, token)
-      const asset: Asset = convertToLatestDdoVersion(fetchedAsset)
+      const asset: Asset = await getAsset(did, token)
 
       const isWhitelisted = isDDOWhitelisted(asset)
 
