@@ -85,7 +85,10 @@ module.exports = {
 
   // This enables / disables the ssi support
   ssiEnabled: JSON.parse(process.env.NEXT_PUBLIC_SSI_ENABLED) || false,
-  ssiWalletApi: process.env.NEXT_PUBLIC_SSI_WALLET_API || '',
+  ssiWalletApi:
+    process.env.NEXT_PUBLIC_SSI_WALLET_API || 'https://wallet.walt.id',
+  ssiIssuerApi:
+    process.env.NEXT_PUBLIC_SSI_ISSUER_API || 'https://wallet.walt.id',
 
   ipfsApiKey: process.env.NEXT_PUBLIC_IPFS_API_KEY,
   ipfsSecretApiKey: process.env.NEXT_PUBLIC_IPFS_SECRET_API_KEY,

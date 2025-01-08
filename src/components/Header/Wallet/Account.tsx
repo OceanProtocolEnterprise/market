@@ -1,4 +1,4 @@
-import { forwardRef, FormEvent, useEffect } from 'react'
+import { forwardRef, FormEvent, useEffect, useState } from 'react'
 import Caret from '@images/caret.svg'
 import { accountTruncate } from '@utils/wallet'
 // import Loader from '@shared/atoms/Loader'
@@ -7,17 +7,22 @@ import Avatar from '@shared/atoms/Avatar'
 import { useAccount } from 'wagmi'
 import { useModal } from 'connectkit'
 import {
-  connectToSsiWallet,
-  disconnectFromSsiWallet,
-  getSsiWalletAccessToken
+  connectToWallet,
+  disconnectFromWallet,
+  getWallets,
+  getAccessToken,
+  getWalletKeys
 } from '@utils/wallet/ssiWallet'
 import { LoggerInstance } from '@oceanprotocol/lib'
+import { useSsiWallet } from '@context/SsiWallet'
+import appConfig from 'app.config'
 
 // Forward ref for Tippy.js
 // eslint-disable-next-line
 const Account = forwardRef((props, ref: any) => {
   const { address: accountId } = useAccount()
   const { setOpen } = useModal()
+  const { accessToken, setAccessToken } = useSsiWallet()
 
   async function handleActivation(e: FormEvent<HTMLButtonElement>) {
     // prevent accidentally submitting a form the button might be in
@@ -27,11 +32,27 @@ const Account = forwardRef((props, ref: any) => {
   }
 
   useEffect(() => {
+    if (!appConfig.ssiEnabled) {
+      return
+    }
+
     if (accountId === undefined) {
-      disconnectFromSsiWallet().catch((error) => LoggerInstance.error(error))
+      disconnectFromWallet().catch((error) => LoggerInstance.error(error))
     } else {
-      connectToSsiWallet()
-        .then((result) => console.log(result))
+      connectToWallet()
+        .then(async (result) => {
+          console.log(result.token)
+          setAccessToken(result.token)
+
+          const t = await getAccessToken()
+          console.log(t)
+
+          const r = await getWallets()
+          console.log(r)
+
+          const k = await getWalletKeys(r[0].id)
+          console.log(k)
+        })
         .catch((error) => LoggerInstance.error(error))
     }
   }, [accountId])
@@ -43,6 +64,15 @@ const Account = forwardRef((props, ref: any) => {
       ref={ref}
       onClick={(e) => e.preventDefault()}
     >
+      {appConfig.ssiEnabled ? (
+        accessToken ? (
+          <span>SSI Connected&nbsp;</span>
+        ) : (
+          <span>SSI Disconnected&nbsp;</span>
+        )
+      ) : (
+        <></>
+      )}
       <Avatar accountId={accountId} />
       <span className={styles.address} title={accountId}>
         {accountTruncate(accountId)}
