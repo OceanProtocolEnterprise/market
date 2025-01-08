@@ -88,7 +88,7 @@ module.exports = {
   ssiWalletApi:
     process.env.NEXT_PUBLIC_SSI_WALLET_API || 'https://wallet.walt.id',
   ssiIssuerApi:
-    process.env.NEXT_PUBLIC_SSI_ISSUER_API || 'https://wallet.walt.id',
+    process.env.NEXT_PUBLIC_SSI_ISSUER_API || 'https://issuer.portal.walt.id',
 
   ipfsApiKey: process.env.NEXT_PUBLIC_IPFS_API_KEY,
   ipfsSecretApiKey: process.env.NEXT_PUBLIC_IPFS_SECRET_API_KEY,

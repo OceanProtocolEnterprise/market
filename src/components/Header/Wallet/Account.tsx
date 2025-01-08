@@ -40,19 +40,7 @@ const Account = forwardRef((props, ref: any) => {
       disconnectFromWallet().catch((error) => LoggerInstance.error(error))
     } else {
       connectToWallet()
-        .then(async (result) => {
-          console.log(result.token)
-          setAccessToken(result.token)
-
-          const t = await getAccessToken()
-          console.log(t)
-
-          const r = await getWallets()
-          console.log(r)
-
-          const k = await getWalletKeys(r[0].id)
-          console.log(k)
-        })
+        .then(async (result) => setAccessToken(result.token))
         .catch((error) => LoggerInstance.error(error))
     }
   }, [accountId])

@@ -10,23 +10,14 @@ export interface CredentialAddressBased {
 
 export interface CredentialPolicyBased {
   type: 'verifiableCredential'
-  requestCredentials: RequestCredential[]
+  request_credentials: RequestCredential[]
+  vp_policies: string[]
+  vc_policies: string[]
+  custom_policies: string[]
 }
 
-export type RequestCredential = string | DetailedCredential
-
-export interface DetailedCredential {
-  credential?: string
-  policies?: Policy[]
-}
-
-export type Policy = string | PolicyDetail
-
-export interface PolicyDetail {
-  policy: string
-  args: PolicyArgs
-}
-
-export interface PolicyArgs {
+export interface RequestCredential {
   type: string
+  format: string
+  policies: string[]
 }
