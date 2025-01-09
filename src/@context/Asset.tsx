@@ -121,11 +121,15 @@ function AssetProvider({
       }
       if (asset) {
         setError(undefined)
-        if (!asset?.chainId || !asset?.services?.length) return
+        if (
+          !asset?.credentialSubject.chainId ||
+          !asset?.credentialSubject.services?.length
+        )
+          return
 
         const accessDetails = await Promise.all(
-          asset.services.map((service: Service) =>
-            getAccessDetails(asset.chainId, service)
+          asset.credentialSubject.services.map((service: Service) =>
+            getAccessDetails(asset.credentialSubject.chainId, service)
           )
         )
         setAsset((prevState) => ({
