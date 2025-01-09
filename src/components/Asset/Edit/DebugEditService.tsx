@@ -61,8 +61,7 @@ export default function DebugEditService({
 
       const credentials: Credential[] = generateCredentials(
         service.credentials,
-        values.allow,
-        values.deny
+        values.credentials
       )
 
       const updatedService: Service = {

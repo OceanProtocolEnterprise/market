@@ -196,9 +196,13 @@ export default function FormEditMetadata(): ReactElement {
       <Field
         {...getFieldContent('allow', data)}
         component={Input}
-        name="allow"
+        name="credentials[0].allow"
       />
-      <Field {...getFieldContent('deny', data)} component={Input} name="deny" />
+      <Field
+        {...getFieldContent('deny', data)}
+        component={Input}
+        name="credentials[0].deny"
+      />
       <Field
         {...getFieldContent('assetState', data)}
         component={Input}

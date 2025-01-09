@@ -43,7 +43,7 @@ export async function transformAssetToAssetSelection(
         tokenSymbol: price.tokenSymbol,
         checked: selected,
         symbol: asset.credentialSubject?.datatokens[0].symbol,
-        isAccountIdWhitelisted: isAddressWhitelisted(asset, accountId)
+        isAccountIdWhitelisted: isAddressWhitelisted(asset, accountId, null)
       }
       selected
         ? algorithmList.unshift(algorithmAsset)

@@ -71,8 +71,12 @@ export function getInitialValues(
     consumerParameters: parseConsumerParameters(
       metadata?.algorithm?.consumerParameters
     ),
-    allow: newAllowAddresses,
-    deny: newDenyAddresses,
+    credentials: [
+      {
+        allow: newAllowAddresses,
+        deny: newDenyAddresses
+      }
+    ],
     assetState,
     licenseUrl: !useRemoteLicense ? [fileInfo] : undefined,
     uploadedLicense: useRemoteLicense ? metadata.license : undefined,
@@ -118,8 +122,7 @@ export const getNewServiceInitialValues = (
     timeout: '1 day',
     usesConsumerParameters: false,
     consumerParameters: [],
-    allow: [],
-    deny: [],
+    credentials: [],
     ...computeSettings
   }
 }
@@ -168,8 +171,12 @@ export const getServiceInitialValues = (
       ? Object.assign(service.consumerParameters).length > 0
       : undefined,
     consumerParameters: parseConsumerParameters(service.consumerParameters),
-    allow: allowAdresses,
-    deny: denyAddresses,
+    credentials: [
+      {
+        allow: allowAdresses,
+        deny: denyAddresses
+      }
+    ],
     ...computeSettings
   }
 }

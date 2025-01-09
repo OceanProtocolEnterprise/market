@@ -1,7 +1,3 @@
-.policyAutocomplete {
-  margin-bottom: calc(var(--spacer) / 1.5);
-}
-
 .license {
   display: flex;
   align-items: center;

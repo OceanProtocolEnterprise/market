@@ -94,8 +94,7 @@ export default function Edit({
 
       const updatedCredentials = generateCredentials(
         asset?.credentialSubject?.credentials,
-        values?.allow,
-        values?.deny
+        values?.credentials
       )
 
       const updatedAsset: Asset = {

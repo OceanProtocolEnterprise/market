@@ -111,8 +111,7 @@ export default function EditService({
 
       const updatedCredentials = generateCredentials(
         service.credentials,
-        values.allow,
-        values.deny
+        values.credentials
       )
 
       const updatedService: Service = {

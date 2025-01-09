@@ -18,6 +18,7 @@ import { RemoteObject } from 'src/@types/ddo/RemoteObject'
 import { sha256 } from 'ohash'
 import { License } from 'src/@types/ddo/License'
 import { IpfsRemoteSource } from '@components/@shared/IpfsRemoteSource'
+import { PolicyEditor } from '@components/@shared/PolicyEditor'
 
 const accessTypeOptionsTitles = getFieldContent(
   'access',
@@ -181,31 +182,18 @@ export default function ServicesFields(): ReactElement {
       />
 
       {appConfig.ssiEnabled === true ? (
-        <>
-          <Field
-            className={styles.policyAutocomplete}
-            {...getFieldContent('policies', content.services.fields)}
-            component={Input}
-            name="services[0].policies"
-          />
-          <Field
-            {...getFieldContent('customPolicies', content.services.fields)}
-            component={Input}
-            name="services[0].customPolicies"
-            rows={10}
-          />
-        </>
+        <PolicyEditor></PolicyEditor>
       ) : (
         <>
           <Field
-            {...getFieldContent('allow', content.services.fields)}
+            {...getFieldContent('allow', content.credentials.fields)}
             component={Input}
-            name="services[0].allow"
+            name="services[0].credentials[0].allow"
           />
           <Field
-            {...getFieldContent('deny', content.services.fields)}
+            {...getFieldContent('deny', content.credentials.fields)}
             component={Input}
-            name="services[0].deny"
+            name="services[0].credentials[0].deny"
           />
         </>
       )}

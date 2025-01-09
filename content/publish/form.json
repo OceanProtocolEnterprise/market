@@ -320,25 +320,31 @@
         "required": true
       },
       {
-        "name": "policies",
-        "label": "Used Policies",
-        "type": "policyList",
-        "placeholder": "e.g. PassPort"
-      },
-      {
-        "name": "customPolicies",
-        "label": "Custom Policies",
-        "type": "textarea",
-        "placeholder": "Example:\n\npackage access\n\ndefault allow=false\n\nallow {\n\tinput.credentials.password.placeOfBirth=\"Paris\"\n}"
-      },
-      {
         "name": "usesConsumerParameters",
         "label": "User defined parameters",
         "help": "User defined parameters are used to filter or query the published asset.",
         "type": "checkbox",
         "options": ["This asset uses user defined parameters"],
         "required": false
-      },
+      }
+    ]
+  },
+  "additionalDdos": {
+    "title": "Additional Ddos",
+    "fields": [
+      {
+        "name": "additionalDdos",
+        "label": "Additional Ddo",
+        "placeholder": "{ ... }",
+        "help": "Insert an additional Ddo",
+        "type": "textarea"
+      }
+    ]
+  },
+  "credentials": {
+    "title": "Credentials",
+
+    "fields": [
       {
         "name": "allow",
         "label": "Allow ETH Address",
@@ -352,18 +358,18 @@
         "placeholder": "e.g. 0xe328aB96B7CbB55A6E1c1054678137bA09780acA",
         "help": "Enter an ETH address and click the ADD button to append to the list. If an ETH address is in the deny list, download or compute of this asset will be denied for that ETH address.",
         "type": "credentials"
-      }
-    ]
-  },
-  "additionalDdos": {
-    "title": "Additional Ddos",
-    "fields": [
+      },
       {
-        "name": "additionalDdos",
-        "label": "Additional Ddo",
-        "placeholder": "{ ... }",
-        "help": "Insert an additional Ddo",
-        "type": "textarea"
+        "name": "requestPolicies",
+        "label": "Request Policies",
+        "type": "policyList",
+        "placeholder": "e.g. PassPort"
+      },
+      {
+        "name": "customPolicies",
+        "label": "Custom Policies",
+        "type": "textarea",
+        "placeholder": "Example:\n\npackage access\n\ndefault allow=false\n\nallow {\n\tinput.credentials.password.placeOfBirth=\"Paris\"\n}"
       }
     ]
   },

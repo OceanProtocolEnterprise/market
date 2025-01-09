@@ -1,4 +1,4 @@
-import { ReactElement, useState } from 'react'
+import { ReactElement, useEffect, useState } from 'react'
 import { Formik } from 'formik'
 import {
   LoggerInstance,
@@ -65,6 +65,8 @@ export default function AddService({
 
   // add new service
   async function handleSubmit(values: ServiceEditForm, resetForm: () => void) {
+    console.log(values)
+
     try {
       if (!isAssetNetwork) {
         setError('Please switch to the correct network.')
@@ -165,11 +167,7 @@ export default function AddService({
         newFiles = filesEncrypted
       }
 
-      const credentials = generateCredentials(
-        undefined,
-        values.allow,
-        values.deny
-      )
+      const credentials = generateCredentials(undefined, values.credentials)
 
       const newService: Service = {
         id: getHash(datatokenAddress + newFiles),

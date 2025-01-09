@@ -19,6 +19,7 @@ import slugify from 'slugify'
 import { algorithmContainerPresets } from './_constants'
 import {
   FormConsumerParameter,
+  FormCredential,
   FormPublishData,
   MetadataAlgorithmContainer
 } from './_types'
@@ -106,19 +107,18 @@ export function transformConsumerParameters(
 
 export function generateCredentials(
   oldCredentials: Credential[] | undefined,
-  updatedAllow: string[],
-  updatedDeny: string[]
+  updatedCredentials: FormCredential[]
 ): Credential[] {
   let newCredentials: Credential
-  if (updatedAllow?.length !== 0 || updatedDeny?.length !== 0) {
+  if (updatedCredentials?.length !== 0) {
     const newAllowList: CredentialAddressBased = {
       type: 'address',
-      values: updatedAllow
+      values: updatedCredentials?.[0]?.allow
     }
 
     const newDenyList: CredentialAddressBased = {
       type: 'address',
-      values: updatedDeny
+      values: updatedCredentials?.[0]?.deny
     }
 
     newCredentials = {
@@ -156,7 +156,7 @@ export async function transformPublishFormToDdo(
     usesConsumerParameters,
     consumerParameters
   } = metadata
-  const { access, files, links, providerUrl, timeout, allow, deny } =
+  const { access, files, links, providerUrl, timeout, credentials } =
     services[0]
 
   const did = nftAddress ? generateDid(nftAddress, chainId) : '0x...'
@@ -260,6 +260,8 @@ export async function transformPublishFormToDdo(
     files[0].valid &&
     (await getEncryptedFiles(file, chainId, providerUrl.url))
 
+  const newServiceCredentials = generateCredentials(undefined, credentials)
+
   const newService: Service = {
     id: getHash(datatokenAddress + filesEncrypted),
     type: access,
@@ -275,10 +277,10 @@ export async function transformPublishFormToDdo(
       : undefined,
     name: '',
     state: asset.stats[0],
-    credentials: []
+    credentials: newServiceCredentials
   }
 
-  const newCredentials = generateCredentials(undefined, allow, deny)
+  const newCredentials = generateCredentials(undefined, values.credentials)
 
   const newDdo: any = {
     '@context': ['https://w3id.org/did/v1'],

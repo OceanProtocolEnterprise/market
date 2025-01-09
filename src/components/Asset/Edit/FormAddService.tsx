@@ -102,9 +102,13 @@ export default function FormAddService({
       <Field
         {...getFieldContent('allow', data)}
         component={Input}
-        name="allow"
+        name="credentials[0].allow"
       />
-      <Field {...getFieldContent('deny', data)} component={Input} name="deny" />
+      <Field
+        {...getFieldContent('deny', data)}
+        component={Input}
+        name="credentials[0].deny"
+      />
 
       <Field
         {...getFieldContent('usesConsumerParameters', data)}
