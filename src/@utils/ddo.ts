@@ -19,6 +19,7 @@ import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
 import { Option } from 'src/@types/ddo/Option'
 import { isCredentialAddressBased } from './credentials'
+import { CredentialAddressBased } from 'src/@types/ddo/Credentials'
 
 export function isValidDid(did: string): boolean {
   const regex = /^did:op:[A-Za-z0-9]{64}$/
@@ -221,18 +222,24 @@ export function isAddressWhitelisted(ddo: Asset, accountId: string): boolean {
   if (!ddo || !ddo?.credentialSubject || !accountId) return false
 
   // All addresses can access
-  if (
-    !ddo.credentialSubject?.credentials ||
-    ddo.credentialSubject?.credentials?.length === 0
-  )
-    return true
-
   const { credentials } = ddo.credentialSubject
 
+  const allowCredentials: CredentialAddressBased = isCredentialAddressBased(
+    credentials?.[0].allow?.[0]
+  )
+    ? (credentials?.[0].allow?.[0] as CredentialAddressBased)
+    : undefined
+  const denyCredentials: CredentialAddressBased = isCredentialAddressBased(
+    credentials?.[0].deny?.[0]
+  )
+    ? (credentials?.[0].deny?.[0] as CredentialAddressBased)
+    : undefined
+
+  const useWhiteList = allowCredentials.values.length > 0
+
   let isAddressWhitelisted = false
-  let isAddressBlacklisted = false
-  credentials.forEach((credential) => {
-    credential.allow?.forEach((allowCredential) => {
+  if (useWhiteList) {
+    credentials?.[0].allow?.forEach((allowCredential) => {
       if (isAddressWhitelisted) {
         return
       }
@@ -247,8 +254,13 @@ export function isAddressWhitelisted(ddo: Asset, accountId: string): boolean {
         }
       }
     })
+  }
 
-    credential.deny?.forEach((denyCredential) => {
+  const useBlackList = denyCredentials.values.length > 0
+
+  let isAddressBlacklisted = false
+  if (useBlackList) {
+    credentials?.[0].deny?.forEach((denyCredential) => {
       if (isAddressBlacklisted) {
         return
       }
@@ -263,7 +275,10 @@ export function isAddressWhitelisted(ddo: Asset, accountId: string): boolean {
         }
       }
     })
-  })
+  }
 
-  return isAddressWhitelisted && !isAddressBlacklisted
+  return (
+    (useWhiteList ? isAddressWhitelisted : true) &&
+    (useBlackList ? !isAddressBlacklisted : true)
+  )
 }
