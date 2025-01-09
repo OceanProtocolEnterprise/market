@@ -252,18 +252,6 @@ export function isAddressWhitelisted(
     allowCredentials.values.length > 0 ||
     serviceAllowCredentials.values.length > 0
 
-    
-  )
-    ? (credentials?.[0].allow?.[0] as CredentialAddressBased)
-    : undefined
-  const denyCredentials: CredentialAddressBased = isCredentialAddressBased(
-    credentials?.[0].deny?.[0]
-  )
-    ? (credentials?.[0].deny?.[0] as CredentialAddressBased)
-    : undefined
-
-  const useWhiteList = allowCredentials.values.length > 0
-
   let isAddressWhitelisted = false
   if (useWhiteList) {
     credentials?.[0].allow?.forEach((allowCredential) => {
@@ -281,7 +269,6 @@ export function isAddressWhitelisted(
         }
       }
     })
-  }
 
     service?.credentials?.[0].allow?.forEach((allowCredential) => {
       if (isAddressWhitelisted) {
@@ -303,7 +290,6 @@ export function isAddressWhitelisted(
   const useBlackList =
     denyCredentials.values.length > 0 ||
     serviceDenyCredentials.values.length > 0
-  const useBlackList = denyCredentials.values.length > 0
 
   let isAddressBlacklisted = false
   if (useBlackList) {
@@ -338,8 +324,6 @@ export function isAddressWhitelisted(
         }
       }
     })
-  }
-
   }
 
   return (
