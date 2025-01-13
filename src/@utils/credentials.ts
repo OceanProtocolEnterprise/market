@@ -7,7 +7,7 @@ export function isCredentialAddressBased(
   credential: CredentialAddressBased | CredentialPolicyBased
 ): credential is CredentialAddressBased {
   return (
-    (credential as CredentialAddressBased).type !== undefined &&
-    (credential as CredentialAddressBased).type === 'address'
+    (credential as CredentialAddressBased)?.type !== undefined &&
+    (credential as CredentialAddressBased)?.type === 'address'
   )
 }

@@ -218,28 +218,59 @@ export function parseConsumerParameters(
   })
 }
 
-export function isAddressWhitelisted(ddo: Asset, accountId: string): boolean {
+export function isAddressWhitelisted(
+  ddo: Asset,
+  accountId: string,
+  service?: Service
+): boolean {
   if (!ddo || !ddo?.credentialSubject || !accountId) return false
 
   // All addresses can access
   const { credentials } = ddo.credentialSubject
 
   const allowCredentials: CredentialAddressBased = isCredentialAddressBased(
-    credentials?.[0].allow?.[0]
+    credentials?.allow?.[0]
   )
-    ? (credentials?.[0].allow?.[0] as CredentialAddressBased)
+    ? (credentials?.allow?.[0] as CredentialAddressBased)
     : undefined
   const denyCredentials: CredentialAddressBased = isCredentialAddressBased(
-    credentials?.[0].deny?.[0]
+    credentials?.deny?.[0]
   )
-    ? (credentials?.[0].deny?.[0] as CredentialAddressBased)
+    ? (credentials?.deny?.[0] as CredentialAddressBased)
     : undefined
 
-  const useWhiteList = allowCredentials.values.length > 0
+  const serviceAllowCredentials: CredentialAddressBased =
+    isCredentialAddressBased(service?.credentials?.allow?.[0])
+      ? (service?.credentials?.allow?.[0] as CredentialAddressBased)
+      : undefined
+  const serviceDenyCredentials: CredentialAddressBased =
+    isCredentialAddressBased(service?.credentials?.deny?.[0])
+      ? (service?.credentials?.deny?.[0] as CredentialAddressBased)
+      : undefined
+
+  const useWhiteList =
+    allowCredentials?.values.length > 0 ||
+    serviceAllowCredentials?.values.length > 0
 
   let isAddressWhitelisted = false
   if (useWhiteList) {
-    credentials?.[0].allow?.forEach((allowCredential) => {
+    credentials?.allow?.forEach((allowCredential) => {
+      if (isAddressWhitelisted) {
+        return
+      }
+
+      if (isCredentialAddressBased(allowCredential)) {
+        if (
+          allowCredential.values.some(
+            (address) => address.toLowerCase() === accountId.toLowerCase()
+          )
+        ) {
+          isAddressWhitelisted = true
+        }
+      }
+    })
+
+    service?.credentials?.allow?.forEach((allowCredential) => {
       if (isAddressWhitelisted) {
         return
       }
@@ -256,11 +287,29 @@ export function isAddressWhitelisted(ddo: Asset, accountId: string): boolean {
     })
   }
 
-  const useBlackList = denyCredentials.values.length > 0
+  const useBlackList =
+    denyCredentials?.values.length > 0 ||
+    serviceDenyCredentials?.values.length > 0
 
   let isAddressBlacklisted = false
   if (useBlackList) {
-    credentials?.[0].deny?.forEach((denyCredential) => {
+    credentials?.deny?.forEach((denyCredential) => {
+      if (isAddressBlacklisted) {
+        return
+      }
+
+      if (isCredentialAddressBased(denyCredential)) {
+        if (
+          denyCredential.values.some(
+            (address) => address.toLowerCase() === accountId.toLowerCase()
+          )
+        ) {
+          isAddressBlacklisted = true
+        }
+      }
+    })
+
+    service?.credentials?.deny?.forEach((denyCredential) => {
       if (isAddressBlacklisted) {
         return
       }

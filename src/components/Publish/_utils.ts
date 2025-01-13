@@ -105,10 +105,10 @@ export function transformConsumerParameters(
 }
 
 export function generateCredentials(
-  oldCredentials: Credential[] | undefined,
+  oldCredentials: Credential | undefined,
   updatedAllow: string[],
   updatedDeny: string[]
-): Credential[] {
+): Credential {
   let newCredentials: Credential
   if (updatedAllow?.length !== 0 || updatedDeny?.length !== 0) {
     const newAllowList: CredentialAddressBased = {
@@ -126,9 +126,12 @@ export function generateCredentials(
       deny: [newDenyList]
     }
 
-    return [newCredentials]
+    return newCredentials
   } else {
-    return []
+    return {
+      allow: [],
+      deny: []
+    }
   }
 }
 
@@ -260,6 +263,8 @@ export async function transformPublishFormToDdo(
     files[0].valid &&
     (await getEncryptedFiles(file, chainId, providerUrl.url))
 
+  const newCredentials = generateCredentials(undefined, allow, deny)
+
   const newService: Service = {
     id: getHash(datatokenAddress + filesEncrypted),
     type: access,
@@ -275,10 +280,8 @@ export async function transformPublishFormToDdo(
       : undefined,
     name: '',
     state: asset.stats[0],
-    credentials: []
+    credentials: newCredentials
   }
-
-  const newCredentials = generateCredentials(undefined, allow, deny)
 
   const newDdo: any = {
     '@context': ['https://w3id.org/did/v1'],
@@ -290,7 +293,10 @@ export async function transformPublishFormToDdo(
       metadata: newMetadata,
       services: [newService],
       nftAddress,
-      credentials: newCredentials,
+      credentials: {
+        allow: [],
+        deny: []
+      },
       datatokens: [
         {
           name: values.services[0].dataTokenOptions.name,

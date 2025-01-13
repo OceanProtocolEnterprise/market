@@ -179,7 +179,7 @@ export default function AssetActions({
   useEffect(() => {
     if (!asset || !accountId) return
 
-    setIsAccountIdWhitelisted(isAddressWhitelisted(asset, accountId))
+    setIsAccountIdWhitelisted(isAddressWhitelisted(asset, accountId, service))
   }, [accountId, asset])
 
   return (

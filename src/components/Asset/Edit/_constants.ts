@@ -15,7 +15,7 @@ export const defaultServiceComputeOptions: Compute = {
 
 export function getInitialValues(
   metadata: Metadata,
-  credentials: Credential[],
+  credentials: Credential,
   assetState: string
 ): MetadataEditForm {
   const useRemoteLicense =
@@ -42,17 +42,15 @@ export function getInitialValues(
   let newAllowAddresses = []
   let newDenyAddresses = []
   if (credentials) {
-    credentials.forEach((credential) => {
-      credential.allow?.forEach((allowCredential) => {
-        if (isCredentialAddressBased(allowCredential)) {
-          newAllowAddresses = [...newAllowAddresses, ...allowCredential.values]
-        }
-      })
-      credential.deny?.forEach((denyCredential) => {
-        if (isCredentialAddressBased(denyCredential)) {
-          newDenyAddresses = [...newDenyAddresses, ...denyCredential.values]
-        }
-      })
+    credentials.allow?.forEach((allowCredential) => {
+      if (isCredentialAddressBased(allowCredential)) {
+        newAllowAddresses = [...newAllowAddresses, ...allowCredential.values]
+      }
+    })
+    credentials.deny?.forEach((denyCredential) => {
+      if (isCredentialAddressBased(denyCredential)) {
+        newDenyAddresses = [...newDenyAddresses, ...denyCredential.values]
+      }
     })
     newAllowAddresses = Array.from(new Set(newAllowAddresses))
     newDenyAddresses = Array.from(new Set(newDenyAddresses))
@@ -135,17 +133,15 @@ export const getServiceInitialValues = (
   let allowAdresses = []
   let denyAddresses = []
   if (service.credentials) {
-    service.credentials.forEach((credential) => {
-      credential.allow?.forEach((allowCredential) => {
-        if (isCredentialAddressBased(allowCredential)) {
-          allowAdresses = [...allowAdresses, ...allowCredential.values]
-        }
-      })
-      credential.deny?.forEach((denyCredential) => {
-        if (isCredentialAddressBased(denyCredential)) {
-          denyAddresses = [...denyAddresses, ...denyCredential.values]
-        }
-      })
+    service.credentials.allow?.forEach((allowCredential) => {
+      if (isCredentialAddressBased(allowCredential)) {
+        allowAdresses = [...allowAdresses, ...allowCredential.values]
+      }
+    })
+    service.credentials.deny?.forEach((denyCredential) => {
+      if (isCredentialAddressBased(denyCredential)) {
+        denyAddresses = [...denyAddresses, ...denyCredential.values]
+      }
     })
     allowAdresses = Array.from(new Set(allowAdresses))
     denyAddresses = Array.from(new Set(denyAddresses))
