@@ -200,9 +200,9 @@ export default function FormEditMetadata(): ReactElement {
         <PolicyEditor
           credentials={values.credentials[0]}
           setCredentials={(newCredentials) =>
-            setFieldValue('credentials[0]', newCredentials)
+            setFieldValue('credentials', newCredentials)
           }
-          name="services[0].credentials[0]"
+          name="services[0].credentials"
           customPoliciesFieldName="customPolicy"
           requestCredentialsFieldName="requestPolicy"
           fields={data}
@@ -213,12 +213,12 @@ export default function FormEditMetadata(): ReactElement {
           <Field
             {...getFieldContent('allow', data)}
             component={Input}
-            name="credentials[0].allow"
+            name="credentials.allow"
           />
           <Field
             {...getFieldContent('deny', data)}
             component={Input}
-            name="credentials[0].deny"
+            name="credentials.deny"
           />
         </>
       )}
