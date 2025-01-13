@@ -19,7 +19,6 @@ import slugify from 'slugify'
 import { algorithmContainerPresets } from './_constants'
 import {
   FormConsumerParameter,
-  FormCredential,
   FormPublishData,
   MetadataAlgorithmContainer
 } from './_types'
@@ -41,13 +40,20 @@ import { createHash } from 'crypto'
 import { Signer } from 'ethers'
 import { uploadToIPFS } from '@utils/ipfs'
 import { DDOVersion } from 'src/@types/DdoVersion'
-import { Credential, CredentialAddressBased } from 'src/@types/ddo/Credentials'
+import {
+  Credential,
+  CredentialAddressBased,
+  CredentialPolicyBased,
+  RequestCredential
+} from 'src/@types/ddo/Credentials'
 import { VerifiableCredential } from 'src/@types/ddo/VerifiableCredential'
 import { asset } from '.jest/__fixtures__/datasetWithAccessDetails'
 import { convertLinks } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
 import { JWTHeaderParameters, JWTPayload } from 'jose'
 import base64url from 'base64url'
+import appConfig from 'app.config'
+import { CredentialForm } from '@components/@shared/PolicyEditor'
 
 function getUrlFileExtension(fileUrl: string): string {
   const splittedFileUrl = fileUrl.split('.')
@@ -107,10 +113,38 @@ export function transformConsumerParameters(
 
 export function generateCredentials(
   oldCredentials: Credential[] | undefined,
-  updatedCredentials: FormCredential[]
+  updatedCredentials: CredentialForm[]
 ): Credential[] {
+  if (updatedCredentials.length === 0) {
+    return []
+  }
+
   let newCredentials: Credential
-  if (updatedCredentials?.length !== 0) {
+  if (appConfig.ssiEnabled) {
+    let requestCredentials: RequestCredential[]
+    try {
+      requestCredentials = updatedCredentials?.[0]?.requestCredentials?.map(
+        (credential) => {
+          return JSON.parse(credential)
+        }
+      )
+    } catch (error) {
+      LoggerInstance.error(`Could not parse request credential: ${error}`)
+      requestCredentials = []
+    }
+
+    const newAllowList: CredentialPolicyBased = {
+      type: 'verifiableCredential',
+      custom_policies: updatedCredentials?.[0]?.customPolicies,
+      request_credentials: requestCredentials,
+      vc_policies: updatedCredentials?.[0]?.vcPolicies,
+      vp_policies: updatedCredentials?.[0]?.vpPolicies
+    }
+    newCredentials = {
+      allow: [newAllowList],
+      deny: []
+    }
+  } else {
     const newAllowList: CredentialAddressBased = {
       type: 'address',
       values: updatedCredentials?.[0]?.allow
@@ -125,11 +159,8 @@ export function generateCredentials(
       allow: [newAllowList],
       deny: [newDenyList]
     }
-
-    return [newCredentials]
-  } else {
-    return []
   }
+  return [newCredentials]
 }
 
 export async function transformPublishFormToDdo(
@@ -281,6 +312,7 @@ export async function transformPublishFormToDdo(
   }
 
   const newCredentials = generateCredentials(undefined, values.credentials)
+  console.log(newCredentials)
 
   const newDdo: any = {
     '@context': ['https://w3id.org/did/v1'],

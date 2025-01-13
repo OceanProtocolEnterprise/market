@@ -2,15 +2,52 @@ import { FileInfo } from '@oceanprotocol/lib'
 import { parseConsumerParameters, secondsToString } from '@utils/ddo'
 import { ComputeEditForm, MetadataEditForm, ServiceEditForm } from './_types'
 import { Metadata } from 'src/@types/ddo/Metadata'
-import { Credential } from 'src/@types/ddo/Credentials'
+import { Credential, CredentialAddressBased } from 'src/@types/ddo/Credentials'
 import { Compute, Service } from 'src/@types/ddo/Service'
 import { isCredentialAddressBased } from '@utils/credentials'
+import { CredentialForm } from '@components/@shared/PolicyEditor'
+import appConfig from 'app.config'
 
 export const defaultServiceComputeOptions: Compute = {
   allowRawAlgorithm: false,
   allowNetworkAccess: true,
   publisherTrustedAlgorithmPublishers: [],
   publisherTrustedAlgorithms: []
+}
+
+function generateCredentials(credentials: Credential[]): CredentialForm {
+  if (appConfig.ssiEnabled) {
+    credentials.forEach((credential) => {
+      if (!isCredentialAddressBased(credential)) {
+        newAllowAddresses = [...newAllowAddresses, ...allowCredential.values]
+      }
+    })
+    newAllowAddresses = Array.from(new Set(newAllowAddresses))
+    newDenyAddresses = Array.from(new Set(newDenyAddresses))
+  }
+  } else {
+    let newAllowAddresses = []
+    let newDenyAddresses = []
+    credentials.forEach((credential) => {
+      credential.allow?.forEach((allowCredential) => {
+        if (isCredentialAddressBased(allowCredential)) {
+          newAllowAddresses = [...newAllowAddresses, ...allowCredential.values]
+        }
+      })
+      credential.deny?.forEach((denyCredential) => {
+        if (isCredentialAddressBased(denyCredential)) {
+          newDenyAddresses = [...newDenyAddresses, ...denyCredential.values]
+        }
+      })
+    })
+    newAllowAddresses = Array.from(new Set(newAllowAddresses))
+    newDenyAddresses = Array.from(new Set(newDenyAddresses))
+
+    return {
+      allow: newAllowAddresses,
+      deny: newDenyAddresses
+    }
+  }
 }
 
 export function getInitialValues(
@@ -39,25 +76,6 @@ export function getInitialValues(
     }
   }
 
-  let newAllowAddresses = []
-  let newDenyAddresses = []
-  if (credentials) {
-    credentials.forEach((credential) => {
-      credential.allow?.forEach((allowCredential) => {
-        if (isCredentialAddressBased(allowCredential)) {
-          newAllowAddresses = [...newAllowAddresses, ...allowCredential.values]
-        }
-      })
-      credential.deny?.forEach((denyCredential) => {
-        if (isCredentialAddressBased(denyCredential)) {
-          newDenyAddresses = [...newDenyAddresses, ...denyCredential.values]
-        }
-      })
-    })
-    newAllowAddresses = Array.from(new Set(newAllowAddresses))
-    newDenyAddresses = Array.from(new Set(newDenyAddresses))
-  }
-
   return {
     name: metadata?.name,
     description: metadata?.description?.['@value'],
@@ -71,12 +89,7 @@ export function getInitialValues(
     consumerParameters: parseConsumerParameters(
       metadata?.algorithm?.consumerParameters
     ),
-    credentials: [
-      {
-        allow: newAllowAddresses,
-        deny: newDenyAddresses
-      }
-    ],
+    credentials: [],
     assetState,
     licenseUrl: !useRemoteLicense ? [fileInfo] : undefined,
     uploadedLicense: useRemoteLicense ? metadata.license : undefined,

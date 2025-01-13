@@ -1,18 +1,10 @@
+import { CredentialForm } from '@components/@shared/PolicyEditor'
 import { FileInfo } from '@oceanprotocol/lib'
 import { NftMetadata } from '@utils/nft'
 import { ReactElement } from 'react'
 import { License } from 'src/@types/ddo/License'
 import { Option } from 'src/@types/ddo/Option'
 import { Compute } from 'src/@types/ddo/Service'
-
-export interface FormCredential {
-  allow?: string[]
-  deny?: string[]
-  requestCredentials?: string[]
-  customPolicies?: string[]
-  vpPolicies?: string[]
-  vcPolicies?: string[]
-}
 
 export interface FormPublishService {
   files: FileInfo[]
@@ -25,7 +17,7 @@ export interface FormPublishService {
   computeOptions?: Compute
   usesConsumerParameters?: boolean
   consumerParameters?: FormConsumerParameter[]
-  credentials: FormCredential[]
+  credentials: CredentialForm[]
 }
 
 export interface FormAdditionalDdo {
@@ -65,7 +57,6 @@ export interface FormPublishData {
   services: FormPublishService[]
   pricing: PricePublishOptions
   feedback?: PublishFeedback
-  credentials: FormCredential[]
   additionalDdos: FormAdditionalDdo[]
   additionalDdosPageVisited: boolean
   useRemoteLicense: boolean

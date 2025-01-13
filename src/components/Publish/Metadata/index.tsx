@@ -7,7 +7,6 @@ import consumerParametersContent from '../../../../content/publish/consumerParam
 import { FormPublishData } from '../_types'
 import IconDataset from '@images/dataset.svg'
 import IconAlgorithm from '@images/algorithm.svg'
-import styles from './index.module.css'
 import { algorithmContainerPresets } from '../_constants'
 import { useMarketMetadata } from '@context/MarketMetadata'
 import { getFieldContent } from '@utils/form'

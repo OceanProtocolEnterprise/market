@@ -92,7 +92,16 @@ export const initialValues: FormPublishData = {
       computeOptions,
       usesConsumerParameters: false,
       consumerParameters: [],
-      credentials: []
+      credentials: [
+        {
+          allow: [],
+          deny: [],
+          customPolicies: [],
+          requestCredentials: [],
+          vcPolicies: [],
+          vpPolicies: []
+        }
+      ]
     }
   ],
   pricing: {
@@ -107,8 +116,7 @@ export const initialValues: FormPublishData = {
   useRemoteLicense: false,
   licenseUrl: [{ url: '', type: 'url' }],
   uploadedLicense: undefined,
-  previewPageVisited: false,
-  credentials: []
+  previewPageVisited: false
 }
 
 export const algorithmContainerPresets: MetadataAlgorithmContainer[] = [

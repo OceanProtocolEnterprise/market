@@ -76,6 +76,18 @@
         "type": "credentials"
       },
       {
+        "name": "requestPolicies",
+        "label": "Request Policies",
+        "type": "policyList",
+        "placeholder": "e.g. PassPort"
+      },
+      {
+        "name": "customPolicies",
+        "label": "Custom Policies",
+        "type": "textarea",
+        "placeholder": "Example:\n\npackage access\n\ndefault allow=false\n\nallow {\n\tinput.credentials.password.placeOfBirth=\"Paris\"\n}"
+      },
+      {
         "name": "assetState",
         "label": "Asset Status",
         "help": "This asset will no longer be visible to other users and it won't be possible to purchase it.  More info available in our [docs](https://docs.oceanprotocol.com/core-concepts/did-ddo#state).",

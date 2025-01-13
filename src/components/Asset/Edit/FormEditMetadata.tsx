@@ -22,6 +22,8 @@ import { RemoteObject } from '../../../@types/ddo/RemoteObject'
 import { sha256 } from 'ohash'
 import Button from '@components/@shared/atoms/Button'
 import styles from './index.module.css'
+import appConfig from 'app.config'
+import { PolicyEditor } from '@components/@shared/PolicyEditor'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
@@ -193,16 +195,34 @@ export default function FormEditMetadata(): ReactElement {
           )}
         </>
       )}
-      <Field
-        {...getFieldContent('allow', data)}
-        component={Input}
-        name="credentials[0].allow"
-      />
-      <Field
-        {...getFieldContent('deny', data)}
-        component={Input}
-        name="credentials[0].deny"
-      />
+
+      {appConfig.ssiEnabled ? (
+        <PolicyEditor
+          credentials={values.credentials[0]}
+          setCredentials={(newCredentials) =>
+            setFieldValue('credentials[0]', newCredentials)
+          }
+          name="services[0].credentials[0]"
+          customPoliciesFieldName="customPolicy"
+          requestCredentialsFieldName="requestPolicy"
+          fields={data}
+          requiredPolicyFieldRows={6}
+        />
+      ) : (
+        <>
+          <Field
+            {...getFieldContent('allow', data)}
+            component={Input}
+            name="credentials[0].allow"
+          />
+          <Field
+            {...getFieldContent('deny', data)}
+            component={Input}
+            name="credentials[0].deny"
+          />
+        </>
+      )}
+
       <Field
         {...getFieldContent('assetState', data)}
         component={Input}

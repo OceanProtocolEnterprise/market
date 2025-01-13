@@ -54,8 +54,7 @@ export default function DebugEditMetadata({
 
       const updatedCredentials: Credential[] = generateCredentials(
         asset?.credentialSubject?.credentials,
-        values?.allow,
-        values?.deny
+        values.credentials
       )
 
       const tmpAsset: Asset = {

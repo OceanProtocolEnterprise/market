@@ -1,15 +1,7 @@
 import { FormConsumerParameter } from '@components/Publish/_types'
 import { FileInfo } from '@oceanprotocol/lib'
 import { License } from '../../../@types/ddo/License'
-
-export interface FormCredential {
-  allow?: string[]
-  deny?: string[]
-  requestCredentials?: string[]
-  customPolicies?: string[]
-  vpPolicies?: string[]
-  vcPolicies?: string[]
-}
+import { CredentialForm } from '@components/@shared/PolicyEditor'
 
 export interface MetadataEditForm {
   name: string
@@ -20,7 +12,7 @@ export interface MetadataEditForm {
   tags?: string[]
   usesConsumerParameters?: boolean
   consumerParameters?: FormConsumerParameter[]
-  credentials: FormCredential[]
+  credentials: CredentialForm[]
   assetState?: string
   license?: License
   useRemoteLicense: boolean
@@ -39,7 +31,7 @@ export interface ServiceEditForm {
   timeout: string
   usesConsumerParameters: boolean
   consumerParameters: FormConsumerParameter[]
-  credentials: FormCredential[]
+  credentials: CredentialForm[]
   // compute
   allowAllPublishedAlgorithms: boolean
   publisherTrustedAlgorithms: string[]

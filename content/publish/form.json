@@ -343,7 +343,6 @@
   },
   "credentials": {
     "title": "Credentials",
-
     "fields": [
       {
         "name": "allow",
@@ -360,16 +359,16 @@
         "type": "credentials"
       },
       {
-        "name": "requestPolicies",
-        "label": "Request Policies",
-        "type": "policyList",
-        "placeholder": "e.g. PassPort"
+        "name": "requestPolicy",
+        "label": "Request Policy",
+        "type": "textarea",
+        "placeholder": "Example:\n{\n\t\"type\": \"OpenBadgeCredential\",\n\t\"format\": \"jwt_vc_json\"\n\t\"policies\": [\"signature\"]\n}"
       },
       {
-        "name": "customPolicies",
-        "label": "Custom Policies",
-        "type": "textarea",
-        "placeholder": "Example:\n\npackage access\n\ndefault allow=false\n\nallow {\n\tinput.credentials.password.placeOfBirth=\"Paris\"\n}"
+        "name": "customPolicy",
+        "label": "Custom Policy",
+        "type": "text",
+        "placeholder": "Example: input.credentials.password.placeOfBirth=\"Paris\""
       }
     ]
   },

@@ -181,8 +181,18 @@ export default function ServicesFields(): ReactElement {
         name="services[0].timeout"
       />
 
-      {appConfig.ssiEnabled === true ? (
-        <PolicyEditor></PolicyEditor>
+      {appConfig.ssiEnabled ? (
+        <PolicyEditor
+          credentials={values.services[0].credentials[0]}
+          setCredentials={(newCredentials) =>
+            setFieldValue('services[0].credentials[0]', newCredentials)
+          }
+          name="services[0].credentials[0]"
+          customPoliciesFieldName="customPolicy"
+          requestCredentialsFieldName="requestPolicy"
+          fields={content.credentials.fields}
+          requiredPolicyFieldRows={6}
+        />
       ) : (
         <>
           <Field
