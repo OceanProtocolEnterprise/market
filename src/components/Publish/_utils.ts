@@ -143,12 +143,12 @@ export function generateCredentials(
   } else {
     const newAllowList: CredentialAddressBased = {
       type: 'address',
-      values: updatedCredentials?.[0]?.allow
+      values: updatedCredentials?.allow
     }
 
     const newDenyList: CredentialAddressBased = {
       type: 'address',
-      values: updatedCredentials?.[0]?.deny
+      values: updatedCredentials?.deny
     }
 
     newCredentials = {

@@ -108,13 +108,20 @@ export const initialValues: FormPublishData = {
     type: allowFixedPricing === 'true' ? 'fixed' : 'free',
     freeAgreement: false
   },
-
   additionalDdos: [],
   additionalDdosPageVisited: false,
   useRemoteLicense: false,
   licenseUrl: [{ url: '', type: 'url' }],
   uploadedLicense: undefined,
-  previewPageVisited: false
+  previewPageVisited: false,
+  credentials: {
+    allow: [],
+    deny: [],
+    customPolicies: [],
+    requestCredentials: [],
+    vcPolicies: [],
+    vpPolicies: []
+  }
 }
 
 export const algorithmContainerPresets: MetadataAlgorithmContainer[] = [
