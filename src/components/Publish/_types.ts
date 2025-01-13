@@ -63,6 +63,7 @@ export interface FormPublishData {
   licenseUrl: FileInfo[]
   uploadedLicense: License
   previewPageVisited: boolean
+  credentials: CredentialForm
 }
 
 export interface StepContent {
