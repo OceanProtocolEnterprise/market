@@ -29,3 +29,7 @@ export interface RequestCredential {
   format: string
   policies: string[]
 }
+
+export function isVpType(data: any): data is VP {
+  return 'policy' in data && 'args' in data
+}

@@ -11,3 +11,12 @@ export function isCredentialAddressBased(
     (credential as CredentialAddressBased)?.type === 'address'
   )
 }
+
+export function isCredentialPolicyBased(
+  credential: CredentialAddressBased | CredentialPolicyBased
+): credential is CredentialPolicyBased {
+  return (
+    (credential as CredentialPolicyBased)?.type !== undefined &&
+    (credential as CredentialPolicyBased)?.type === 'verifiableCredential'
+  )
+}

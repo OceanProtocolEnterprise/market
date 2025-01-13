@@ -11,6 +11,8 @@ import FormEditComputeService from './FormEditComputeService'
 import { defaultServiceComputeOptions } from './_constants'
 import styles from './index.module.css'
 import { Service } from 'src/@types/ddo/Service'
+import { PolicyEditor } from '@components/@shared/PolicyEditor'
+import appConfig from 'app.config'
 
 export default function FormEditService({
   data,
@@ -105,16 +107,29 @@ export default function FormEditService({
         name="timeout"
       />
 
-      <Field
-        {...getFieldContent('allow', data)}
-        component={Input}
-        name="credentials.allow"
-      />
-      <Field
-        {...getFieldContent('deny', data)}
-        component={Input}
-        name="credentials.deny"
-      />
+      {appConfig.ssiEnabled ? (
+        <PolicyEditor
+          label="SSI Policies"
+          credentials={values.credentials}
+          setCredentials={(newCredentials) =>
+            setFieldValue('credentials', newCredentials)
+          }
+          name="credentials"
+        />
+      ) : (
+        <>
+          <Field
+            {...getFieldContent('allow', data)}
+            component={Input}
+            name="credentials.allow"
+          />
+          <Field
+            {...getFieldContent('deny', data)}
+            component={Input}
+            name="credentials.deny"
+          />
+        </>
+      )}
 
       <Field
         {...getFieldContent('usesConsumerParameters', data)}

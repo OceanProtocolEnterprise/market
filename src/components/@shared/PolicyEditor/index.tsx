@@ -28,14 +28,14 @@ const fields: FormFieldContent[] = [
   {
     name: 'vpPolicy',
     label: 'VP Policy',
-    type: 'text',
+    type: 'textarea',
     placeholder: ''
   }
 ]
 
 export interface CredentialForm {
-  allow: string[]
-  deny: string[]
+  allow?: string[]
+  deny?: string[]
   requestCredentials?: string[]
   customPolicies?: string[]
   vpPolicies?: string[]
@@ -175,7 +175,6 @@ export function PolicyEditor(props): ReactElement {
                 {...getFieldContent('vcPolicy', fields)}
                 component={Input}
                 name={`${name}.vcPolicies[${index}]`}
-                rows={6}
               />
               <Button
                 type="button"

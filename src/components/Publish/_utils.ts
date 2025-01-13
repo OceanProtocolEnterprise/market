@@ -44,6 +44,7 @@ import {
   Credential,
   CredentialAddressBased,
   CredentialPolicyBased,
+  isVpType,
   RequestCredential,
   VP
 } from 'src/@types/ddo/Credentials'
@@ -132,12 +133,28 @@ export function generateCredentials(
         }
       )
     requestCredentials = requestCredentials.filter((credentials) => credentials)
+
+    const vpPolicies: VP[] = updatedCredentials?.vpPolicies?.map<VP>(
+      (credential) => {
+        try {
+          const obj = JSON.parse(credential)
+          if (isVpType(obj)) {
+            return obj as VP
+          } else {
+            return credential
+          }
+        } catch (error) {
+          return credential
+        }
+      }
+    )
+
     const newAllowList: CredentialPolicyBased = {
       type: 'verifiableCredential',
       custom_policies: updatedCredentials?.customPolicies,
       request_credentials: requestCredentials,
       vc_policies: updatedCredentials?.vcPolicies,
-      vp_policies: updatedCredentials?.vpPolicies
+      vp_policies: vpPolicies
     }
     newCredentials = {
       allow: [newAllowList],

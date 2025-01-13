@@ -2,9 +2,12 @@ import { FileInfo } from '@oceanprotocol/lib'
 import { parseConsumerParameters, secondsToString } from '@utils/ddo'
 import { ComputeEditForm, MetadataEditForm, ServiceEditForm } from './_types'
 import { Metadata } from 'src/@types/ddo/Metadata'
-import { Credential, CredentialAddressBased } from 'src/@types/ddo/Credentials'
+import { Credential } from 'src/@types/ddo/Credentials'
 import { Compute, Service } from 'src/@types/ddo/Service'
-import { isCredentialAddressBased } from '@utils/credentials'
+import {
+  isCredentialAddressBased,
+  isCredentialPolicyBased
+} from '@utils/credentials'
 import { CredentialForm } from '@components/@shared/PolicyEditor'
 import appConfig from 'app.config'
 
@@ -17,6 +20,36 @@ export const defaultServiceComputeOptions: Compute = {
 
 function generateCredentials(credentials: Credential): CredentialForm {
   if (appConfig.ssiEnabled) {
+    let customPolicies = []
+    let requestCredentials = []
+    let vcPolicies = []
+    let vpPolicies = []
+    credentials.allow?.forEach((credential) => {
+      if (isCredentialPolicyBased(credential)) {
+        const requestCredentialsStrings = credential.request_credentials.map(
+          (requestCredential) => JSON.stringify(requestCredential, null, 2)
+        )
+
+        const vpPoliciesStrings = credential.vp_policies.map((policy) =>
+          JSON.stringify(policy, null, 2)
+        )
+
+        customPolicies = [...customPolicies, ...credential.custom_policies]
+        requestCredentials = [
+          ...requestCredentials,
+          ...requestCredentialsStrings
+        ]
+        vcPolicies = [...vcPolicies, ...credential.vc_policies]
+        vpPolicies = [...vpPolicies, ...vpPoliciesStrings]
+      }
+    })
+
+    return {
+      requestCredentials,
+      customPolicies,
+      vcPolicies,
+      vpPolicies
+    }
   } else {
     let newAllowAddresses = []
     let newDenyAddresses = []
@@ -66,6 +99,8 @@ export function getInitialValues(
     }
   }
 
+  const credentialForm = generateCredentials(credentials)
+
   return {
     name: metadata?.name,
     description: metadata?.description?.['@value'],
@@ -79,14 +114,7 @@ export function getInitialValues(
     consumerParameters: parseConsumerParameters(
       metadata?.algorithm?.consumerParameters
     ),
-    credentials: {
-      allow: [],
-      deny: [],
-      customPolicies: [],
-      requestCredentials: [],
-      vcPolicies: [],
-      vpPolicies: []
-    },
+    credentials: credentialForm,
     assetState,
     licenseUrl: !useRemoteLicense ? [fileInfo] : undefined,
     uploadedLicense: useRemoteLicense ? metadata.license : undefined,
@@ -152,32 +180,7 @@ export const getServiceInitialValues = (
     service.compute || defaultServiceComputeOptions
   )
 
-  const newCredentials = {
-    allow: [],
-    deny: [],
-    customPolicies: [],
-    requestCredentials: [],
-    vcPolicies: [],
-    vpPolicies: []
-  }
-  if (!appConfig.ssiEnabled && service.credentials) {
-    service.credentials.allow?.forEach((allowCredential) => {
-      if (isCredentialAddressBased(allowCredential)) {
-        newCredentials.allow = [
-          ...newCredentials.allow,
-          ...allowCredential.values
-        ]
-      }
-    })
-    service.credentials.deny?.forEach((denyCredential) => {
-      if (isCredentialAddressBased(denyCredential)) {
-        newCredentials.deny = [...newCredentials.deny, ...denyCredential.values]
-      }
-    })
-    newCredentials.allow = Array.from(new Set(newCredentials.allow))
-    newCredentials.deny = Array.from(new Set(newCredentials.deny))
-  } else if (appConfig.ssiEnabled && service.credentials) {
-  }
+  const credentialForm = generateCredentials(service.credentials)
 
   return {
     name: service.name,
@@ -196,7 +199,7 @@ export const getServiceInitialValues = (
       ? Object.assign(service.consumerParameters).length > 0
       : undefined,
     consumerParameters: parseConsumerParameters(service.consumerParameters),
-    credentials: newCredentials,
+    credentials: credentialForm,
     ...computeSettings
   }
 }
