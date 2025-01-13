@@ -183,15 +183,12 @@ export default function ServicesFields(): ReactElement {
 
       {appConfig.ssiEnabled ? (
         <PolicyEditor
-          credentials={values.services[0].credentials[0]}
+          label="SSI Policies"
+          credentials={values.services[0].credentials}
           setCredentials={(newCredentials) =>
             setFieldValue('services[0].credentials', newCredentials)
           }
-          name="services[0].credentials[0]"
-          customPoliciesFieldName="customPolicy"
-          requestCredentialsFieldName="requestPolicy"
-          fields={content.credentials.fields}
-          requiredPolicyFieldRows={6}
+          name="services[0].credentials"
         />
       ) : (
         <>

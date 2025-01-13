@@ -357,18 +357,6 @@
         "placeholder": "e.g. 0xe328aB96B7CbB55A6E1c1054678137bA09780acA",
         "help": "Enter an ETH address and click the ADD button to append to the list. If an ETH address is in the deny list, download or compute of this asset will be denied for that ETH address.",
         "type": "credentials"
-      },
-      {
-        "name": "requestPolicy",
-        "label": "Request Policy",
-        "type": "textarea",
-        "placeholder": "Example:\n{\n\t\"type\": \"OpenBadgeCredential\",\n\t\"format\": \"jwt_vc_json\"\n\t\"policies\": [\"signature\"]\n}"
-      },
-      {
-        "name": "customPolicy",
-        "label": "Custom Policy",
-        "type": "text",
-        "placeholder": "Example: input.credentials.password.placeOfBirth=\"Paris\""
       }
     ]
   },

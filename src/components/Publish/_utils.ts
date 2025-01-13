@@ -44,7 +44,8 @@ import {
   Credential,
   CredentialAddressBased,
   CredentialPolicyBased,
-  RequestCredential
+  RequestCredential,
+  VP
 } from 'src/@types/ddo/Credentials'
 import { VerifiableCredential } from 'src/@types/ddo/VerifiableCredential'
 import { asset } from '.jest/__fixtures__/datasetWithAccessDetails'
@@ -117,24 +118,26 @@ export function generateCredentials(
 ): Credential {
   let newCredentials: Credential
   if (appConfig.ssiEnabled) {
-    let requestCredentials: RequestCredential[]
-    try {
-      requestCredentials = updatedCredentials?.[0]?.requestCredentials?.map(
+    let requestCredentials: RequestCredential[] =
+      updatedCredentials?.requestCredentials?.map<RequestCredential>(
         (credential) => {
-          return JSON.parse(credential)
+          try {
+            return JSON.parse(credential)
+          } catch (error) {
+            LoggerInstance.log(
+              `Could not parse request credential: ${credential}`
+            )
+            return undefined
+          }
         }
       )
-    } catch (error) {
-      LoggerInstance.error(`Could not parse request credential: ${error}`)
-      requestCredentials = []
-    }
-
+    requestCredentials = requestCredentials.filter((credentials) => credentials)
     const newAllowList: CredentialPolicyBased = {
       type: 'verifiableCredential',
-      custom_policies: updatedCredentials?.[0]?.customPolicies,
+      custom_policies: updatedCredentials?.customPolicies,
       request_credentials: requestCredentials,
-      vc_policies: updatedCredentials?.[0]?.vcPolicies,
-      vp_policies: updatedCredentials?.[0]?.vpPolicies
+      vc_policies: updatedCredentials?.vcPolicies,
+      vp_policies: updatedCredentials?.vpPolicies
     }
     newCredentials = {
       allow: [newAllowList],
