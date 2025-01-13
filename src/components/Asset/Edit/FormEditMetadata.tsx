@@ -199,11 +199,11 @@ export default function FormEditMetadata(): ReactElement {
       {appConfig.ssiEnabled ? (
         <PolicyEditor
           label="SSI Policies"
-          credentials={values.credentials[0]}
+          credentials={values.credentials}
           setCredentials={(newCredentials) =>
             setFieldValue('credentials', newCredentials)
           }
-          name="services[0].credentials"
+          name="credentials"
         />
       ) : (
         <>
