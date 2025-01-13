@@ -108,12 +108,12 @@ export default function FormEditService({
       <Field
         {...getFieldContent('allow', data)}
         component={Input}
-        name="credentials[0].allow"
+        name="credentials.allow"
       />
       <Field
         {...getFieldContent('deny', data)}
         component={Input}
-        name="credentials[0].deny"
+        name="credentials.deny"
       />
 
       <Field

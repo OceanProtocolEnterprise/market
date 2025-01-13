@@ -185,7 +185,7 @@ export default function ServicesFields(): ReactElement {
         <PolicyEditor
           credentials={values.services[0].credentials[0]}
           setCredentials={(newCredentials) =>
-            setFieldValue('services[0].credentials[0]', newCredentials)
+            setFieldValue('services[0].credentials', newCredentials)
           }
           name="services[0].credentials[0]"
           customPoliciesFieldName="customPolicy"
@@ -198,12 +198,12 @@ export default function ServicesFields(): ReactElement {
           <Field
             {...getFieldContent('allow', content.credentials.fields)}
             component={Input}
-            name="services[0].credentials[0].allow"
+            name="services[0].credentials.allow"
           />
           <Field
             {...getFieldContent('deny', content.credentials.fields)}
             component={Input}
-            name="services[0].credentials[0].deny"
+            name="services[0].credentials.deny"
           />
         </>
       )}
