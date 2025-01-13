@@ -112,13 +112,9 @@ export function transformConsumerParameters(
 }
 
 export function generateCredentials(
-  oldCredentials: Credential[] | undefined,
-  updatedCredentials: CredentialForm[]
-): Credential[] {
-  if (updatedCredentials.length === 0) {
-    return []
-  }
-
+  oldCredentials: Credential | undefined,
+  updatedCredentials: CredentialForm
+): Credential {
   let newCredentials: Credential
   if (appConfig.ssiEnabled) {
     let requestCredentials: RequestCredential[]
@@ -160,7 +156,7 @@ export function generateCredentials(
       deny: [newDenyList]
     }
   }
-  return [newCredentials]
+  return newCredentials
 }
 
 export async function transformPublishFormToDdo(
@@ -312,7 +308,6 @@ export async function transformPublishFormToDdo(
   }
 
   const newCredentials = generateCredentials(undefined, values.credentials)
-  console.log(newCredentials)
 
   const newDdo: any = {
     '@context': ['https://w3id.org/did/v1'],

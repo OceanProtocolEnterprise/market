@@ -15,30 +15,20 @@ export const defaultServiceComputeOptions: Compute = {
   publisherTrustedAlgorithms: []
 }
 
-function generateCredentials(credentials: Credential[]): CredentialForm {
+function generateCredentials(credentials: Credential): CredentialForm {
   if (appConfig.ssiEnabled) {
-    credentials.forEach((credential) => {
-      if (!isCredentialAddressBased(credential)) {
-        newAllowAddresses = [...newAllowAddresses, ...allowCredential.values]
-      }
-    })
-    newAllowAddresses = Array.from(new Set(newAllowAddresses))
-    newDenyAddresses = Array.from(new Set(newDenyAddresses))
-  }
   } else {
     let newAllowAddresses = []
     let newDenyAddresses = []
-    credentials.forEach((credential) => {
-      credential.allow?.forEach((allowCredential) => {
-        if (isCredentialAddressBased(allowCredential)) {
-          newAllowAddresses = [...newAllowAddresses, ...allowCredential.values]
-        }
-      })
-      credential.deny?.forEach((denyCredential) => {
-        if (isCredentialAddressBased(denyCredential)) {
-          newDenyAddresses = [...newDenyAddresses, ...denyCredential.values]
-        }
-      })
+    credentials.allow?.forEach((allowCredential) => {
+      if (isCredentialAddressBased(allowCredential)) {
+        newAllowAddresses = [...newAllowAddresses, ...allowCredential.values]
+      }
+    })
+    credentials.deny?.forEach((denyCredential) => {
+      if (isCredentialAddressBased(denyCredential)) {
+        newDenyAddresses = [...newDenyAddresses, ...denyCredential.values]
+      }
     })
     newAllowAddresses = Array.from(new Set(newAllowAddresses))
     newDenyAddresses = Array.from(new Set(newDenyAddresses))
@@ -52,7 +42,7 @@ function generateCredentials(credentials: Credential[]): CredentialForm {
 
 export function getInitialValues(
   metadata: Metadata,
-  credentials: Credential[],
+  credentials: Credential,
   assetState: string
 ): MetadataEditForm {
   const useRemoteLicense =
@@ -89,7 +79,14 @@ export function getInitialValues(
     consumerParameters: parseConsumerParameters(
       metadata?.algorithm?.consumerParameters
     ),
-    credentials: [],
+    credentials: {
+      allow: [],
+      deny: [],
+      customPolicies: [],
+      requestCredentials: [],
+      vcPolicies: [],
+      vpPolicies: []
+    },
     assetState,
     licenseUrl: !useRemoteLicense ? [fileInfo] : undefined,
     uploadedLicense: useRemoteLicense ? metadata.license : undefined,
@@ -135,7 +132,14 @@ export const getNewServiceInitialValues = (
     timeout: '1 day',
     usesConsumerParameters: false,
     consumerParameters: [],
-    credentials: [],
+    credentials: {
+      allow: [],
+      deny: [],
+      customPolicies: [],
+      requestCredentials: [],
+      vcPolicies: [],
+      vpPolicies: []
+    },
     ...computeSettings
   }
 }
@@ -148,23 +152,31 @@ export const getServiceInitialValues = (
     service.compute || defaultServiceComputeOptions
   )
 
-  let allowAdresses = []
-  let denyAddresses = []
-  if (service.credentials) {
-    service.credentials.forEach((credential) => {
-      credential.allow?.forEach((allowCredential) => {
-        if (isCredentialAddressBased(allowCredential)) {
-          allowAdresses = [...allowAdresses, ...allowCredential.values]
-        }
-      })
-      credential.deny?.forEach((denyCredential) => {
-        if (isCredentialAddressBased(denyCredential)) {
-          denyAddresses = [...denyAddresses, ...denyCredential.values]
-        }
-      })
+  const newCredentials = {
+    allow: [],
+    deny: [],
+    customPolicies: [],
+    requestCredentials: [],
+    vcPolicies: [],
+    vpPolicies: []
+  }
+  if (!appConfig.ssiEnabled && service.credentials) {
+    service.credentials.allow?.forEach((allowCredential) => {
+      if (isCredentialAddressBased(allowCredential)) {
+        newCredentials.allow = [
+          ...newCredentials.allow,
+          ...allowCredential.values
+        ]
+      }
     })
-    allowAdresses = Array.from(new Set(allowAdresses))
-    denyAddresses = Array.from(new Set(denyAddresses))
+    service.credentials.deny?.forEach((denyCredential) => {
+      if (isCredentialAddressBased(denyCredential)) {
+        newCredentials.deny = [...newCredentials.deny, ...denyCredential.values]
+      }
+    })
+    newCredentials.allow = Array.from(new Set(newCredentials.allow))
+    newCredentials.deny = Array.from(new Set(newCredentials.deny))
+  } else if (appConfig.ssiEnabled && service.credentials) {
   }
 
   return {
@@ -184,12 +196,7 @@ export const getServiceInitialValues = (
       ? Object.assign(service.consumerParameters).length > 0
       : undefined,
     consumerParameters: parseConsumerParameters(service.consumerParameters),
-    credentials: [
-      {
-        allow: allowAdresses,
-        deny: denyAddresses
-      }
-    ],
+    credentials: newCredentials,
     ...computeSettings
   }
 }

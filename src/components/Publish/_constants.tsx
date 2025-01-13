@@ -92,16 +92,14 @@ export const initialValues: FormPublishData = {
       computeOptions,
       usesConsumerParameters: false,
       consumerParameters: [],
-      credentials: [
-        {
-          allow: [],
-          deny: [],
-          customPolicies: [],
-          requestCredentials: [],
-          vcPolicies: [],
-          vpPolicies: []
-        }
-      ]
+      credentials: {
+        allow: [],
+        deny: [],
+        customPolicies: [],
+        requestCredentials: [],
+        vcPolicies: [],
+        vpPolicies: []
+      }
     }
   ],
   pricing: {

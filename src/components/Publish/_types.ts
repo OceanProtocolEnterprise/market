@@ -17,7 +17,7 @@ export interface FormPublishService {
   computeOptions?: Compute
   usesConsumerParameters?: boolean
   consumerParameters?: FormConsumerParameter[]
-  credentials: CredentialForm[]
+  credentials: CredentialForm
 }
 
 export interface FormAdditionalDdo {

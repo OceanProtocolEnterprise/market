@@ -38,7 +38,7 @@ export interface Service {
   consumerParameters?: Record<string, string | number | boolean | Option[]>[]
   additionalInformation?: Record<string, string | number | boolean>
   state: State
-  credentials: Credential[]
+  credentials: Credential
   // Required if type asset
   dataSchema?: RemoteObject
   // Required if type algorithm

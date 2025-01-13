@@ -180,7 +180,7 @@ export default function AssetActions({
     if (!asset || !accountId) return
 
     setIsAccountIdWhitelisted(isAddressWhitelisted(asset, accountId, service))
-  }, [accountId, asset, service])
+  }, [accountId, asset])
 
   return (
     <>

@@ -8,7 +8,7 @@ export interface CredentialSubject {
   id: string
   metadata: Metadata
   services: Service[]
-  credentials: Credential[]
+  credentials: Credential
   chainId: number
   nftAddress: string
   event?: Event

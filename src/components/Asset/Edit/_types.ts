@@ -12,7 +12,7 @@ export interface MetadataEditForm {
   tags?: string[]
   usesConsumerParameters?: boolean
   consumerParameters?: FormConsumerParameter[]
-  credentials: CredentialForm[]
+  credentials: CredentialForm
   assetState?: string
   license?: License
   useRemoteLicense: boolean
@@ -31,7 +31,7 @@ export interface ServiceEditForm {
   timeout: string
   usesConsumerParameters: boolean
   consumerParameters: FormConsumerParameter[]
-  credentials: CredentialForm[]
+  credentials: CredentialForm
   // compute
   allowAllPublishedAlgorithms: boolean
   publisherTrustedAlgorithms: string[]

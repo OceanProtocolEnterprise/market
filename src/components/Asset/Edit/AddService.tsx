@@ -45,6 +45,7 @@ import { getOceanConfig } from '@utils/ocean'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { State } from 'src/@types/ddo/State'
+import { Credential } from 'src/@types/ddo/Credentials'
 
 export default function AddService({
   asset
@@ -308,7 +309,10 @@ export default function AddService({
                       asset.credentialSubject?.services[0].serviceEndpoint,
                     timeout: 0,
                     consumerParameters: [],
-                    credentials: [],
+                    credentials: {
+                      allow: [],
+                      deny: []
+                    },
                     state: State.Active
                   }}
                 />

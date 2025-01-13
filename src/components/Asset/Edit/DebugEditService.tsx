@@ -59,7 +59,7 @@ export default function DebugEditService({
         LoggerInstance.error('Error encrypting files:', error.message)
       }
 
-      const credentials: Credential[] = generateCredentials(
+      const credentials: Credential = generateCredentials(
         service.credentials,
         values.credentials
       )
