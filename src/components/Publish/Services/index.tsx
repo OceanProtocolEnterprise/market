@@ -1,6 +1,6 @@
 import Input from '@shared/FormInput'
 import { Field, useFormikContext } from 'formik'
-import { ReactElement, useEffect } from 'react'
+import { ReactElement, useEffect, useState } from 'react'
 import IconDownload from '@images/download.svg'
 import IconCompute from '@images/compute.svg'
 import content from '../../../../content/publish/form.json'
@@ -19,6 +19,7 @@ import { sha256 } from 'ohash'
 import { License } from 'src/@types/ddo/License'
 import { IpfsRemoteSource } from '@components/@shared/IpfsRemoteSource'
 import { PolicyEditor } from '@components/@shared/PolicyEditor'
+import { getDefaultPolicies } from '../_utils'
 
 const accessTypeOptionsTitles = getFieldContent(
   'access',
@@ -27,6 +28,7 @@ const accessTypeOptionsTitles = getFieldContent(
 
 export default function ServicesFields(): ReactElement {
   const { appConfig } = useMarketMetadata()
+  const [defaultPolicies, setDefaultPolicies] = useState<string[]>([])
 
   // connect with Form state, use for conditional field rendering
   const { values, setFieldValue } = useFormikContext<FormPublishData>()
@@ -67,6 +69,19 @@ export default function ServicesFields(): ReactElement {
       values.services[0].algorithmPrivacy === true ? 'compute' : 'access'
     )
   }, [values.services[0].algorithmPrivacy, setFieldValue])
+
+  useEffect(() => {
+    if (appConfig.ssiEnabled) {
+      getDefaultPolicies()
+        .then((policies) => {
+          setFieldValue('services[0].credentials.vcPolicies', policies)
+          setDefaultPolicies(policies)
+        })
+        .catch((error) => {
+          console.error(error)
+        })
+    }
+  }, [])
 
   function handleLicenseFileUpload(
     fileItems: FileItem[],
@@ -189,6 +204,7 @@ export default function ServicesFields(): ReactElement {
             setFieldValue('services[0].credentials', newCredentials)
           }
           name="services[0].credentials"
+          defaultPolicies={defaultPolicies}
         />
       ) : (
         <>

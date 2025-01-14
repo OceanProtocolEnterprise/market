@@ -47,10 +47,17 @@ export interface PolicyEditorProps {
   setCredentials: (CredentialForm) => void
   label: string
   name: string
+  defaultPolicies?: string[]
 }
 
 export function PolicyEditor(props): ReactElement {
-  const { credentials, setCredentials, name, label }: PolicyEditorProps = props
+  const {
+    credentials,
+    setCredentials,
+    name,
+    label,
+    defaultPolicies = []
+  }: PolicyEditorProps = props
 
   function handleNewRequestPolicy() {
     credentials?.requestCredentials?.push('')
@@ -131,7 +138,7 @@ export function PolicyEditor(props): ReactElement {
           <Button
             type="button"
             style="primary"
-            className={`${styles.marginBottom10px} ${styles.marginTop30px}`}
+            className={`${styles.marginBottom20px} ${styles.marginTop30px}`}
             onClick={handleNewCustomPolicy}
           >
             New Policy
@@ -162,7 +169,7 @@ export function PolicyEditor(props): ReactElement {
           <Button
             type="button"
             style="primary"
-            className={`${styles.marginBottom10px} ${styles.marginTop30px}`}
+            className={`${styles.marginBottom20px} ${styles.marginTop30px}`}
             onClick={handleNewVcPolicy}
           >
             New VC Policy
@@ -175,10 +182,18 @@ export function PolicyEditor(props): ReactElement {
                 {...getFieldContent('vcPolicy', fields)}
                 component={Input}
                 name={`${name}.vcPolicies[${index}]`}
+                readOnly={
+                  defaultPolicies.includes(credentials?.vcPolicies[index]) &&
+                  credentials?.vcPolicies[index]?.length > 0
+                }
               />
               <Button
                 type="button"
                 style="primary"
+                disabled={
+                  defaultPolicies.includes(credentials?.vcPolicies[index]) &&
+                  credentials?.vcPolicies[index]?.length > 0
+                }
                 onClick={() => handleDeleteVcPolicy(index)}
                 className={`${styles.marginTopMinus40px} ${styles.marginBottom20px}`}
               >
@@ -194,7 +209,7 @@ export function PolicyEditor(props): ReactElement {
             style="primary"
             className={
               credentials?.vcPolicies?.length > 0
-                ? `${styles.marginBottom10px} ${styles.marginTop30px}`
+                ? `${styles.marginBottom20px} ${styles.marginTop30px}`
                 : `${styles.marginTop30px}`
             }
             onClick={handleNewVpPolicy}

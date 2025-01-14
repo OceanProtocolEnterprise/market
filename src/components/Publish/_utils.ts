@@ -57,6 +57,13 @@ import base64url from 'base64url'
 import appConfig from 'app.config'
 import { CredentialForm } from '@components/@shared/PolicyEditor'
 
+export async function getDefaultPolicies(): Promise<string[]> {
+  const response = await fetch(appConfig.ssiDefaultPolicyUrl)
+  const data = await response.text()
+  const policies = data.split(/\r?\n/).filter((value) => value?.length > 0)
+  return policies
+}
+
 function getUrlFileExtension(fileUrl: string): string {
   const splittedFileUrl = fileUrl.split('.')
   return splittedFileUrl[splittedFileUrl.length - 1]

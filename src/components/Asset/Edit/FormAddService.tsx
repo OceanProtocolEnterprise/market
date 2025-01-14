@@ -1,4 +1,4 @@
-import { ReactElement } from 'react'
+import { ReactElement, useEffect, useState } from 'react'
 import { Field, Form, useFormikContext } from 'formik'
 import Input from '@shared/FormInput'
 import FormActions from './FormActions'
@@ -12,6 +12,7 @@ import { defaultServiceComputeOptions } from './_constants'
 import styles from './index.module.css'
 import { PolicyEditor } from '@components/@shared/PolicyEditor'
 import appConfig from 'app.config'
+import { getDefaultPolicies } from '@components/Publish/_utils'
 
 export default function FormAddService({
   data,
@@ -21,6 +22,7 @@ export default function FormAddService({
   chainId: number
 }): ReactElement {
   const { values, setFieldValue } = useFormikContext<ServiceEditForm>()
+  const [defaultPolicies, setDefaultPolicies] = useState<string[]>([])
 
   const accessTypeOptionsTitles = getFieldContent('access', data).options
 
@@ -42,6 +44,19 @@ export default function FormAddService({
       checked: values.access === 'compute'
     }
   ]
+
+  useEffect(() => {
+    if (appConfig.ssiEnabled) {
+      getDefaultPolicies()
+        .then((policies) => {
+          setFieldValue('credentials.vcPolicies', policies)
+          setDefaultPolicies(policies)
+        })
+        .catch((error) => {
+          console.error(error)
+        })
+    }
+  }, [])
 
   return (
     <Form className={styles.form}>
@@ -109,6 +124,7 @@ export default function FormAddService({
             setFieldValue('credentials', newCredentials)
           }
           name="credentials"
+          defaultPolicies={defaultPolicies}
         />
       ) : (
         <>
