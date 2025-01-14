@@ -110,7 +110,7 @@ export function PolicyEditor(props): ReactElement {
             className={styles.marginBottom10px}
             onClick={handleNewRequestPolicy}
           >
-            New Request Policy
+            New {fields[0].label}
           </Button>
 
           {credentials?.requestCredentials?.map((rule, index) => (
@@ -141,7 +141,7 @@ export function PolicyEditor(props): ReactElement {
             className={`${styles.marginBottom20px} ${styles.marginTop30px}`}
             onClick={handleNewCustomPolicy}
           >
-            New Policy
+            New {fields[1].label}
           </Button>
 
           {credentials?.customPolicies?.map((rule, index) => (
@@ -172,7 +172,7 @@ export function PolicyEditor(props): ReactElement {
             className={`${styles.marginBottom20px} ${styles.marginTop30px}`}
             onClick={handleNewVcPolicy}
           >
-            New VC Policy
+            New {fields[2].label}
           </Button>
 
           {credentials?.vcPolicies?.map((rule, index) => (
@@ -214,7 +214,7 @@ export function PolicyEditor(props): ReactElement {
             }
             onClick={handleNewVpPolicy}
           >
-            New VC Policy
+            New {fields[3].label}
           </Button>
 
           {credentials?.vpPolicies?.map((rule, index) => (

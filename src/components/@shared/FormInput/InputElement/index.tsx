@@ -18,7 +18,6 @@ import { ConsumerParameters } from './ConsumerParameters'
 import ComputeEnvSelection from './ComputeEnvSelection'
 import Credentials from './Credential'
 import Option from './Radio/Option'
-import PolicyListAutoComplete from './PolicyListAutoComplete'
 
 const cx = classNames.bind(styles)
 
@@ -227,8 +226,6 @@ const InputElement = forwardRef(
         )
       case 'tags':
         return <TagsAutoComplete {...field} {...props} />
-      case 'policyList':
-        return <PolicyListAutoComplete {...field} {...props} />
       case 'credentials':
         return <Credentials {...field} {...props} />
       default:
