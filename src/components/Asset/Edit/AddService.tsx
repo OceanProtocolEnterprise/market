@@ -66,8 +66,6 @@ export default function AddService({
 
   // add new service
   async function handleSubmit(values: ServiceEditForm, resetForm: () => void) {
-    console.log(values)
-
     try {
       if (!isAssetNetwork) {
         setError('Please switch to the correct network.')
