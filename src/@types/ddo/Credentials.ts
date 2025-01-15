@@ -1,6 +1,6 @@
 export interface Credential {
   allow?: (CredentialAddressBased | CredentialPolicyBased)[]
-  deny?: (CredentialAddressBased | CredentialPolicyBased)[]
+  deny?: CredentialAddressBased[]
 }
 
 export interface CredentialAddressBased {
