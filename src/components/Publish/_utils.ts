@@ -121,10 +121,13 @@ export function transformConsumerParameters(
 }
 
 export function generateCredentials(
-  oldCredentials: Credential | undefined,
   updatedCredentials: CredentialForm
 ): Credential {
-  let newCredentials: Credential
+  const newCredentials: Credential = {
+    allow: [],
+    deny: []
+  }
+
   if (appConfig.ssiEnabled) {
     let requestCredentials: RequestCredential[] =
       updatedCredentials?.requestCredentials?.map<RequestCredential>(
@@ -163,26 +166,26 @@ export function generateCredentials(
       vc_policies: updatedCredentials?.vcPolicies,
       vp_policies: vpPolicies
     }
-    newCredentials = {
-      allow: [newAllowList],
-      deny: []
-    }
-  } else {
+
+    newCredentials.allow.push(newAllowList)
+  }
+
+  if (updatedCredentials?.allow?.length > 0) {
     const newAllowList: CredentialAddressBased = {
       type: 'address',
       values: updatedCredentials?.allow
     }
+    newCredentials.allow.push(newAllowList)
+  }
 
+  if (updatedCredentials?.deny?.length > 0) {
     const newDenyList: CredentialAddressBased = {
       type: 'address',
       values: updatedCredentials?.deny
     }
-
-    newCredentials = {
-      allow: [newAllowList],
-      deny: [newDenyList]
-    }
+    newCredentials.deny.push(newDenyList)
   }
+
   return newCredentials
 }
 
@@ -314,7 +317,7 @@ export async function transformPublishFormToDdo(
     files[0].valid &&
     (await getEncryptedFiles(file, chainId, providerUrl.url))
 
-  const newServiceCredentials = generateCredentials(undefined, credentials)
+  const newServiceCredentials = generateCredentials(credentials)
 
   const newService: Service = {
     id: getHash(datatokenAddress + filesEncrypted),
@@ -334,7 +337,7 @@ export async function transformPublishFormToDdo(
     credentials: newServiceCredentials
   }
 
-  const newCredentials = generateCredentials(undefined, values.credentials)
+  const newCredentials = generateCredentials(values.credentials)
 
   const newDdo: any = {
     '@context': ['https://w3id.org/did/v1'],

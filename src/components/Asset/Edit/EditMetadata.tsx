@@ -92,10 +92,7 @@ export default function Edit({
             : transformConsumerParameters(values.consumerParameters)
       }
 
-      const updatedCredentials = generateCredentials(
-        asset?.credentialSubject?.credentials,
-        values?.credentials
-      )
+      const updatedCredentials = generateCredentials(values?.credentials)
 
       const updatedAsset: Asset = {
         ...(asset as Asset),

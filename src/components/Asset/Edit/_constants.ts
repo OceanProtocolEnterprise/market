@@ -19,6 +19,8 @@ export const defaultServiceComputeOptions: Compute = {
 }
 
 function generateCredentials(credentials: Credential): CredentialForm {
+  const credentialForm: CredentialForm = {}
+
   if (appConfig.ssiEnabled) {
     let customPolicies = []
     let requestCredentials = []
@@ -44,33 +46,31 @@ function generateCredentials(credentials: Credential): CredentialForm {
       }
     })
 
-    return {
-      requestCredentials,
-      customPolicies,
-      vcPolicies,
-      vpPolicies
-    }
-  } else {
-    let newAllowAddresses = []
-    let newDenyAddresses = []
-    credentials.allow?.forEach((allowCredential) => {
-      if (isCredentialAddressBased(allowCredential)) {
-        newAllowAddresses = [...newAllowAddresses, ...allowCredential.values]
-      }
-    })
-    credentials.deny?.forEach((denyCredential) => {
-      if (isCredentialAddressBased(denyCredential)) {
-        newDenyAddresses = [...newDenyAddresses, ...denyCredential.values]
-      }
-    })
-    newAllowAddresses = Array.from(new Set(newAllowAddresses))
-    newDenyAddresses = Array.from(new Set(newDenyAddresses))
-
-    return {
-      allow: newAllowAddresses,
-      deny: newDenyAddresses
-    }
+    credentialForm.requestCredentials = requestCredentials
+    credentialForm.customPolicies = customPolicies
+    credentialForm.vcPolicies = vcPolicies
+    credentialForm.vpPolicies = vpPolicies
   }
+
+  let allowAddresses = []
+  credentials.allow?.forEach((allowCredential) => {
+    if (isCredentialAddressBased(allowCredential)) {
+      allowAddresses = [...allowAddresses, ...allowCredential.values]
+    }
+  })
+  allowAddresses = Array.from(new Set(allowAddresses))
+  credentialForm.allow = allowAddresses
+
+  let denyAddresses = []
+  credentials.deny?.forEach((denyCredential) => {
+    if (isCredentialAddressBased(denyCredential)) {
+      denyAddresses = [...denyAddresses, ...denyCredential.values]
+    }
+  })
+  denyAddresses = Array.from(new Set(denyAddresses))
+  credentialForm.deny = denyAddresses
+
+  return credentialForm
 }
 
 export function getInitialValues(

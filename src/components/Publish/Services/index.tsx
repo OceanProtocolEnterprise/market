@@ -207,19 +207,19 @@ export default function ServicesFields(): ReactElement {
           defaultPolicies={defaultPolicies}
         />
       ) : (
-        <>
-          <Field
-            {...getFieldContent('allow', content.credentials.fields)}
-            component={Input}
-            name="services[0].credentials.allow"
-          />
-          <Field
-            {...getFieldContent('deny', content.credentials.fields)}
-            component={Input}
-            name="services[0].credentials.deny"
-          />
-        </>
+        <></>
       )}
+
+      <Field
+        {...getFieldContent('allow', content.credentials.fields)}
+        component={Input}
+        name="services[0].credentials.allow"
+      />
+      <Field
+        {...getFieldContent('deny', content.credentials.fields)}
+        component={Input}
+        name="services[0].credentials.deny"
+      />
 
       <Field
         {...getFieldContent('usesConsumerParameters', content.services.fields)}
