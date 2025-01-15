@@ -11,6 +11,7 @@ import {
   FileInfo,
   GraphqlQuery,
   Ipfs,
+  LoggerInstance,
   Smartcontract,
   UrlFile
 } from '@oceanprotocol/lib'
@@ -223,7 +224,17 @@ export function isAddressWhitelisted(
   accountId: string,
   service?: Service
 ): boolean {
-  if (!ddo || !ddo?.credentialSubject || !accountId) return false
+  if (!ddo || !accountId) return false
+
+  if (!ddo.credentialSubject.credentials) {
+    LoggerInstance.error('The asset has no credentials property')
+    return false
+  }
+
+  if (service && !service.credentials) {
+    LoggerInstance.error('The selected service has no credentials property')
+    return false
+  }
 
   // All addresses can access
   const { credentials } = ddo.credentialSubject
