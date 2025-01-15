@@ -2,8 +2,12 @@
   margin-bottom: calc(var(--spacer) / 1.5);
 }
 
+.deleteButton {
+  height: max-content;
+}
+
 .editorPanel {
-  margin-bottom: 40px;
+  margin-bottom: 4em;
   display: flex;
   flex-direction: column;
   background: var(--box-template-background);
@@ -21,23 +25,23 @@
 }
 
 .panel {
-  margin-bottom: 20px;
+  margin-bottom: 2em;
   display: flex;
   flex-direction: column;
 }
 
-.marginTopMinus40px {
-  margin-top: -40px;
+.marginBottomZero {
+  margin-bottom: 0 !important;
 }
 
-.marginTop30px {
-  margin-top: 30px;
+.marginTopMinus3em {
+  margin-top: -3em;
 }
 
-.marginBottom20px {
-  margin-bottom: 20px;
+.marginTop1em {
+  margin-top: 1em;
 }
 
-.marginBottom20px {
-  margin-bottom: 20px;
+.marginBottom1em {
+  margin-bottom: 1em;
 }

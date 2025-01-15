@@ -107,16 +107,15 @@ export function PolicyEditor(props): ReactElement {
           <Button
             type="button"
             style="primary"
-            className={styles.marginBottom10px}
+            className={styles.marginBottom1em}
             onClick={handleNewRequestPolicy}
           >
             New {fields[0].label}
           </Button>
 
           {credentials?.requestCredentials?.map((rule, index) => (
-            <>
+            <div key={index} className={styles.panel}>
               <Field
-                key={index}
                 {...getFieldContent('requestPolicy', fields)}
                 component={Input}
                 name={`${name}.requestCredentials[${index}]`}
@@ -126,11 +125,11 @@ export function PolicyEditor(props): ReactElement {
                 type="button"
                 style="primary"
                 onClick={() => handleDeleteRequestPolicy(index)}
-                className={`${styles.marginTopMinus40px} ${styles.marginBottom20px}`}
+                className={`${styles.marginTopMinus3em}`}
               >
                 Delete
               </Button>
-            </>
+            </div>
           ))}
         </div>
 
@@ -138,16 +137,15 @@ export function PolicyEditor(props): ReactElement {
           <Button
             type="button"
             style="primary"
-            className={`${styles.marginBottom20px} ${styles.marginTop30px}`}
+            className={`${styles.marginBottom1em} ${styles.marginTop1em}`}
             onClick={handleNewCustomPolicy}
           >
             New {fields[1].label}
           </Button>
 
           {credentials?.customPolicies?.map((rule, index) => (
-            <>
+            <div key={index} className={styles.panel}>
               <Field
-                key={index}
                 {...getFieldContent('customPolicy', fields)}
                 component={Input}
                 name={`${name}.customPolicies[${index}]`}
@@ -157,11 +155,11 @@ export function PolicyEditor(props): ReactElement {
                 type="button"
                 style="primary"
                 onClick={() => handleDeleteCustomPolicy(index)}
-                className={`${styles.marginTopMinus40px} ${styles.marginBottom20px}`}
+                className={`${styles.marginTopMinus3em}`}
               >
                 Delete
               </Button>
-            </>
+            </div>
           ))}
         </div>
 
@@ -169,14 +167,14 @@ export function PolicyEditor(props): ReactElement {
           <Button
             type="button"
             style="primary"
-            className={`${styles.marginBottom20px} ${styles.marginTop30px}`}
+            className={`${styles.marginBottom1em} ${styles.marginTop1em}`}
             onClick={handleNewVcPolicy}
           >
             New {fields[2].label}
           </Button>
 
           {credentials?.vcPolicies?.map((rule, index) => (
-            <>
+            <div key={index} className={styles.panel}>
               <Field
                 key={index}
                 {...getFieldContent('vcPolicy', fields)}
@@ -195,22 +193,22 @@ export function PolicyEditor(props): ReactElement {
                   credentials?.vcPolicies[index]?.length > 0
                 }
                 onClick={() => handleDeleteVcPolicy(index)}
-                className={`${styles.marginTopMinus40px} ${styles.marginBottom20px}`}
+                className={`${styles.marginTopMinus3em}`}
               >
                 Delete
               </Button>
-            </>
+            </div>
           ))}
         </div>
 
-        <div className={styles.panel}>
+        <div className={`${styles.panel} ${styles.marginBottomZero}`}>
           <Button
             type="button"
             style="primary"
             className={
               credentials?.vcPolicies?.length > 0
-                ? `${styles.marginBottom20px} ${styles.marginTop30px}`
-                : `${styles.marginTop30px}`
+                ? `${styles.marginBottom1em} ${styles.marginTop1em}`
+                : `${styles.marginTop1em}`
             }
             onClick={handleNewVpPolicy}
           >
@@ -218,9 +216,8 @@ export function PolicyEditor(props): ReactElement {
           </Button>
 
           {credentials?.vpPolicies?.map((rule, index) => (
-            <>
+            <div key={index} className={styles.panel}>
               <Field
-                key={index}
                 {...getFieldContent('vpPolicy', fields)}
                 component={Input}
                 name={`${name}.vpPolicies[${index}]`}
@@ -230,11 +227,11 @@ export function PolicyEditor(props): ReactElement {
                 type="button"
                 style="primary"
                 onClick={() => handleDeleteVpPolicy(index)}
-                className={`${styles.marginTopMinus40px} ${styles.marginBottom20px}`}
+                className={`${styles.marginTopMinus3em}`}
               >
                 Delete
               </Button>
-            </>
+            </div>
           ))}
         </div>
       </div>
