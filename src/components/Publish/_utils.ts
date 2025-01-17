@@ -55,7 +55,11 @@ import { License } from 'src/@types/ddo/License'
 import { JWTHeaderParameters, JWTPayload } from 'jose'
 import base64url from 'base64url'
 import appConfig from 'app.config'
-import { CredentialForm } from '@components/@shared/PolicyEditor'
+import {
+  CredentialForm,
+  ParameterizedPolicyForm,
+  PolicyType
+} from '@components/@shared/PolicyEditor/types'
 
 export async function getDefaultPolicies(): Promise<string[]> {
   const response = await fetch(appConfig.ssiDefaultPolicyUrl)
@@ -120,6 +124,24 @@ export function transformConsumerParameters(
   return transformedValues
 }
 
+export function generateSsiPolicy(policy: PolicyType): string {
+  let policyString = ''
+  switch (policy.type) {
+    case 'staticPolicy':
+      policyString = policy.name
+      break
+
+    default:
+      {
+        const item = { ...policy }
+        delete item.type
+        policyString = JSON.stringify(item)
+      }
+      break
+  }
+  return policyString
+}
+
 export function generateCredentials(
   updatedCredentials: CredentialForm
 ): Credential {
@@ -129,26 +151,19 @@ export function generateCredentials(
   }
 
   if (appConfig.ssiEnabled) {
-    let requestCredentials: RequestCredential[] =
+    const requestCredentials: RequestCredential[] =
       updatedCredentials?.requestCredentials?.map<RequestCredential>(
         (credential) => {
-          try {
-            const requstCredential: RequestCredential = JSON.parse(
-              credential.data
-            )
-            if (credential?.policies?.length > 0) {
-              requstCredential.policies = credential.policies
-            }
-            return requstCredential
-          } catch (error) {
-            LoggerInstance.log(
-              `Could not parse request credential: ${credential}`
-            )
-            return undefined
+          const policies: string[] = credential?.policies?.map((policy) =>
+            generateSsiPolicy(policy)
+          )
+          return {
+            format: credential.format,
+            policies,
+            type: credential.type
           }
         }
       )
-    requestCredentials = requestCredentials.filter((credentials) => credentials)
 
     const vpPolicies: VP[] = updatedCredentials?.vpPolicies?.map<VP>(
       (credential) => {
@@ -166,10 +181,14 @@ export function generateCredentials(
     )
 
     const newAllowList: CredentialPolicyBased = {
-      type: 'verifiableCredential',
-      request_credentials: requestCredentials,
-      vc_policies: updatedCredentials?.vcPolicies,
-      vp_policies: vpPolicies
+      type: 'SSIpolicy',
+      values: [
+        {
+          request_credentials: requestCredentials,
+          vc_policies: updatedCredentials?.vcPolicies,
+          vp_policies: vpPolicies
+        }
+      ]
     }
 
     newCredentials.allow.push(newAllowList)

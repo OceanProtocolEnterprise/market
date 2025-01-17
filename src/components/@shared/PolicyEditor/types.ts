@@ -21,10 +21,15 @@ export interface ParameterizedPolicyForm {
   args: string[]
 }
 
+export interface PolicyArgument {
+  name: string
+  value: string
+}
+
 export interface CustomUrlPolicy {
   type: 'customUrlPolicy'
   policyUrl: string
-  arguments: Record<string, string>
+  arguments: PolicyArgument[]
 }
 
 export interface CustomPolicy {
@@ -32,7 +37,7 @@ export interface CustomPolicy {
   name: string
   description: string
   rules: PolicyRule[]
-  arguments: Record<string, string>
+  arguments: PolicyArgument[]
 }
 
 export interface PolicyRule {

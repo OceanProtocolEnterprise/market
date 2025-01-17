@@ -3,8 +3,8 @@
 }
 
 .deleteButton {
-  height: min-content;
-  margin-bottom: 1em;
+  height: 43px;
+  max-width: max-content;
 }
 
 .editorPanel {
@@ -14,11 +14,18 @@
   border-radius: var(--box-template-border-radius);
   border: var(--box-template-border-size) solid var(--box-template-border-color);
   box-shadow: var(--box-template-box-shadow);
-  padding: calc(var(--spacer) / 1.5);
+  padding-left: calc(var(--spacer) / 1.5);
+  padding-right: calc(var(--spacer) / 1.5);
+  padding-top: calc(var(--spacer) / 1.5);
+  padding-bottom: 0;
 }
 
 .paddingLeft3em {
   padding-left: 3em;
+}
+
+.item:nth-child(2n + 1) {
+  background-color: var(--background-highlight);
 }
 
 .editorLabel {
@@ -28,7 +35,7 @@
   line-height: 1.2;
 }
 
-.panel {
+.panelColumn {
   display: flex;
   flex-direction: column;
 }
@@ -36,7 +43,18 @@
 .panelRow {
   display: flex;
   flex-wrap: wrap;
+}
+
+.alignItemsBaseline {
   align-items: baseline;
+}
+
+.alignItemsEnd {
+  align-items: end;
+}
+
+.alignItemsEnd {
+  align-items: center;
 }
 
 .marginBottomZero {
@@ -71,6 +89,14 @@
   margin-bottom: 2em;
 }
 
+.marginLeftAuto {
+  margin-left: auto;
+}
+
+.marginRight0 {
+  margin-right: 0;
+}
+
 .space {
   margin-left: 0.5em;
 }
@@ -79,10 +105,46 @@
   justify-content: space-between;
 }
 
+.justifyContentSpaceEvenly {
+  justify-content: space-evenly;
+}
+
+.justifyContentSpaceAround {
+  justify-content: space-around;
+}
+
 .alignItemsBaseline {
   align-items: baseline;
 }
 
 .width100 {
   width: 100%;
+}
+
+.width50 {
+  width: 50%;
+}
+
+.widthAuto {
+  width: auto;
+}
+
+.paddingLeft1em {
+  padding-left: 1em;
+}
+
+.paddingTop1em {
+  padding-top: 1em;
+}
+
+.paddingBottom1em {
+  padding-bottom: 1em;
+}
+
+.paddingRight1em {
+  padding-right: 1em;
+}
+
+.marginBottomButton {
+  margin-bottom: calc(var(--spacer) / 1.3);
 }

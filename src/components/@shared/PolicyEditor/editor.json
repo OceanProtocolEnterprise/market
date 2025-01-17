@@ -1,7 +1,54 @@
 [
   {
+    "name": "didIssuer",
+    "label": "DID Issuer",
+    "type": "text"
+  },
+  {
+    "name": "policyUrl",
+    "label": "Policy URL",
+    "type": "text",
+    "placeholder": "https://files.com/policy.json"
+  },
+  {
+    "name": "leftValue",
+    "label": "Left Value",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "operator",
+    "label": "Operator",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "rightValue",
+    "label": "Right Value",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
     "name": "name",
     "label": "Name",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "rule",
+    "label": "Rule",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "description",
+    "label": "description",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "value",
+    "label": "Value",
     "type": "text",
     "placeholder": ""
   },
@@ -12,9 +59,9 @@
     "placeholder": "Example:\n{\n\t\"type\": \"OpenBadgeCredential\",\n\t\"format\": \"jwt_vc_json\"\n\t\"policies\": [\"signature\"]\n}"
   },
   {
-    "name": "arguments",
-    "label": "Arguments",
-    "type": "tags",
+    "name": "argument",
+    "label": "Argument",
+    "type": "text",
     "placeholder": ""
   },
   {

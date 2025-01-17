@@ -1,4 +1,4 @@
-import { CredentialForm } from '@components/@shared/PolicyEditor'
+import { CredentialForm } from '@components/@shared/PolicyEditor/types'
 import { FileInfo } from '@oceanprotocol/lib'
 import { NftMetadata } from '@utils/nft'
 import { ReactElement } from 'react'

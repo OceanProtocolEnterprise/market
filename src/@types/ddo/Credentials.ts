@@ -9,7 +9,11 @@ export interface CredentialAddressBased {
 }
 
 export interface CredentialPolicyBased {
-  type: 'verifiableCredential'
+  type: 'SSIpolicy'
+  values: PolicyValue[]
+}
+
+export interface PolicyValue {
   request_credentials: RequestCredential[]
   vp_policies: VP[]
   vc_policies: VC[]
@@ -30,5 +34,11 @@ export interface RequestCredential {
 }
 
 export function isVpType(data: any): data is VP {
-  return 'policy' in data && 'args' in data
+  return (
+    data &&
+    'policy' in data &&
+    data.policy === 'string' &&
+    'args' in data &&
+    data.args === 'number'
+  )
 }
