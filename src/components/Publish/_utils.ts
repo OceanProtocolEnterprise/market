@@ -133,7 +133,13 @@ export function generateCredentials(
       updatedCredentials?.requestCredentials?.map<RequestCredential>(
         (credential) => {
           try {
-            return JSON.parse(credential)
+            const requstCredential: RequestCredential = JSON.parse(
+              credential.data
+            )
+            if (credential?.policies?.length > 0) {
+              requstCredential.policies = credential.policies
+            }
+            return requstCredential
           } catch (error) {
             LoggerInstance.log(
               `Could not parse request credential: ${credential}`
@@ -161,7 +167,6 @@ export function generateCredentials(
 
     const newAllowList: CredentialPolicyBased = {
       type: 'verifiableCredential',
-      custom_policies: updatedCredentials?.customPolicies,
       request_credentials: requestCredentials,
       vc_policies: updatedCredentials?.vcPolicies,
       vp_policies: vpPolicies

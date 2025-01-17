@@ -1,0 +1,110 @@
+[
+  {
+    "name": "name",
+    "label": "Name",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "requestCredential",
+    "label": "Request Credential",
+    "type": "textarea",
+    "placeholder": "Example:\n{\n\t\"type\": \"OpenBadgeCredential\",\n\t\"format\": \"jwt_vc_json\"\n\t\"policies\": [\"signature\"]\n}"
+  },
+  {
+    "name": "arguments",
+    "label": "Arguments",
+    "type": "tags",
+    "placeholder": ""
+  },
+  {
+    "name": "policy",
+    "label": "Policy",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "newPolicy",
+    "label": "New Policy",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "static",
+    "label": "static",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "parameterized",
+    "label": "Parameterized",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "custom",
+    "label": "Custom",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "customUrl",
+    "label": "Custom Url",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "custom",
+    "label": "Custom",
+    "type": "text",
+    "placeholder": "Example: input.credentials.password.placeOfBirth=\"Paris\""
+  },
+  {
+    "name": "staticPolicy",
+    "label": "Static Policy",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "parameterizedPolicy",
+    "label": "Parameterized Policy",
+    "type": "tags",
+    "placeholder": ""
+  },
+  {
+    "name": "customUrlPolicy",
+    "label": "Custom URL Policy",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "customPolicy",
+    "label": "Custom Policy",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "vpPolicy",
+    "label": "VP Policy",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "defaultStaticPolicy",
+    "label": "Default Static Policy",
+    "type": "text",
+    "placeholder": ""
+  },
+  {
+    "name": "format",
+    "label": "Format",
+    "type": "text",
+    "placeholder": "Example: jwt_vc_json"
+  },
+  {
+    "name": "type",
+    "label": "Type",
+    "type": "text",
+    "placeholder": "Example: VerifiableId"
+  }
+]

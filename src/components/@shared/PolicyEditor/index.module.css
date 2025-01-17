@@ -3,11 +3,11 @@
 }
 
 .deleteButton {
-  height: max-content;
+  height: min-content;
+  margin-bottom: 1em;
 }
 
 .editorPanel {
-  margin-bottom: 4em;
   display: flex;
   flex-direction: column;
   background: var(--box-template-background);
@@ -15,6 +15,10 @@
   border: var(--box-template-border-size) solid var(--box-template-border-color);
   box-shadow: var(--box-template-box-shadow);
   padding: calc(var(--spacer) / 1.5);
+}
+
+.paddingLeft3em {
+  padding-left: 3em;
 }
 
 .editorLabel {
@@ -25,13 +29,26 @@
 }
 
 .panel {
-  margin-bottom: 2em;
   display: flex;
   flex-direction: column;
 }
 
+.panelRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
 .marginBottomZero {
   margin-bottom: 0 !important;
+}
+
+.marginBottom4em {
+  margin-bottom: 4em;
+}
+
+.marginTopMinus2em {
+  margin-top: -2em;
 }
 
 .marginTopMinus3em {
@@ -42,6 +59,30 @@
   margin-top: 1em;
 }
 
+.marginTop2em {
+  margin-top: 2em;
+}
+
 .marginBottom1em {
   margin-bottom: 1em;
+}
+
+.marginBottom2em {
+  margin-bottom: 2em;
+}
+
+.space {
+  margin-left: 0.5em;
+}
+
+.justifyContentSpaceBetween {
+  justify-content: space-between;
+}
+
+.alignItemsBaseline {
+  align-items: baseline;
+}
+
+.width100 {
+  width: 100%;
 }

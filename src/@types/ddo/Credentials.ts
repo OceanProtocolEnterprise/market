@@ -13,7 +13,6 @@ export interface CredentialPolicyBased {
   request_credentials: RequestCredential[]
   vp_policies: VP[]
   vc_policies: VC[]
-  custom_policies: string[]
 }
 
 export interface VPValue {
