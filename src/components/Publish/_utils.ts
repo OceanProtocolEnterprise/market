@@ -327,43 +327,6 @@ export interface IpfsUpload {
   metadataIPFSHash: string
 }
 
-async function createJwtAndSign(
-  verifiableCredential: VerifiableCredential,
-  owner: Signer
-): Promise<string> {
-  const header: JWTHeaderParameters = {
-    alg: 'ES256'
-  }
-  const headerString = JSON.stringify(header)
-  const headerBase64 = Buffer.from(JSON.stringify(headerString)).toString(
-    'base64'
-  )
-
-  const payload: JWTPayload = {
-    verifiableCredential,
-    iss: `did:oe:${await owner.getAddress()}`
-  }
-  const payloadString = JSON.stringify(payload)
-  const payloadBase64 = base64url(
-    Buffer.from(JSON.stringify(payloadString)).toString('base64')
-  )
-
-  const signature: string = await owner.signMessage(
-    `${headerBase64}.${payloadBase64}`
-  )
-  const signatureBase64 = base64url(
-    Buffer.from(JSON.stringify(signature)).toString('base64')
-  )
-
-  console.log(
-    `${JSON.stringify(headerString)}.${JSON.stringify(
-      payloadString
-    )}.${signature}`
-  )
-
-  return `${headerBase64}.${payloadBase64}.${signatureBase64}`
-}
-
 export async function signAssetAndUploadToIpfs(
   asset: Asset,
   owner: Signer,
@@ -382,8 +345,7 @@ export async function signAssetAndUploadToIpfs(
   delete verifiableCredential.credentialSubject.datatokens
   delete verifiableCredential.credentialSubject.event
 
-  const jwt = await createJwtAndSign(verifiableCredential, owner)
-  console.log(jwt)
+  // todo: sign asset
 
   let encryptedPayload: string
   // eslint-disable-next-line no-constant-condition
