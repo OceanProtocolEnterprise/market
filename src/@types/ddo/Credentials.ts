@@ -30,7 +30,7 @@ export type VP = string | VPValue
 export interface RequestCredential {
   type: string
   format: string
-  policies: string[]
+  policies: any[]
 }
 
 export function isVpType(data: any): data is VP {

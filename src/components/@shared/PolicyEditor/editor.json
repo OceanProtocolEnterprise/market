@@ -19,7 +19,8 @@
   {
     "name": "operator",
     "label": "Operator",
-    "type": "text",
+    "type": "select",
+    "options": ["==", "!=", ">=", "<=", ">", "<"],
     "placeholder": ""
   },
   {

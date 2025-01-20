@@ -57,7 +57,8 @@ import base64url from 'base64url'
 import appConfig from 'app.config'
 import {
   CredentialForm,
-  ParameterizedPolicyForm,
+  PolicyArgument,
+  PolicyRule,
   PolicyType
 } from '@components/@shared/PolicyEditor/types'
 
@@ -124,18 +125,75 @@ export function transformConsumerParameters(
   return transformedValues
 }
 
-export function generateSsiPolicy(policy: PolicyType): string {
-  let policyString = ''
+function generatePolicyArgument(
+  args: PolicyArgument[]
+): Record<string, string> {
+  const argument = {}
+  args.forEach((arg) => {
+    argument[arg.name] = arg.value
+  })
+  return argument
+}
+
+function generateCustomPolicyScript(rules: PolicyRule[]): string {
+  const rulesStrings = []
+  rules.forEach((rule) => {
+    rulesStrings.push(
+      `input.parameter.${rule.leftValue} ${rule.operator} input.credentialData.${rule.rightValue}`
+    )
+  })
+
+  const result = String.raw`package system
+
+  default main = false
+  
+  main {
+    ${rulesStrings.join('\n')}
+  }`
+  return result
+}
+
+function generateSsiPolicy(policy: PolicyType): any {
+  let policyString
   switch (policy.type) {
     case 'staticPolicy':
       policyString = policy.name
       break
 
-    default:
+    case 'parameterizedPolicy':
       {
-        const item = { ...policy }
-        delete item.type
-        policyString = JSON.stringify(item)
+        const item = {
+          policy: policy.policy,
+          args: policy.args.filter((arg) => arg.length > 0)
+        }
+        policyString = item
+      }
+      break
+
+    case 'customUrlPolicy':
+      {
+        const item = {
+          policyUrl: policy.policyUrl,
+          argument: generatePolicyArgument(policy.arguments)
+        }
+        policyString = item
+      }
+      break
+    case 'customPolicy':
+      {
+        const item = {
+          arguments: generatePolicyArgument(policy.arguments),
+          policy: generateCustomPolicyScript(policy.rules),
+          description: policy.description,
+          name: policy.name,
+          input: {},
+          dataPath: '$',
+          policyQuery: 'data.system.main',
+          policyEngine: 'OPA',
+          applyToVC: true,
+          applyToVP: true
+        }
+        policyString = item
       }
       break
   }
