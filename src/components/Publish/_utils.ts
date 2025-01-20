@@ -480,7 +480,8 @@ export async function signAssetAndUploadToIpfs(
   delete verifiableCredential.credentialSubject.datatokens
   delete verifiableCredential.credentialSubject.event
 
-  // todo: sign asset
+  const jwt = await createJwtAndSign(verifiableCredential, owner)
+  console.log(jwt)
 
   let encryptedPayload: string
   // eslint-disable-next-line no-constant-condition
@@ -538,6 +539,24 @@ export async function signAssetAndUploadToIpfs(
     '0x' + createHash('sha256').update(stringDDO).digest('hex')
 
   return { metadataIPFS, flags, metadataIPFSHash }
+}
+
+async function createJwtAndSign(
+  verifiableCredential: VerifiableCredential,
+  owner: Signer
+): Promise<string> {
+  const header: JWTHeaderParameters = {
+    alg: 'ETH-EIP191'
+  }
+  const headerBase64 = base64url(JSON.stringify(header))
+  const payload: JWTPayload = {
+    verifiableCredential,
+    iss: `did:oe:${await owner.getAddress()}`
+  }
+  const payloadBase64 = base64url(JSON.stringify(payload))
+  const signature = await owner.signMessage(`${headerBase64}.${payloadBase64}`)
+  const signatureBase64 = base64url(signature)
+  return `${headerBase64}.${payloadBase64}.${signatureBase64}`
 }
 
 export async function createTokensAndPricing(
