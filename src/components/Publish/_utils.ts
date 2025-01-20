@@ -462,6 +462,28 @@ export interface IpfsUpload {
   metadataIPFSHash: string
 }
 
+/**
+ * Deviates from JOSE by using the alg: ETH-EIP191 field.
+ * Verifiers should compare wether the eth-signature signing address matches the `iss` issuer payload field.
+ */
+async function createJwtAndSign(
+  verifiableCredential: VerifiableCredential,
+  owner: Signer
+): Promise<string> {
+  const header: JWTHeaderParameters = {
+    alg: 'ETH-EIP191'
+  }
+  const headerBase64 = base64url(JSON.stringify(header))
+  const payload: JWTPayload = {
+    verifiableCredential,
+    iss: `did:oe:${await owner.getAddress()}`
+  }
+  const payloadBase64 = base64url(JSON.stringify(payload))
+  const signature = await owner.signMessage(`${headerBase64}.${payloadBase64}`)
+  const signatureBase64 = base64url(signature)
+  return `${headerBase64}.${payloadBase64}.${signatureBase64}`
+}
+
 export async function signAssetAndUploadToIpfs(
   asset: Asset,
   owner: Signer,
@@ -539,24 +561,6 @@ export async function signAssetAndUploadToIpfs(
     '0x' + createHash('sha256').update(stringDDO).digest('hex')
 
   return { metadataIPFS, flags, metadataIPFSHash }
-}
-
-async function createJwtAndSign(
-  verifiableCredential: VerifiableCredential,
-  owner: Signer
-): Promise<string> {
-  const header: JWTHeaderParameters = {
-    alg: 'ETH-EIP191'
-  }
-  const headerBase64 = base64url(JSON.stringify(header))
-  const payload: JWTPayload = {
-    verifiableCredential,
-    iss: `did:oe:${await owner.getAddress()}`
-  }
-  const payloadBase64 = base64url(JSON.stringify(payload))
-  const signature = await owner.signMessage(`${headerBase64}.${payloadBase64}`)
-  const signatureBase64 = base64url(signature)
-  return `${headerBase64}.${payloadBase64}.${signatureBase64}`
 }
 
 export async function createTokensAndPricing(
