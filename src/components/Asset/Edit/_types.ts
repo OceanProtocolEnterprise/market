@@ -1,7 +1,7 @@
 import { FormConsumerParameter } from '@components/Publish/_types'
 import { FileInfo } from '@oceanprotocol/lib'
 import { License } from '../../../@types/ddo/License'
-import { CredentialForm } from '@components/@shared/PolicyEditor'
+import { CredentialForm } from '@components/@shared/PolicyEditor/types'
 
 export interface MetadataEditForm {
   name: string

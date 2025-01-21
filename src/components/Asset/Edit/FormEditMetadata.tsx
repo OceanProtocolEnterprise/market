@@ -24,6 +24,7 @@ import Button from '@components/@shared/atoms/Button'
 import styles from './index.module.css'
 import appConfig from 'app.config'
 import { PolicyEditor } from '@components/@shared/PolicyEditor'
+import { getDefaultPolicies } from '@components/Publish/_utils'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
@@ -32,6 +33,7 @@ export default function FormEditMetadata(): ReactElement {
   const { asset } = useAsset()
   const { values, setFieldValue } = useFormikContext<MetadataEditForm>()
   const firstPageLoad = useRef<boolean>(true)
+  const [defaultPolicies, setDefaultPolicies] = useState<string[]>([])
 
   // BoxSelection component is not a Formik component
   // so we need to handle checked state manually.
@@ -49,6 +51,24 @@ export default function FormEditMetadata(): ReactElement {
       icon: <IconAlgorithm />
     }
   ]
+
+  useEffect(() => {
+    if (appConfig.ssiEnabled) {
+      getDefaultPolicies()
+        .then((policies) => {
+          policies?.forEach((policy) => {
+            if (!values.credentials.vcPolicies.includes(policy)) {
+              values.credentials.vcPolicies.push(policy)
+            }
+          })
+          setFieldValue('credentials.vcPolicies', values.credentials.vcPolicies)
+          setDefaultPolicies(policies)
+        })
+        .catch((error) => {
+          console.error(error)
+        })
+    }
+  }, [])
 
   useEffect(() => {
     const providerUrl = asset.credentialSubject?.services[0].serviceEndpoint
@@ -203,6 +223,7 @@ export default function FormEditMetadata(): ReactElement {
           setCredentials={(newCredentials) =>
             setFieldValue('credentials', newCredentials)
           }
+          defaultPolicies={defaultPolicies}
           name="credentials"
         />
       ) : (

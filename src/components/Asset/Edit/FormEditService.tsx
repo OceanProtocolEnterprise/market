@@ -1,4 +1,4 @@
-import { ReactElement } from 'react'
+import { ReactElement, useEffect, useState } from 'react'
 import { Field, Form, useFormikContext } from 'formik'
 import Input from '@shared/FormInput'
 import FormActions from './FormActions'
@@ -13,6 +13,7 @@ import styles from './index.module.css'
 import { Service } from 'src/@types/ddo/Service'
 import { PolicyEditor } from '@components/@shared/PolicyEditor'
 import appConfig from 'app.config'
+import { getDefaultPolicies } from '@components/Publish/_utils'
 
 export default function FormEditService({
   data,
@@ -27,6 +28,7 @@ export default function FormEditService({
 }): ReactElement {
   const formUniqueId = service.id // because BoxSelection component is not a Formik component
   const { values, setFieldValue } = useFormikContext<ServiceEditForm>()
+  const [defaultPolicies, setDefaultPolicies] = useState<string[]>([])
 
   const accessTypeOptionsTitles = getFieldContent('access', data).options
 
@@ -48,6 +50,24 @@ export default function FormEditService({
       checked: values.access === 'compute'
     }
   ]
+
+  useEffect(() => {
+    if (appConfig.ssiEnabled) {
+      getDefaultPolicies()
+        .then((policies) => {
+          policies?.forEach((policy) => {
+            if (!values.credentials.vcPolicies.includes(policy)) {
+              values.credentials.vcPolicies.push(policy)
+            }
+          })
+          setFieldValue('credentials.vcPolicies', values.credentials.vcPolicies)
+          setDefaultPolicies(policies)
+        })
+        .catch((error) => {
+          console.error(error)
+        })
+    }
+  }, [])
 
   return (
     <Form className={styles.form}>
@@ -114,6 +134,7 @@ export default function FormEditService({
           setCredentials={(newCredentials) =>
             setFieldValue('credentials', newCredentials)
           }
+          defaultPolicies={defaultPolicies}
           name="credentials"
         />
       ) : (
