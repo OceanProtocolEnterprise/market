@@ -1,4 +1,4 @@
-import { FileInfo } from '@oceanprotocol/lib'
+import { FileInfo, LoggerInstance } from '@oceanprotocol/lib'
 import { parseConsumerParameters, secondsToString } from '@utils/ddo'
 import { ComputeEditForm, MetadataEditForm, ServiceEditForm } from './_types'
 import { Metadata } from 'src/@types/ddo/Metadata'
@@ -8,8 +8,12 @@ import {
   isCredentialAddressBased,
   isCredentialPolicyBased
 } from '@utils/credentials'
-import { CredentialForm } from '@components/@shared/PolicyEditor'
 import appConfig from 'app.config'
+import {
+  CredentialForm,
+  RequestCredentialForm
+} from '@components/@shared/PolicyEditor/types'
+import { convertToPolicyType } from '@components/@shared/PolicyEditor/utils'
 
 export const defaultServiceComputeOptions: Compute = {
   allowRawAlgorithm: false,
@@ -22,32 +26,41 @@ function generateCredentials(credentials: Credential): CredentialForm {
   const credentialForm: CredentialForm = {}
 
   if (appConfig.ssiEnabled) {
-    let customPolicies = []
-    let requestCredentials = []
-    let vcPolicies = []
+    const requestCredentials: RequestCredentialForm[] = []
+    let vcPolicies: string[] = []
     let vpPolicies = []
-    credentials.allow?.forEach((credential) => {
-      if (isCredentialPolicyBased(credential)) {
-        const requestCredentialsStrings = credential.request_credentials.map(
-          (requestCredential) => JSON.stringify(requestCredential, null, 2)
-        )
+    credentials.allow?.forEach((policyCredential) => {
+      if (isCredentialPolicyBased(policyCredential)) {
+        policyCredential.values.forEach((value) => {
+          value.request_credentials.forEach((requestCredential) => {
+            let policyTypes = requestCredential.policies.map((policy) => {
+              try {
+                return convertToPolicyType(policy)
+              } catch (error) {
+                LoggerInstance.error(error)
+              }
+            })
+            policyTypes = policyTypes.filter((item) => !!item)
 
-        const vpPoliciesStrings = credential.vp_policies.map((policy) =>
-          JSON.stringify(policy, null, 2)
-        )
+            const newRequestCredential: RequestCredentialForm = {
+              format: requestCredential.format,
+              type: requestCredential.type,
+              policies: policyTypes
+            }
+            requestCredentials.push(newRequestCredential)
+          })
 
-        customPolicies = [...customPolicies, ...credential.custom_policies]
-        requestCredentials = [
-          ...requestCredentials,
-          ...requestCredentialsStrings
-        ]
-        vcPolicies = [...vcPolicies, ...credential.vc_policies]
-        vpPolicies = [...vpPolicies, ...vpPoliciesStrings]
+          const vpPoliciesStrings = value.vp_policies.map((policy) =>
+            JSON.stringify(policy, null, 2)
+          )
+
+          vcPolicies = [...vcPolicies, ...value.vc_policies]
+          vpPolicies = [...vpPolicies, ...vpPoliciesStrings]
+        })
       }
     })
 
     credentialForm.requestCredentials = requestCredentials
-    credentialForm.customPolicies = customPolicies
     credentialForm.vcPolicies = vcPolicies
     credentialForm.vpPolicies = vpPolicies
   }

@@ -7,11 +7,11 @@ import Button from '../atoms/Button'
 import {
   CustomPolicy,
   CustomUrlPolicy,
-  ParameterizedPolicyForm,
+  ParameterizedPolicy,
   PolicyEditorProps,
   PolicyType,
   RequestCredentialForm,
-  StaticPolicyForm
+  StaticPolicy
 } from './types'
 import fields from './editor.json'
 
@@ -63,14 +63,14 @@ function ParameterizedPolicyView(props): ReactElement {
     onDeletePolicy,
     onValueChange
   }: PolicyViewProps = props
-  const parameterizedPolicy = policy as ParameterizedPolicyForm
+  const parameterizedPolicy = policy as ParameterizedPolicy
 
-  function newArgument(policy: ParameterizedPolicyForm): void {
+  function newArgument(policy: ParameterizedPolicy): void {
     policy.args?.push('')
     onValueChange()
   }
 
-  function deleteArgument(policy: ParameterizedPolicyForm, index: number) {
+  function deleteArgument(policy: ParameterizedPolicy, index: number) {
     policy.args?.splice(index, 1)
     onValueChange()
   }
@@ -422,7 +422,7 @@ export function PolicyEditor(props): ReactElement {
   }
 
   function handleNewStaticCustomPolicy(credential: RequestCredentialForm) {
-    const policy: StaticPolicyForm = {
+    const policy: StaticPolicy = {
       type: 'staticPolicy',
       name: ''
     }
@@ -433,7 +433,7 @@ export function PolicyEditor(props): ReactElement {
   function handleNewParameterizedCustomPolicy(
     credential: RequestCredentialForm
   ) {
-    const policy: ParameterizedPolicyForm = {
+    const policy: ParameterizedPolicy = {
       type: 'parameterizedPolicy',
       args: [],
       policy: ''

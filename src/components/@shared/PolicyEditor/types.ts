@@ -5,17 +5,17 @@ export interface RequestCredentialForm {
 }
 
 export type PolicyType =
-  | StaticPolicyForm
-  | ParameterizedPolicyForm
+  | StaticPolicy
+  | ParameterizedPolicy
   | CustomUrlPolicy
   | CustomPolicy
 
-export interface StaticPolicyForm {
+export interface StaticPolicy {
   type: 'staticPolicy'
   name: string
 }
 
-export interface ParameterizedPolicyForm {
+export interface ParameterizedPolicy {
   type: 'parameterizedPolicy'
   policy: string
   args: string[]
@@ -39,6 +39,9 @@ export interface CustomPolicy {
   rules: PolicyRule[]
   arguments: PolicyArgument[]
 }
+
+export const PolicyRuleLeftValuePrefix: string = 'input.parameter.'
+export const PolicyRuleRightValuePrefix: string = 'input.credentialData.'
 
 export interface PolicyRule {
   leftValue: string

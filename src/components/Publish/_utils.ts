@@ -59,6 +59,8 @@ import {
   CredentialForm,
   PolicyArgument,
   PolicyRule,
+  PolicyRuleLeftValuePrefix,
+  PolicyRuleRightValuePrefix,
   PolicyType
 } from '@components/@shared/PolicyEditor/types'
 
@@ -129,7 +131,7 @@ function generatePolicyArgument(
   args: PolicyArgument[]
 ): Record<string, string> {
   const argument = {}
-  args.forEach((arg) => {
+  args?.forEach((arg) => {
     argument[arg.name] = arg.value
   })
   return argument
@@ -137,9 +139,9 @@ function generatePolicyArgument(
 
 function generateCustomPolicyScript(rules: PolicyRule[]): string {
   const rulesStrings = []
-  rules.forEach((rule) => {
+  rules?.forEach((rule) => {
     rulesStrings.push(
-      `input.parameter.${rule.leftValue} ${rule.operator} input.credentialData.${rule.rightValue}`
+      `${PolicyRuleLeftValuePrefix}${rule.leftValue} ${rule.operator} ${PolicyRuleRightValuePrefix}${rule.rightValue}`
     )
   })
 
@@ -154,10 +156,10 @@ function generateCustomPolicyScript(rules: PolicyRule[]): string {
 }
 
 function generateSsiPolicy(policy: PolicyType): any {
-  let policyString
-  switch (policy.type) {
+  let result
+  switch (policy?.type) {
     case 'staticPolicy':
-      policyString = policy.name
+      result = policy.name
       break
 
     case 'parameterizedPolicy':
@@ -166,7 +168,7 @@ function generateSsiPolicy(policy: PolicyType): any {
           policy: policy.policy,
           args: policy.args.filter((arg) => arg.length > 0)
         }
-        policyString = item
+        result = item
       }
       break
 
@@ -176,13 +178,13 @@ function generateSsiPolicy(policy: PolicyType): any {
           policyUrl: policy.policyUrl,
           argument: generatePolicyArgument(policy.arguments)
         }
-        policyString = item
+        result = item
       }
       break
     case 'customPolicy':
       {
         const item = {
-          arguments: generatePolicyArgument(policy.arguments),
+          argument: generatePolicyArgument(policy.arguments),
           policy: generateCustomPolicyScript(policy.rules),
           description: policy.description,
           name: policy.name,
@@ -193,11 +195,11 @@ function generateSsiPolicy(policy: PolicyType): any {
           applyToVC: true,
           applyToVP: true
         }
-        policyString = item
+        result = item
       }
       break
   }
-  return policyString
+  return result
 }
 
 export function generateCredentials(

@@ -17,6 +17,6 @@ export function isCredentialPolicyBased(
 ): credential is CredentialPolicyBased {
   return (
     (credential as CredentialPolicyBased)?.type !== undefined &&
-    (credential as CredentialPolicyBased)?.type === 'verifiableCredential'
+    (credential as CredentialPolicyBased)?.type === 'SSIpolicy'
   )
 }

@@ -37,8 +37,8 @@ export function isVpType(data: any): data is VP {
   return (
     data &&
     'policy' in data &&
-    data.policy === 'string' &&
+    typeof data.policy === 'string' &&
     'args' in data &&
-    data.args === 'number'
+    typeof data.args === 'number'
   )
 }
