@@ -333,18 +333,6 @@ export async function signAssetAndUploadToIpfs(
   encryptAsset: boolean,
   providerUrl: string
 ): Promise<IpfsUpload> {
-  const verifiableCredential: VerifiableCredential = {
-    credentialSubject: asset.credentialSubject,
-    issuer: `did:oe:${await owner.getAddress()}`,
-    '@context': asset['@context'],
-    version: asset.version,
-    type: asset.type,
-    proof: undefined
-  }
-
-  delete verifiableCredential.credentialSubject.datatokens
-  delete verifiableCredential.credentialSubject.event
-
   // todo: sign asset
 
   let encryptedPayload: string
