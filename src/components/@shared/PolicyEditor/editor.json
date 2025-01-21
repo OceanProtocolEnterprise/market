@@ -12,7 +12,7 @@
   },
   {
     "name": "leftValue",
-    "label": "Left Value",
+    "label": "Argument",
     "type": "text",
     "placeholder": ""
   },
@@ -25,7 +25,7 @@
   },
   {
     "name": "rightValue",
-    "label": "Right Value",
+    "label": "Credential Subject Value",
     "type": "text",
     "placeholder": ""
   },
