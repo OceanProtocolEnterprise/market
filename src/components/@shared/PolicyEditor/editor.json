@@ -8,50 +8,52 @@
     "name": "policyUrl",
     "label": "Policy URL",
     "type": "text",
-    "placeholder": "https://files.com/policy.json"
+    "placeholder": "https://files.com/policy.json",
+    "required": true
   },
   {
     "name": "leftValue",
     "label": "Argument",
     "type": "text",
-    "placeholder": ""
+    "required": true
   },
   {
     "name": "operator",
     "label": "Operator",
     "type": "select",
     "options": ["==", "!=", ">=", "<=", ">", "<"],
-    "placeholder": ""
+    "default": "==",
+    "required": true
   },
   {
     "name": "rightValue",
     "label": "Credential Subject Value",
     "type": "text",
-    "placeholder": ""
+    "required": true
   },
   {
     "name": "name",
     "label": "Name",
     "type": "text",
-    "placeholder": ""
+    "required": true
   },
   {
     "name": "rule",
     "label": "Rule",
     "type": "text",
-    "placeholder": ""
+    "required": true
   },
   {
     "name": "description",
     "label": "description",
     "type": "text",
-    "placeholder": ""
+    "required": true
   },
   {
     "name": "value",
     "label": "Value",
     "type": "text",
-    "placeholder": ""
+    "required": true
   },
   {
     "name": "requestCredential",
@@ -62,44 +64,39 @@
   {
     "name": "argument",
     "label": "Argument",
-    "type": "text",
-    "placeholder": ""
+    "type": "text"
   },
   {
     "name": "policy",
     "label": "Policy",
     "type": "text",
-    "placeholder": ""
+    "required": true
   },
   {
     "name": "newPolicy",
     "label": "New Policy",
-    "type": "text",
-    "placeholder": ""
+    "type": "text"
   },
   {
     "name": "static",
     "label": "static",
-    "type": "text",
-    "placeholder": ""
+    "type": "text"
   },
   {
     "name": "parameterized",
     "label": "Parameterized",
-    "type": "text",
-    "placeholder": ""
+    "type": "text"
   },
   {
     "name": "custom",
     "label": "Custom",
-    "type": "text",
-    "placeholder": ""
+    "type": "text"
   },
   {
     "name": "customUrl",
     "label": "Custom Url",
     "type": "text",
-    "placeholder": ""
+    "required": true
   },
   {
     "name": "custom",
@@ -111,48 +108,45 @@
     "name": "staticPolicy",
     "label": "Static Policy",
     "type": "text",
-    "placeholder": ""
+    "required": true
   },
   {
     "name": "parameterizedPolicy",
     "label": "Parameterized Policy",
-    "type": "tags",
-    "placeholder": ""
+    "type": "tags"
   },
   {
     "name": "customUrlPolicy",
     "label": "Custom URL Policy",
-    "type": "text",
-    "placeholder": ""
+    "type": "text"
   },
   {
     "name": "customPolicy",
     "label": "Custom Policy",
-    "type": "text",
-    "placeholder": ""
+    "type": "text"
   },
   {
     "name": "vpPolicy",
     "label": "VP Policy",
-    "type": "text",
-    "placeholder": ""
+    "type": "text"
   },
   {
     "name": "defaultStaticPolicy",
     "label": "Default Static Policy",
-    "type": "text",
-    "placeholder": ""
+    "type": "text"
   },
   {
     "name": "format",
     "label": "Format",
     "type": "text",
-    "placeholder": "Example: jwt_vc_json"
+    "placeholder": "Example: jwt_vc_json",
+    "required": true
   },
   {
     "name": "type",
     "label": "Type",
     "type": "text",
-    "placeholder": "Example: VerifiableId"
+    "placeholder": "Example: VerifiableId",
+    "required": true
   }
 ]

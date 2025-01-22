@@ -4,7 +4,6 @@ import { getMaxDecimalsValidation } from '@utils/numbers'
 import * as Yup from 'yup'
 import { testLinks } from '@utils/yup'
 import { validationConsumerParameters } from '@components/@shared/FormInput/InputElement/ConsumerParameters/_validation'
-import { FormAdditionalDdo } from './_types'
 
 // TODO: conditional validation
 // e.g. when algo is selected, Docker image is required
@@ -67,6 +66,82 @@ const validationMetadata = {
   })
 }
 
+const validationRequestCredentials = {
+  format: Yup.string().required('Required'),
+  type: Yup.string().required('Required'),
+  policies: Yup.array().of(
+    Yup.object().shape({
+      type: Yup.string(),
+      name: Yup.string()
+        .when('type', {
+          is: 'staticPolicy',
+          then: (shema) => shema.required('Required')
+        })
+        .when('type', {
+          is: 'customPolicy',
+          then: (shema) => shema.required('Required')
+        }),
+      args: Yup.array().when('type', {
+        is: 'parameterizedPolicy',
+        then: (shema) => shema.of(Yup.string().required('Required'))
+      }),
+      policy: Yup.string().when('type', {
+        is: 'parameterizedPolicy',
+        then: (shema) => shema.required('Required')
+      }),
+      policyUrl: Yup.string().when('type', {
+        is: 'customUrlPolicy',
+        then: (shema) => shema.required('Required')
+      }),
+      arguments: Yup.array()
+        .when('type', {
+          is: 'customUrlPolicy',
+          then: (shema) =>
+            shema.of(
+              Yup.object().shape({
+                name: Yup.string().required('Required'),
+                value: Yup.string().required('Required')
+              })
+            )
+        })
+        .when('type', {
+          is: 'customPolicy',
+          then: (shema) =>
+            shema.of(
+              Yup.object().shape({
+                name: Yup.string().required('Required'),
+                value: Yup.string().required('Required')
+              })
+            )
+        }),
+      description: Yup.string().when('type', {
+        is: 'customPolicy',
+        then: (shema) => shema.required('Required')
+      }),
+      rules: Yup.array().when('type', {
+        is: 'customPolicy',
+        then: (shema) =>
+          shema.of(
+            Yup.object().shape({
+              leftValue: Yup.string().required('Required'),
+              operator: Yup.string().required('Required'),
+              rightValue: Yup.string().required('Required')
+            })
+          )
+      })
+    })
+  )
+}
+
+const validationCredentials = {
+  requestCredentials: Yup.array().of(
+    Yup.object().shape(validationRequestCredentials)
+  ),
+  vcPolicies: Yup.array().of(Yup.string().required('Required')),
+  allow: Yup.array().of(Yup.string()).nullable(),
+  deny: Yup.array().of(Yup.string()).nullable()
+}
+
 const validationService = {
   files: Yup.array<FileInfo[]>()
     .of(
@@ -109,8 +184,7 @@ const validationService = {
       .nullable()
       .transform((value) => value || null)
   }),
-  allow: Yup.array().of(Yup.string()).nullable(),
-  deny: Yup.array().of(Yup.string()).nullable()
+  credentials: Yup.object().shape(validationCredentials)
 }
 
 const validationPricing = {
@@ -152,5 +226,6 @@ export const validationSchema: Yup.SchemaOf<any> = Yup.object().shape({
         type: Yup.string()
       })
     )
-    .nullable()
+    .nullable(),
+  credentials: Yup.object().shape(validationCredentials)
 })
