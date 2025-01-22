@@ -69,7 +69,10 @@ export const initialValues: FormPublishData = {
     dockerImageCustomTag: '',
     dockerImageCustomEntrypoint: '',
     usesConsumerParameters: false,
-    consumerParameters: []
+    consumerParameters: [],
+    useRemoteLicense: false,
+    licenseUrl: [{ url: '', type: 'url' }],
+    uploadedLicense: undefined
   },
   services: [
     {
@@ -95,10 +98,7 @@ export const initialValues: FormPublishData = {
     price: 0,
     type: allowFixedPricing === 'true' ? 'fixed' : 'free',
     freeAgreement: false
-  },
-  useRemoteLicense: false,
-  licenseUrl: [{ url: '', type: 'url' }],
-  uploadedLicense: undefined
+  }
 }
 
 export const algorithmContainerPresets: MetadataAlgorithmContainer[] = [

@@ -47,13 +47,13 @@ export interface FormPublishData {
       usesConsumerParameters?: boolean
       consumerParameters?: FormConsumerParameter[]
     }
+    useRemoteLicense: boolean
+    licenseUrl: FileInfo[]
+    uploadedLicense: License
   }
   services: FormPublishService[]
   pricing: PricePublishOptions
   feedback?: PublishFeedback
-  useRemoteLicense: boolean
-  licenseUrl: FileInfo[]
-  uploadedLicense: License
 }
 
 export interface StepContent {

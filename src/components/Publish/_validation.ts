@@ -63,6 +63,28 @@ const validationMetadata = {
         .nullable()
         .transform((value) => value || null)
     })
+  }),
+  useRemoteLicense: Yup.boolean(),
+  licenseUrl: Yup.array().when('useRemoteLicense', {
+    is: false,
+    then: Yup.array().test('urlTest', (array, context) => {
+      const { url, valid } = array?.[0] as {
+        url: string
+        type: 'url'
+        valid: boolean
+      }
+      if (!url || url?.length === 0 || !valid) {
+        return context.createError({ message: `Need a valid url` })
+      }
+      return true
+    })
+  }),
+  uploadedLicense: Yup.array().when('useRemoteLicense', {
+    is: true,
+    then: Yup.array().test('urlTest', (array, context) => {
+      // ToDo: Validation needs to be fixed
+      return true
+    })
   })
 }
 

@@ -64,75 +64,6 @@ export default function ServicesFields(): ReactElement {
     )
   }, [values.services[0].algorithmPrivacy, setFieldValue])
 
-  function handleLicenseFileUpload(
-    fileItems: FileItem[],
-    setSuccess: any,
-    setError: any
-  ) {
-    try {
-      fileItems.forEach(async (fileItem: FileItem) => {
-        const remoteSource = await uploadFileItemToIPFS(fileItem)
-
-        const remoteObject: RemoteObject = {
-          name: fileItem.name,
-          fileType: fileItem.name.split('.').pop(),
-          sha256: sha256(fileItem.content),
-          additionalInformation: {},
-          description: {
-            '@value': '',
-            '@direction': '',
-            '@language': ''
-          },
-          displayName: {
-            '@value': fileItem.name,
-            '@language': '',
-            '@direction': ''
-          },
-          mirrors: [remoteSource]
-        }
-
-        const license: License = {
-          name: fileItem.name,
-          licenseDocuments: [remoteObject]
-        }
-
-        setFieldValue('uploadedLicense', license)
-
-        setSuccess('License uploaded', 4000)
-      })
-    } catch (err) {
-      setError(err, 4000)
-    }
-  }
-
-  // Resets license data after type change
-  useEffect(() => {
-    async function deleteRemoteFile() {
-      if (values.uploadedLicense) {
-        const ipfsHash =
-          values.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]?.ipfsCid
-        if (ipfsHash) {
-          await deleteIpfsFile(ipfsHash)
-        }
-        setFieldValue('uploadedLicense', undefined)
-      }
-    }
-
-    setFieldValue('licenseUrl', [{ url: '', type: 'url' }])
-    deleteRemoteFile()
-  }, [values.useRemoteLicense])
-
-  async function handleLicenseRemove() {
-    setFieldValue('uploadedLicense', undefined)
-
-    const ipfsHash =
-      values.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]?.ipfsCid
-    if (ipfsHash) {
-      await deleteIpfsFile(ipfsHash)
-    }
-    setFieldValue('uploadedLicense', undefined)
-  }
-
   return (
     <>
       <Field
@@ -200,54 +131,6 @@ export default function ServicesFields(): ReactElement {
           component={Input}
           name="services[0].consumerParameters"
         />
-      )}
-
-      {/*
-       Licensing and Terms
-      */}
-      <Field
-        {...getFieldContent('licenseTypeSelection', content.metadata.fields)}
-        component={Input}
-        name="useRemoteLicense"
-      />
-      {values.useRemoteLicense ? (
-        <>
-          <Label htmlFor="license">License</Label>
-          {values.uploadedLicense ? (
-            <>
-              <div className={styles.license}>
-                <IpfsRemoteSource
-                  className={styles.licenseitem}
-                  noDocumentLabel="No license document available"
-                  remoteSource={values.uploadedLicense?.licenseDocuments
-                    ?.at(0)
-                    ?.mirrors?.at(0)}
-                ></IpfsRemoteSource>
-                <Button
-                  type="button"
-                  style="primary"
-                  onClick={handleLicenseRemove}
-                >
-                  Delete
-                </Button>
-              </div>
-            </>
-          ) : null}
-          <FileDrop
-            dropAreaLabel="Drop a license file here"
-            buttonLabel="Upload"
-            onApply={handleLicenseFileUpload}
-            singleFile={true}
-          ></FileDrop>
-        </>
-      ) : (
-        <>
-          <Field
-            {...getFieldContent('license', content.metadata.fields)}
-            component={Input}
-            name="licenseUrl"
-          />
-        </>
       )}
     </>
   )
