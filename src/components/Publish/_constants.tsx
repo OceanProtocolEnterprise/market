@@ -75,7 +75,10 @@ export const initialValues: FormPublishData = {
     dockerImageCustomTag: '',
     dockerImageCustomEntrypoint: '',
     usesConsumerParameters: false,
-    consumerParameters: []
+    consumerParameters: [],
+    useRemoteLicense: false,
+    licenseUrl: [{ url: '', type: 'url' }],
+    uploadedLicense: undefined
   },
   services: [
     {
@@ -109,17 +112,14 @@ export const initialValues: FormPublishData = {
   },
   additionalDdos: [],
   additionalDdosPageVisited: false,
-  useRemoteLicense: false,
-  licenseUrl: [{ url: '', type: 'url' }],
-  uploadedLicense: undefined,
-  previewPageVisited: false,
   credentials: {
     allow: [],
     deny: [],
     requestCredentials: [],
     vcPolicies: [],
     vpPolicies: []
-  }
+  },
+  previewPageVisited: false
 }
 
 export const algorithmContainerPresets: MetadataAlgorithmContainer[] = [

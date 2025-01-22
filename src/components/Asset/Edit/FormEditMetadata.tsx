@@ -257,7 +257,7 @@ export default function FormEditMetadata(): ReactElement {
       />
       {values.useRemoteLicense ? (
         <>
-          <Label htmlFor="license">License</Label>
+          <Label htmlFor="license">License *</Label>
           <div className={styles.license}>
             <IpfsRemoteSource
               className={styles.licenseitem}

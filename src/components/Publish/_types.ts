@@ -53,15 +53,15 @@ export interface FormPublishData {
       usesConsumerParameters?: boolean
       consumerParameters?: FormConsumerParameter[]
     }
+    useRemoteLicense: boolean
+    licenseUrl: FileInfo[]
+    uploadedLicense: License
   }
   services: FormPublishService[]
   pricing: PricePublishOptions
   feedback?: PublishFeedback
   additionalDdos: FormAdditionalDdo[]
   additionalDdosPageVisited: boolean
-  useRemoteLicense: boolean
-  licenseUrl: FileInfo[]
-  uploadedLicense: License
   previewPageVisited: boolean
   credentials: CredentialForm
 }
