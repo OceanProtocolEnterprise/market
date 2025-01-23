@@ -25,6 +25,7 @@ import styles from './index.module.css'
 import appConfig from 'app.config'
 import { PolicyEditor } from '@components/@shared/PolicyEditor'
 import { getDefaultPolicies } from '@components/Publish/_utils'
+import { AdditionalDdosFields } from '@components/@shared/AdditionalDdos'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
@@ -286,6 +287,8 @@ export default function FormEditMetadata(): ReactElement {
           />
         </>
       )}
+
+      <AdditionalDdosFields />
 
       <FormActions />
     </Form>

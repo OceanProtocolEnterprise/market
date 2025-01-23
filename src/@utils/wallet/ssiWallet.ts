@@ -12,7 +12,6 @@ export async function connectToWallet(): Promise<SsiWalletSession> {
       `${appConfig.ssiWalletApi}/wallet-api/auth/login`,
       { type: 'email', email: 'd.simon@gmx.org', password: 'test' }
     )
-    console.log(response.data)
     return response.data
   } catch (error) {
     throw new Error(error.response?.statusText)

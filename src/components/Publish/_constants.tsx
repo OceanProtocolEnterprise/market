@@ -13,7 +13,7 @@ import Preview from './Preview'
 import Submission from './Submission'
 import contentFeedback from '../../../content/publish/feedback.json'
 import { Compute } from 'src/@types/ddo/Service'
-import AdditionalDdosFields from './AdditionalDdos'
+import { AdditionalDdoWizardTab } from '../@shared/AdditionalDdos'
 
 export const wizardSteps: StepContent[] = [
   {
@@ -34,7 +34,7 @@ export const wizardSteps: StepContent[] = [
   {
     step: 4,
     title: content.additionalDdos.title,
-    component: <AdditionalDdosFields />
+    component: <AdditionalDdoWizardTab />
   },
   {
     step: 5,

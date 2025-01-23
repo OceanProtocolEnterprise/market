@@ -27,6 +27,7 @@ import { customProviderUrl } from '../../../../app.config'
 import { ethers } from 'ethers'
 import { convertLinks } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
+import { AdditionalVerifiableCredentials } from 'src/@types/ddo/AdditionalVerifiableCredentials'
 
 export default function Edit({
   asset
@@ -100,7 +101,9 @@ export default function Edit({
           ...(asset as Asset).credentialSubject,
           metadata: updatedMetadata,
           credentials: updatedCredentials
-        }
+        },
+        additionalDdos:
+          (values?.additionalDdos as AdditionalVerifiableCredentials[]) || []
       }
 
       // delete custom helper properties injected in the market so we don't write them on chain
@@ -153,6 +156,7 @@ export default function Edit({
       initialValues={getInitialValues(
         asset?.credentialSubject?.metadata,
         asset?.credentialSubject?.credentials,
+        asset?.additionalDdos,
         assetState
       )}
       validationSchema={metadataValidationSchema}

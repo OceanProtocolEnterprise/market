@@ -1,4 +1,7 @@
-import { FormConsumerParameter } from '@components/Publish/_types'
+import {
+  FormAdditionalDdo,
+  FormConsumerParameter
+} from '@components/Publish/_types'
 import { FileInfo } from '@oceanprotocol/lib'
 import { License } from '../../../@types/ddo/License'
 import { CredentialForm } from '@components/@shared/PolicyEditor/types'
@@ -18,6 +21,7 @@ export interface MetadataEditForm {
   useRemoteLicense: boolean
   licenseUrl: FileInfo[]
   uploadedLicense: License
+  additionalDdos: FormAdditionalDdo[]
 }
 
 export interface ServiceEditForm {

@@ -14,6 +14,7 @@ import {
   RequestCredentialForm
 } from '@components/@shared/PolicyEditor/types'
 import { convertToPolicyType } from '@components/@shared/PolicyEditor/utils'
+import { AdditionalVerifiableCredentials } from 'src/@types/ddo/AdditionalVerifiableCredentials'
 
 export const defaultServiceComputeOptions: Compute = {
   allowRawAlgorithm: false,
@@ -89,6 +90,7 @@ function generateCredentials(credentials: Credential): CredentialForm {
 export function getInitialValues(
   metadata: Metadata,
   credentials: Credential,
+  additionalDdos: AdditionalVerifiableCredentials[],
   assetState: string
 ): MetadataEditForm {
   const useRemoteLicense =
@@ -131,7 +133,8 @@ export function getInitialValues(
     assetState,
     licenseUrl: !useRemoteLicense ? [fileInfo] : undefined,
     uploadedLicense: useRemoteLicense ? metadata.license : undefined,
-    useRemoteLicense
+    useRemoteLicense,
+    additionalDdos
   }
 }
 

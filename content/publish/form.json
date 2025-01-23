@@ -335,6 +335,12 @@
         "placeholder": "{ ... }",
         "help": "Insert an additional Ddo",
         "type": "textarea"
+      },
+      {
+        "name": "ddoType",
+        "label": "Type",
+        "help": "Insert the ddo's type",
+        "type": "text"
       }
     ]
   },

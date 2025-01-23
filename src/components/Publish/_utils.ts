@@ -445,7 +445,7 @@ export async function transformPublishFormToDdo(
         }
       ]
     },
-    additionalDdos: values?.additionalDdos,
+    additionalDdos: values?.additionalDdos || [],
     // Only added for DDO preview, reflecting Asset response,
     // again, we can assume if `datatokenAddress` is not passed,
     // we are on preview.
