@@ -28,7 +28,8 @@ const assetTypeOptionsTitles = getFieldContent('type', data).options
 
 export default function FormEditMetadata(): ReactElement {
   const { asset } = useAsset()
-  const { values, setFieldValue } = useFormikContext<MetadataEditForm>()
+  const { values, setFieldValue, errors, setFieldTouched } =
+    useFormikContext<MetadataEditForm>()
   const firstPageLoad = useRef<boolean>(true)
 
   // BoxSelection component is not a Formik component
@@ -151,6 +152,7 @@ export default function FormEditMetadata(): ReactElement {
       await deleteIpfsFile(ipfsHash)
     }
     setFieldValue('uploadedLicense', undefined)
+    setFieldTouched('uploadedLicense', true, true)
   }
 
   return (
@@ -233,6 +235,7 @@ export default function FormEditMetadata(): ReactElement {
             buttonLabel="Upload"
             onApply={handleLicenseFileUpload}
             singleFile={true}
+            errorMessage={errors?.metadata?.uploadedLicense as string}
           ></FileDrop>
         </>
       ) : (

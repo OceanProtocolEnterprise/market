@@ -56,6 +56,8 @@ export function getInitialValues(
     newDenyAddresses = Array.from(new Set(newDenyAddresses))
   }
 
+  console.log(metadata)
+
   return {
     name: metadata?.name,
     description: metadata?.description?.['@value'],

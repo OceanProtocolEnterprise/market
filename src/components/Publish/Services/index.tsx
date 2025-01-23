@@ -7,16 +7,6 @@ import content from '../../../../content/publish/form.json'
 import consumerParametersContent from '../../../../content/publish/consumerParameters.json'
 import { getFieldContent } from '@utils/form'
 import { FormPublishData } from '../_types'
-import Button from '@components/@shared/atoms/Button'
-import { FileDrop } from '@components/@shared/FileDrop'
-import Label from '@components/@shared/FormInput/Label'
-import styles from './index.module.css'
-import { FileItem } from '@utils/fileItem'
-import { deleteIpfsFile, uploadFileItemToIPFS } from '@utils/ipfs'
-import { RemoteObject } from 'src/@types/ddo/RemoteObject'
-import { sha256 } from 'ohash'
-import { License } from 'src/@types/ddo/License'
-import { IpfsRemoteSource } from '@components/@shared/IpfsRemoteSource'
 
 const accessTypeOptionsTitles = getFieldContent(
   'access',

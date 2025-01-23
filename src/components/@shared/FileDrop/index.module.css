@@ -36,6 +36,11 @@
 .dragover {
   background-color: lightgray;
 }
+
 .applybutton {
   min-width: fit-content;
+}
+
+.error {
+  color: red;
 }

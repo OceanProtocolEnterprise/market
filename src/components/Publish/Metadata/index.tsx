@@ -1,7 +1,7 @@
 import { BoxSelectionOption } from '@shared/FormInput/InputElement/BoxSelection'
 import Input from '@shared/FormInput'
 import { Field, useField, useFormikContext } from 'formik'
-import { ReactElement, useEffect } from 'react'
+import { ReactElement, useEffect, useState } from 'react'
 import content from '../../../../content/publish/form.json'
 import consumerParametersContent from '../../../../content/publish/consumerParameters.json'
 import { FormPublishData } from '../_types'
@@ -29,7 +29,8 @@ export default function MetadataFields(): ReactElement {
   const { siteContent } = useMarketMetadata()
 
   // connect with Form state, use for conditional field rendering
-  const { values, setFieldValue } = useFormikContext<FormPublishData>()
+  const { values, setFieldValue, setFieldTouched, errors } =
+    useFormikContext<FormPublishData>()
 
   const [field, meta] = useField('metadata.dockerImageCustomChecksum')
 
@@ -141,6 +142,7 @@ export default function MetadataFields(): ReactElement {
       await deleteIpfsFile(ipfsHash)
     }
     setFieldValue('metadata.uploadedLicense', undefined)
+    setFieldTouched('metadata.uploadedLicense', true, true)
   }
 
   return (
@@ -276,6 +278,7 @@ export default function MetadataFields(): ReactElement {
             buttonLabel="Upload"
             onApply={handleLicenseFileUpload}
             singleFile={true}
+            errorMessage={errors?.metadata?.uploadedLicense as string}
           ></FileDrop>
         </>
       ) : (
