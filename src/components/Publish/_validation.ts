@@ -68,6 +68,9 @@ const validationMetadata = {
   licenseUrl: Yup.array().when('useRemoteLicense', {
     is: false,
     then: Yup.array().test('urlTest', (array, context) => {
+      if (!array) {
+        return context.createError({ message: `Need a valid url` })
+      }
       const { url, valid } = array?.[0] as {
         url: string
         type: 'url'
@@ -118,7 +121,7 @@ const validationService = {
     .matches(/compute|access/g)
     .required('Required'),
   providerUrl: Yup.object().shape({
-    //    url: Yup.string().url('Must be a valid URL.').required('Required'),
+    url: Yup.string().url('Must be a valid URL.').required('Required'),
     valid: Yup.boolean().isTrue().required('Valid Provider is required.'),
     custom: Yup.boolean()
   }),
