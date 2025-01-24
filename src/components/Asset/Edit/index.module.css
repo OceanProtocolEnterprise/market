@@ -66,6 +66,11 @@
 }
 
 .licenseitem {
+  flex-grow: 1;
   height: 40px;
   width: 100%;
+}
+
+.deleteLicenseButton {
+  margin-left: auto;
 }

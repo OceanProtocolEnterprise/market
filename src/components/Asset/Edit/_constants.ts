@@ -131,7 +131,7 @@ export function getInitialValues(
     ),
     credentials: credentialForm,
     assetState,
-    licenseUrl: !useRemoteLicense ? [fileInfo] : undefined,
+    licenseUrl: !useRemoteLicense ? [fileInfo] : [{ url: '', type: 'url' }],
     uploadedLicense: useRemoteLicense ? metadata.license : undefined,
     useRemoteLicense,
     additionalDdos

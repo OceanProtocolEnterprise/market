@@ -39,6 +39,9 @@ export const metadataValidationSchema = Yup.object().shape({
   licenseUrl: Yup.array().when('useRemoteLicense', {
     is: false,
     then: Yup.array().test('urlTest', (array, context) => {
+      if (!array) {
+        return context.createError({ message: `Need a valid url` })
+      }
       const { url, valid } = array?.[0] as {
         url: string
         type: 'url'
@@ -50,10 +53,12 @@ export const metadataValidationSchema = Yup.object().shape({
       return true
     })
   }),
-  uploadedLicense: Yup.array().when('useRemoteLicense', {
+  uploadedLicense: Yup.object().when('useRemoteLicense', {
     is: true,
-    then: Yup.array().test('urlTest', (array, context) => {
-      // ToDo: Validation needs to be fixed
+    then: Yup.object().test('remoteTest', (license, context) => {
+      if (!license) {
+        return context.createError({ message: `Need a license file` })
+      }
       return true
     })
   })

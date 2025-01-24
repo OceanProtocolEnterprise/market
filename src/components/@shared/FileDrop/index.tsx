@@ -13,13 +13,15 @@ export interface FileDropProps {
   ) => void
   singleFile?: boolean
   buttonLabel?: string
+  errorMessage?: string
 }
 
 export function FileDrop({
   singleFile,
   onApply,
   dropAreaLabel,
-  buttonLabel
+  buttonLabel,
+  errorMessage
 }: FileDropProps): ReactElement {
   const [dragIsOver, setDragIsOver] = useState(false)
   const [files, setFiles] = useState<FileItem[]>([])
@@ -155,6 +157,11 @@ export function FileDrop({
           </div>
         ))}
       </div>
+      {errorMessage?.length > 0 ? (
+        <div className={styles.error}>{errorMessage}</div>
+      ) : (
+        <></>
+      )}
     </div>
   )
 }
