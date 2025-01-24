@@ -22,6 +22,8 @@ import { RemoteObject } from '../../../@types/ddo/RemoteObject'
 import { sha256 } from 'ohash'
 import Button from '@components/@shared/atoms/Button'
 import styles from './index.module.css'
+import { LoggerInstance } from '@oceanprotocol/lib'
+import appConfig from 'app.config'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
@@ -127,11 +129,16 @@ export default function FormEditMetadata(): ReactElement {
       if (values.uploadedLicense) {
         const ipfsHash =
           values.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]?.ipfsCid
-        if (ipfsHash) {
-          await deleteIpfsFile(ipfsHash)
+        if (appConfig.ipfsUnpinFiles && ipfsHash && ipfsHash?.length > 0) {
+          try {
+            await deleteIpfsFile(ipfsHash)
+          } catch (error) {
+            LoggerInstance.error("Can't delete license file")
+          }
         }
-        setFieldValue('uploadedLicense', undefined)
       }
+
+      await setFieldValue('uploadedLicense', undefined)
     }
 
     if (firstPageLoad.current) {
@@ -144,15 +151,18 @@ export default function FormEditMetadata(): ReactElement {
   }, [values.useRemoteLicense])
 
   async function handleLicenseRemove() {
-    setFieldValue('uploadedLicense', undefined)
-
     const ipfsHash =
       values.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]?.ipfsCid
-    if (ipfsHash) {
-      await deleteIpfsFile(ipfsHash)
+    if (appConfig.ipfsUnpinFiles && ipfsHash && ipfsHash.length > 0) {
+      try {
+        await deleteIpfsFile(ipfsHash)
+      } catch (error) {
+        LoggerInstance.error("Can't delete license file")
+      }
     }
-    setFieldValue('uploadedLicense', undefined)
-    setFieldTouched('uploadedLicense', true, true)
+
+    await setFieldValue('uploadedLicense', undefined)
+    await setFieldTouched('uploadedLicense', true, true)
   }
 
   return (
@@ -215,27 +225,37 @@ export default function FormEditMetadata(): ReactElement {
         component={Input}
         name="useRemoteLicense"
       />
+
       {values.useRemoteLicense ? (
         <>
           <Label htmlFor="license">License *</Label>
-          <div className={styles.license}>
-            <IpfsRemoteSource
-              className={styles.licenseitem}
-              noDocumentLabel="No license document available"
-              remoteSource={
-                values.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]
-              }
-            ></IpfsRemoteSource>
-            <Button type="button" style="primary" onClick={handleLicenseRemove}>
-              Delete
-            </Button>
-          </div>
+          {values.uploadedLicense ? (
+            <div className={styles.license}>
+              <IpfsRemoteSource
+                className={styles.licenseItem}
+                noDocumentLabel="No license document available"
+                remoteSource={values.uploadedLicense?.licenseDocuments
+                  ?.at(0)
+                  ?.mirrors?.at(0)}
+              ></IpfsRemoteSource>
+              <Button
+                className={styles.deleteLicenseButton}
+                type="button"
+                style="primary"
+                onClick={handleLicenseRemove}
+              >
+                Delete
+              </Button>
+            </div>
+          ) : (
+            <></>
+          )}
           <FileDrop
             dropAreaLabel="Drop a license file here"
             buttonLabel="Upload"
             onApply={handleLicenseFileUpload}
             singleFile={true}
-            errorMessage={errors?.metadata?.uploadedLicense as string}
+            errorMessage={errors?.uploadedLicense as string}
           ></FileDrop>
         </>
       ) : (

@@ -56,8 +56,6 @@ export function getInitialValues(
     newDenyAddresses = Array.from(new Set(newDenyAddresses))
   }
 
-  console.log(metadata)
-
   return {
     name: metadata?.name,
     description: metadata?.description?.['@value'],
@@ -74,7 +72,7 @@ export function getInitialValues(
     allow: newAllowAddresses,
     deny: newDenyAddresses,
     assetState,
-    licenseUrl: !useRemoteLicense ? [fileInfo] : undefined,
+    licenseUrl: !useRemoteLicense ? [fileInfo] : [{ url: '', type: 'url' }],
     uploadedLicense: useRemoteLicense ? metadata.license : undefined,
     useRemoteLicense
   }

@@ -86,6 +86,9 @@ module.exports = {
   ipfsApiKey: process.env.NEXT_PUBLIC_IPFS_API_KEY,
   ipfsSecretApiKey: process.env.NEXT_PUBLIC_IPFS_SECRET_API_KEY,
   ipfsGateway: process.env.NEXT_PUBLIC_IPFS_GATEWAY,
+  ipfsUnpinFiles: process.env.NEXT_PUBLIC_IPFS_UNPIN_FILES
+    ? process.env.NEXT_PUBLIC_IPFS_UNPIN_FILES === 'true'
+    : false,
 
   oceanTokenAddress: process.env.NEXT_PUBLIC_OCEAN_TOKEN_ADDRESS
 }
