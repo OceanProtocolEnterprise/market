@@ -84,7 +84,9 @@ module.exports = {
   showPreviewAlert: process.env.NEXT_PUBLIC_SHOW_PREVIEW_ALERT || 'false',
 
   // This enables / disables the ssi support
-  ssiEnabled: JSON.parse(process.env.NEXT_PUBLIC_SSI_ENABLED) || false,
+  ssiEnabled: process.env.NEXT_PUBLIC_SSI_ENABLED
+    ? process.env.NEXT_PUBLIC_SSI_ENABLED === 'true'
+    : false,
   ssiWalletApi:
     process.env.NEXT_PUBLIC_SSI_WALLET_API || 'https://wallet.walt.id',
   ssiIssuerApi:

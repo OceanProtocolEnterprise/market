@@ -1,7 +1,8 @@
 export interface SsiWalletSession {
-  id: string
-  username: string
+  session_id: string
+  status: string
   token: string
+  expiration: Date
 }
 
 export interface SsiWalletDesc {

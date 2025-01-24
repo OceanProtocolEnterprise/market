@@ -4,7 +4,7 @@ import { accountTruncate } from '@utils/wallet'
 // import Loader from '@shared/atoms/Loader'
 import styles from './Account.module.css'
 import Avatar from '@shared/atoms/Avatar'
-import { useAccount } from 'wagmi'
+import { useAccount, useSigner } from 'wagmi'
 import { useModal } from 'connectkit'
 import {
   connectToWallet,
@@ -22,7 +22,8 @@ import appConfig from 'app.config'
 const Account = forwardRef((props, ref: any) => {
   const { address: accountId } = useAccount()
   const { setOpen } = useModal()
-  const { accessToken, setAccessToken } = useSsiWallet()
+  const { sessionToken, setSessionToken } = useSsiWallet()
+  const { data: signer } = useSigner()
 
   async function handleActivation(e: FormEvent<HTMLButtonElement>) {
     // prevent accidentally submitting a form the button might be in
@@ -32,18 +33,26 @@ const Account = forwardRef((props, ref: any) => {
   }
 
   useEffect(() => {
+    async function handleSsiConnection() {
+      try {
+        if (signer && accountId !== undefined) {
+          const session = await connectToWallet(signer)
+          setSessionToken(session)
+        } else {
+          disconnectFromWallet()
+          setSessionToken(undefined)
+        }
+      } catch (error) {
+        LoggerInstance.error(error)
+      }
+    }
+
     if (!appConfig.ssiEnabled) {
       return
     }
 
-    if (accountId === undefined) {
-      disconnectFromWallet().catch((error) => LoggerInstance.error(error))
-    } else {
-      connectToWallet()
-        .then(async (result) => setAccessToken(result.token))
-        .catch((error) => LoggerInstance.error(error))
-    }
-  }, [accountId])
+    handleSsiConnection()
+  }, [accountId, signer])
 
   return accountId ? (
     <button
@@ -53,7 +62,7 @@ const Account = forwardRef((props, ref: any) => {
       onClick={(e) => e.preventDefault()}
     >
       {appConfig.ssiEnabled ? (
-        accessToken ? (
+        sessionToken ? (
           <span>SSI Connected&nbsp;</span>
         ) : (
           <span>SSI Disconnected&nbsp;</span>

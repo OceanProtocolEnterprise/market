@@ -5,10 +5,11 @@ import {
   useContext,
   useState
 } from 'react'
+import { SsiWalletSession } from 'src/@types/SsiWallet'
 
 interface SsiWalletValue {
-  accessToken: string
-  setAccessToken: (token: string) => void
+  sessionToken: SsiWalletSession
+  setSessionToken: (token: SsiWalletSession) => void
 }
 
 const SsiWalletContext = createContext(null)
@@ -18,14 +19,16 @@ export function SsiWalletProvider({
 }: {
   children: ReactNode
 }): ReactElement {
-  const [accessToken, setAccessToken] = useState<string>()
+  const [sessionToken, setSessionToken] = useState<
+    SsiWalletSession | undefined
+  >()
 
   return (
     <SsiWalletContext.Provider
       value={
         {
-          accessToken,
-          setAccessToken
+          sessionToken,
+          setSessionToken
         } as SsiWalletValue
       }
     >

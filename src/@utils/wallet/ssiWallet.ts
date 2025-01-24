@@ -5,16 +5,32 @@ import {
   SsiWalletDesc,
   SsiWalletSession
 } from 'src/@types/SsiWallet'
+import { Signer } from 'ethers'
 
-export async function connectToWallet(): Promise<SsiWalletSession> {
+export async function connectToWallet(
+  owner: Signer
+): Promise<SsiWalletSession> {
   try {
-    const response = await axios.post(
-      `${appConfig.ssiWalletApi}/wallet-api/auth/login`,
-      { type: 'email', email: 'd.simon@gmx.org', password: 'test' }
+    let response = await axios.get(
+      `${appConfig.ssiWalletApi}/wallet-api/auth/account/web3/nonce`
+    )
+
+    const nonce = response.data
+    const payload = {
+      challenge: nonce,
+      signed: await owner.signMessage(nonce),
+      publicKey: await owner.getAddress()
+    }
+
+    console.log(payload)
+
+    response = await axios.post(
+      `${appConfig.ssiWalletApi}/wallet-api/auth/account/web3/signed`,
+      payload
     )
     return response.data
   } catch (error) {
-    throw new Error(error.response?.statusText)
+    throw new Error(error)
   }
 }
 
