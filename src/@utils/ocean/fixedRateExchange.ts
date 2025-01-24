@@ -1,11 +1,5 @@
-import {
-  amountToUnits,
-  FixedRateExchange,
-  PriceAndFees,
-  unitsToAmount
-} from '@oceanprotocol/lib'
-import { ethers, Signer } from 'ethers'
-import abiFre from '@oceanprotocol/contracts/artifacts/contracts/pools/fixedRate/FixedRateExchange.sol/FixedRateExchange.json'
+import { FixedRateExchange, PriceAndFees } from '@oceanprotocol/lib'
+import { Signer } from 'ethers'
 import { getOceanConfig } from '.'
 import { consumeMarketFixedSwapFee } from '../../../app.config'
 import { getDummySigner } from '@utils/wallet'

@@ -1,13 +1,13 @@
-import { ConsumerParameter } from '@oceanprotocol/lib'
 import * as Yup from 'yup'
 import { SchemaLike } from 'yup/lib/types'
+import { Option } from 'src/@types/ddo/Option'
 
 export function getUserCustomParameterValidationSchema(
-  parameters: ConsumerParameter[]
+  consumerParameters: Record<string, string | number | boolean | Option[]>[]
 ): SchemaLike {
   const shape = {}
 
-  parameters?.forEach((parameter) => {
+  consumerParameters?.forEach((parameter) => {
     const schemaBase =
       parameter.type === 'number'
         ? Yup.number()

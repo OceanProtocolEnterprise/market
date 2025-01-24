@@ -54,10 +54,11 @@ export default function CustomProvider(props: InputProps): ReactElement {
       })
       const userChainId = chain?.id || 100
       const providerChain =
-        providerResponse?.data?.chainId || providerResponse?.data?.chainIds
+        (providerResponse?.data?.chainId as number) ||
+        providerResponse?.data?.chainIds
 
       const isCompatible =
-        providerChain === userChainId
+        providerChain == userChainId
           ? true
           : !!(providerChain.length > 0 && providerChain.includes(userChainId))
 

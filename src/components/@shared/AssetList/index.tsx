@@ -10,6 +10,7 @@ import { getServiceByName } from '@utils/ddo'
 import AssetViewSelector, { AssetViewOptions } from './AssetViewSelector'
 import Time from '../atoms/Time'
 import Loader from '../atoms/Loader'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 const columns: TableOceanColumn<AssetExtended>[] = [
   {
@@ -19,7 +20,7 @@ const columns: TableOceanColumn<AssetExtended>[] = [
       return (
         <div>
           <AssetTitle title={metadata.name} asset={row} />
-          <p>{row.id}</p>
+          <p>{row.credentialSubject?.id}</p>
         </div>
       )
     },
@@ -132,7 +133,7 @@ export default function AssetList({
               assets?.map((asset) => (
                 <AssetTeaser
                   asset={asset}
-                  key={asset.id}
+                  key={asset.credentialSubject?.id}
                   noPublisher={noPublisher}
                   noDescription={noDescription}
                   noPrice={noPrice}

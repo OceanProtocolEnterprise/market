@@ -14,8 +14,7 @@ import {
   UrlFile,
   AbiItem,
   UserCustomParameters,
-  getErrorMessage,
-  Service
+  getErrorMessage
 } from '@oceanprotocol/lib'
 // if customProviderUrl is set, we need to call provider using this custom endpoint
 import { customProviderUrl } from '../../app.config'
@@ -23,6 +22,8 @@ import { KeyValuePair } from '@shared/FormInput/InputElement/KeyValueInput'
 import { Signer } from 'ethers'
 import { getValidUntilTime } from './compute'
 import { toast } from 'react-toastify'
+import { Service } from 'src/@types/ddo/Service'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export async function initializeProviderForCompute(
   dataset: AssetExtended,
@@ -33,20 +34,20 @@ export async function initializeProviderForCompute(
   computeEnv: ComputeEnvironment = null
 ): Promise<ProviderComputeInitializeResults> {
   const computeAsset: ComputeAsset = {
-    documentId: dataset.id,
+    documentId: dataset.credentialSubject?.id,
     serviceId: datasetService.id,
     transferTxId: datasetAccessDetails.validOrderTx
   }
   const computeAlgo: ComputeAlgorithm = {
-    documentId: algorithm.id,
-    serviceId: algorithm.services[0].id,
+    documentId: algorithm.credentialSubject?.id,
+    serviceId: algorithm.credentialSubject?.services[0].id,
     transferTxId: algorithm.accessDetails?.[0]?.validOrderTx
   }
 
   const validUntil = getValidUntilTime(
     computeEnv?.maxJobDuration,
     datasetService.timeout,
-    algorithm.services[0].timeout
+    algorithm.credentialSubject.services[0].timeout
   )
 
   try {
@@ -242,7 +243,7 @@ export async function downloadFile(
   let downloadUrl
   try {
     downloadUrl = await ProviderInstance.getDownloadUrl(
-      asset.id,
+      asset.credentialSubject?.id,
       service.id,
       0,
       validOrderTx || accessDetails.validOrderTx,
@@ -281,6 +282,6 @@ export async function getComputeEnvironments(
 
     return computeEnvs
   } catch (error) {
-    LoggerInstance.error(error.message)
+    LoggerInstance.error(`[getComputeEnvironments] ${error.message}`)
   }
 }

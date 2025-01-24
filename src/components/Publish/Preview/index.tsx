@@ -7,6 +7,7 @@ import { transformPublishFormToDdo } from '../_utils'
 import { ZERO_ADDRESS } from '@oceanprotocol/lib'
 import { useAccount } from 'wagmi'
 import { defaultDatatokenTemplateIndex } from 'app.config'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export default function Preview(): ReactElement {
   const [asset, setAsset] = useState<AssetExtended>()

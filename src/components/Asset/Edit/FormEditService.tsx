@@ -4,13 +4,13 @@ import Input from '@shared/FormInput'
 import FormActions from './FormActions'
 import { getFieldContent } from '@utils/form'
 import consumerParametersContent from '../../../../content/publish/consumerParameters.json'
-import { Service } from '@oceanprotocol/lib'
 import { ServiceEditForm } from './_types'
 import IconDownload from '@images/download.svg'
 import IconCompute from '@images/compute.svg'
 import FormEditComputeService from './FormEditComputeService'
 import { defaultServiceComputeOptions } from './_constants'
 import styles from './index.module.css'
+import { Service } from 'src/@types/ddo/Service'
 
 export default function FormEditService({
   data,

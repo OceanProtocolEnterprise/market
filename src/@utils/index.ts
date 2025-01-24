@@ -1,4 +1,4 @@
-import { Asset } from '@oceanprotocol/lib'
+import { Asset } from 'src/@types/Asset'
 
 // Boolean value that will be true if we are inside a browser, false otherwise
 export const isBrowser = typeof window !== 'undefined'
@@ -13,7 +13,10 @@ export function removeItemFromArray<T>(arr: Array<T>, value: T): Array<T> {
 
 export function sortAssets(items: Asset[], sorted: string[]) {
   items.sort(function (a, b) {
-    return sorted?.indexOf(a.id) - sorted?.indexOf(b.id)
+    return (
+      sorted?.indexOf(a.credentialSubject?.id) -
+      sorted?.indexOf(b.credentialSubject?.id)
+    )
   })
   return items
 }

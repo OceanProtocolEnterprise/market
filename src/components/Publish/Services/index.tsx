@@ -122,15 +122,6 @@ export default function ServicesFields(): ReactElement {
           name="services[0].consumerParameters"
         />
       )}
-
-      {/*
-       Licensing and Terms
-      */}
-      <Field
-        {...getFieldContent('license', content.metadata.fields)}
-        component={Input}
-        name="metadata.license"
-      />
     </>
   )
 }
