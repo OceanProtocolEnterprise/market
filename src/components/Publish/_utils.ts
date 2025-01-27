@@ -40,9 +40,12 @@ import { ethers, Signer } from 'ethers'
 import { uploadToIPFS } from '@utils/ipfs'
 import { DDOVersion } from 'src/@types/DdoVersion'
 import { Credential, CredentialAddressBased } from 'src/@types/ddo/Credentials'
+import * as VCDataModel from 'src/@types/ddo/VerifiableCredential'
 import { asset } from '.jest/__fixtures__/datasetWithAccessDetails'
 import { convertLinks } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
+import base64url from 'base64url'
+import { JWTHeaderParameters } from 'jose'
 
 export function makeDid(nftAddress: string, chainId: string): string {
   return (
@@ -335,13 +338,52 @@ export interface IpfsUpload {
   metadataIPFSHash: string
 }
 
+/**
+ * Deviates from JOSE by using the alg: ETH-EIP191 field.
+ * Accordingly, a web3 wallet signature is to be used for verification.
+ */
+async function createJwtVerifiableCredential(
+  credential: VCDataModel.Credential,
+  owner: Signer
+): Promise<`${string}.${string}.${string}`> {
+  const header: JWTHeaderParameters = {
+    alg: 'ETH-EIP191',
+    typ: 'JWT'
+  }
+  const headerBase64 = base64url(JSON.stringify(header))
+  const payload: VCDataModel.VerifiableCredentialJWT = {
+    vc: credential,
+    iss: credential.issuer,
+    sub: credential.credentialSubject.id,
+    jti: credential.id
+  }
+  const payloadBase64 = base64url(JSON.stringify(payload))
+  const signature = await owner.signMessage(`${headerBase64}.${payloadBase64}`)
+  const signatureBase64 = base64url(signature)
+  return `${headerBase64}.${payloadBase64}.${signatureBase64}`
+}
+
 export async function signAssetAndUploadToIpfs(
   asset: Asset,
   owner: Signer,
   encryptAsset: boolean,
   providerUrl: string
 ): Promise<IpfsUpload> {
-  // todo: sign asset
+  const credential: VCDataModel.Credential = {
+    credentialSubject: asset.credentialSubject,
+    issuer: `did:oe:${await owner.getAddress()}`,
+    '@context': asset['@context'],
+    version: asset.version,
+    type: asset.type
+  }
+
+  // these properties are mutable due blockchain interaction
+  delete credential.credentialSubject.datatokens
+  delete credential.credentialSubject.event
+  const jwtVerifiableCredential = await createJwtVerifiableCredential(
+    credential,
+    owner
+  )
 
   let encryptedPayload: string
   // eslint-disable-next-line no-constant-condition
@@ -360,6 +402,11 @@ export async function signAssetAndUploadToIpfs(
     const bytes: Buffer = Buffer.from(payloadString)
     encryptedPayload = hexlify(bytes)
   }
+
+  // TODO: The verifiable credentials standard differentiates between JWT and embedded proof credentials.
+  // In embedded proof credentials, our current schema says that the Asset *is* the verifiable credential.
+  // However, in the JWT approach, the asset is *within* in the verifiable credential.
+  // see https://www.w3.org/TR/vc-data-model/#proofs-signatures
 
   const data = { encryptedData: encryptedPayload }
   const ipfsHash = await uploadToIPFS(data)
