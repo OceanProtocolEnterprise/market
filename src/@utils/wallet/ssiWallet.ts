@@ -22,8 +22,6 @@ export async function connectToWallet(
       publicKey: await owner.getAddress()
     }
 
-    console.log(payload)
-
     response = await axios.post(
       `${appConfig.ssiWalletApi}/wallet-api/auth/account/web3/signed`,
       payload
@@ -52,7 +50,6 @@ export async function getAccessToken(): Promise<string> {
     const result: { token: { accessToken: string } } = response.data
     return result.token.accessToken
   } catch (error) {
-    console.log(error)
     throw new Error(error.response?.statusText)
   }
 }
@@ -67,15 +64,34 @@ export async function getWallets(): Promise<SsiWalletDesc[]> {
     const result: { wallets: SsiWalletDesc[] } = response.data
     return result.wallets
   } catch (error) {
-    console.log(error)
     throw new Error(error.response?.statusText)
   }
 }
 
-export async function getWalletKeys(walletId: string): Promise<SsiKeyDesc[]> {
+export async function getWalletKeys(
+  wallet: SsiWalletDesc
+): Promise<SsiKeyDesc[]> {
   try {
     const response = await axios.get(
-      `${appConfig.ssiWalletApi}/wallet-api/wallet/${walletId}/keys`,
+      `${appConfig.ssiWalletApi}/wallet-api/wallet/${wallet?.id}/keys`,
+      { withCredentials: true }
+    )
+
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.statusText)
+  }
+}
+
+export async function signMessage(
+  wallet: SsiWalletDesc,
+  key: SsiKeyDesc,
+  message: any
+) {
+  try {
+    const response = await axios.post(
+      `${appConfig.ssiWalletApi}/wallet-api/wallet/${wallet?.id}/keys/${key?.keyId?.id}/sign`,
+      message,
       { withCredentials: true }
     )
 
