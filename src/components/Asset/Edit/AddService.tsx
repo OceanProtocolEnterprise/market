@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState } from 'react'
+import { ReactElement, useState } from 'react'
 import { Formik } from 'formik'
 import {
   LoggerInstance,
@@ -45,7 +45,6 @@ import { getOceanConfig } from '@utils/ocean'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { State } from 'src/@types/ddo/State'
-import { Credential } from 'src/@types/ddo/Credentials'
 
 export default function AddService({
   asset

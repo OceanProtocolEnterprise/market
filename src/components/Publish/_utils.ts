@@ -513,30 +513,11 @@ export async function signAssetAndUploadToIpfs(
     owner
   )
 
-  let encryptedPayload: string
-  // eslint-disable-next-line no-constant-condition
-  if (false /* encryptAsset */) {
-    try {
-      encryptedPayload = await ProviderInstance.encrypt(
-        { payload: asset },
-        asset.credentialSubject?.chainId,
-        providerUrl
-      )
-    } catch (error) {
-      LoggerInstance.error('[Provider Encrypt] Error:', error.message)
-    }
-  } else {
-    const payloadString = JSON.stringify({ payload: asset })
-    const bytes: Buffer = Buffer.from(payloadString)
-    encryptedPayload = hexlify(bytes)
-  }
+  const payloadString = JSON.stringify({ payload: asset })
+  const bytes: Buffer = Buffer.from(payloadString)
+  const encodedData = hexlify(bytes)
 
-  // TODO: The verifiable credentials standard differentiates between JWT and embedded proof credentials.
-  // In embedded proof credentials, our current schema says that the Asset *is* the verifiable credential.
-  // However, in the JWT approach, the asset is *within* in the verifiable credential.
-  // see https://www.w3.org/TR/vc-data-model/#proofs-signatures
-
-  const data = { encryptedData: encryptedPayload }
+  const data = { encryptedData: encodedData }
   const ipfsHash = await uploadToIPFS(data)
 
   const remoteAsset = {

@@ -53,10 +53,6 @@ export default function Actions({
     handleAction('prev')
   }
 
-  useEffect(() => {
-    console.log(errors)
-  }, [])
-
   const isContinueDisabled =
     (values.user.stepCurrent === 1 && errors.metadata !== undefined) ||
     (values.user.stepCurrent === 2 && errors.services !== undefined) ||

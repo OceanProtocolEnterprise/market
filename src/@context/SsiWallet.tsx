@@ -10,6 +10,10 @@ import { SsiWalletSession } from 'src/@types/SsiWallet'
 interface SsiWalletValue {
   sessionToken: SsiWalletSession
   setSessionToken: (token: SsiWalletSession) => void
+  selectedWallet: string
+  setSelectedWallet: (id: string) => void
+  selectedKey: string
+  setSelectedKey: (id: string) => void
 }
 
 const SsiWalletContext = createContext(null)
@@ -22,13 +26,19 @@ export function SsiWalletProvider({
   const [sessionToken, setSessionToken] = useState<
     SsiWalletSession | undefined
   >()
+  const [selectedWallet, setSelectedWallet] = useState<string>()
+  const [selectedKey, setSelectedKey] = useState<string>()
 
   return (
     <SsiWalletContext.Provider
       value={
         {
           sessionToken,
-          setSessionToken
+          setSessionToken,
+          selectedWallet,
+          setSelectedWallet,
+          selectedKey,
+          setSelectedKey
         } as SsiWalletValue
       }
     >

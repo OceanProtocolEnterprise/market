@@ -1,0 +1,59 @@
+.panelColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.panelRow {
+  display: flex;
+  flex-direction: row;
+}
+
+.widthAuto {
+  width: auto;
+}
+
+.widthFitContent {
+  width: fit-content;
+}
+
+.marginRight2 {
+  margin-right: 2em;
+}
+
+.ssiPanel {
+  padding: 1em;
+  color: white;
+}
+
+.connected {
+  background-color: green;
+}
+
+.connected:hover {
+  background-color: darkgreen;
+  cursor: pointer;
+}
+
+.disconnected {
+  background-color: red;
+}
+
+.marginBottom1 {
+  margin-bottom: 1em;
+}
+
+.marginBottom2 {
+  margin-bottom: 2em;
+}
+
+.marginBottom3 {
+  margin-bottom: 3em;
+}
+
+.padding1 {
+  padding: 1em;
+}
+
+.width100p {
+  width: 100%;
+}

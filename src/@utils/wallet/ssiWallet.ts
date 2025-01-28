@@ -28,7 +28,7 @@ export async function connectToWallet(
     )
     return response.data
   } catch (error) {
-    throw new Error(error)
+    throw new Error(error.response?.statusText)
   }
 }
 
@@ -84,13 +84,13 @@ export async function getWalletKeys(
 }
 
 export async function signMessage(
-  wallet: SsiWalletDesc,
-  key: SsiKeyDesc,
+  walletId: string,
+  keyId: string,
   message: any
 ) {
   try {
     const response = await axios.post(
-      `${appConfig.ssiWalletApi}/wallet-api/wallet/${wallet?.id}/keys/${key?.keyId?.id}/sign`,
+      `${appConfig.ssiWalletApi}/wallet-api/wallet/${walletId}/keys/${keyId}/sign`,
       message,
       { withCredentials: true }
     )
