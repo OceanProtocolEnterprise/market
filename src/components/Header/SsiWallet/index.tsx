@@ -26,16 +26,12 @@ export function SsiWallet(): ReactElement {
 
     try {
       const wallets = await getWallets()
-      if (wallets.length > 0) {
-        setSelectedWallet(wallets[0].id)
-      }
+      setSelectedWallet(selectedWallet || wallets?.[0]?.id)
       setSsiWallets(wallets)
 
       const keys = await getWalletKeys(wallets[0])
       setSsiKey(keys)
-      if (keys.length > 0) {
-        setSelectedKey(keys[0].keyId.id)
-      }
+      setSelectedKey(selectedKey || keys?.[0]?.keyId?.id)
     } catch (error) {
       LoggerInstance.error(error)
     }
