@@ -138,6 +138,9 @@ export interface AssetLastEvent {
   datetime: string
 }
 
+// export interface Asset extends VerifiableCredential {
+// }
+
 export interface Asset extends Credential {
   /**
    * Contains information about the ERC721 NFT contract which represents the intellectual property of the publisher.
