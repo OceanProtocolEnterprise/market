@@ -57,17 +57,21 @@ export function SsiWallet(): ReactElement {
     <>
       {appConfig.ssiEnabled ? (
         <>
-          <dialog id="ssiWallet" ref={selectorDialog}>
+          <dialog
+            id="ssiWallet"
+            ref={selectorDialog}
+            className={styles.dialogBorder}
+          >
             <div className={styles.panelColumn}>
               <h3>SSI Wallets & Keys</h3>
 
-              <label htmlFor="ssiWallets" className={styles.marginBottom1}>
+              <label htmlFor="ssiWallets" className={styles.marginBottom7px}>
                 Choose your wallet:
               </label>
               <select
                 value={selectedWallet}
                 id="ssiWallets"
-                className={`${styles.marginBottom2} ${styles.padding1}`}
+                className={`${styles.marginBottom2} ${styles.padding1} ${styles.inputField}`}
                 onChange={handleWalletSelection}
               >
                 {ssiWallets?.map((wallet) => {
@@ -79,13 +83,13 @@ export function SsiWallet(): ReactElement {
                 })}
               </select>
 
-              <label htmlFor="ssiKeys" className={styles.marginBottom1}>
+              <label htmlFor="ssiKeys" className={styles.marginBottom7px}>
                 Choose your signing key:
               </label>
               <select
                 value={selectedKey}
                 id="ssiKeys"
-                className={`${styles.marginBottom3} ${styles.padding1}`}
+                className={`${styles.marginBottom3} ${styles.padding1} ${styles.inputField}`}
                 onChange={handleKeySelection}
               >
                 {ssiKeys?.map((keys) => {
@@ -105,7 +109,7 @@ export function SsiWallet(): ReactElement {
                 type="button"
                 style="primary"
                 size="small"
-                className={styles.width100p}
+                className={`${styles.width100p} ${styles.closeButton}`}
                 onClick={handleCloseDialog}
               >
                 Close
