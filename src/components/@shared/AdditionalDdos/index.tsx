@@ -35,7 +35,7 @@ export function AdditionalDdosFields(): ReactElement {
     <>
       <div className={styles.newDdoBtn}>
         <Button type="button" style="primary" onClick={handleNewDdo}>
-          New Ddo
+          New Credential
         </Button>
       </div>
 
@@ -50,7 +50,7 @@ export function AdditionalDdosFields(): ReactElement {
               />
               <Field
                 {...getFieldContent(
-                  'additionalDdos',
+                  'additionalCredential',
                   content.additionalDdos.fields
                 )}
                 component={Input}

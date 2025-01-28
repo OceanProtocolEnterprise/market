@@ -327,13 +327,13 @@
     ]
   },
   "additionalDdos": {
-    "title": "Additional Ddos",
+    "title": "Additional Credentials",
     "fields": [
       {
-        "name": "additionalDdos",
-        "label": "Additional Ddo",
+        "name": "additionalCredential",
+        "label": "Additional Credential",
         "placeholder": "{ ... }",
-        "help": "Insert an additional Ddo",
+        "help": "Insert an additional credential",
         "type": "textarea"
       },
       {
