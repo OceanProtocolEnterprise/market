@@ -513,6 +513,9 @@ export async function signAssetAndUploadToIpfs(
     owner
   )
 
+  // TODO: use the jwt verifiable credential
+  console.log(jwtVerifiableCredential)
+
   const payloadString = JSON.stringify({ payload: asset })
   const bytes: Buffer = Buffer.from(payloadString)
   const encodedData = hexlify(bytes)
