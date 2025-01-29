@@ -59,7 +59,11 @@
 }
 
 .dialogBorder {
-  border: var(--menu-border-size) solid var(--menu-border-color);
+  border: 1px solid var(--border-color);
+  border-bottom-left-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+  border-top: 0;
+  padding: 2em;
 }
 
 .closeButton {

@@ -1,7 +1,7 @@
 import Button from '@components/@shared/atoms/Button'
 import { useSsiWallet } from '@context/SsiWallet'
 import appConfig from 'app.config'
-import { ReactElement, useRef, useState } from 'react'
+import { ReactElement, useEffect, useRef, useState } from 'react'
 import styles from './index.module.css'
 import { SsiKeyDesc, SsiWalletDesc } from 'src/@types/SsiWallet'
 import { getWalletKeys, getWallets } from '@utils/wallet/ssiWallet'
@@ -26,16 +26,12 @@ export function SsiWallet(): ReactElement {
 
     try {
       const wallets = await getWallets()
-      setSelectedWallet(selectedWallet || wallets?.[0]?.id)
+      setSelectedWallet(selectedWallet || wallets[0])
       setSsiWallets(wallets)
 
-      if (!wallets) {
-        throw new Error('Could not fetch wallets')
-      }
-
-      const keys = await getWalletKeys(wallets[0])
+      const keys = await getWalletKeys(selectedWallet || wallets[0])
       setSsiKey(keys)
-      setSelectedKey(selectedKey || keys?.[0]?.keyId?.id)
+      setSelectedKey(selectedKey || keys[0])
     } catch (error) {
       LoggerInstance.error(error)
     }
@@ -46,11 +42,17 @@ export function SsiWallet(): ReactElement {
   }
 
   function handleWalletSelection(event: any) {
-    setSelectedWallet(event.target.value)
+    const result = ssiWallets.find(
+      (wallet) => wallet.id === (event.target.value as string)
+    )
+    setSelectedWallet(result)
   }
 
   function handleKeySelection(event: any) {
-    setSelectedKey(event.target.value)
+    const result = ssiKeys.find(
+      (key) => key.keyId.id === (event.target.value as string)
+    )
+    setSelectedKey(result)
   }
 
   return (
