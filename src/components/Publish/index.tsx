@@ -26,6 +26,7 @@ import { useAccount, useNetwork, useSigner } from 'wagmi'
 import { Asset } from 'src/@types/Asset'
 import { ethers } from 'ethers'
 import { SsiWalletDesc } from 'src/@types/SsiWallet'
+import { useSsiWallet } from '@context/SsiWallet'
 
 export default function PublishPage({
   content
@@ -50,7 +51,7 @@ export default function PublishPage({
   const [ddo, setDdo] = useState<Asset>()
   const [ipfsUpload, setIpdsUpload] = useState<IpfsUpload>()
   const [did, setDid] = useState<string>()
-  const [ssiWallets, setSsiWallets] = useState<SsiWalletDesc>()
+  const ssiWalletContext = useSsiWallet()
 
   // --------------------------------------------------
   // 1. Create NFT & datatokens & create pricing schema
@@ -145,7 +146,8 @@ export default function PublishPage({
         ddo,
         signer,
         true,
-        customProviderUrl || values.services[0].providerUrl.url
+        customProviderUrl || values.services[0].providerUrl.url,
+        ssiWalletContext
       )
 
       if (!ipfsUpload)

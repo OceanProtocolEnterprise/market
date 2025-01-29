@@ -33,6 +33,7 @@ import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { customProviderUrl } from 'app.config'
 import { ethers } from 'ethers'
+import { useSsiWallet } from '@context/SsiWallet'
 
 export default function EditService({
   asset,
@@ -49,6 +50,7 @@ export default function EditService({
   const { chain } = useNetwork()
   const { data: signer } = useSigner()
   const newCancelToken = useCancelToken()
+  const ssiWalletContext = useSsiWallet()
 
   const [success, setSuccess] = useState<string>()
   const [error, setError] = useState<string>()
@@ -157,7 +159,8 @@ export default function EditService({
         signer,
         true,
         customProviderUrl ||
-          updatedAsset.credentialSubject.services[0]?.serviceEndpoint
+          updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+        ssiWalletContext
       )
 
       if (ipfsUpload /* && values.assetState !== assetState */) {

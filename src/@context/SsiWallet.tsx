@@ -11,7 +11,7 @@ import {
   SsiWalletSession
 } from 'src/@types/SsiWallet'
 
-interface SsiWalletValue {
+export interface SsiWalletContext {
   sessionToken: SsiWalletSession
   setSessionToken: (token: SsiWalletSession) => void
   selectedWallet: SsiWalletDesc
@@ -43,7 +43,7 @@ export function SsiWalletProvider({
           setSelectedWallet,
           selectedKey,
           setSelectedKey
-        } as SsiWalletValue
+        } as SsiWalletContext
       }
     >
       {children}
@@ -51,4 +51,4 @@ export function SsiWalletProvider({
   )
 }
 
-export const useSsiWallet = (): SsiWalletValue => useContext(SsiWalletContext)
+export const useSsiWallet = (): SsiWalletContext => useContext(SsiWalletContext)

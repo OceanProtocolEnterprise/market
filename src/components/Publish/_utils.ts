@@ -52,7 +52,7 @@ import * as VCDataModel from 'src/@types/ddo/VerifiableCredential'
 import { asset } from '.jest/__fixtures__/datasetWithAccessDetails'
 import { convertLinks } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
-import { JWTHeaderParameters, JWTPayload } from 'jose'
+import { JWTHeaderParameters } from 'jose'
 import base64url from 'base64url'
 import appConfig from 'app.config'
 import {
@@ -63,6 +63,8 @@ import {
   PolicyRuleRightValuePrefix,
   PolicyType
 } from '@components/@shared/PolicyEditor/types'
+import { SsiWalletContext } from '@context/SsiWallet'
+import { signMessage } from '@utils/wallet/ssiWallet'
 
 export async function getDefaultPolicies(): Promise<string[]> {
   const response = await fetch(appConfig.ssiDefaultPolicyUrl)
@@ -495,7 +497,8 @@ export async function signAssetAndUploadToIpfs(
   asset: Asset,
   owner: Signer,
   encryptAsset: boolean,
-  providerUrl: string
+  providerUrl: string,
+  ssiWalletContext: SsiWalletContext
 ): Promise<IpfsUpload> {
   const credential: VCDataModel.Credential = {
     credentialSubject: asset.credentialSubject,
@@ -508,10 +511,20 @@ export async function signAssetAndUploadToIpfs(
   // these properties are mutable due blockchain interaction
   delete credential.credentialSubject.datatokens
   delete credential.credentialSubject.event
-  const jwtVerifiableCredential = await createJwtVerifiableCredential(
-    credential,
-    owner
-  )
+
+  let jwtVerifiableCredential
+  if (appConfig.ssiEnabled) {
+    jwtVerifiableCredential = await signMessage(
+      ssiWalletContext?.selectedWallet?.id,
+      ssiWalletContext?.selectedKey.keyId?.id,
+      credential
+    )
+  } else {
+    jwtVerifiableCredential = await createJwtVerifiableCredential(
+      credential,
+      owner
+    )
+  }
 
   // TODO: use the jwt verifiable credential
   console.log(jwtVerifiableCredential)

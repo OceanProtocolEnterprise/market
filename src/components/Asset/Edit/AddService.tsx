@@ -45,6 +45,7 @@ import { getOceanConfig } from '@utils/ocean'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { State } from 'src/@types/ddo/State'
+import { useSsiWallet } from '@context/SsiWallet'
 
 export default function AddService({
   asset
@@ -58,6 +59,7 @@ export default function AddService({
   const { data: signer } = useSigner()
   const newCancelToken = useCancelToken()
   const config = getOceanConfig(asset?.credentialSubject?.chainId)
+  const ssiWalletContext = useSsiWallet()
 
   const [success, setSuccess] = useState<string>()
   const [error, setError] = useState<string>()
@@ -210,7 +212,8 @@ export default function AddService({
         signer,
         true,
         customProviderUrl ||
-          updatedAsset.credentialSubject.services[0]?.serviceEndpoint
+          updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+        ssiWalletContext
       )
 
       if (ipfsUpload /* && values.assetState !== assetState */) {

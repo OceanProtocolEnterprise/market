@@ -28,6 +28,7 @@ import { ethers } from 'ethers'
 import { convertLinks } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
 import { AdditionalVerifiableCredentials } from 'src/@types/ddo/AdditionalVerifiableCredentials'
+import { useSsiWallet } from '@context/SsiWallet'
 
 export default function Edit({
   asset
@@ -38,6 +39,7 @@ export default function Edit({
   const { fetchAsset, isAssetNetwork, assetState } = useAsset()
   const { address: accountId } = useAccount()
   const { data: signer } = useSigner()
+  const ssiWalletContext = useSsiWallet()
 
   const [success, setSuccess] = useState<string>()
   const [error, setError] = useState<string>()
@@ -117,7 +119,8 @@ export default function Edit({
         signer,
         true,
         customProviderUrl ||
-          updatedAsset.credentialSubject.services[0]?.serviceEndpoint
+          updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+        ssiWalletContext
       )
 
       if (ipfsUpload /* && values.assetState !== assetState */) {
