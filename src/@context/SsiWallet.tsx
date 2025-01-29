@@ -3,6 +3,7 @@ import {
   ReactElement,
   ReactNode,
   useContext,
+  useEffect,
   useState
 } from 'react'
 import {
@@ -27,11 +28,16 @@ export function SsiWalletProvider({
 }: {
   children: ReactNode
 }): ReactElement {
-  const [sessionToken, setSessionToken] = useState<
-    SsiWalletSession | undefined
-  >()
+  const [sessionToken, setSessionToken] = useState<SsiWalletSession>()
   const [selectedWallet, setSelectedWallet] = useState<SsiWalletDesc>()
   const [selectedKey, setSelectedKey] = useState<SsiKeyDesc>()
+
+  useEffect(() => {
+    if (!sessionToken) {
+      setSelectedWallet(undefined)
+      setSelectedKey(undefined)
+    }
+  }, [sessionToken])
 
   return (
     <SsiWalletContext.Provider

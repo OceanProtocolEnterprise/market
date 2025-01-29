@@ -514,10 +514,16 @@ export async function signAssetAndUploadToIpfs(
 
   let jwtVerifiableCredential
   if (appConfig.ssiEnabled) {
+    const payload: VCDataModel.VerifiableCredentialJWT = {
+      vc: credential,
+      iss: credential.issuer,
+      sub: credential.credentialSubject.id,
+      jti: credential.id
+    }
     jwtVerifiableCredential = await signMessage(
       ssiWalletContext?.selectedWallet?.id,
       ssiWalletContext?.selectedKey.keyId?.id,
-      credential
+      payload
     )
   } else {
     jwtVerifiableCredential = await createJwtVerifiableCredential(

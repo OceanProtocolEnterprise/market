@@ -1,7 +1,7 @@
 import Button from '@components/@shared/atoms/Button'
 import { useSsiWallet } from '@context/SsiWallet'
 import appConfig from 'app.config'
-import { ReactElement, useEffect, useRef, useState } from 'react'
+import { ReactElement, useCallback, useEffect, useRef, useState } from 'react'
 import styles from './index.module.css'
 import { SsiKeyDesc, SsiWalletDesc } from 'src/@types/SsiWallet'
 import { getWalletKeys, getWallets } from '@utils/wallet/ssiWallet'
@@ -21,20 +21,48 @@ export function SsiWallet(): ReactElement {
 
   const selectorDialog = useRef<HTMLDialogElement>(null)
 
-  async function handleOpenDialog() {
-    selectorDialog.current.showModal()
-
+  const fetchWallets = useCallback(async () => {
     try {
       const wallets = await getWallets()
       setSelectedWallet(selectedWallet || wallets[0])
       setSsiWallets(wallets)
+    } catch (error) {
+      LoggerInstance.error(error)
+    }
+  }, [setSelectedWallet, selectedWallet])
 
-      const keys = await getWalletKeys(selectedWallet || wallets[0])
+  const fetchKeys = useCallback(async () => {
+    if (!selectedWallet) {
+      return
+    }
+
+    try {
+      const keys = await getWalletKeys(selectedWallet)
       setSsiKey(keys)
       setSelectedKey(selectedKey || keys[0])
     } catch (error) {
       LoggerInstance.error(error)
     }
+  }, [selectedWallet, setSelectedKey, selectedKey])
+
+  useEffect(() => {
+    if (!sessionToken) {
+      return
+    }
+
+    if (!selectedWallet) {
+      fetchWallets()
+    }
+    if (!selectedKey) {
+      fetchKeys()
+    }
+  }, [sessionToken, selectedWallet, selectedKey, fetchWallets, fetchKeys])
+
+  async function handleOpenDialog() {
+    selectorDialog.current.showModal()
+
+    fetchWallets()
+    fetchKeys()
   }
 
   function handleCloseDialog() {
