@@ -29,6 +29,10 @@ export function SsiWallet(): ReactElement {
       setSelectedWallet(selectedWallet || wallets?.[0]?.id)
       setSsiWallets(wallets)
 
+      if (!wallets) {
+        throw new Error('Could not fetch wallets')
+      }
+
       const keys = await getWalletKeys(wallets[0])
       setSsiKey(keys)
       setSelectedKey(selectedKey || keys?.[0]?.keyId?.id)
