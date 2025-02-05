@@ -28,7 +28,7 @@ export async function connectToWallet(
     )
     return response.data
   } catch (error) {
-    throw new Error(error.response?.statusText)
+    throw new Error(error.response)
   }
 }
 
@@ -36,21 +36,19 @@ export async function disconnectFromWallet() {
   try {
     await axios.post(`${appConfig.ssiWalletApi}/wallet-api/auth/logout`)
   } catch (error) {
-    throw new Error(error.response?.statusText)
+    throw new Error(error.response)
   }
 }
 
-export async function getAccessToken(): Promise<string> {
+export async function isSessionValid(): Promise<boolean> {
   try {
-    const response = await axios.get(
-      `${appConfig.ssiWalletApi}/wallet-api/auth/session`,
-      { withCredentials: true }
-    )
+    await axios.get(`${appConfig.ssiWalletApi}/wallet-api/auth/session`, {
+      withCredentials: true
+    })
 
-    const result: { token: { accessToken: string } } = response.data
-    return result.token.accessToken
+    return true
   } catch (error) {
-    throw new Error(error.response?.statusText)
+    return false
   }
 }
 
@@ -64,7 +62,7 @@ export async function getWallets(): Promise<SsiWalletDesc[]> {
     const result: { wallets: SsiWalletDesc[] } = response.data
     return result.wallets
   } catch (error) {
-    throw new Error(error.response?.statusText)
+    throw new Error(error.response)
   }
 }
 
@@ -79,7 +77,7 @@ export async function getWalletKeys(
 
     return response.data
   } catch (error) {
-    throw new Error(error.response?.statusText)
+    throw new Error(error.response)
   }
 }
 
@@ -98,6 +96,6 @@ export async function signMessage(
     return response.data
   } catch (error) {
     console.log(error)
-    throw new Error(error.response?.statusText)
+    throw new Error(error.response)
   }
 }

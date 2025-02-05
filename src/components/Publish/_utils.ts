@@ -64,7 +64,11 @@ import {
   PolicyType
 } from '@components/@shared/PolicyEditor/types'
 import { SsiWalletContext } from '@context/SsiWallet'
-import { signMessage } from '@utils/wallet/ssiWallet'
+import {
+  connectToWallet,
+  isSessionValid,
+  signMessage
+} from '@utils/wallet/ssiWallet'
 
 export async function getDefaultPolicies(): Promise<string[]> {
   const response = await fetch(appConfig.ssiDefaultPolicyUrl)
@@ -514,17 +518,23 @@ export async function signAssetAndUploadToIpfs(
 
   let jwtVerifiableCredential
   if (appConfig.ssiEnabled) {
-    const payload: VCDataModel.VerifiableCredentialJWT = {
-      vc: credential,
-      iss: credential.issuer,
-      sub: credential.credentialSubject.id,
-      jti: credential.id
+    const valid = await isSessionValid()
+    if (valid) {
+      const payload: VCDataModel.VerifiableCredentialJWT = {
+        vc: credential,
+        iss: credential.issuer,
+        sub: credential.credentialSubject.id,
+        jti: credential.id
+      }
+      jwtVerifiableCredential = await signMessage(
+        ssiWalletContext?.selectedWallet?.id,
+        ssiWalletContext?.selectedKey.keyId?.id,
+        payload
+      )
+    } else {
+      ssiWalletContext.setSessionToken(undefined)
+      throw new Error('SSI Wallet was not connected')
     }
-    jwtVerifiableCredential = await signMessage(
-      ssiWalletContext?.selectedWallet?.id,
-      ssiWalletContext?.selectedKey.keyId?.id,
-      payload
-    )
   } else {
     jwtVerifiableCredential = await createJwtVerifiableCredential(
       credential,

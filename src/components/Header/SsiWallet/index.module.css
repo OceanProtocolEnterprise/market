@@ -38,6 +38,11 @@
   background-color: red;
 }
 
+.disconnected:hover {
+  background-color: darkred;
+  cursor: pointer;
+}
+
 .marginBottom7px {
   margin-bottom: 7.5px;
 }

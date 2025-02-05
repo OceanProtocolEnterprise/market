@@ -4,12 +4,18 @@ import appConfig from 'app.config'
 import { ReactElement, useCallback, useEffect, useRef, useState } from 'react'
 import styles from './index.module.css'
 import { SsiKeyDesc, SsiWalletDesc } from 'src/@types/SsiWallet'
-import { getWalletKeys, getWallets } from '@utils/wallet/ssiWallet'
+import {
+  connectToWallet,
+  getWalletKeys,
+  getWallets
+} from '@utils/wallet/ssiWallet'
 import { LoggerInstance } from '@oceanprotocol/lib'
+import { useAccount, useSigner } from 'wagmi'
 
 export function SsiWallet(): ReactElement {
   const {
     sessionToken,
+    setSessionToken,
     selectedWallet,
     setSelectedWallet,
     selectedKey,
@@ -20,6 +26,9 @@ export function SsiWallet(): ReactElement {
   const [ssiKeys, setSsiKey] = useState<SsiKeyDesc[]>([])
 
   const selectorDialog = useRef<HTMLDialogElement>(null)
+
+  const { isConnected } = useAccount()
+  const { data: signer } = useSigner()
 
   const fetchWallets = useCallback(async () => {
     try {
@@ -81,6 +90,17 @@ export function SsiWallet(): ReactElement {
       (key) => key.keyId.id === (event.target.value as string)
     )
     setSelectedKey(result)
+  }
+
+  async function handleReconnection() {
+    if (!sessionToken && isConnected && signer) {
+      try {
+        const session = await connectToWallet(signer)
+        setSessionToken(session)
+      } catch (error) {
+        LoggerInstance.error(error)
+      }
+    }
   }
 
   return (
@@ -157,9 +177,17 @@ export function SsiWallet(): ReactElement {
               </div>
             </>
           ) : (
-            <div className={`${styles.ssiPanel} ${styles.disconnected}`}>
-              SSI Wallet
-            </div>
+            <button
+              className={`${styles.ssiPanel} ${styles.disconnected}`}
+              disabled={!(isConnected && signer)}
+              onClick={handleReconnection}
+            >
+              {isConnected && signer ? (
+                <>Reconnect SSI Wallet</>
+              ) : (
+                <>SSI Wallet</>
+              )}
+            </button>
           )}
         </>
       ) : (

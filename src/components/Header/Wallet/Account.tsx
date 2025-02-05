@@ -6,18 +6,27 @@ import styles from './Account.module.css'
 import Avatar from '@shared/atoms/Avatar'
 import { useAccount, useSigner } from 'wagmi'
 import { useModal } from 'connectkit'
-import { connectToWallet, disconnectFromWallet } from '@utils/wallet/ssiWallet'
 import { LoggerInstance } from '@oceanprotocol/lib'
+import { connectToWallet } from '@utils/wallet/ssiWallet'
 import { useSsiWallet } from '@context/SsiWallet'
-import appConfig from 'app.config'
 
 // Forward ref for Tippy.js
 // eslint-disable-next-line
 const Account = forwardRef((props, ref: any) => {
   const { address: accountId, isConnected } = useAccount()
-  const { setOpen } = useModal()
-  const { setSessionToken } = useSsiWallet()
   const { data: signer } = useSigner()
+  const { setOpen } = useModal()
+  const { sessionToken, setSessionToken } = useSsiWallet()
+
+  useEffect(() => {
+    if (!sessionToken && isConnected && signer) {
+      connectToWallet(signer)
+        .then((session) => {
+          setSessionToken(session)
+        })
+        .catch((error) => LoggerInstance.error(error))
+    }
+  }, [isConnected, setSessionToken, signer])
 
   async function handleActivation(e: FormEvent<HTMLButtonElement>) {
     // prevent accidentally submitting a form the button might be in
@@ -25,28 +34,6 @@ const Account = forwardRef((props, ref: any) => {
 
     setOpen(true)
   }
-
-  useEffect(() => {
-    async function handleSsiConnection() {
-      try {
-        if (signer && isConnected) {
-          const session = await connectToWallet(signer)
-          setSessionToken(session)
-        } else {
-          disconnectFromWallet()
-          setSessionToken(undefined)
-        }
-      } catch (error) {
-        LoggerInstance.error(error)
-      }
-    }
-
-    if (!appConfig.ssiEnabled) {
-      return
-    }
-
-    handleSsiConnection()
-  }, [signer, isConnected, setSessionToken])
 
   return accountId ? (
     <button
