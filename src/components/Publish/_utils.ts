@@ -1,7 +1,6 @@
 import {
   Config,
   FreCreationParams,
-  generateDid,
   DatatokenCreateParams,
   DispenserCreationParams,
   getHash,
@@ -65,6 +64,7 @@ import {
 } from '@components/@shared/PolicyEditor/types'
 import { SsiWalletContext } from '@context/SsiWallet'
 import { isSessionValid, signMessage } from '@utils/wallet/ssiWallet'
+import { DDOManager } from 'ddo.js'
 
 export async function getDefaultPolicies(): Promise<string[]> {
   const response = await fetch(appConfig.ssiDefaultPolicyUrl)
@@ -311,7 +311,6 @@ export async function transformPublishFormToDdo(
   const { access, files, links, providerUrl, timeout, credentials } =
     services[0]
 
-  const did = nftAddress ? generateDid(nftAddress, chainId) : '0x...'
   const currentTime = dateToStringNoMS(new Date())
   const isPreview = !datatokenAddress && !nftAddress
 
@@ -438,10 +437,10 @@ export async function transformPublishFormToDdo(
 
   const newDdo: any = {
     '@context': ['https://w3id.org/did/v1'],
-    id: did,
+    id: '',
     version: DDOVersion.V5_0_0,
     credentialSubject: {
-      id: did,
+      id: '',
       chainId,
       metadata: newMetadata,
       services: [newService],
@@ -467,6 +466,13 @@ export async function transformPublishFormToDdo(
       created: ''
     }
   }
+
+  const ddoInstance = DDOManager.getDDOClass(newDdo)
+  const did = nftAddress
+    ? ddoInstance.makeDid(nftAddress, chainId.toString())
+    : '0x...'
+  newDdo.id = did
+  newDdo.credentialSubject.id = did
 
   return newDdo
 }
