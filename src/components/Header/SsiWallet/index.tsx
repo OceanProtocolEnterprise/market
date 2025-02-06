@@ -7,7 +7,8 @@ import { SsiKeyDesc, SsiWalletDesc } from 'src/@types/SsiWallet'
 import {
   connectToWallet,
   getWalletKeys,
-  getWallets
+  getWallets,
+  isSessionValid
 } from '@utils/wallet/ssiWallet'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { useAccount, useSigner } from 'wagmi'
@@ -36,6 +37,7 @@ export function SsiWallet(): ReactElement {
       setSelectedWallet(selectedWallet || wallets[0])
       setSsiWallets(wallets)
     } catch (error) {
+      setSessionToken(undefined)
       LoggerInstance.error(error)
     }
   }, [setSelectedWallet, selectedWallet])
@@ -44,12 +46,12 @@ export function SsiWallet(): ReactElement {
     if (!selectedWallet) {
       return
     }
-
     try {
       const keys = await getWalletKeys(selectedWallet)
       setSsiKey(keys)
       setSelectedKey(selectedKey || keys[0])
     } catch (error) {
+      setSessionToken(undefined)
       LoggerInstance.error(error)
     }
   }, [selectedWallet, setSelectedKey, selectedKey])
@@ -65,17 +67,33 @@ export function SsiWallet(): ReactElement {
     if (!selectedKey) {
       fetchKeys()
     }
-  }, [sessionToken, selectedWallet, selectedKey, fetchWallets, fetchKeys])
+  }, [sessionToken, selectedWallet, selectedKey])
+
+  async function handleReconnection() {
+    const valid = await isSessionValid()
+    if ((!valid || !sessionToken) && isConnected && signer) {
+      try {
+        const session = await connectToWallet(signer)
+        setSessionToken(session)
+      } catch (error) {
+        setSessionToken(undefined)
+        LoggerInstance.error(error)
+        return false
+      }
+    }
+    return true
+  }
 
   async function handleOpenDialog() {
+    const succeed = await handleReconnection()
+    if (!succeed) {
+      return
+    }
+
     selectorDialog.current.showModal()
 
     fetchWallets()
     fetchKeys()
-  }
-
-  function handleCloseDialog() {
-    selectorDialog.current.close()
   }
 
   function handleWalletSelection(event: any) {
@@ -90,17 +108,6 @@ export function SsiWallet(): ReactElement {
       (key) => key.keyId.id === (event.target.value as string)
     )
     setSelectedKey(result)
-  }
-
-  async function handleReconnection() {
-    if (!sessionToken && isConnected && signer) {
-      try {
-        const session = await connectToWallet(signer)
-        setSessionToken(session)
-      } catch (error) {
-        LoggerInstance.error(error)
-      }
-    }
   }
 
   return (
@@ -119,7 +126,7 @@ export function SsiWallet(): ReactElement {
                 Choose your wallet:
               </label>
               <select
-                value={selectedWallet}
+                value={selectedWallet?.id}
                 id="ssiWallets"
                 className={`${styles.marginBottom2} ${styles.padding1} ${styles.inputField}`}
                 onChange={handleWalletSelection}
@@ -137,7 +144,7 @@ export function SsiWallet(): ReactElement {
                 Choose your signing key:
               </label>
               <select
-                value={selectedKey}
+                value={selectedKey?.keyId.id}
                 id="ssiKeys"
                 className={`${styles.marginBottom3} ${styles.padding1} ${styles.inputField}`}
                 onChange={handleKeySelection}
@@ -160,7 +167,7 @@ export function SsiWallet(): ReactElement {
                 style="primary"
                 size="small"
                 className={`${styles.width100p} ${styles.closeButton}`}
-                onClick={handleCloseDialog}
+                onClick={() => selectorDialog.current.close()}
               >
                 Close
               </Button>

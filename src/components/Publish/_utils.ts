@@ -533,7 +533,7 @@ export async function signAssetAndUploadToIpfs(
       )
     } else {
       ssiWalletContext.setSessionToken(undefined)
-      throw new Error('SSI Wallet was not connected')
+      throw new Error('Invalid SSI Wallet session')
     }
   } else {
     jwtVerifiableCredential = await createJwtVerifiableCredential(
