@@ -44,8 +44,8 @@
     "required": true
   },
   {
-    "name": "description",
-    "label": "description",
+    "name": "publicQuery",
+    "label": "Public Query",
     "type": "text",
     "required": true
   },

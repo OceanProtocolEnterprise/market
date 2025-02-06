@@ -139,7 +139,11 @@ function generatePolicyArgument(
   return argument
 }
 
-function generateCustomPolicyScript(rules: PolicyRule[]): string {
+function generateCustomPolicyScript(
+  publicQuery: string,
+  name: string,
+  rules: PolicyRule[]
+): string {
   const rulesStrings = []
   rules?.forEach((rule) => {
     rulesStrings.push(
@@ -147,9 +151,9 @@ function generateCustomPolicyScript(rules: PolicyRule[]): string {
     )
   })
 
-  const result = String.raw`package system
+  const result = String.raw`package ${publicQuery}.${name}
 
-  default main = false
+  default allow := false
   
   main {
     ${rulesStrings.join('\n')}
@@ -177,8 +181,16 @@ function generateSsiPolicy(policy: PolicyType): any {
     case 'customUrlPolicy':
       {
         const item = {
-          policyUrl: policy.policyUrl,
-          argument: generatePolicyArgument(policy.arguments)
+          policy: 'dynamic',
+          args: {
+            policy_name: policy.name,
+            opa_server: appConfig.opaServer,
+            policy_query: policy.publicQuery,
+            rules: {
+              policy_url: policy.policyUrl
+            },
+            argument: generatePolicyArgument(policy.arguments)
+          }
         }
         result = item
       }
@@ -186,16 +198,20 @@ function generateSsiPolicy(policy: PolicyType): any {
     case 'customPolicy':
       {
         const item = {
-          argument: generatePolicyArgument(policy.arguments),
-          policy: generateCustomPolicyScript(policy.rules),
-          description: policy.description,
-          name: policy.name,
-          input: {},
-          dataPath: '$',
-          policyQuery: 'data.system.main',
-          policyEngine: 'OPA',
-          applyToVC: true,
-          applyToVP: true
+          policy: 'dynamic',
+          args: {
+            policy_name: policy.name,
+            opa_server: appConfig.opaServer,
+            policy_query: policy.publicQuery,
+            rules: {
+              rego: generateCustomPolicyScript(
+                policy.publicQuery,
+                policy.name,
+                policy.rules
+              )
+            },
+            argument: generatePolicyArgument(policy.arguments)
+          }
         }
         result = item
       }

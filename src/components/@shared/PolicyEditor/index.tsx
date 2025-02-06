@@ -171,20 +171,38 @@ function CustomUrlPolicyView(props): ReactElement {
           className={`${styles.panelRow} ${styles.alignItemsEnd} ${styles.width100}`}
         >
           <div className={`${styles.flexGrow}`}>
+            <div
+              className={`${styles.panelRow} ${styles.alignItemsEnd} ${styles.width100}`}
+            >
+              <div className={styles.flexGrow}>
+                <Field
+                  {...getFieldContent('name', fields)}
+                  component={Input}
+                  name={`${name}.requestCredentials[${index}].policies[${innerIndex}].name`}
+                />
+              </div>
+              <div className={styles.flexGrow}>
+                <Field
+                  {...getFieldContent('publicQuery', fields)}
+                  component={Input}
+                  name={`${name}.requestCredentials[${index}].policies[${innerIndex}].publicQuery`}
+                />
+              </div>
+              <Button
+                type="button"
+                style="primary"
+                onClick={onDeletePolicy}
+                className={`${styles.deleteButton} ${styles.marginBottomButton}`}
+              >
+                Delete
+              </Button>
+            </div>
             <Field
               {...getFieldContent('policyUrl', fields)}
               component={Input}
               name={`${name}.requestCredentials[${index}].policies[${innerIndex}].policyUrl`}
             />
           </div>
-          <Button
-            type="button"
-            style="primary"
-            onClick={onDeletePolicy}
-            className={`${styles.deleteButton} ${styles.marginBottomButton}`}
-          >
-            Delete
-          </Button>
         </div>
 
         <Button
@@ -282,9 +300,9 @@ function CustomPolicyView(props): ReactElement {
           </div>
           <div className={styles.flexGrow}>
             <Field
-              {...getFieldContent('description', fields)}
+              {...getFieldContent('publicQuery', fields)}
               component={Input}
-              name={`${name}.requestCredentials[${index}].policies[${innerIndex}].description`}
+              name={`${name}.requestCredentials[${index}].policies[${innerIndex}].publicQuery`}
             />
           </div>
           <Button
@@ -455,7 +473,8 @@ export function PolicyEditor(props): ReactElement {
     const policy: CustomUrlPolicy = {
       type: 'customUrlPolicy',
       arguments: [],
-      policyUrl: ''
+      policyUrl: '',
+      name: ''
     }
     credential?.policies?.push(policy)
     setCredentials(credentials)
@@ -465,7 +484,6 @@ export function PolicyEditor(props): ReactElement {
     const policy: CustomPolicy = {
       type: 'customPolicy',
       arguments: [],
-      description: '',
       name: '',
       rules: []
     }

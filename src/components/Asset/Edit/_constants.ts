@@ -180,7 +180,6 @@ export const getNewServiceInitialValues = (
     credentials: {
       allow: [],
       deny: [],
-      customPolicies: [],
       requestCredentials: [],
       vcPolicies: [],
       vpPolicies: []

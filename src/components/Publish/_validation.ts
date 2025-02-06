@@ -105,6 +105,10 @@ const validationRequestCredentials = {
           then: (shema) => shema.required('Required')
         })
         .when('type', {
+          is: 'customUrlPolicy',
+          then: (shema) => shema.required('Required')
+        })
+        .when('type', {
           is: 'customPolicy',
           then: (shema) => shema.required('Required')
         }),
@@ -141,10 +145,15 @@ const validationRequestCredentials = {
               })
             )
         }),
-      description: Yup.string().when('type', {
-        is: 'customPolicy',
-        then: (shema) => shema.required('Required')
-      }),
+      publicQuery: Yup.string()
+        .when('type', {
+          is: 'customUrlPolicy',
+          then: (shema) => shema.required('Required')
+        })
+        .when('type', {
+          is: 'customPolicy',
+          then: (shema) => shema.required('Required')
+        }),
       rules: Yup.array().when('type', {
         is: 'customPolicy',
         then: (shema) =>

@@ -28,6 +28,8 @@ export interface PolicyArgument {
 
 export interface CustomUrlPolicy {
   type: 'customUrlPolicy'
+  name: string
+  publicQuery: string
   policyUrl: string
   arguments: PolicyArgument[]
 }
@@ -35,7 +37,7 @@ export interface CustomUrlPolicy {
 export interface CustomPolicy {
   type: 'customPolicy'
   name: string
-  description: string
+  publicQuery: string
   rules: PolicyRule[]
   arguments: PolicyArgument[]
 }
