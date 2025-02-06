@@ -41,7 +41,7 @@ function readRules(policy: string): PolicyRule[] {
   const rules: PolicyRule[] = []
   let startReading = false
   for (const line of policies) {
-    if (line.replaceAll(' ', '').includes('main{')) {
+    if (line.replaceAll(' ', '').includes('allowif{')) {
       startReading = true
       continue
     }
@@ -57,6 +57,36 @@ function readRules(policy: string): PolicyRule[] {
   return rules
 }
 
+function isDynamicPolicy(data: any): boolean {
+  return (
+    'policy' in data &&
+    typeof data.policy === 'string' &&
+    data.policy === 'dynamic'
+  )
+}
+
+function hasPolicyUrlRule(args: any): boolean {
+  return (
+    'rules' in args &&
+    typeof args.rules === 'object' &&
+    'policy_url' in args.rules &&
+    typeof args.rules.policy_url === 'string'
+  )
+}
+
+function hasRegoRule(args: any): boolean {
+  return (
+    'rules' in args &&
+    typeof args.rules === 'object' &&
+    'rego' in args.rules &&
+    typeof args.rules.rego === 'string'
+  )
+}
+
+function hasArguments(args: any) {
+  return 'argument' in args && typeof args.argument === 'object'
+}
+
 export function convertToPolicyType(data: any): PolicyType {
   if (!data) {
     return
@@ -69,12 +99,7 @@ export function convertToPolicyType(data: any): PolicyType {
     } as StaticPolicy
   }
 
-  if (
-    'policy' in data &&
-    typeof data.policy === 'string' &&
-    'args' in data &&
-    Array.isArray(data.args)
-  ) {
+  if ('args' in data && Array.isArray(data.args)) {
     return {
       type: 'parameterizedPolicy',
       policy: data.policy,
@@ -83,34 +108,28 @@ export function convertToPolicyType(data: any): PolicyType {
   }
 
   if (
-    'policyUrl' in data &&
-    typeof data.policyUrl === 'string' &&
-    'argument' in data &&
-    typeof data.argument === 'object'
+    isDynamicPolicy(data) &&
+    hasPolicyUrlRule(data.args) &&
+    hasArguments(data.args)
   ) {
     return {
       type: 'customUrlPolicy',
-      policyUrl: data.policyUrl,
-      arguments: readProperties(data.argument)
+      name: data.args.policy_name,
+      policyUrl: data.args.rules.policy_url,
+      arguments: readProperties(data.args.argument)
     } as CustomUrlPolicy
   }
 
   if (
-    'name' in data &&
-    typeof data.name === 'string' &&
-    'description' in data &&
-    typeof data.description === 'string' &&
-    'policy' in data &&
-    typeof data.policy === 'string' &&
-    'argument' in data &&
-    typeof data.argument === 'object'
+    isDynamicPolicy(data) &&
+    hasRegoRule(data.args) &&
+    hasArguments(data.args)
   ) {
     return {
       type: 'customPolicy',
-      name: data.name,
-      description: data.description,
-      rules: readRules(data.policy),
-      arguments: readProperties(data.argument)
+      name: data.args.policy_name,
+      rules: readRules(data.args.rules.rego),
+      arguments: readProperties(data.args.argument)
     } as CustomPolicy
   }
 

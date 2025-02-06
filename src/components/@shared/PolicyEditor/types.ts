@@ -42,7 +42,7 @@ export interface CustomPolicy {
 
 export const PolicyRuleLeftValuePrefix: string = 'input.parameter.'
 export const PolicyRuleRightValuePrefix: string =
-  'input.credentialData.credentialSubject.'
+  'input.credentialData.credentialSubject'
 
 export interface PolicyRule {
   leftValue: string
