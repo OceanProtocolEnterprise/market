@@ -39,6 +39,7 @@ function generateCredentials(credentials: Credential): CredentialForm {
                 return convertToPolicyType(policy)
               } catch (error) {
                 LoggerInstance.error(error)
+                return undefined
               }
             })
             policyTypes = policyTypes.filter((item) => !!item)
