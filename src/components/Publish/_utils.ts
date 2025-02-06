@@ -139,11 +139,7 @@ function generatePolicyArgument(
   return argument
 }
 
-function generateCustomPolicyScript(
-  publicQuery: string,
-  name: string,
-  rules: PolicyRule[]
-): string {
+function generateCustomPolicyScript(name: string, rules: PolicyRule[]): string {
   const rulesStrings = []
   rules?.forEach((rule) => {
     rulesStrings.push(
@@ -151,11 +147,11 @@ function generateCustomPolicyScript(
     )
   })
 
-  const result = String.raw`package ${publicQuery}.${name}
+  const result = String.raw`package data.${name}
 
   default allow := false
   
-  main {
+  allow if {
     ${rulesStrings.join('\n')}
   }`
   return result
@@ -185,7 +181,7 @@ function generateSsiPolicy(policy: PolicyType): any {
           args: {
             policy_name: policy.name,
             opa_server: appConfig.opaServer,
-            policy_query: policy.publicQuery,
+            policy_query: 'data',
             rules: {
               policy_url: policy.policyUrl
             },
@@ -202,13 +198,9 @@ function generateSsiPolicy(policy: PolicyType): any {
           args: {
             policy_name: policy.name,
             opa_server: appConfig.opaServer,
-            policy_query: policy.publicQuery,
+            policy_query: 'data',
             rules: {
-              rego: generateCustomPolicyScript(
-                policy.publicQuery,
-                policy.name,
-                policy.rules
-              )
+              rego: generateCustomPolicyScript(policy.name, policy.rules)
             },
             argument: generatePolicyArgument(policy.arguments)
           }

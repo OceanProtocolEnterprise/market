@@ -29,7 +29,6 @@ export interface PolicyArgument {
 export interface CustomUrlPolicy {
   type: 'customUrlPolicy'
   name: string
-  publicQuery: string
   policyUrl: string
   arguments: PolicyArgument[]
 }
@@ -37,13 +36,13 @@ export interface CustomUrlPolicy {
 export interface CustomPolicy {
   type: 'customPolicy'
   name: string
-  publicQuery: string
   rules: PolicyRule[]
   arguments: PolicyArgument[]
 }
 
 export const PolicyRuleLeftValuePrefix: string = 'input.parameter.'
-export const PolicyRuleRightValuePrefix: string = 'input.credentialData.'
+export const PolicyRuleRightValuePrefix: string =
+  'input.credentialData.credentialSubject.'
 
 export interface PolicyRule {
   leftValue: string

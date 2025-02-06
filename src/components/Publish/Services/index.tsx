@@ -117,6 +117,17 @@ export default function ServicesFields(): ReactElement {
         name="services[0].timeout"
       />
 
+      <Field
+        {...getFieldContent('allow', content.credentials.fields)}
+        component={Input}
+        name="services[0].credentials.allow"
+      />
+      <Field
+        {...getFieldContent('deny', content.credentials.fields)}
+        component={Input}
+        name="services[0].credentials.deny"
+      />
+
       {appConfig.ssiEnabled ? (
         <PolicyEditor
           label="SSI Policies"
@@ -130,17 +141,6 @@ export default function ServicesFields(): ReactElement {
       ) : (
         <></>
       )}
-
-      <Field
-        {...getFieldContent('allow', content.credentials.fields)}
-        component={Input}
-        name="services[0].credentials.allow"
-      />
-      <Field
-        {...getFieldContent('deny', content.credentials.fields)}
-        component={Input}
-        name="services[0].credentials.deny"
-      />
 
       <Field
         {...getFieldContent('usesConsumerParameters', content.services.fields)}

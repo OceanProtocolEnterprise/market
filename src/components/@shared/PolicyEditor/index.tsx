@@ -106,7 +106,7 @@ function ParameterizedPolicyView(props): ReactElement {
           style="primary"
           onClick={() => newArgument(parameterizedPolicy)}
         >
-          New {{ ...getFieldContent('didIssuer', fields) }.label}
+          New {{ ...getFieldContent('issuerDid', fields) }.label}
         </Button>
         {parameterizedPolicy?.args?.map((argument, argumentIndex) => (
           <div key={argumentIndex} className={styles.panelColumn}>
@@ -115,7 +115,7 @@ function ParameterizedPolicyView(props): ReactElement {
             >
               <div className={`${styles.flexGrow}`}>
                 <Field
-                  {...getFieldContent('didIssuer', fields)}
+                  {...getFieldContent('issuerDid', fields)}
                   component={Input}
                   name={`${name}.requestCredentials[${index}].policies[${innerIndex}].args[${argumentIndex}]`}
                 />
@@ -179,13 +179,6 @@ function CustomUrlPolicyView(props): ReactElement {
                   {...getFieldContent('name', fields)}
                   component={Input}
                   name={`${name}.requestCredentials[${index}].policies[${innerIndex}].name`}
-                />
-              </div>
-              <div className={styles.flexGrow}>
-                <Field
-                  {...getFieldContent('publicQuery', fields)}
-                  component={Input}
-                  name={`${name}.requestCredentials[${index}].policies[${innerIndex}].publicQuery`}
                 />
               </div>
               <Button
@@ -296,13 +289,6 @@ function CustomPolicyView(props): ReactElement {
               {...getFieldContent('name', fields)}
               component={Input}
               name={`${name}.requestCredentials[${index}].policies[${innerIndex}].name`}
-            />
-          </div>
-          <div className={styles.flexGrow}>
-            <Field
-              {...getFieldContent('publicQuery', fields)}
-              component={Input}
-              name={`${name}.requestCredentials[${index}].policies[${innerIndex}].publicQuery`}
             />
           </div>
           <Button

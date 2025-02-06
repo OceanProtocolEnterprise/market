@@ -1,7 +1,7 @@
 [
   {
-    "name": "didIssuer",
-    "label": "DID Issuer",
+    "name": "issuerDid",
+    "label": "Issuer DID",
     "type": "text"
   },
   {
@@ -27,7 +27,7 @@
   },
   {
     "name": "rightValue",
-    "label": "Credential Subject Value",
+    "label": "Value",
     "type": "text",
     "required": true
   },
@@ -40,12 +40,6 @@
   {
     "name": "rule",
     "label": "Rule",
-    "type": "text",
-    "required": true
-  },
-  {
-    "name": "publicQuery",
-    "label": "Public Query",
     "type": "text",
     "required": true
   },

@@ -145,15 +145,6 @@ const validationRequestCredentials = {
               })
             )
         }),
-      publicQuery: Yup.string()
-        .when('type', {
-          is: 'customUrlPolicy',
-          then: (shema) => shema.required('Required')
-        })
-        .when('type', {
-          is: 'customPolicy',
-          then: (shema) => shema.required('Required')
-        }),
       rules: Yup.array().when('type', {
         is: 'customPolicy',
         then: (shema) =>
@@ -259,7 +250,7 @@ export const validationSchema: Yup.SchemaOf<any> = Yup.object().shape({
     .of(
       Yup.object().shape({
         data: Yup.string().required('Required'),
-        type: Yup.string()
+        type: Yup.string().required('Required')
       })
     )
     .nullable(),
