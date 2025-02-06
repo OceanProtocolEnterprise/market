@@ -114,13 +114,14 @@ export const assets: AssetExtended[] = [
           timeout: 2592000,
           type: 'compute',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ]
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -240,14 +241,17 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {}
+      credentials: {
+        match_deny: 'any'
+      }
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -354,15 +358,18 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {},
+      credentials: {
+        match_deny: 'any'
+      },
       nftAddress: '0xca3cCFc6CEcf459200AADA1d4a51024F0EAAC230'
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -470,14 +477,17 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {}
+      credentials: {
+        match_deny: 'any'
+      }
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -591,14 +601,17 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {}
+      credentials: {
+        match_deny: 'any'
+      }
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -721,14 +734,17 @@ export const assets: AssetExtended[] = [
           type: 'compute',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {}
+      credentials: {
+        match_deny: 'any'
+      }
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -851,14 +867,17 @@ export const assets: AssetExtended[] = [
           type: 'compute',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {}
+      credentials: {
+        match_deny: 'any'
+      }
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -966,14 +985,17 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {}
+      credentials: {
+        match_deny: 'any'
+      }
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -1074,14 +1096,17 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {}
+      credentials: {
+        match_deny: 'any'
+      }
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -1186,14 +1211,17 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {}
+      credentials: {
+        match_deny: 'any'
+      }
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -1292,14 +1320,17 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {}
+      credentials: {
+        match_deny: 'any'
+      }
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -1398,14 +1429,17 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {}
+      credentials: {
+        match_deny: 'any'
+      }
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -1502,14 +1536,17 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {}
+      credentials: {
+        match_deny: 'any'
+      }
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -1615,13 +1652,14 @@ export const assets: AssetExtended[] = [
           timeout: 3600,
           type: 'access',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ]
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -1727,14 +1765,17 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {}
+      credentials: {
+        match_deny: 'any'
+      }
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -1831,14 +1872,17 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {}
+      credentials: {
+        match_deny: 'any'
+      }
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   },
   {
     '@context': ['https://w3id.org/did/v1'],
@@ -1956,13 +2000,16 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: {}
+          credentials: {
+            match_deny: 'any'
+          }
         }
       ],
-      credentials: {}
+      credentials: {
+        match_deny: 'any'
+      }
     },
     issuer: '',
-    type: [],
-    proof: undefined
+    type: []
   }
 ]

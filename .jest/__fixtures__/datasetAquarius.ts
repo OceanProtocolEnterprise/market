@@ -72,7 +72,9 @@ export const datasetAquarius: Asset = {
         timeout: 604800,
         name: 'Test Service',
         state: State.Active,
-        credentials: {}
+        credentials: {
+          match_deny: 'any'
+        }
       }
     ],
     event: {
@@ -91,9 +93,10 @@ export const datasetAquarius: Asset = {
           'dbc42f4c62d2452f8731fd023eacfae74e9c7a42fbd12ce84310f13342e4aab1'
       }
     ],
-    credentials: {}
+    credentials: {
+      match_deny: 'any'
+    }
   },
   issuer: '',
-  type: [],
-  proof: undefined
+  type: []
 }
