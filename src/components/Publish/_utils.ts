@@ -517,7 +517,7 @@ export async function signAssetAndUploadToIpfs(
 ): Promise<IpfsUpload> {
   const credential: VCDataModel.Credential = {
     credentialSubject: asset.credentialSubject,
-    issuer: `did:oe:${await owner.getAddress()}`,
+    issuer: `did:ope:${await owner.getAddress()}`,
     '@context': asset['@context'],
     version: asset.version,
     type: asset.type
@@ -534,7 +534,7 @@ export async function signAssetAndUploadToIpfs(
       const payload: VCDataModel.VerifiableCredentialJWT = {
         vc: credential,
         iss: credential.issuer,
-        sub: credential.credentialSubject.id,
+        sub: credential.id,
         jti: credential.id
       }
       jwtVerifiableCredential = await signMessage(
