@@ -55,12 +55,10 @@ export default function FormEditService({
     if (appConfig.ssiEnabled) {
       getDefaultPolicies()
         .then((policies) => {
-          policies?.forEach((policy) => {
-            if (!values.credentials.vcPolicies.includes(policy)) {
-              values.credentials.vcPolicies.push(policy)
-            }
-          })
-          setFieldValue('credentials.vcPolicies', values.credentials.vcPolicies)
+          const newVcPolicies = [
+            ...new Set(policies.concat(values.credentials.vcPolicies))
+          ]
+          setFieldValue('credentials.vcPolicies', newVcPolicies)
           setDefaultPolicies(policies)
         })
         .catch((error) => {
