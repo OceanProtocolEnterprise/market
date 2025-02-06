@@ -49,7 +49,9 @@ export const algorithmAquarius: Asset = {
         timeout: 604800,
         name: 'Service',
         state: State.Active,
-        credentials: []
+        credentials: {
+          match_deny: 'any'
+        }
       }
     ],
     metadata: {
@@ -95,7 +97,9 @@ export const algorithmAquarius: Asset = {
       copyrightHolder: '',
       providedBy: ''
     },
-    credentials: [],
+    credentials: {
+      match_deny: 'any'
+    },
     datatokens: [
       {
         address: '0x067e1E6ec580F3F0f6781679A4A5AB07A6464b08',
@@ -107,6 +111,5 @@ export const algorithmAquarius: Asset = {
     ]
   },
   issuer: '',
-  type: [],
-  proof: undefined
+  type: []
 }
