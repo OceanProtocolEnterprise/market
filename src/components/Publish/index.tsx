@@ -209,10 +209,7 @@ export default function PublishPage({
         ipfsUpload.metadataIPFSHash
       )
 
-      LoggerInstance.log(
-        'Version 5.0.0 Asset published. ID:',
-        ddo.credentialSubject.id
-      )
+      LoggerInstance.log('Version 5.0.0 Asset published. ID:', ddo.id)
 
       setFeedback((prevState) => ({
         ...prevState,

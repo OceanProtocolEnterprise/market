@@ -233,10 +233,7 @@ export default function AddService({
           ipfsUpload.metadataIPFSHash
         )
 
-        console.log(
-          'Version 5.0.0 Asset updated. ID:',
-          updatedAsset.credentialSubject.id
-        )
+        console.log('Version 5.0.0 Asset updated. ID:', updatedAsset.id)
       }
 
       // Edit succeeded

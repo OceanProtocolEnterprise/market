@@ -136,10 +136,7 @@ export default function Edit({
           ipfsUpload.metadataIPFSHash
         )
 
-        LoggerInstance.log(
-          'Version 5.0.0 Asset updated. ID:',
-          updatedAsset.credentialSubject.id
-        )
+        LoggerInstance.log('Version 5.0.0 Asset updated. ID:', updatedAsset.id)
       }
 
       // Edit succeeded

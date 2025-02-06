@@ -1,7 +1,6 @@
 import {
   Config,
   FreCreationParams,
-  generateDid,
   DatatokenCreateParams,
   DispenserCreationParams,
   getHash,
@@ -41,12 +40,10 @@ import { Signer } from 'ethers'
 import { uploadToIPFS } from '@utils/ipfs'
 import { DDOVersion } from 'src/@types/DdoVersion'
 import { Credential, CredentialAddressBased } from 'src/@types/ddo/Credentials'
-import { VerifiableCredential } from 'src/@types/ddo/VerifiableCredential'
 import { asset } from '.jest/__fixtures__/datasetWithAccessDetails'
 import { convertLinks } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
-import { JWTHeaderParameters, JWTPayload } from 'jose'
-import base64url from 'base64url'
+import { DDOManager } from 'ddo.js'
 
 function getUrlFileExtension(fileUrl: string): string {
   const splittedFileUrl = fileUrl.split('.')
@@ -162,7 +159,6 @@ export async function transformPublishFormToDdo(
   const { access, files, links, providerUrl, timeout, allow, deny } =
     services[0]
 
-  const did = nftAddress ? generateDid(nftAddress, chainId) : '0x...'
   const currentTime = dateToStringNoMS(new Date())
   const isPreview = !datatokenAddress && !nftAddress
 
@@ -287,10 +283,10 @@ export async function transformPublishFormToDdo(
 
   const newDdo: any = {
     '@context': ['https://w3id.org/did/v1'],
-    id: did,
+    id: '',
     version: DDOVersion.V5_0_0,
     credentialSubject: {
-      id: did,
+      id: '',
       chainId,
       metadata: newMetadata,
       services: [newService],
@@ -319,6 +315,13 @@ export async function transformPublishFormToDdo(
       created: ''
     }
   }
+
+  const ddoInstance = DDOManager.getDDOClass(newDdo)
+  const did = nftAddress
+    ? ddoInstance.makeDid(nftAddress, chainId.toString())
+    : '0x...'
+  newDdo.id = did
+  newDdo.credentialSubject.id = did
 
   return newDdo
 }
