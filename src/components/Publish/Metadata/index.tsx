@@ -20,6 +20,7 @@ import { License } from 'src/@types/ddo/License'
 import { RemoteObject } from 'src/@types/ddo/RemoteObject'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import appConfig from 'app.config'
+import styles from './index.module.css'
 
 const assetTypeOptionsTitles = getFieldContent(
   'type',
