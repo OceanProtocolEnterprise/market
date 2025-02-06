@@ -1,4 +1,6 @@
 export interface Credential {
+  match_allow?: 'any' | 'all'
+  match_deny: 'any' | 'all'
   allow?: (CredentialAddressBased | CredentialPolicyBased)[]
   deny?: CredentialAddressBased[]
 }

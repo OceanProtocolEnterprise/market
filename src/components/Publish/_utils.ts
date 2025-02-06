@@ -64,11 +64,7 @@ import {
   PolicyType
 } from '@components/@shared/PolicyEditor/types'
 import { SsiWalletContext } from '@context/SsiWallet'
-import {
-  connectToWallet,
-  isSessionValid,
-  signMessage
-} from '@utils/wallet/ssiWallet'
+import { isSessionValid, signMessage } from '@utils/wallet/ssiWallet'
 
 export async function getDefaultPolicies(): Promise<string[]> {
   const response = await fetch(appConfig.ssiDefaultPolicyUrl)
@@ -213,7 +209,8 @@ export function generateCredentials(
 ): Credential {
   const newCredentials: Credential = {
     allow: [],
-    deny: []
+    deny: [],
+    match_deny: 'any'
   }
 
   if (appConfig.ssiEnabled) {
