@@ -3,7 +3,7 @@ import { State } from 'src/@types/ddo/State'
 
 export const algorithmAquarius: Asset = {
   '@context': ['https://w3id.org/did/v1'],
-  id: 'did:op:6654b0793765b269696cec8d2f0d077d9bbcdd3c4f033d941ab9684e8ad06630',
+  id: 'did:ope:6654b0793765b269696cec8d2f0d077d9bbcdd3c4f033d941ab9684e8ad06630',
   version: '5.0.0',
   nft: {
     address: '0xbA5BA7B09e2FA1eb0258f647503F81D2Af5cb07d',
@@ -28,7 +28,7 @@ export const algorithmAquarius: Asset = {
     reason: ''
   },
   credentialSubject: {
-    id: 'did:op:6654b0793765b269696cec8d2f0d077d9bbcdd3c4f033d941ab9684e8ad06630',
+    id: 'did:ope:6654b0793765b269696cec8d2f0d077d9bbcdd3c4f033d941ab9684e8ad06630',
     nftAddress: '0xbA5BA7B09e2FA1eb0258f647503F81D2Af5cb07d',
     chainId: 1,
     event: {

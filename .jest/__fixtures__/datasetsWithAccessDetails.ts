@@ -6,7 +6,7 @@ import { State } from 'src/@types/ddo/State'
 export const assets: AssetExtended[] = [
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:48406caf76d092e08af6703dde5bbab79ed7528939d8bbe733134284faf39075',
+    id: 'did:ope:48406caf76d092e08af6703dde5bbab79ed7528939d8bbe733134284faf39075',
     nft: {
       address: '0xE07B0a3403fAD9568cd970C04C3D08A9c1Ab93d0',
       created: '2022-10-10T14:31:24',
@@ -56,7 +56,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:48406caf76d092e08af6703dde5bbab79ed7528939d8bbe733134284faf39075',
+      id: 'did:ope:48406caf76d092e08af6703dde5bbab79ed7528939d8bbe733134284faf39075',
       chainId: 5,
       credentials: undefined,
       datatokens: [
@@ -125,7 +125,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:dabbcf352e9d90d4e4f44a50440b0798a1a1d90e762ab2c7edba6ab4f2129deb',
+    id: 'did:ope:dabbcf352e9d90d4e4f44a50440b0798a1a1d90e762ab2c7edba6ab4f2129deb',
     nft: {
       address: '0x866e4ED7b001f40c4067d0a37d6d401a0B13EfD6',
       created: '2022-10-06T23:06:11',
@@ -176,7 +176,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:dabbcf352e9d90d4e4f44a50440b0798a1a1d90e762ab2c7edba6ab4f2129deb',
+      id: 'did:ope:dabbcf352e9d90d4e4f44a50440b0798a1a1d90e762ab2c7edba6ab4f2129deb',
       chainId: 137,
       datatokens: [
         {
@@ -255,7 +255,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:fcfaffeab039fd4406b4546dab57a0380d971f6a2746f588bbeafeb38fc406c9',
+    id: 'did:ope:fcfaffeab039fd4406b4546dab57a0380d971f6a2746f588bbeafeb38fc406c9',
     nft: {
       address: '0xca3cCFc6CEcf459200AADA1d4a51024F0EAAC230',
       created: '2022-10-06T21:31:12',
@@ -306,7 +306,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:fcfaffeab039fd4406b4546dab57a0380d971f6a2746f588bbeafeb38fc406c9',
+      id: 'did:ope:fcfaffeab039fd4406b4546dab57a0380d971f6a2746f588bbeafeb38fc406c9',
       chainId: 5,
       datatokens: [
         {
@@ -373,7 +373,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:16cf424daaa8cf763c0a753c4fe9045981fdc728571b95021514450d2160bbb8',
+    id: 'did:ope:16cf424daaa8cf763c0a753c4fe9045981fdc728571b95021514450d2160bbb8',
     nft: {
       address: '0x59E27Aa74275E2373A965C0a9dca8f112b82D785',
       created: '2022-10-06T21:27:36',
@@ -424,7 +424,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:16cf424daaa8cf763c0a753c4fe9045981fdc728571b95021514450d2160bbb8',
+      id: 'did:ope:16cf424daaa8cf763c0a753c4fe9045981fdc728571b95021514450d2160bbb8',
       chainId: 5,
       datatokens: [
         {
@@ -491,7 +491,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:930b016ea9790156593e016ba2a4fe7a8bd276c8043320f8ba34d9b36395069e',
+    id: 'did:ope:930b016ea9790156593e016ba2a4fe7a8bd276c8043320f8ba34d9b36395069e',
     nft: {
       address: '0x9293919ED1362e6e0572900B2595a2A0bA1cc77C',
       created: '2022-10-06T21:20:36',
@@ -542,7 +542,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:930b016ea9790156593e016ba2a4fe7a8bd276c8043320f8ba34d9b36395069e',
+      id: 'did:ope:930b016ea9790156593e016ba2a4fe7a8bd276c8043320f8ba34d9b36395069e',
       chainId: 5,
       datatokens: [
         {
@@ -615,7 +615,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:6b4314bd7345d07a10ba2c82a352655273b00cdceb2eedd31c8e0d2b5881eb16',
+    id: 'did:ope:6b4314bd7345d07a10ba2c82a352655273b00cdceb2eedd31c8e0d2b5881eb16',
     accessDetails: [
       {
         templateId: 1,
@@ -666,7 +666,7 @@ export const assets: AssetExtended[] = [
     },
     version: '5.0.0',
     credentialSubject: {
-      id: 'did:op:6b4314bd7345d07a10ba2c82a352655273b00cdceb2eedd31c8e0d2b5881eb16',
+      id: 'did:ope:6b4314bd7345d07a10ba2c82a352655273b00cdceb2eedd31c8e0d2b5881eb16',
       chainId: 5,
       datatokens: [
         {
@@ -718,7 +718,7 @@ export const assets: AssetExtended[] = [
               {
                 containerSectionChecksum:
                   '54eb02210bad8a5fbe229e1d131a68e80fe32709a196c6ce49f33e5d378b1195',
-                did: 'did:op:f86dedf3c872f79f788627025685a680eaac9f8bd7b6e622164fd8563e21e836',
+                did: 'did:ope:f86dedf3c872f79f788627025685a680eaac9f8bd7b6e622164fd8563e21e836',
                 filesChecksum:
                   '2f8afee0a35fbeb72a447c7d1437b6c83f937e6d65a6c7d1990548cc21ff254c',
                 serviceId: ''
@@ -748,7 +748,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:f86dedf3c872f79f788627025685a680eaac9f8bd7b6e622164fd8563e21e836',
+    id: 'did:ope:f86dedf3c872f79f788627025685a680eaac9f8bd7b6e622164fd8563e21e836',
     nft: {
       address: '0xACa9d4Df6a4dfF29913A111099bc4aC6363C124F',
       created: '2022-10-06T20:24:24',
@@ -799,7 +799,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:f86dedf3c872f79f788627025685a680eaac9f8bd7b6e622164fd8563e21e836',
+      id: 'did:ope:f86dedf3c872f79f788627025685a680eaac9f8bd7b6e622164fd8563e21e836',
       chainId: 5,
       datatokens: [
         {
@@ -881,7 +881,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:2f9cf3eba8ff21db32350aa6d48db89ca86beab7adf729a40a5debdcef8cd7cb',
+    id: 'did:ope:2f9cf3eba8ff21db32350aa6d48db89ca86beab7adf729a40a5debdcef8cd7cb',
     nft: {
       address: '0x9C725CADD67f67B5F755a30879945c3ECF6aAA46',
       created: '2022-10-06T20:10:12',
@@ -932,7 +932,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:2f9cf3eba8ff21db32350aa6d48db89ca86beab7adf729a40a5debdcef8cd7cb',
+      id: 'did:ope:2f9cf3eba8ff21db32350aa6d48db89ca86beab7adf729a40a5debdcef8cd7cb',
       chainId: 5,
       datatokens: [
         {
@@ -999,7 +999,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:1ea697b447f0a0b3209048f144c0331ca1a8c10af27e233512a41623b93ff8ed',
+    id: 'did:ope:1ea697b447f0a0b3209048f144c0331ca1a8c10af27e233512a41623b93ff8ed',
     nft: {
       address: '0x5f7D840050e008F91f9Fd3dba5fE0f91BbE4b14F',
       created: '2022-10-06T11:16:48',
@@ -1044,7 +1044,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:1ea697b447f0a0b3209048f144c0331ca1a8c10af27e233512a41623b93ff8ed',
+      id: 'did:ope:1ea697b447f0a0b3209048f144c0331ca1a8c10af27e233512a41623b93ff8ed',
       chainId: 137,
       datatokens: [
         {
@@ -1110,7 +1110,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:d1563919dd61c8ea5790b85f3a569fa69e46c84a600290ca377a1cb009bb7694',
+    id: 'did:ope:d1563919dd61c8ea5790b85f3a569fa69e46c84a600290ca377a1cb009bb7694',
     nft: {
       address: '0x4eF0395f0319E6d919942ea3a98472cf957967Da',
       created: '2022-10-05T18:25:48',
@@ -1160,7 +1160,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:d1563919dd61c8ea5790b85f3a569fa69e46c84a600290ca377a1cb009bb7694',
+      id: 'did:ope:d1563919dd61c8ea5790b85f3a569fa69e46c84a600290ca377a1cb009bb7694',
       chainId: 5,
       datatokens: [
         {
@@ -1225,7 +1225,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:aeb9faad199e79eb21cddc15557fa42fe95a02e03c493be8e849594aae60221a',
+    id: 'did:ope:aeb9faad199e79eb21cddc15557fa42fe95a02e03c493be8e849594aae60221a',
     nft: {
       address: '0xf919A3b0D1538CAA24Efe2BeaAbe43F776aE83ED',
       created: '2022-10-05T18:21:24',
@@ -1269,7 +1269,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:aeb9faad199e79eb21cddc15557fa42fe95a02e03c493be8e849594aae60221a',
+      id: 'did:ope:aeb9faad199e79eb21cddc15557fa42fe95a02e03c493be8e849594aae60221a',
       chainId: 5,
       datatokens: [
         {
@@ -1334,7 +1334,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:191af71e271d4eb6f9ac582b2a6a78e8d79167da7a13a30878c7b699842aa421',
+    id: 'did:ope:191af71e271d4eb6f9ac582b2a6a78e8d79167da7a13a30878c7b699842aa421',
     nft: {
       address: '0x0fb9814D744ed407878D6D7508649b8D43F6b30a',
       created: '2022-10-05T09:49:12',
@@ -1377,7 +1377,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:191af71e271d4eb6f9ac582b2a6a78e8d79167da7a13a30878c7b699842aa421',
+      id: 'did:ope:191af71e271d4eb6f9ac582b2a6a78e8d79167da7a13a30878c7b699842aa421',
       chainId: 137,
       datatokens: [
         {
@@ -1443,7 +1443,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:50c60ce0810bf8f8b1c6ca421e5231b106cf4de784945037498c84147e11dbc5',
+    id: 'did:ope:50c60ce0810bf8f8b1c6ca421e5231b106cf4de784945037498c84147e11dbc5',
     nft: {
       address: '0xeE1c6bE384D3ee734E906443E9d893b03852bFC6',
       created: '2022-10-05T07:41:24',
@@ -1485,7 +1485,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:50c60ce0810bf8f8b1c6ca421e5231b106cf4de784945037498c84147e11dbc5',
+      id: 'did:ope:50c60ce0810bf8f8b1c6ca421e5231b106cf4de784945037498c84147e11dbc5',
       chainId: 5,
       datatokens: [
         {
@@ -1550,7 +1550,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:f4b49d04ee8c6973e4f844754805dbfe9e682812121131abbfc1bdf6d6b6eef1',
+    id: 'did:ope:f4b49d04ee8c6973e4f844754805dbfe9e682812121131abbfc1bdf6d6b6eef1',
     nft: {
       address: '0xaD244AC409cEfA155059890b425b83F6A4146d69',
       created: '2022-10-04T22:43:00',
@@ -1600,7 +1600,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:f4b49d04ee8c6973e4f844754805dbfe9e682812121131abbfc1bdf6d6b6eef1',
+      id: 'did:ope:f4b49d04ee8c6973e4f844754805dbfe9e682812121131abbfc1bdf6d6b6eef1',
       chainId: 137,
       credentials: undefined,
       datatokens: [
@@ -1663,7 +1663,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:82698600c9f003bdfa97bf054b5bb9b0f83c18b4ea748ce1eddbab8110ff9ea9',
+    id: 'did:ope:82698600c9f003bdfa97bf054b5bb9b0f83c18b4ea748ce1eddbab8110ff9ea9',
     purgatory: {
       state: false,
       reason: ''
@@ -1713,7 +1713,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:82698600c9f003bdfa97bf054b5bb9b0f83c18b4ea748ce1eddbab8110ff9ea9',
+      id: 'did:ope:82698600c9f003bdfa97bf054b5bb9b0f83c18b4ea748ce1eddbab8110ff9ea9',
       chainId: 5,
       datatokens: [
         {
@@ -1779,7 +1779,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:9c1235050bcd51c8ec9a7058110102c9595136834911c315b4f739bc9a880b8e',
+    id: 'did:ope:9c1235050bcd51c8ec9a7058110102c9595136834911c315b4f739bc9a880b8e',
     nft: {
       address: '0x3A695322d631451474090F322eA3d8d2eC8c1562',
       created: '2022-10-04T11:39:12',
@@ -1821,7 +1821,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:9c1235050bcd51c8ec9a7058110102c9595136834911c315b4f739bc9a880b8e',
+      id: 'did:ope:9c1235050bcd51c8ec9a7058110102c9595136834911c315b4f739bc9a880b8e',
       chainId: 5,
       datatokens: [
         {
@@ -1886,7 +1886,7 @@ export const assets: AssetExtended[] = [
   },
   {
     '@context': ['https://w3id.org/did/v1'],
-    id: 'did:op:9442a55c25e9a0fd30231089ec34e430d0325ce0d3e03ab1aa27579eb56f7570',
+    id: 'did:ope:9442a55c25e9a0fd30231089ec34e430d0325ce0d3e03ab1aa27579eb56f7570',
     nft: {
       address: '0x3a1deC08e0367D8eCCBa714DF23949c105B7D06B',
       created: '2022-10-04T02:38:59',
@@ -1937,7 +1937,7 @@ export const assets: AssetExtended[] = [
       }
     ],
     credentialSubject: {
-      id: 'did:op:9442a55c25e9a0fd30231089ec34e430d0325ce0d3e03ab1aa27579eb56f7570',
+      id: 'did:ope:9442a55c25e9a0fd30231089ec34e430d0325ce0d3e03ab1aa27579eb56f7570',
       chainId: 1,
       datatokens: [
         {

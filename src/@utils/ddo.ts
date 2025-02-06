@@ -23,7 +23,7 @@ import { isCredentialAddressBased } from './credentials'
 import { CredentialAddressBased } from 'src/@types/ddo/Credentials'
 
 export function isValidDid(did: string): boolean {
-  const regex = /^did:op:[A-Za-z0-9]{64}$/
+  const regex = /^did:ope:[A-Za-z0-9]{64}$/
   return regex.test(did)
 }
 
