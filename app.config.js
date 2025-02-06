@@ -89,8 +89,6 @@ module.exports = {
     : false,
   ssiWalletApi:
     process.env.NEXT_PUBLIC_SSI_WALLET_API || 'https://wallet.walt.id',
-  ssiIssuerApi:
-    process.env.NEXT_PUBLIC_SSI_ISSUER_API || 'https://issuer.portal.walt.id',
   ssiDefaultPolicyUrl:
     process.env.NEXT_PUBLIC_SSI_DEFAULT_POLICIES_URL ||
     'https://raw.githubusercontent.com/OceanProtocolEnterprise/policy-server/refs/heads/main/default-verification-policies',
