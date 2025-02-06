@@ -25,7 +25,6 @@ import { customProviderUrl } from '../../../app.config'
 import { useAccount, useNetwork, useSigner } from 'wagmi'
 import { Asset } from 'src/@types/Asset'
 import { ethers } from 'ethers'
-import { SsiWalletDesc } from 'src/@types/SsiWallet'
 import { useSsiWallet } from '@context/SsiWallet'
 
 export default function PublishPage({
