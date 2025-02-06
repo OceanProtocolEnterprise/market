@@ -1,8 +1,12 @@
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { serverSideDeleteIpfsFile, serverSideUploadToIpfs } from '@utils/ipfs'
 import appConfig from 'app.config'
+import { NextApiRequest, NextApiResponse } from 'next'
 
-export default async function handler(req, res) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method === 'POST') {
     try {
       const data = await serverSideUploadToIpfs(

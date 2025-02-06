@@ -11,9 +11,10 @@ export async function connectToWallet(
   owner: Signer
 ): Promise<SsiWalletSession> {
   try {
-    let response = await axios.get(
-      `${appConfig.ssiWalletApi}/wallet-api/auth/account/web3/nonce`
-    )
+    let response = await axios.get(`/api/auth/nonce`)
+    // let response = await axios.get(
+    //  `${appConfig.ssiWalletApi}/wallet-api/auth/account/web3/nonce`
+    // )
 
     const nonce = response.data
     const payload = {
@@ -22,13 +23,15 @@ export async function connectToWallet(
       publicKey: await owner.getAddress()
     }
 
-    response = await axios.post(
-      `${appConfig.ssiWalletApi}/wallet-api/auth/account/web3/signed`,
-      payload
-    )
-    return response.data
+    response = await axios.post(`/api/auth/signed`, payload)
+    // response = await axios.post(
+    //  `${appConfig.ssiWalletApi}/wallet-api/auth/account/web3/signed`,
+    //  payload
+    // )
+
+    return response.data?.sessionToken
   } catch (error) {
-    throw new Error(error.response)
+    throw error.response
   }
 }
 
@@ -36,7 +39,7 @@ export async function disconnectFromWallet() {
   try {
     await axios.post(`${appConfig.ssiWalletApi}/wallet-api/auth/logout`)
   } catch (error) {
-    throw new Error(error.response)
+    throw error.response
   }
 }
 
@@ -62,7 +65,7 @@ export async function getWallets(): Promise<SsiWalletDesc[]> {
     const result: { wallets: SsiWalletDesc[] } = response.data
     return result.wallets
   } catch (error) {
-    throw new Error(error.response)
+    throw error.response
   }
 }
 
@@ -77,7 +80,7 @@ export async function getWalletKeys(
 
     return response.data
   } catch (error) {
-    throw new Error(error.response)
+    throw error.response
   }
 }
 
@@ -96,6 +99,6 @@ export async function signMessage(
     return response.data
   } catch (error) {
     console.log(error)
-    throw new Error(error.response)
+    throw error.response
   }
 }
