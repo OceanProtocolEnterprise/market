@@ -1,5 +1,4 @@
 import axios from 'axios'
-import appConfig from 'app.config'
 import {
   SsiKeyDesc,
   SsiWalletDesc,
@@ -11,10 +10,7 @@ export async function connectToWallet(
   owner: Signer
 ): Promise<SsiWalletSession> {
   try {
-    let response = await axios.get(`/api/auth/nonce`)
-    // let response = await axios.get(
-    //  `${appConfig.ssiWalletApi}/wallet-api/auth/account/web3/nonce`
-    // )
+    let response = await axios.get(`/ssi/wallet-api/auth/account/web3/nonce`)
 
     const nonce = response.data
     const payload = {
@@ -23,11 +19,10 @@ export async function connectToWallet(
       publicKey: await owner.getAddress()
     }
 
-    response = await axios.post(`/api/auth/signed`, payload)
-    // response = await axios.post(
-    //  `${appConfig.ssiWalletApi}/wallet-api/auth/account/web3/signed`,
-    //  payload
-    // )
+    response = await axios.post(
+      `/ssi/wallet-api/auth/account/web3/signed`,
+      payload
+    )
 
     return response.data?.sessionToken
   } catch (error) {
@@ -37,7 +32,7 @@ export async function connectToWallet(
 
 export async function disconnectFromWallet() {
   try {
-    await axios.post(`${appConfig.ssiWalletApi}/wallet-api/auth/logout`)
+    await axios.post(`/ssi/wallet-api/auth/logout`)
   } catch (error) {
     throw error.response
   }
@@ -45,7 +40,7 @@ export async function disconnectFromWallet() {
 
 export async function isSessionValid(): Promise<boolean> {
   try {
-    await axios.get(`${appConfig.ssiWalletApi}/wallet-api/auth/session`, {
+    await axios.get(`/ssi/wallet-api/auth/session`, {
       withCredentials: true
     })
 
@@ -58,7 +53,7 @@ export async function isSessionValid(): Promise<boolean> {
 export async function getWallets(): Promise<SsiWalletDesc[]> {
   try {
     const response = await axios.get(
-      `${appConfig.ssiWalletApi}/wallet-api/wallet/accounts/wallets`,
+      `/ssi/wallet-api/wallet/accounts/wallets`,
       { withCredentials: true }
     )
 
@@ -74,7 +69,7 @@ export async function getWalletKeys(
 ): Promise<SsiKeyDesc[]> {
   try {
     const response = await axios.get(
-      `${appConfig.ssiWalletApi}/wallet-api/wallet/${wallet?.id}/keys`,
+      `/ssi/wallet-api/wallet/${wallet?.id}/keys`,
       { withCredentials: true }
     )
 
@@ -91,7 +86,7 @@ export async function signMessage(
 ) {
   try {
     const response = await axios.post(
-      `${appConfig.ssiWalletApi}/wallet-api/wallet/${walletId}/keys/${keyId}/sign`,
+      `/ssi/wallet-api/wallet/${walletId}/keys/${keyId}/sign`,
       message,
       { withCredentials: true }
     )

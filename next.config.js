@@ -60,6 +60,16 @@ module.exports = (phase, { defaultConfig }) => {
           permanent: true
         }
       ]
+    },
+    async rewrites() {
+      const walletApiBase =
+        process.env.NEXT_PUBLIC_SSI_WALLET_API || 'https://wallet.walt.id'
+      return [
+        {
+          source: '/ssi/:path',
+          destination: `${walletApiBase}/:path`
+        }
+      ]
     }
 
     // Prefer loading of ES Modules over CommonJS
