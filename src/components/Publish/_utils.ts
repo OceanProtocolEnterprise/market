@@ -36,14 +36,22 @@ import { Service } from 'src/@types/ddo/Service'
 import { Metadata } from 'src/@types/ddo/Metadata'
 import { Option } from 'src/@types/ddo/Option'
 import { createHash } from 'crypto'
-import { Signer } from 'ethers'
+import { ethers, Signer } from 'ethers'
 import { uploadToIPFS } from '@utils/ipfs'
 import { DDOVersion } from 'src/@types/DdoVersion'
 import { Credential, CredentialAddressBased } from 'src/@types/ddo/Credentials'
 import { asset } from '.jest/__fixtures__/datasetWithAccessDetails'
 import { convertLinks } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
-import { DDOManager } from 'ddo.js'
+
+export function makeDid(nftAddress: string, chainId: string): string {
+  return (
+    'did:op:' +
+    createHash('sha256')
+      .update(ethers.utils.getAddress(nftAddress) + chainId)
+      .digest('hex')
+  )
+}
 
 function getUrlFileExtension(fileUrl: string): string {
   const splittedFileUrl = fileUrl.split('.')
@@ -281,12 +289,14 @@ export async function transformPublishFormToDdo(
     credentials: newCredentials
   }
 
+  const did = nftAddress ? makeDid(nftAddress, chainId.toString()) : '0x...'
+
   const newDdo: any = {
     '@context': ['https://w3id.org/did/v1'],
-    id: '',
+    id: did,
     version: DDOVersion.V5_0_0,
     credentialSubject: {
-      id: '',
+      id: did,
       chainId,
       metadata: newMetadata,
       services: [newService],
@@ -315,13 +325,6 @@ export async function transformPublishFormToDdo(
       created: ''
     }
   }
-
-  const ddoInstance = DDOManager.getDDOClass(newDdo)
-  const did = nftAddress
-    ? ddoInstance.makeDid(nftAddress, chainId.toString())
-    : '0x...'
-  newDdo.id = did
-  newDdo.credentialSubject.id = did
 
   return newDdo
 }
