@@ -46,7 +46,7 @@ import { License } from 'src/@types/ddo/License'
 
 export function makeDid(nftAddress: string, chainId: string): string {
   return (
-    'did:op:' +
+    'did:ope:' +
     createHash('sha256')
       .update(ethers.utils.getAddress(nftAddress) + chainId)
       .digest('hex')
