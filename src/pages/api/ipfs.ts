@@ -1,6 +1,6 @@
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { serverSideDeleteIpfsFile, serverSideUploadToIpfs } from '@utils/ipfs'
-import appConfig from 'app.config'
+import appConfig from 'app.config.cjs'
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {

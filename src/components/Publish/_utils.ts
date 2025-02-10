@@ -27,7 +27,7 @@ import {
   publisherMarketFixedSwapFee,
   defaultDatatokenTemplateIndex,
   defaultDatatokenCap
-} from '../../../app.config'
+} from '../../../app.config.cjs'
 import { sanitizeUrl } from '@utils/url'
 import { getContainerChecksum } from '@utils/docker'
 import { hexlify, parseEther } from 'ethers/lib/utils'

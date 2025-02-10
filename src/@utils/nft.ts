@@ -8,7 +8,7 @@ import {
   getErrorMessage
 } from '@oceanprotocol/lib'
 import { SvgWaves } from './SvgWaves'
-import { customProviderUrl } from '../../app.config'
+import { customProviderUrl } from '../../app.config.cjs'
 import { Signer, ethers } from 'ethers'
 import { toast } from 'react-toastify'
 import { Asset } from 'src/@types/Asset'

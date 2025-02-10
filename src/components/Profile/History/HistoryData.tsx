@@ -16,6 +16,7 @@ import AssetTitle from '@shared/AssetListTitle'
 import NetworkName from '@shared/NetworkName'
 import HistoryTable from '@components/@shared/atoms/Table/HistoryTable'
 import { getAccessDetails } from '@utils/accessDetailsAndPricing'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 const columns: TableOceanColumn<AssetExtended>[] = [
   {

@@ -32,7 +32,7 @@ import {
   defaultDatatokenTemplateIndex,
   marketFeeAddress,
   publisherMarketFixedSwapFee
-} from 'app.config'
+} from 'app.config.cjs'
 import { ethers } from 'ethers'
 import FormAddService from './FormAddService'
 import { transformComputeFormToServiceComputeOptions } from '@utils/compute'

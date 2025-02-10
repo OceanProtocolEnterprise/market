@@ -132,7 +132,7 @@ export function FileDrop({
           {message.length > 0 ? message : dropAreaLabel}
         </div>
         <Button
-          type="button"
+          type="submit"
           style="primary"
           className={styles.applybutton}
           onClick={handleApply}

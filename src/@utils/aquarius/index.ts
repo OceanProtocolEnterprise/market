@@ -1,13 +1,13 @@
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelection'
 import axios, { CancelToken, AxiosResponse } from 'axios'
-import { metadataCacheUri, allowDynamicPricing } from '../../../app.config'
+import { metadataCacheUri, allowDynamicPricing } from '../../../app.config.cjs'
 import {
   SortDirectionOptions,
   SortTermOptions
 } from '../../@types/aquarius/SearchQuery'
 import { transformAssetToAssetSelection } from '../assetConverter'
-import addressConfig from '../../../address.config'
+import addressConfig from '../../../address.config.cjs'
 import { isValidDid } from '@utils/ddo'
 import { Filters } from '@context/Filter'
 import { filterSets } from '@components/Search/Filter'
