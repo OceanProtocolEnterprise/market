@@ -20,15 +20,7 @@ export function getComputeValidationSchema(
   dataServiceParams: Record<string, string | number | boolean | Option[]>[],
   algoServiceParams: Record<string, string | number | boolean | Option[]>[],
   algoParams: Record<string, string | number | boolean | Option[]>[]
-): Yup.SchemaOf<{
-  algorithm: string
-  computeEnv: string
-  dataServiceParams: Record<string, string | number | boolean | Option[]>[]
-  algoServiceParams: Record<string, string | number | boolean | Option[]>[]
-  algoParams: Record<string, string | number | boolean | Option[]>[]
-  termsAndConditions: boolean
-  acceptPublishingLicense: boolean
-}> {
+) {
   return Yup.object().shape({
     algorithm: Yup.string().required('Required'),
     computeEnv: Yup.string().required('Required'),

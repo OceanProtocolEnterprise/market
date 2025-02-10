@@ -58,6 +58,7 @@ export default function CustomProvider(props: InputProps): ReactElement {
         providerResponse?.data?.chainIds
 
       const isCompatible =
+        // eslint-disable-next-line eqeqeq
         providerChain == userChainId
           ? true
           : !!(

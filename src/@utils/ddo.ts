@@ -193,7 +193,7 @@ export function parseConsumerParameters(
   if (!consumerParameters) {
     return []
   }
-  return consumerParameters.map((param) => {
+  return consumerParameters.map<FormConsumerParameter>((param) => {
     let transformedOptions
     if (Array.isArray(param.options)) {
       transformedOptions = param.options.map((option) => {
@@ -215,7 +215,7 @@ export function parseConsumerParameters(
           : param.type === 'number'
           ? Number(param.default)
           : param.default
-    }
+    } as FormConsumerParameter
   })
 }
 

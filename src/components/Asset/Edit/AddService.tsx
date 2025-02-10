@@ -310,7 +310,8 @@ export default function AddService({
                     consumerParameters: [],
                     credentials: {
                       allow: [],
-                      deny: []
+                      deny: [],
+                      match_deny: 'any'
                     },
                     state: State.Active
                   }}

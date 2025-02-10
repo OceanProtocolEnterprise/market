@@ -272,11 +272,7 @@ export default function MetadataFields(): ReactElement {
                   ?.at(0)
                   ?.mirrors?.at(0)}
               ></IpfsRemoteSource>
-              <Button
-                type="button"
-                style="primary"
-                onClick={handleLicenseRemove}
-              >
+              <Button style="primary" onClick={handleLicenseRemove}>
                 Delete
               </Button>
             </div>

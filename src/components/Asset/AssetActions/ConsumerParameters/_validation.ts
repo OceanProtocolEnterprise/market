@@ -1,6 +1,7 @@
 import * as Yup from 'yup'
 import { SchemaLike } from 'yup/lib/types'
 import { Option } from 'src/@types/ddo/Option'
+import { parseConsumerParameterValues } from '.'
 
 export function getUserCustomParameterValidationSchema(
   consumerParameters: Record<string, string | number | boolean | Option[]>[]
@@ -15,11 +16,13 @@ export function getUserCustomParameterValidationSchema(
         ? Yup.boolean()
         : Yup.string()
 
-    Object.assign(shape, {
-      [parameter.name]: parameter.required
-        ? schemaBase.required('required')
-        : schemaBase.nullable().transform((value) => value || null)
-    })
+    if ('name' in parameter && typeof parameter.name === 'string') {
+      Object.assign(shape, {
+        [parameter.name]: parameter.required
+          ? schemaBase.required('required')
+          : schemaBase.nullable().transform((value) => value || null)
+      })
+    }
   })
 
   const schema = Yup.object(shape)

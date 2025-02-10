@@ -130,6 +130,7 @@ export function generateCredentials(
     }
 
     newCredentials = {
+      match_deny: 'any',
       allow: [newAllowList],
       deny: [newDenyList]
     }
@@ -137,6 +138,7 @@ export function generateCredentials(
     return newCredentials
   } else {
     return {
+      match_deny: 'any',
       allow: [],
       deny: []
     }
