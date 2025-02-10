@@ -31,7 +31,7 @@ import DebugEditService from './DebugEditService'
 import styles from './index.module.css'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
-import { customProviderUrl } from 'app.config'
+import { customProviderUrl } from 'app.config.cjs'
 import { ethers } from 'ethers'
 
 export default function EditService({

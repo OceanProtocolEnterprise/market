@@ -114,7 +114,7 @@ export const assets: AssetExtended[] = [
           timeout: 2592000,
           type: 'compute',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ]
     },
@@ -240,10 +240,10 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: []
+      credentials: {}
     },
     issuer: '',
     type: [],
@@ -354,10 +354,10 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: [],
+      credentials: {},
       nftAddress: '0xca3cCFc6CEcf459200AADA1d4a51024F0EAAC230'
     },
     issuer: '',
@@ -470,10 +470,10 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: []
+      credentials: {}
     },
     issuer: '',
     type: [],
@@ -591,10 +591,10 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: []
+      credentials: {}
     },
     issuer: '',
     type: [],
@@ -721,10 +721,10 @@ export const assets: AssetExtended[] = [
           type: 'compute',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: []
+      credentials: {}
     },
     issuer: '',
     type: [],
@@ -851,10 +851,10 @@ export const assets: AssetExtended[] = [
           type: 'compute',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: []
+      credentials: {}
     },
     issuer: '',
     type: [],
@@ -966,10 +966,10 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: []
+      credentials: {}
     },
     issuer: '',
     type: [],
@@ -1074,10 +1074,10 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: []
+      credentials: {}
     },
     issuer: '',
     type: [],
@@ -1186,10 +1186,10 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: []
+      credentials: {}
     },
     issuer: '',
     type: [],
@@ -1292,10 +1292,10 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: []
+      credentials: {}
     },
     issuer: '',
     type: [],
@@ -1398,10 +1398,10 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: []
+      credentials: {}
     },
     issuer: '',
     type: [],
@@ -1502,10 +1502,10 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: []
+      credentials: {}
     },
     issuer: '',
     type: [],
@@ -1615,7 +1615,7 @@ export const assets: AssetExtended[] = [
           timeout: 3600,
           type: 'access',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ]
     },
@@ -1727,10 +1727,10 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: []
+      credentials: {}
     },
     issuer: '',
     type: [],
@@ -1831,10 +1831,10 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: []
+      credentials: {}
     },
     issuer: '',
     type: [],
@@ -1956,10 +1956,10 @@ export const assets: AssetExtended[] = [
           type: 'access',
           name: '',
           state: State.Active,
-          credentials: []
+          credentials: {}
         }
       ],
-      credentials: []
+      credentials: {}
     },
     issuer: '',
     type: [],

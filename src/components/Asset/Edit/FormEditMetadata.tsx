@@ -23,7 +23,7 @@ import { sha256 } from 'ohash'
 import Button from '@components/@shared/atoms/Button'
 import styles from './index.module.css'
 import { LoggerInstance } from '@oceanprotocol/lib'
-import appConfig from 'app.config'
+import appConfig from 'app.config.cjs'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
@@ -240,7 +240,7 @@ export default function FormEditMetadata(): ReactElement {
               ></IpfsRemoteSource>
               <Button
                 className={styles.deleteLicenseButton}
-                type="button"
+                type="submit"
                 style="primary"
                 onClick={handleLicenseRemove}
               >

@@ -3,7 +3,13 @@ module.exports = (phase, { defaultConfig }) => {
    * @type {import('next').NextConfig}
    */
   const nextConfig = {
-    webpack: (config, options) => {
+    experimental: {
+      esmExternals: 'loose'
+    },
+    webpack: (config, options, { isServer }) => {
+      if (!isServer) {
+        config.resolve.fallback.fs = false
+      }
       config.module.rules.push(
         {
           test: /\.svg$/,

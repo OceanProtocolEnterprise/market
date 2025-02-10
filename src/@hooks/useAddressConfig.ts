@@ -1,5 +1,5 @@
 import { AssetExtended } from 'src/@types/AssetExtended'
-import addressConfig from '../../address.config'
+import addressConfig from '../../address.config.cjs'
 const {
   whitelists,
   featured,
