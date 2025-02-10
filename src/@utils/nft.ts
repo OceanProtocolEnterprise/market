@@ -190,8 +190,7 @@ export async function setNFTMetadataAndTokenURI(
           }
     )
   ).toString('base64')
-
-  const nft = new Nft(signer)
+  const nft = new Nft(signer, asset.credentialSubject.chainId)
 
   // theoretically used by aquarius or provider, not implemented yet, will remain hardcoded
   const flags = '0x02'

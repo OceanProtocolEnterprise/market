@@ -60,7 +60,10 @@ export default function CustomProvider(props: InputProps): ReactElement {
       const isCompatible =
         providerChain == userChainId
           ? true
-          : !!(providerChain.length > 0 && providerChain.includes(userChainId))
+          : !!(
+              providerChain.length > 0 &&
+              providerChain.includes(userChainId.toString())
+            )
 
       if (!isCompatible) {
         setFieldError(
