@@ -7,13 +7,13 @@ import {
   ReactElement,
   useRef
 } from 'react'
-import SearchIcon from '@images/search.svg'
 import InputElement from '@shared/FormInput/InputElement'
 import styles from './SearchBar.module.css'
 import { addExistingParamsToUrl } from '../Search/utils'
 import { useRouter } from 'next/router'
 import { animated, useSpring } from 'react-spring'
 import { useSearchBarStatus } from '@context/SearchBarStatus'
+import { SearchIcon } from '@components/@shared/Icons'
 
 async function emptySearch() {
   const searchParams = new URLSearchParams(window?.location.href)

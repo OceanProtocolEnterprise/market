@@ -1,7 +1,7 @@
 import { ReactElement, useEffect, useState } from 'react'
 import styles from './index.module.css'
-import IconCopy from '@images/copy.svg'
 import Clipboard from 'react-clipboard.js'
+import { CopyIcon } from '@components/@shared/Icons'
 
 export interface CopyProps {
   text: string
@@ -29,7 +29,7 @@ export default function Copy({ text }: CopyProps): ReactElement {
       className={`${styles.button} ${isCopied ? styles.copied : ''}`}
     >
       <div className={styles.action}>
-        <IconCopy className={styles.icon} />
+        <CopyIcon className={styles.icon} />
         {isCopied && <span className={styles.feedback}>Copied!</span>}
       </div>
     </Clipboard>

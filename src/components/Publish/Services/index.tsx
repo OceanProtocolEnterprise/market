@@ -1,12 +1,11 @@
 import Input from '@shared/FormInput'
 import { Field, useFormikContext } from 'formik'
 import { ReactElement, useEffect } from 'react'
-import IconDownload from '@images/download.svg'
-import IconCompute from '@images/compute.svg'
 import content from '../../../../content/publish/form.json'
 import consumerParametersContent from '../../../../content/publish/consumerParameters.json'
 import { getFieldContent } from '@utils/form'
 import { FormPublishData } from '../_types'
+import { ComputeIcon, DownloadIcon } from '@components/@shared/Icons'
 
 const accessTypeOptionsTitles = getFieldContent(
   'access',
@@ -23,7 +22,7 @@ export default function ServicesFields(): ReactElement {
       name: 'download',
       value: accessTypeOptionsTitles[0].toLowerCase(),
       title: 'Download',
-      icon: <IconDownload />,
+      icon: <DownloadIcon />,
       // BoxSelection component is not a Formik component
       // so we need to handle checked state manually.
       checked:
@@ -33,7 +32,7 @@ export default function ServicesFields(): ReactElement {
       name: accessTypeOptionsTitles[1].toLowerCase(),
       value: accessTypeOptionsTitles[1].toLowerCase(),
       title: accessTypeOptionsTitles[1],
-      icon: <IconCompute />,
+      icon: <ComputeIcon />,
       checked:
         values.services[0].access === accessTypeOptionsTitles[1].toLowerCase()
     }

@@ -1,7 +1,6 @@
 import { ReactElement } from 'react'
-import LogoAssetFull from '@oceanprotocol/art/logo/logo.svg'
-import LogoAsset from '@images/logo.svg'
 import styles from './index.module.css'
+import { LogoAssetFullIcon, OceanLogoIcon } from '@components/@shared/Icons'
 
 export interface LogoProps {
   noWordmark?: boolean
@@ -9,8 +8,8 @@ export interface LogoProps {
 
 export default function OceanLogo({ noWordmark }: LogoProps): ReactElement {
   return noWordmark ? (
-    <LogoAsset className={styles.logo} />
+    <OceanLogoIcon className={styles.logo} />
   ) : (
-    <LogoAssetFull className={styles.logo} />
+    <LogoAssetFullIcon className={styles.logo} />
   )
 }

@@ -1,16 +1,15 @@
 import { ReactElement } from 'react'
 import AddToken from '@components/@shared/AddToken'
-import EUROeLogo from '@images/EUROe_Symbol_Black.svg'
-import OceanLogo from '@images/logo.svg'
 import { useMarketMetadata } from '@context/MarketMetadata'
+import { EUROeLogoIcon, OceanLogoIcon } from '@components/@shared/Icons'
 
 const tokenLogos = {
   EUROe: {
-    image: <EUROeLogo />,
+    image: <EUROeLogoIcon />,
     url: 'https://dev.euroe.com/img/EUROe_Symbol_Black.svg'
   },
   OCEAN: {
-    image: <OceanLogo />,
+    image: <OceanLogoIcon />,
     url: 'https://raw.githubusercontent.com/oceanprotocol/art/main/logo/token.png'
   }
 }

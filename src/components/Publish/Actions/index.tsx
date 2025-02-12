@@ -1,4 +1,4 @@
-import { FormEvent, ReactElement, RefObject, useEffect } from 'react'
+import { FormEvent, ReactElement, RefObject } from 'react'
 import Button from '@shared/atoms/Button'
 import styles from './index.module.css'
 import { FormikContextType, useFormikContext } from 'formik'
@@ -8,9 +8,9 @@ import SuccessConfetti from '@shared/SuccessConfetti'
 import { useRouter } from 'next/router'
 import Tooltip from '@shared/atoms/Tooltip'
 import AvailableNetworks from '@components/Publish/AvailableNetworks'
-import Info from '@images/info.svg'
 import Loader from '@shared/atoms/Loader'
 import useNetworkMetadata from '@hooks/useNetworkMetadata'
+import { InfoIcon } from '@components/@shared/Icons'
 
 export default function Actions({
   scrollToRef,
@@ -103,7 +103,7 @@ export default function Actions({
                 disabled
                 className={styles.infoButton}
               >
-                Unsupported Network <Info className={styles.infoIcon} />
+                Unsupported Network <InfoIcon className={styles.infoIcon} />
               </Button>
             </Tooltip>
           ) : (
