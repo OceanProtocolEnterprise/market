@@ -1,11 +1,11 @@
 import { forwardRef, FormEvent } from 'react'
-import Caret from '@images/caret.svg'
 import { accountTruncate } from '@utils/wallet'
 // import Loader from '@shared/atoms/Loader'
 import styles from './Account.module.css'
 import Avatar from '@shared/atoms/Avatar'
 import { useAccount } from 'wagmi'
 import { useModal } from 'connectkit'
+import { CaretIcon } from '@components/@shared/Icons'
 
 // Forward ref for Tippy.js
 // eslint-disable-next-line
@@ -31,7 +31,7 @@ const Account = forwardRef((props, ref: any) => {
       <span className={styles.address} title={accountId}>
         {accountTruncate(accountId)}
       </span>
-      <Caret aria-hidden="true" className={styles.caret} />
+      <CaretIcon aria-hidden="true" className={styles.caret} />
     </button>
   ) : (
     <button

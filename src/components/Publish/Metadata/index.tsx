@@ -5,12 +5,21 @@ import { ReactElement, useEffect } from 'react'
 import content from '../../../../content/publish/form.json'
 import consumerParametersContent from '../../../../content/publish/consumerParameters.json'
 import { FormPublishData } from '../_types'
-import IconDataset from '@images/dataset.svg'
-import IconAlgorithm from '@images/algorithm.svg'
 import styles from './index.module.css'
 import { algorithmContainerPresets } from '../_constants'
 import { useMarketMetadata } from '@context/MarketMetadata'
 import { getFieldContent } from '@utils/form'
+import { deleteIpfsFile, uploadFileItemToIPFS } from '@utils/ipfs'
+import Button from '@components/@shared/atoms/Button'
+import { FileDrop } from '@components/@shared/FileDrop'
+import Label from '@components/@shared/FormInput/Label'
+import { IpfsRemoteSource } from '@components/@shared/IpfsRemoteSource'
+import { FileItem } from '@utils/fileItem'
+import { License } from 'src/@types/ddo/License'
+import { RemoteObject } from 'src/@types/ddo/RemoteObject'
+import { LoggerInstance } from '@oceanprotocol/lib'
+import appConfig from 'app.config.cjs'
+import { AlgorithmIcon, DatasetIcon } from '@components/@shared/Icons'
 
 const assetTypeOptionsTitles = getFieldContent(
   'type',
@@ -21,7 +30,8 @@ export default function MetadataFields(): ReactElement {
   const { siteContent } = useMarketMetadata()
 
   // connect with Form state, use for conditional field rendering
-  const { values, setFieldValue } = useFormikContext<FormPublishData>()
+  const { values, setFieldValue, setFieldTouched, errors } =
+    useFormikContext<FormPublishData>()
 
   const [field, meta] = useField('metadata.dockerImageCustomChecksum')
 
@@ -32,13 +42,13 @@ export default function MetadataFields(): ReactElement {
       name: assetTypeOptionsTitles[0].toLowerCase(),
       title: assetTypeOptionsTitles[0],
       checked: values.metadata.type === assetTypeOptionsTitles[0].toLowerCase(),
-      icon: <IconDataset />
+      icon: <DatasetIcon />
     },
     {
       name: assetTypeOptionsTitles[1].toLowerCase(),
       title: assetTypeOptionsTitles[1],
       checked: values.metadata.type === assetTypeOptionsTitles[1].toLowerCase(),
-      icon: <IconAlgorithm />
+      icon: <AlgorithmIcon />
     }
   ]
 
@@ -63,6 +73,86 @@ export default function MetadataFields(): ReactElement {
   }, [values.metadata.type])
 
   dockerImageOptions.push({ name: 'custom', title: 'Custom', checked: false })
+
+  function handleLicenseFileUpload(
+    fileItems: FileItem[],
+    setSuccess: any,
+    setError: any
+  ) {
+    try {
+      fileItems.forEach(async (fileItem: FileItem) => {
+        const remoteSource = await uploadFileItemToIPFS(fileItem)
+
+        const remoteObject: RemoteObject = {
+          name: fileItem.name,
+          fileType: fileItem.name.split('.').pop(),
+          sha256: fileItem.checksum,
+          additionalInformation: {},
+          description: {
+            '@value': '',
+            '@direction': '',
+            '@language': ''
+          },
+          displayName: {
+            '@value': fileItem.name,
+            '@language': '',
+            '@direction': ''
+          },
+          mirrors: [remoteSource]
+        }
+
+        const license: License = {
+          name: fileItem.name,
+          licenseDocuments: [remoteObject]
+        }
+
+        setFieldValue('metadata.uploadedLicense', license)
+
+        setSuccess('License uploaded', 4000)
+      })
+    } catch (err) {
+      setError(err, 4000)
+    }
+  }
+
+  // Resets license data after type change
+  useEffect(() => {
+    async function deleteRemoteFile() {
+      if (values.metadata.uploadedLicense) {
+        const ipfsHash =
+          values.metadata.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]
+            ?.ipfsCid
+        if (appConfig.ipfsUnpinFiles && ipfsHash && ipfsHash.length > 0) {
+          try {
+            await deleteIpfsFile(ipfsHash)
+          } catch (error) {
+            LoggerInstance.error("Can't delete license file")
+          }
+        }
+
+        await setFieldValue('metadata.uploadedLicense', undefined)
+      }
+    }
+
+    setFieldValue('metadata.licenseUrl', [{ url: '', type: 'url' }])
+    deleteRemoteFile()
+  }, [values.metadata.useRemoteLicense])
+
+  async function handleLicenseRemove() {
+    const ipfsHash =
+      values.metadata.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]
+        ?.ipfsCid
+    if (appConfig.ipfsUnpinFiles && ipfsHash && ipfsHash.length > 0) {
+      try {
+        await deleteIpfsFile(ipfsHash)
+      } catch (error) {
+        LoggerInstance.error("Can't delete license file")
+      }
+    }
+
+    await setFieldValue('metadata.uploadedLicense', undefined)
+    await setFieldTouched('metadata.uploadedLicense', true, true)
+  }
 
   return (
     <>
@@ -158,6 +248,51 @@ export default function MetadataFields(): ReactElement {
               name="metadata.consumerParameters"
             />
           )}
+        </>
+      )}
+
+      {/*
+       Licensing and Terms
+      */}
+      <Field
+        {...getFieldContent('licenseTypeSelection', content.metadata.fields)}
+        component={Input}
+        name="metadata.useRemoteLicense"
+      />
+      {values.metadata.useRemoteLicense ? (
+        <>
+          <Label htmlFor="license">License *</Label>
+          {values.metadata?.uploadedLicense ? (
+            <div className={styles.license}>
+              <IpfsRemoteSource
+                className={styles.licenseItem}
+                noDocumentLabel="No license document available"
+                remoteSource={values.metadata.uploadedLicense?.licenseDocuments
+                  ?.at(0)
+                  ?.mirrors?.at(0)}
+              ></IpfsRemoteSource>
+              <Button style="primary" onClick={handleLicenseRemove}>
+                Delete
+              </Button>
+            </div>
+          ) : (
+            <></>
+          )}
+          <FileDrop
+            dropAreaLabel="Drop a license file here"
+            buttonLabel="Upload"
+            onApply={handleLicenseFileUpload}
+            singleFile={true}
+            errorMessage={errors?.metadata?.uploadedLicense as string}
+          ></FileDrop>
+        </>
+      ) : (
+        <>
+          <Field
+            {...getFieldContent('license', content.metadata.fields)}
+            component={Input}
+            name="metadata.licenseUrl"
+          />
         </>
       )}
 

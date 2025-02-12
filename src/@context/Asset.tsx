@@ -7,7 +7,7 @@ import {
   useCallback,
   ReactNode
 } from 'react'
-import { Config, LoggerInstance, Purgatory, Service } from '@oceanprotocol/lib'
+import { Config, LoggerInstance } from '@oceanprotocol/lib'
 import { CancelToken } from 'axios'
 import { getAsset } from '@utils/aquarius'
 import { useCancelToken } from '@hooks/useCancelToken'
@@ -19,6 +19,9 @@ import { assetStateToString } from '@utils/assetState'
 import { isValidDid } from '@utils/ddo'
 import { useAddressConfig } from '@hooks/useAddressConfig'
 import { useAccount, useNetwork } from 'wagmi'
+import { AssetExtended } from 'src/@types/AssetExtended'
+import { Asset, Purgatory } from 'src/@types/Asset'
+import { Service } from 'src/@types/ddo/Service'
 
 export interface AssetProviderValue {
   isInPurgatory: boolean
@@ -80,7 +83,15 @@ function AssetProvider({
 
       LoggerInstance.log('[asset] Fetching asset...')
       setLoading(true)
-      const asset = await getAsset(did, token)
+
+      if (!token) {
+        LoggerInstance.error(`[asset] Token is undefined`)
+        return
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const asset: Asset = await getAsset(did, token)
+
       const isWhitelisted = isDDOWhitelisted(asset)
 
       if (!asset) {
@@ -110,11 +121,15 @@ function AssetProvider({
       }
       if (asset) {
         setError(undefined)
-        if (!asset?.chainId || !asset?.services?.length) return
+        if (
+          !asset?.credentialSubject.chainId ||
+          !asset?.credentialSubject.services?.length
+        )
+          return
 
         const accessDetails = await Promise.all(
-          asset.services.map((service: Service) =>
-            getAccessDetails(asset.chainId, service)
+          asset.credentialSubject.services.map((service: Service) =>
+            getAccessDetails(asset.credentialSubject.chainId, service)
           )
         )
         setAsset((prevState) => ({
@@ -122,7 +137,7 @@ function AssetProvider({
           ...asset,
           accessDetails
         }))
-        setTitle(asset.metadata?.name)
+        setTitle(asset.credentialSubject?.metadata?.name)
         setOwner(asset.nft?.owner)
         setIsInPurgatory(asset.purgatory?.state)
         setPurgatoryData(asset.purgatory)
@@ -139,11 +154,15 @@ function AssetProvider({
   // Helper: Get and set asset access details
   // -----------------------------------
   const fetchAccessDetails = useCallback(async (): Promise<void> => {
-    if (!asset?.chainId || !asset?.services?.length) return
+    if (
+      !asset?.credentialSubject?.chainId ||
+      !asset?.credentialSubject?.services?.length
+    )
+      return
 
-    const accessDetails = await Promise.all(
-      asset.services.map((service: Service) =>
-        getAccessDetails(asset.chainId, service)
+    const accessDetails: AccessDetails[] = await Promise.all(
+      asset.credentialSubject?.services?.map((service: Service) =>
+        getAccessDetails(asset.credentialSubject?.chainId, service)
       )
     )
 
@@ -152,7 +171,11 @@ function AssetProvider({
       accessDetails
     }))
     LoggerInstance.log(`[asset] Got access details for ${did}`, accessDetails)
-  }, [asset?.chainId, asset?.services, did])
+  }, [
+    asset?.credentialSubject?.chainId,
+    asset?.credentialSubject?.services,
+    did
+  ])
 
   // -----------------------------------
   // 1. Get and set asset based on passed DID
@@ -176,11 +199,10 @@ function AssetProvider({
   // Check user network against asset network
   // -----------------------------------
   useEffect(() => {
-    if (!chain?.id || !asset?.chainId) return
-
-    const isAssetNetwork = chain?.id === asset?.chainId
+    if (!chain?.id || !asset?.credentialSubject.chainId) return
+    const isAssetNetwork = chain?.id === asset?.credentialSubject.chainId
     setIsAssetNetwork(isAssetNetwork)
-  }, [chain?.id, asset?.chainId])
+  }, [chain?.id, asset?.credentialSubject.chainId])
 
   // -----------------------------------
   // Asset owner check against wallet user
@@ -196,18 +218,18 @@ function AssetProvider({
   // Load ocean config based on asset network
   // -----------------------------------
   useEffect(() => {
-    if (!asset?.chainId) return
-    const config = getOceanConfig(asset?.chainId)
+    if (!asset?.credentialSubject?.chainId) return
+    const config = getOceanConfig(asset?.credentialSubject?.chainId)
     const oceanConfig = {
       ...config,
 
       // add local dev values
-      ...(asset?.chainId === 8996 && {
+      ...(asset?.credentialSubject?.chainId === 8996 && {
         ...sanitizeDevelopmentConfig(config)
       })
     }
     setOceanConfig(oceanConfig)
-  }, [asset?.chainId])
+  }, [asset?.credentialSubject?.chainId])
 
   // -----------------------------------
   // Set Asset State as a string

@@ -4,13 +4,12 @@ import Input from '@shared/FormInput'
 import FormActions from './FormActions'
 import { getFieldContent } from '@utils/form'
 import consumerParametersContent from '../../../../content/publish/consumerParameters.json'
-import { Service } from '@oceanprotocol/lib'
 import { ServiceEditForm } from './_types'
-import IconDownload from '@images/download.svg'
-import IconCompute from '@images/compute.svg'
 import FormEditComputeService from './FormEditComputeService'
 import { defaultServiceComputeOptions } from './_constants'
 import styles from './index.module.css'
+import { Service } from 'src/@types/ddo/Service'
+import { ComputeIcon, DownloadIcon } from '@components/@shared/Icons'
 
 export default function FormEditService({
   data,
@@ -33,7 +32,7 @@ export default function FormEditService({
       name: `access-${formUniqueId}-download`,
       value: 'access',
       title: accessTypeOptionsTitles[0],
-      icon: <IconDownload />,
+      icon: <DownloadIcon />,
       // BoxSelection component is not a Formik component
       // so we need to handle checked state manually.
       checked: values.access === 'access'
@@ -42,7 +41,7 @@ export default function FormEditService({
       name: `access-${formUniqueId}-compute`,
       value: 'compute',
       title: accessTypeOptionsTitles[1],
-      icon: <IconCompute />,
+      icon: <ComputeIcon />,
       checked: values.access === 'compute'
     }
   ]

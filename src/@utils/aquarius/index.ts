@@ -1,16 +1,17 @@
-import { Asset, LoggerInstance } from '@oceanprotocol/lib'
+import { LoggerInstance } from '@oceanprotocol/lib'
 import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelection'
 import axios, { CancelToken, AxiosResponse } from 'axios'
-import { metadataCacheUri, allowDynamicPricing } from '../../../app.config'
+import { metadataCacheUri, allowDynamicPricing } from '../../../app.config.cjs'
 import {
   SortDirectionOptions,
   SortTermOptions
 } from '../../@types/aquarius/SearchQuery'
-import { transformAssetToAssetSelection } from '../assetConvertor'
-import addressConfig from '../../../address.config'
+import { transformAssetToAssetSelection } from '../assetConverter'
+import addressConfig from '../../../address.config.cjs'
 import { isValidDid } from '@utils/ddo'
 import { Filters } from '@context/Filter'
 import { filterSets } from '@components/Search/Filter'
+import { Asset } from 'src/@types/Asset'
 
 export interface UserSales {
   id: string
@@ -231,11 +232,11 @@ export async function queryMetadata(
 export async function getAsset(
   did: string,
   cancelToken: CancelToken
-): Promise<Asset> {
+): Promise<any> {
   try {
     if (!isValidDid(did)) return
 
-    const response: AxiosResponse<Asset> = await axios.get(
+    const response: AxiosResponse<any> = await axios.get(
       `${metadataCacheUri}/api/aquarius/assets/ddo/${did}`,
       { cancelToken }
     )
@@ -291,7 +292,9 @@ export async function getAssetsFromDids(
     const result = await queryMetadata(query, cancelToken)
 
     didList.forEach((did: string) => {
-      const ddo = result.results.find((ddo: Asset) => ddo.id === did)
+      const ddo = result.results.find(
+        (ddo: Asset) => ddo.credentialSubject?.id === did
+      )
       if (ddo) orderedDDOListByDIDList.push(ddo)
     })
     return orderedDDOListByDIDList
@@ -473,6 +476,10 @@ export async function getTopAssetsPublishers(
   const result = await getTopPublishers(chainIds, null)
   const { topPublishers } = result.aggregations
 
+  if (!topPublishers?.buckets) {
+    return []
+  }
+
   for (let i = 0; i < topPublishers.buckets.length; i++) {
     publishers.push({
       id: topPublishers.buckets[i].key,
@@ -588,8 +595,8 @@ export async function getDownloadAssets(
         const timestamp = new Date(asset.event.datetime).getTime()
         return {
           asset,
-          networkId: asset.chainId,
-          dtSymbol: asset?.datatokens[0]?.symbol,
+          networkId: asset?.credentialSubject?.chainId,
+          dtSymbol: asset?.credentialSubject?.datatokens[0]?.symbol,
           timestamp
         }
       })

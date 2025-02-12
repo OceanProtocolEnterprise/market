@@ -1,6 +1,5 @@
+import { CPUIcon, GPUIcon } from '@components/@shared/Icons'
 import styles from './ComputeEnvDetails.module.css'
-import CPU from '@images/cpu.svg'
-import GPU from '@images/gpu.svg'
 
 function Row({ label, value }: { label: string; value: string | number }) {
   return (
@@ -34,7 +33,7 @@ export default function ComputeEnvDetails({
         <div>
           <h4 className={styles.title}>{desc || id}</h4>
         </div>
-        {gpuNumber > 0 ? <GPU /> : <CPU />}
+        {gpuNumber > 0 ? <GPUIcon /> : <CPUIcon />}
       </div>
 
       <div className={styles.clusterDetails}>

@@ -1,8 +1,6 @@
 import {
   Config,
-  DDO,
   FreCreationParams,
-  generateDid,
   DatatokenCreateParams,
   DispenserCreationParams,
   getHash,
@@ -11,10 +9,7 @@ import {
   NftFactory,
   ZERO_ADDRESS,
   getEventFromTx,
-  ConsumerParameter,
-  Metadata,
-  Service,
-  Credentials
+  ProviderInstance
 } from '@oceanprotocol/lib'
 import { mapTimeoutStringToSeconds, normalizeFile } from '@utils/ddo'
 import { generateNftCreateData } from '@utils/nft'
@@ -31,13 +26,35 @@ import {
   publisherMarketOrderFee,
   publisherMarketFixedSwapFee,
   defaultDatatokenTemplateIndex,
-  customProviderUrl,
-  defaultAccessTerms,
   defaultDatatokenCap
-} from '../../../app.config'
+} from '../../../app.config.cjs'
 import { sanitizeUrl } from '@utils/url'
 import { getContainerChecksum } from '@utils/docker'
-import { parseEther } from 'ethers/lib/utils'
+import { hexlify, parseEther } from 'ethers/lib/utils'
+import { Asset } from 'src/@types/Asset'
+import { Service } from 'src/@types/ddo/Service'
+import { Metadata } from 'src/@types/ddo/Metadata'
+import { Option } from 'src/@types/ddo/Option'
+import { createHash } from 'crypto'
+import { ethers, Signer } from 'ethers'
+import { uploadToIPFS } from '@utils/ipfs'
+import { DDOVersion } from 'src/@types/DdoVersion'
+import { Credential, CredentialAddressBased } from 'src/@types/ddo/Credentials'
+import * as VCDataModel from 'src/@types/ddo/VerifiableCredential'
+import { asset } from '.jest/__fixtures__/datasetWithAccessDetails'
+import { convertLinks } from '@utils/links'
+import { License } from 'src/@types/ddo/License'
+import base64url from 'base64url'
+import { JWTHeaderParameters } from 'jose'
+
+export function makeDid(nftAddress: string, chainId: string): string {
+  return (
+    'did:ope:' +
+    createHash('sha256')
+      .update(ethers.utils.getAddress(nftAddress) + chainId)
+      .digest('hex')
+  )
+}
 
 function getUrlFileExtension(fileUrl: string): string {
   const splittedFileUrl = fileUrl.split('.')
@@ -69,16 +86,17 @@ function transformTags(originalTags: string[]): string[] {
 
 export function transformConsumerParameters(
   parameters: FormConsumerParameter[]
-): ConsumerParameter[] {
+): Record<string, string | number | boolean | Option[]>[] {
   if (!parameters?.length) return
 
-  const transformedValues = parameters.map((param) => {
-    const options =
+  const transformedValues: Record<
+    string,
+    string | number | boolean | Option[]
+  >[] = parameters.map((param) => {
+    const options: Option[] =
       param.type === 'select'
         ? // Transform from { key: string, value: string } into { key: value }
-          JSON.stringify(
-            param.options?.map((opt) => ({ [opt.key]: opt.value }))
-          )
+          param.options?.map((opt) => ({ [opt.key]: opt.value }))
         : undefined
 
     const required = param.required === 'required'
@@ -91,36 +109,40 @@ export function transformConsumerParameters(
     }
   })
 
-  return transformedValues as ConsumerParameter[]
+  return transformedValues
 }
 
 export function generateCredentials(
-  oldCredentials: Credentials | undefined,
+  oldCredentials: Credential | undefined,
   updatedAllow: string[],
   updatedDeny: string[]
-): Credentials {
-  const updatedCredentials = {
-    allow: oldCredentials?.allow || [],
-    deny: oldCredentials?.deny || []
+): Credential {
+  let newCredentials: Credential
+  if (updatedAllow?.length !== 0 || updatedDeny?.length !== 0) {
+    const newAllowList: CredentialAddressBased = {
+      type: 'address',
+      values: updatedAllow
+    }
+
+    const newDenyList: CredentialAddressBased = {
+      type: 'address',
+      values: updatedDeny
+    }
+
+    newCredentials = {
+      match_deny: 'any',
+      allow: [newAllowList],
+      deny: [newDenyList]
+    }
+
+    return newCredentials
+  } else {
+    return {
+      match_deny: 'any',
+      allow: [],
+      deny: []
+    }
   }
-
-  const credentialTypes = [
-    { type: 'allow', values: updatedAllow },
-    { type: 'deny', values: updatedDeny }
-  ]
-
-  credentialTypes.forEach((credentialType) => {
-    updatedCredentials[credentialType.type] = [
-      ...updatedCredentials[credentialType.type].filter(
-        (credential) => credential?.type !== 'address'
-      ),
-      ...(credentialType.values.length > 0
-        ? [{ type: 'address', values: credentialType.values }]
-        : [])
-    ]
-  })
-
-  return updatedCredentials
 }
 
 export async function transformPublishFormToDdo(
@@ -129,7 +151,7 @@ export async function transformPublishFormToDdo(
   // so we can always assume if they are not passed, we are on preview.
   datatokenAddress?: string,
   nftAddress?: string
-): Promise<DDO> {
+): Promise<Asset> {
   const { metadata, services, user } = values
   const { chainId, accountId } = user
   const {
@@ -150,7 +172,6 @@ export async function transformPublishFormToDdo(
   const { access, files, links, providerUrl, timeout, allow, deny } =
     services[0]
 
-  const did = nftAddress ? generateDid(nftAddress, chainId) : '0x...'
   const currentTime = dateToStringNoMS(new Date())
   const isPreview = !datatokenAddress && !nftAddress
 
@@ -169,17 +190,43 @@ export async function transformPublishFormToDdo(
     ? transformConsumerParameters(consumerParameters)
     : undefined
 
+  let license: License
+  if (!values.metadata.useRemoteLicense && values.metadata.licenseUrl[0]) {
+    license = {
+      name: values.metadata.licenseUrl[0].url,
+      licenseDocuments: [
+        {
+          name: values.metadata.licenseUrl[0].url,
+          fileType: values.metadata.licenseUrl[0].contentType,
+          sha256: values.metadata.licenseUrl[0].checksum,
+          mirrors: [
+            {
+              type: values.metadata.licenseUrl[0].type,
+              method: values.metadata.licenseUrl[0].method,
+              url: values.metadata.licenseUrl[0].url
+            }
+          ]
+        }
+      ]
+    }
+  }
+
   const newMetadata: Metadata = {
     created: currentTime,
     updated: currentTime,
     type,
     name,
-    description,
+    description: {
+      '@value': description,
+      '@direction': '',
+      '@language': ''
+    },
     tags: transformTags(tags),
     author,
-    license:
-      values.metadata.license || 'https://market.oceanprotocol.com/terms',
-    links: linksTransformed,
+    license: values.metadata.useRemoteLicense
+      ? values.metadata.uploadedLicense
+      : license,
+    links: convertLinks(linksTransformed),
     additionalInformation: {
       termsAndConditions
     },
@@ -210,7 +257,9 @@ export async function transformPublishFormToDdo(
           },
           consumerParameters: consumerParametersTransformed
         }
-      })
+      }),
+    copyrightHolder: '',
+    providedBy: ''
   }
 
   const file = {
@@ -225,6 +274,8 @@ export async function transformPublishFormToDdo(
     files[0].valid &&
     (await getEncryptedFiles(file, chainId, providerUrl.url))
 
+  const newCredentials = generateCredentials(undefined, allow, deny)
+
   const newService: Service = {
     id: getHash(datatokenAddress + filesEncrypted),
     type: access,
@@ -237,37 +288,159 @@ export async function transformPublishFormToDdo(
     }),
     consumerParameters: values.services[0].usesConsumerParameters
       ? transformConsumerParameters(values.services[0].consumerParameters)
-      : undefined
+      : undefined,
+    name: '',
+    state: asset.stats[0],
+    credentials: newCredentials
   }
 
-  const newCredentials = generateCredentials(undefined, allow, deny)
+  const did = nftAddress ? makeDid(nftAddress, chainId.toString()) : '0x...'
 
-  const newDdo: DDO = {
+  const newDdo: any = {
     '@context': ['https://w3id.org/did/v1'],
     id: did,
-    nftAddress,
-    version: '4.1.0',
-    chainId,
-    metadata: newMetadata,
-    services: [newService],
-    credentials: newCredentials,
-    // Only added for DDO preview, reflecting Asset response,
-    // again, we can assume if `datatokenAddress` is not passed,
-    // we are on preview.
-    ...(!datatokenAddress && {
+    version: DDOVersion.V5_0_0,
+    credentialSubject: {
+      id: did,
+      chainId,
+      metadata: newMetadata,
+      services: [newService],
+      nftAddress,
+      credentials: {
+        allow: [],
+        deny: []
+      },
       datatokens: [
         {
           name: values.services[0].dataTokenOptions.name,
-          symbol: values.services[0].dataTokenOptions.symbol
+          symbol: values.services[0].dataTokenOptions.symbol,
+          address: '',
+          serviceId: ''
         }
-      ],
-      nft: {
-        ...generateNftCreateData(values?.metadata.nft, accountId)
-      }
-    })
+      ]
+    },
+    additionalDdos: [],
+    // Only added for DDO preview, reflecting Asset response,
+    // again, we can assume if `datatokenAddress` is not passed,
+    // we are on preview.
+    nft: {
+      ...generateNftCreateData(values?.metadata.nft, accountId),
+      address: '',
+      state: 0,
+      created: ''
+    }
   }
 
   return newDdo
+}
+
+export interface IpfsUpload {
+  metadataIPFS: string
+  flags: number
+  metadataIPFSHash: string
+}
+
+/**
+ * Deviates from JOSE by using the alg: ETH-EIP191 field.
+ * Accordingly, a web3 wallet signature is to be used for verification.
+ */
+async function createJwtVerifiableCredential(
+  credential: VCDataModel.Credential,
+  owner: Signer
+): Promise<`${string}.${string}.${string}`> {
+  const header: JWTHeaderParameters = {
+    alg: 'ETH-EIP191',
+    typ: 'JWT'
+  }
+  const headerBase64 = base64url(JSON.stringify(header))
+  const payload: VCDataModel.VerifiableCredentialJWT = {
+    vc: credential,
+    iss: credential.issuer,
+    sub: credential.id,
+    jti: credential.id
+  }
+  const payloadBase64 = base64url(JSON.stringify(payload))
+  const signature = await owner.signMessage(`${headerBase64}.${payloadBase64}`)
+  const signatureBase64 = base64url(signature)
+  return `${headerBase64}.${payloadBase64}.${signatureBase64}`
+}
+
+export async function signAssetAndUploadToIpfs(
+  asset: Asset,
+  owner: Signer,
+  encryptAsset: boolean,
+  providerUrl: string
+): Promise<IpfsUpload> {
+  // TODO: The verifiable credentials standard differentiates between JWT and embedded proof credentials.
+  // In embedded proof credentials, our current schema says that the Asset *is* the verifiable credential.
+  // However, in the JWT approach, the asset is *within* in the verifiable credential.
+  // see https://www.w3.org/TR/vc-data-model/#proofs-signatures
+
+  const credential: VCDataModel.Credential = {
+    id: asset.id,
+    credentialSubject: asset.credentialSubject,
+    issuer: `${await owner.getAddress()}`,
+    '@context': asset['@context'],
+    version: asset.version,
+    type: asset.type
+  }
+
+  // these properties are mutable due blockchain interaction
+  delete credential.credentialSubject.datatokens
+  delete credential.credentialSubject.event
+
+  const jwtVerifiableCredential = await createJwtVerifiableCredential(
+    credential,
+    owner
+  )
+
+  // const validateResult = await aquariusInstance.validate(credential)
+  // if (!validateResult.valid) {
+  //  throw new Error('Invalid Asset')
+  // }
+
+  const stringAsset = JSON.stringify(jwtVerifiableCredential)
+  const bytes = Buffer.from(stringAsset)
+  const metadata = hexlify(bytes)
+
+  const data = { encryptedData: metadata }
+  const ipfsHash = await uploadToIPFS(data)
+
+  const remoteAsset = {
+    remote: {
+      type: 'ipfs',
+      hash: ipfsHash
+    }
+  }
+
+  let flags: number
+  let metadataIPFS: string
+  if (encryptAsset) {
+    try {
+      metadataIPFS = await ProviderInstance.encrypt(
+        remoteAsset,
+        asset.credentialSubject?.chainId,
+        providerUrl
+      )
+      flags = 2
+    } catch (error) {
+      LoggerInstance.error('[Provider Encrypt] Error:', error.message)
+    }
+  } else {
+    const stringDDO: string = JSON.stringify(remoteAsset)
+    const bytes: Buffer = Buffer.from(stringDDO)
+    metadataIPFS = hexlify(bytes)
+    flags = 0
+  }
+
+  if (!metadataIPFS)
+    throw new Error('No encrypted IPFS metadata received. Please try again.')
+
+  const stringDDO = JSON.stringify(data)
+  const metadataIPFSHash =
+    '0x' + createHash('sha256').update(stringDDO).digest('hex')
+
+  return { metadataIPFS, flags, metadataIPFSHash }
 }
 
 export async function createTokensAndPricing(

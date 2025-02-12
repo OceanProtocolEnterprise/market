@@ -3,8 +3,8 @@ import { InputProps } from '@shared/FormInput'
 import { generateNftMetadata } from '@utils/nft'
 import { useField } from 'formik'
 import { ReactElement, useEffect } from 'react'
-import Refresh from '@images/refresh.svg'
 import styles from './index.module.css'
+import { RefreshIcon } from '@components/@shared/Icons'
 
 export default function Nft(props: InputProps): ReactElement {
   const [field, meta, helpers] = useField(props.name)
@@ -36,7 +36,7 @@ export default function Nft(props: InputProps): ReactElement {
               refreshNftMetadata()
             }}
           >
-            <Refresh />
+            <RefreshIcon />
           </Button>
         </div>
       </figure>

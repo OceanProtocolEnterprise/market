@@ -3,12 +3,23 @@ module.exports = (phase, { defaultConfig }) => {
    * @type {import('next').NextConfig}
    */
   const nextConfig = {
-    webpack: (config, options) => {
+    experimental: {
+      esmExternals: 'loose'
+    },
+    webpack: (config, options, { isServer }) => {
+      if (!isServer) {
+        config.resolve.fallback.fs = false
+      }
       config.module.rules.push(
         {
           test: /\.svg$/,
-          issuer: /\.(tsx|ts)$/,
-          use: [{ loader: '@svgr/webpack', options: { icon: true } }]
+          use: {
+            loader: 'url-loader',
+            options: {
+              limit: 8192,
+              name: '[name].[hash:8].[ext]'
+            }
+          }
         },
         {
           test: /\.gif$/,

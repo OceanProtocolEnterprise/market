@@ -11,6 +11,7 @@ import AssetList from '@shared/AssetList'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { sortAssets } from '@utils/index'
 import axios, { AxiosResponse } from 'axios'
+import { AssetExtended } from 'src/@types/AssetExtended'
 
 export default function MostViews(): ReactElement {
   const [loading, setLoading] = useState<boolean>()
@@ -40,7 +41,9 @@ export default function MostViews(): ReactElement {
         sortedAssets.forEach((asset) => {
           assetsWithViews.push({
             ...asset,
-            views: response.data.filter((x) => x.did === asset.id)?.[0]?.count
+            views: response.data.filter(
+              (x) => x.did === asset.credentialSubject?.id
+            )?.[0]?.count
           })
         })
         setMostViewed(assetsWithViews)

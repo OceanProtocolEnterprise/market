@@ -1,4 +1,4 @@
-import { allowFixedPricing, defaultAccessTerms } from '../../../app.config'
+import { allowFixedPricing } from '../../../app.config.cjs'
 import {
   FormPublishData,
   MetadataAlgorithmContainer,
@@ -11,8 +11,8 @@ import MetadataFields from './Metadata'
 import ServicesFields from './Services'
 import Preview from './Preview'
 import Submission from './Submission'
-import { ServiceComputeOptions } from '@oceanprotocol/lib'
 import contentFeedback from '../../../content/publish/feedback.json'
+import { Compute } from 'src/@types/ddo/Service'
 
 export const wizardSteps: StepContent[] = [
   {
@@ -42,7 +42,7 @@ export const wizardSteps: StepContent[] = [
   }
 ]
 
-const computeOptions: ServiceComputeOptions = {
+const computeOptions: Compute = {
   allowRawAlgorithm: false,
   allowNetworkAccess: true,
   publisherTrustedAlgorithmPublishers: [],
@@ -69,7 +69,10 @@ export const initialValues: FormPublishData = {
     dockerImageCustomTag: '',
     dockerImageCustomEntrypoint: '',
     usesConsumerParameters: false,
-    consumerParameters: []
+    consumerParameters: [],
+    useRemoteLicense: false,
+    licenseUrl: [{ url: '', type: 'url' }],
+    uploadedLicense: undefined
   },
   services: [
     {

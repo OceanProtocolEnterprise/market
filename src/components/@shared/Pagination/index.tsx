@@ -2,8 +2,8 @@ import { useState, useEffect, ReactElement } from 'react'
 import ReactPaginate from 'react-paginate'
 import styles from './index.module.css'
 import { MAXIMUM_NUMBER_OF_PAGES_WITH_RESULTS } from '@utils/aquarius'
-import Arrow from '@images/arrow.svg'
 import { PaginationProps } from './_types'
+import { ArrowIcon } from '../Icons'
 
 export default function Pagination({
   totalPages,
@@ -62,8 +62,10 @@ export default function Pagination({
       pageRangeDisplayed={smallViewport ? 3 : 6}
       onPageChange={(data) => onPageChange(data.selected)}
       disableInitialCallback
-      previousLabel={<Arrow className={`${styles.arrow} ${styles.previous}`} />}
-      nextLabel={<Arrow className={styles.arrow} />}
+      previousLabel={
+        <ArrowIcon className={`${styles.arrow} ${styles.previous}`} />
+      }
+      nextLabel={<ArrowIcon className={styles.arrow} />}
       breakLabel="..."
       containerClassName={styles.pagination}
       pageLinkClassName={styles.number}

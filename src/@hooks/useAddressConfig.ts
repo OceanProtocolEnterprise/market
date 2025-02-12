@@ -1,4 +1,5 @@
-import addressConfig from '../../address.config'
+import { AssetExtended } from 'src/@types/AssetExtended'
+import addressConfig from '../../address.config.cjs'
 const {
   whitelists,
   featured,
@@ -59,7 +60,7 @@ export function useAddressConfig(): UseAddressConfig {
     return (
       ddo &&
       (isAddressWhitelisted(ddo.nft.owner, 'nft.owner') ||
-        ddo.datatokens
+        ddo.credentialSubject.datatokens
           .map((datatoken) => {
             return isAddressWhitelisted(datatoken.address, 'datatokens.address')
           })
