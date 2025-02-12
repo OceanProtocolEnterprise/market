@@ -33,143 +33,145 @@ import Cog from '@images/cog.svg'
 import Network from '@images/network.svg'
 import EUROeLogo from '@images/EUROe_Symbol_Black.svg'
 import Jellyfish from '@oceanprotocol/art/creatures/jellyfish/jellyfish-grid.svg'
+import Image from 'next/image'
 
 interface Props {
   className?: string | undefined
   'aria-label'?: string | undefined
   role?: string | undefined
+  ref?: any | undefined
 }
 
 export const JellyfishIcon = ({ className }: Props) => (
-  <img className={className} src={Jellyfish} alt="Jellyfish Icon" />
+  <Image className={className} src={Jellyfish} alt="Jellyfish Icon" />
 )
 
 export const EUROeLogoIcon = ({ className }: Props) => (
-  <img className={className} src={EUROeLogo} alt="EUROeLogo Icon" />
+  <Image className={className} src={EUROeLogo} alt="EUROeLogo Icon" />
 )
 
 export const NetworkIcon = ({ className }: Props) => (
-  <img className={className} src={Network} alt="Network Icon" />
+  <Image className={className} src={Network} alt="Network Icon" />
 )
 
 export const CogIcon = ({ className }: Props) => (
-  <img className={className} src={Cog} alt="Cog Icon" />
+  <Image className={className} src={Cog} alt="Cog Icon" />
 )
 
 export const MoonIcon = ({ className }: Props) => (
-  <img className={className} src={Moon} alt="Moon Icon" />
+  <Image className={className} src={Moon} alt="Moon Icon" />
 )
 
 export const SunIcon = ({ className }: Props) => (
-  <img className={className} src={Sun} alt="Sun Icon" />
+  <Image className={className} src={Sun} alt="Sun Icon" />
 )
 
 export const SearchIcon = ({ className }: Props) => (
-  <img className={className} src={Search} alt="Search Icon" />
+  <Image className={className} src={Search} alt="Search Icon" />
 )
 
 export const DatasetIcon = ({ className }: Props) => (
-  <img className={className} src={Dataset} alt="Dataset Icon" />
+  <Image className={className} src={Dataset} alt="Dataset Icon" />
 )
 
 export const AlgorithmIcon = ({ className }: Props) => (
-  <img className={className} src={Algorithm} alt="Algorithm Icon" />
+  <Image className={className} src={Algorithm} alt="Algorithm Icon" />
 )
 
 export const BookmarkIcon = ({ className }: Props) => (
-  <img className={className} src={Bookmark} alt="Bookmark Icon" />
+  <Image className={className} src={Bookmark} alt="Bookmark Icon" />
 )
 
 export const VerifiedPatchIcon = ({ className }: Props) => (
-  <img className={className} src={VerifiedPatch} alt="VerifiedPatch Icon" />
+  <Image className={className} src={VerifiedPatch} alt="VerifiedPatch Icon" />
 )
 
 export const CrossIcon = ({ className }: Props) => (
-  <img className={className} src={Cross} alt="Cross Icon" />
+  <Image className={className} src={Cross} alt="Cross Icon" />
 )
 
 export const ArrowIcon = ({ className }: Props) => (
-  <img className={className} src={Arrow} alt="Arrow Icon" />
+  <Image className={className} src={Arrow} alt="Arrow Icon" />
 )
 
 export const BrandLogoIcon = ({ className }: Props) => (
-  <img className={className} src={BrandLogo} alt="BrandLogo Icon" />
+  <Image className={className} src={BrandLogo} alt="BrandLogo Icon" />
 )
 
 export const PolygonIcon = ({ className }: Props) => (
-  <img className={className} src={Polygon} alt="Polygon Icon" />
+  <Image className={className} src={Polygon} alt="Polygon Icon" />
 )
 
 export const MoonbeamIcon = ({ className }: Props) => (
-  <img className={className} src={Moonbeam} alt="Moonbeam Icon" />
+  <Image className={className} src={Moonbeam} alt="Moonbeam Icon" />
 )
 
 export const BscIcon = ({ className }: Props) => (
-  <img className={className} src={Bsc} alt="Bsc Icon" />
+  <Image className={className} src={Bsc} alt="Bsc Icon" />
 )
 
 export const EnergywebIcon = ({ className }: Props) => (
-  <img className={className} src={Energyweb} alt="Energyweb Icon" />
+  <Image className={className} src={Energyweb} alt="Energyweb Icon" />
 )
 
 export const OptimismIcon = ({ className }: Props) => (
-  <img className={className} src={Optimism} alt="Optimism Icon" />
+  <Image className={className} src={Optimism} alt="Optimism Icon" />
 )
 
 export const RefreshIcon = ({ className }: Props) => (
-  <img className={className} src={Refresh} alt="Refresh Icon" />
+  <Image className={className} src={Refresh} alt="Refresh Icon" />
 )
 
 export const KeyIcon = ({ className }: Props) => (
-  <img className={className} src={Key} alt="Key Icon" />
+  <Image className={className} src={Key} alt="Key Icon" />
 )
 
 export const CPUIcon = ({ className }: Props) => (
-  <img className={className} src={CPU} alt="CPU Icon" />
+  <Image className={className} src={CPU} alt="CPU Icon" />
 )
 
 export const GPUIcon = ({ className }: Props) => (
-  <img className={className} src={GPU} alt="GPU Icon" />
+  <Image className={className} src={GPU} alt="GPU Icon" />
 )
 
 export const ExternalIcon = ({ className }: Props) => (
-  <img className={className} src={External} alt="External Icon" />
+  <Image className={className} src={External} alt="External Icon" />
 )
 
-export const InfoIcon = ({ className }: Props) => (
-  <img className={className} src={Info} alt="Info Icon" />
+export const InfoIcon = ({ className, ref }: Props) => (
+  <Image className={className} src={Info} alt="Info Icon" ref={ref} />
 )
 
 export const CopyIcon = ({ className }: Props) => (
-  <img className={className} src={Copy} alt="Copy Icon" />
+  <Image className={className} src={Copy} alt="Copy Icon" />
 )
 
 export const EthIcon = ({ className }: Props) => (
-  <img className={className} src={Eth} alt="Eth Icon" />
+  <Image className={className} src={Eth} alt="Eth Icon" />
 )
 
 export const CaretIcon = ({ className }: Props) => (
-  <img className={className} src={Caret} alt="Caret Icon" />
+  <Image className={className} src={Caret} alt="Caret Icon" />
 )
 
 export const GridViewIcon = ({ className }: Props) => (
-  <img className={className} src={GridView} alt="GridView Icon" />
+  <Image className={className} src={GridView} alt="GridView Icon" />
 )
 
 export const ListViewIcon = ({ className }: Props) => (
-  <img className={className} src={ListView} alt="ListView Icon" />
+  <Image className={className} src={ListView} alt="ListView Icon" />
 )
 
 export const OceanLogoIcon = ({ className }: Props) => (
-  <img className={className} src={OceanLogo} alt="OceanLogo Icon" />
+  <Image className={className} src={OceanLogo} alt="OceanLogo Icon" />
 )
 
 export const LogoAssetFullIcon = ({ className }: Props) => (
-  <img className={className} src={LogoAssetFull} alt="LogoAssetFull Icon" />
+  <Image className={className} src={LogoAssetFull} alt="LogoAssetFull Icon" />
 )
 
 export const ComputeIcon = (props: Props) => (
-  <img
+  <Image
     role={props.role}
     aria-label={props['aria-label']}
     className={props.className}
@@ -179,7 +181,7 @@ export const ComputeIcon = (props: Props) => (
 )
 
 export const DownloadIcon = (props: Props) => (
-  <img
+  <Image
     role={props.role}
     aria-label={props['aria-label']}
     className={props.className}
@@ -189,7 +191,7 @@ export const DownloadIcon = (props: Props) => (
 )
 
 export const LockIcon = (props: Props) => (
-  <img
+  <Image
     role={props.role}
     aria-label={props['aria-label']}
     className={props.className}

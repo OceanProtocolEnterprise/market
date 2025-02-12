@@ -13,8 +13,13 @@ module.exports = (phase, { defaultConfig }) => {
       config.module.rules.push(
         {
           test: /\.svg$/,
-          issuer: /\.(tsx|ts)$/,
-          use: [{ loader: '@svgr/webpack', options: { icon: true } }]
+          use: {
+            loader: 'url-loader',
+            options: {
+              limit: 8192,
+              name: '[name].[hash:8].[ext]'
+            }
+          }
         },
         {
           test: /\.gif$/,
