@@ -97,8 +97,8 @@ export default function Download({
     (accessDetails.type === 'fixed' && !accessDetails.baseToken?.symbol)
 
   useEffect(() => {
-    Number(asset.nft.state) === 4 && setIsOrderDisabled(true)
-  }, [asset.nft.state])
+    Number(asset.credentialSubject.nft.state) === 4 && setIsOrderDisabled(true)
+  }, [asset.credentialSubject.nft.state])
 
   useEffect(() => {
     if (isUnsupportedPricing) return
