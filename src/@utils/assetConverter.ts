@@ -19,13 +19,13 @@ export async function transformAssetToAssetSelection(
       getServiceByName(asset, 'compute') || getServiceByName(asset, 'access')
 
     if (
-      asset?.stats?.price?.value >= 0 &&
+      asset?.credentialSubject.stats?.price?.value >= 0 &&
       normalizeUrl(algoService?.serviceEndpoint) ===
         normalizeUrl(datasetProviderEndpoint)
     ) {
       let selected = false
       selectedAlgorithms?.forEach((algorithm: PublisherTrustedAlgorithm) => {
-        if (algorithm.did === asset.credentialSubject?.id) {
+        if (algorithm.did === asset.id) {
           selected = true
         }
       })
@@ -37,7 +37,7 @@ export async function transformAssetToAssetSelection(
       )
       const price = getAvailablePrice(accessDetails[0])
       const algorithmAsset: AssetSelectionAsset = {
-        did: asset.credentialSubject?.id,
+        did: asset.id,
         name: asset.credentialSubject?.metadata.name,
         price: price.value,
         tokenSymbol: price.tokenSymbol,

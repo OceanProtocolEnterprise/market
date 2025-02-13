@@ -52,17 +52,18 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
       )}
       <MetaItem
         title="Owner"
-        content={<Publisher account={ddo?.nft?.owner} />}
+        content={<Publisher account={ddo?.credentialSubject.nft?.owner} />}
       />
       {assetState !== 'Active' && (
         <MetaItem title="Asset State" content={assetState} />
       )}
-      {paymentCollector && paymentCollector !== ddo?.nft?.owner && (
-        <MetaItem
-          title="Revenue Sent To"
-          content={<Publisher account={paymentCollector} />}
-        />
-      )}
+      {paymentCollector &&
+        paymentCollector !== ddo?.credentialSubject.nft?.owner && (
+          <MetaItem
+            title="Revenue Sent To"
+            content={<Publisher account={paymentCollector} />}
+          />
+        )}
 
       {ddo?.credentialSubject.metadata?.type === 'algorithm' &&
         ddo?.credentialSubject.metadata?.algorithm && (

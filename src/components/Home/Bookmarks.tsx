@@ -32,7 +32,9 @@ const columns: TableOceanColumn<AssetExtended>[] = [
   },
   {
     name: 'Price',
-    selector: (row) => <Price price={row.stats.price} size="small" />,
+    selector: (row) => (
+      <Price price={row.credentialSubject.stats.price} size="small" />
+    ),
     right: true
   }
 ]
