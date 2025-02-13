@@ -2,14 +2,14 @@ import { ReactElement, useEffect, useState } from 'react'
 import Time from '@shared/atoms/Time'
 import Button from '@shared/atoms/Button'
 import Modal from '@shared/atoms/Modal'
-import External from '@images/external.svg'
 import { getAsset } from '@utils/aquarius'
 import Results from './Results'
 import styles from './Details.module.css'
 import { useCancelToken } from '@hooks/useCancelToken'
 import MetaItem from '../../../Asset/AssetContent/MetaItem'
 import { useMarketMetadata } from '@context/MarketMetadata'
-import { Asset } from 'src/@types/Asset'
+import { Asset as AssetType } from 'src/@types/Asset'
+import { ExternalIcon } from '@components/@shared/Icons'
 
 function Asset({
   title,
@@ -30,7 +30,7 @@ function Asset({
           target="_blank"
           rel="noreferrer"
         >
-          <External />
+          <ExternalIcon />
         </a>
       </h3>
       <p className={styles.assetMeta}>
@@ -50,7 +50,7 @@ function DetailsAssets({ job }: { job: ComputeJobMetaData }) {
 
   useEffect(() => {
     async function getAlgoMetadata() {
-      const ddo = (await getAsset(job.algoDID, newCancelToken())) as Asset
+      const ddo = (await getAsset(job.algoDID, newCancelToken())) as AssetType
       setAlgoDtSymbol(ddo.credentialSubject.datatokens[0].symbol)
       setAlgoName(ddo?.credentialSubject.metadata.name)
     }

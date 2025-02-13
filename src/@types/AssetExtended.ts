@@ -24,6 +24,9 @@ export interface OffChain {
 }
 
 export interface AssetExtended extends Asset {
+  datatokens?: any
+  chainId?: number
+  metadata?: any
   accessDetails?: AccessDetails[]
   views?: number
   offchain?: OffChain // TODO - in future it will be directly included in Asset type in @oceanprotocol/lib

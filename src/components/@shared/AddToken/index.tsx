@@ -2,8 +2,9 @@ import { ReactElement, ReactNode } from 'react'
 import classNames from 'classnames/bind'
 import { addTokenToWallet } from '@utils/wallet'
 import Button from '@shared/atoms/Button'
-import OceanLogo from '@images/logo.svg'
+
 import styles from './index.module.css'
+import { OceanLogoIcon } from '../Icons'
 
 const cx = classNames.bind(styles)
 
@@ -49,7 +50,7 @@ export default function AddToken({
       onClick={handleAddToken}
     >
       <span className={styles.logoWrap}>
-        <div className={styles.logo}>{logo?.image || <OceanLogo />}</div>
+        <div className={styles.logo}>{logo?.image || <OceanLogoIcon />}</div>
       </span>
 
       <span className={styles.text}>

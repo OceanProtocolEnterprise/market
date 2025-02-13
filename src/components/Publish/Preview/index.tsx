@@ -6,7 +6,7 @@ import AssetContent from '@components/Asset/AssetContent'
 import { transformPublishFormToDdo } from '../_utils'
 import { ZERO_ADDRESS } from '@oceanprotocol/lib'
 import { useAccount } from 'wagmi'
-import { defaultDatatokenTemplateIndex } from 'app.config'
+import { defaultDatatokenTemplateIndex } from 'app.config.cjs'
 import { AssetExtended } from 'src/@types/AssetExtended'
 
 export default function Preview(): ReactElement {
@@ -41,7 +41,7 @@ export default function Preview(): ReactElement {
           paymentCollector: accountId
         }
       ]
-      asset.stats = {
+      asset.credentialSubject.stats = {
         orders: null,
         price: {
           value: values.pricing.type === 'free' ? 0 : values.pricing.price,

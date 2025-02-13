@@ -1,14 +1,14 @@
 import { forwardRef, FormEvent, useEffect } from 'react'
-import Caret from '@images/caret.svg'
 import { accountTruncate } from '@utils/wallet'
 // import Loader from '@shared/atoms/Loader'
 import styles from './Account.module.css'
 import Avatar from '@shared/atoms/Avatar'
 import { useAccount, useSigner } from 'wagmi'
 import { useModal } from 'connectkit'
-import { LoggerInstance } from '@oceanprotocol/lib'
-import { connectToWallet } from '@utils/wallet/ssiWallet'
+import { CaretIcon } from '@components/@shared/Icons'
 import { useSsiWallet } from '@context/SsiWallet'
+import { connectToWallet } from '@utils/wallet/ssiWallet'
+import { LoggerInstance } from '@oceanprotocol/lib'
 
 // Forward ref for Tippy.js
 // eslint-disable-next-line
@@ -46,7 +46,7 @@ const Account = forwardRef((props, ref: any) => {
       <span className={styles.address} title={accountId}>
         {accountTruncate(accountId)}
       </span>
-      <Caret aria-hidden="true" className={styles.caret} />
+      <CaretIcon aria-hidden="true" className={styles.caret} />
     </button>
   ) : (
     <button

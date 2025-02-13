@@ -23,7 +23,7 @@ import {
 import { Metadata } from 'src/@types/ddo/Metadata'
 import { Asset } from 'src/@types/Asset'
 import { AssetExtended } from 'src/@types/AssetExtended'
-import { customProviderUrl } from '../../../../app.config'
+import { customProviderUrl } from '../../../../app.config.cjs'
 import { ethers } from 'ethers'
 import { convertLinks } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
@@ -112,12 +112,12 @@ export default function Edit({
       delete (updatedAsset as AssetExtended).accessDetails
       delete (updatedAsset as AssetExtended).views
       delete (updatedAsset as AssetExtended).offchain
-      delete (updatedAsset as AssetExtended).stats
+      delete (updatedAsset as AssetExtended).credentialSubject.stats
 
       const ipfsUpload: IpfsUpload = await signAssetAndUploadToIpfs(
         updatedAsset,
         signer,
-        true,
+        false,
         customProviderUrl ||
           updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
         ssiWalletContext

@@ -15,15 +15,18 @@ export function getDefaultValues(
   const defaults = {}
 
   consumerParameters?.forEach((param) => {
-    Object.assign(defaults, {
-      [param.name]:
-        param.type === 'number'
-          ? Number(param.default)
-          : param.type === 'boolean'
-          ? param.default.toString()
-          : param.default
-    })
+    if ('name' in param && typeof param.name === 'string') {
+      Object.assign(defaults, {
+        [param.name as string]:
+          param.type === 'number'
+            ? Number(param.default)
+            : param.type === 'boolean'
+            ? param.default.toString()
+            : param.default
+      })
+    }
   })
+
   return defaults
 }
 
@@ -76,7 +79,7 @@ export default function FormConsumerParameters({
         {parameters.map((param) => {
           const { default: paramDefault, ...rest } = param
 
-          return (
+          return 'name' in param && typeof param.name === 'string' ? (
             <div key={param.name} className={styles.parameter}>
               <Field
                 {...rest}
@@ -90,6 +93,8 @@ export default function FormConsumerParameters({
                 value={field.value[param.name]}
               />
             </div>
+          ) : (
+            <></>
           )
         })}
       </div>

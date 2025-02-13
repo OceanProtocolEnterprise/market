@@ -20,7 +20,7 @@ import {
   consumeMarketOrderFee,
   consumeMarketFixedSwapFee,
   customProviderUrl
-} from '../../app.config'
+} from '../../app.config.cjs'
 import { toast } from 'react-toastify'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'

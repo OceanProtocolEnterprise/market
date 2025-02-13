@@ -9,8 +9,6 @@ import { isGoogleUrl } from '@utils/url'
 import { MetadataEditForm } from './_types'
 import content from '../../../../content/pages/editMetadata.json'
 import consumerParametersContent from '../../../../content/publish/consumerParameters.json'
-import IconDataset from '@images/dataset.svg'
-import IconAlgorithm from '@images/algorithm.svg'
 import { BoxSelectionOption } from '@components/@shared/FormInput/InputElement/BoxSelection'
 import { FileDrop } from '@shared/FileDrop'
 import Label from '@components/@shared/FormInput/Label'
@@ -26,7 +24,8 @@ import { PolicyEditor } from '@components/@shared/PolicyEditor'
 import { getDefaultPolicies } from '@components/Publish/_utils'
 import { AdditionalDdosFields } from '@components/@shared/AdditionalDdos'
 import { LoggerInstance } from '@oceanprotocol/lib'
-import appConfig from 'app.config'
+import appConfig from 'app.config.cjs'
+import { AlgorithmIcon, DatasetIcon } from '@components/@shared/Icons'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
@@ -45,13 +44,13 @@ export default function FormEditMetadata(): ReactElement {
       name: assetTypeOptionsTitles[0].toLowerCase(),
       title: assetTypeOptionsTitles[0],
       checked: values.type === assetTypeOptionsTitles[0].toLowerCase(),
-      icon: <IconDataset />
+      icon: <DatasetIcon />
     },
     {
       name: assetTypeOptionsTitles[1].toLowerCase(),
       title: assetTypeOptionsTitles[1],
       checked: values.type === assetTypeOptionsTitles[1].toLowerCase(),
-      icon: <IconAlgorithm />
+      icon: <AlgorithmIcon />
     }
   ]
 
@@ -280,7 +279,7 @@ export default function FormEditMetadata(): ReactElement {
               ></IpfsRemoteSource>
               <Button
                 className={styles.deleteLicenseButton}
-                type="button"
+                type="submit"
                 style="primary"
                 onClick={handleLicenseRemove}
               >

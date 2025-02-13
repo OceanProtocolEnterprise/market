@@ -1,7 +1,7 @@
 import { FixedRateExchange, PriceAndFees } from '@oceanprotocol/lib'
 import { Signer } from 'ethers'
 import { getOceanConfig } from '.'
-import { consumeMarketFixedSwapFee } from '../../../app.config'
+import { consumeMarketFixedSwapFee } from '../../../app.config.cjs'
 import { getDummySigner } from '@utils/wallet'
 
 /**

@@ -21,7 +21,7 @@ export default function RelatedAssets(): ReactElement {
     if (
       !chainIds?.length ||
       !asset?.credentialSubject?.nftAddress ||
-      !asset?.nft ||
+      !asset?.credentialSubject.nft ||
       !asset?.credentialSubject?.metadata
     ) {
       return
@@ -57,7 +57,7 @@ export default function RelatedAssets(): ReactElement {
               asset.credentialSubject.nftAddress,
               4 - tagResults.length,
               null,
-              asset.nft.owner
+              asset.credentialSubject.nft.owner
             )
           )
 

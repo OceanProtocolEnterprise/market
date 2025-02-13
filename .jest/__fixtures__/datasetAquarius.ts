@@ -2,32 +2,32 @@ import { Asset } from 'src/@types/Asset'
 import { State } from 'src/@types/ddo/State'
 
 export const datasetAquarius: Asset = {
-  '@context': ['https://w3id.org/did/v1'],
+  '@context': ['https://www.w3.org/ns/credentials/v2'],
   id: 'did:ope:6654b0793765b269696cec8d2f0d077d9bbcdd3c4f033d941ab9684e8ad06630',
   version: '5.0.0',
-  nft: {
-    address: '0xbA5BA7B09e2FA1eb0258f647503F81D2Af5cb07d',
-    name: 'Ocean Data NFT',
-    symbol: 'OCEAN-NFT',
-    state: 0,
-    tokenURI:
-      'data:application/json;base64,eyJuYW1lIjoiT2NlYW4gRGF0YSBORlQiLCJzeW1ib2wiOiJPQ0VBTi1ORlQiLCJkZXNjcmlwdGlvbiI6IlRoaXMgTkZUIHJlcHJlc2VudHMgYW4gYXNzZXQgaW4gdGhlIE9jZWFuIFByb3RvY29sIHY0IGVjb3N5c3RlbS5cblxuVmlldyBvbiBPY2VhbiBNYXJrZXQ6IGh0dHBzOi8vbWFya2V0Lm9jZWFucHJvdG9jb2wuY29tL2Fzc2V0L2RpZDpvcDo2NjU0YjA3OTM3NjViMjY5Njk2Y2VjOGQyZjBkMDc3ZDliYmNkZDNjNGYwMzNkOTQxYWI5Njg0ZThhZDA2NjMwIiwiZXh0ZXJuYWxfdXJsIjoiaHR0cHM6Ly9tYXJrZXQub2NlYW5wcm90b2NvbC5jb20vYXNzZXQvZGlkOm9wOjY2NTRiMDc5Mzc2NWIyNjk2OTZjZWM4ZDJmMGQwNzdkOWJiY2RkM2M0ZjAzM2Q5NDFhYjk2ODRlOGFkMDY2MzAiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiMTQxNDE0IiwiaW1hZ2VfZGF0YSI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0Nzdmcgdmlld0JveD0nMCAwIDk5IDk5JyBmaWxsPSd1bmRlZmluZWQnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyclM0UlM0NwYXRoIGZpbGw9JyUyM2ZmNDA5Mjc3JyBkPSdNMCw5OUwwLDI5QzksMjUgMTksMjIgMjksMjFDMzgsMTkgNDksMTkgNjEsMjFDNzIsMjIgODUsMjUgOTksMjlMOTksOTlaJy8lM0UlM0NwYXRoIGZpbGw9JyUyM2ZmNDA5MmJiJyBkPSdNMCw5OUwwLDU1QzgsNDkgMTcsNDQgMjgsNDNDMzgsNDEgNTAsNDIgNjMsNDNDNzUsNDMgODcsNDIgOTksNDJMOTksOTlaJyUzRSUzQy9wYXRoJTNFJTNDcGF0aCBmaWxsPSclMjNmZjQwOTJmZicgZD0nTTAsOTlMMCw2OEMxMSw2NiAyMiw2NSAzMiw2N0M0MSw2OCA1MCw3MyA2MSw3NkM3MSw3OCA4NSw3OCA5OSw3OUw5OSw5OVonJTNFJTNDL3BhdGglM0UlM0Mvc3ZnJTNFIn0=',
-    owner: '0x99840Df5Cb42faBE0Feb8811Aaa4BC99cA6C84e0',
-    created: '2022-09-29T11:31:12'
-  },
-  stats: {
-    orders: 22,
-    price: {
-      value: 3231343254,
-      tokenAddress: '0xCfDdA22C9837aE76E0faA845354f33C62E03653a',
-      tokenSymbol: 'OCEAN'
-    }
-  },
-  purgatory: {
-    state: false,
-    reason: ''
-  },
   credentialSubject: {
+    nft: {
+      address: '0xbA5BA7B09e2FA1eb0258f647503F81D2Af5cb07d',
+      name: 'Ocean Data NFT',
+      symbol: 'OCEAN-NFT',
+      state: 0,
+      tokenURI:
+        'data:application/json;base64,eyJuYW1lIjoiT2NlYW4gRGF0YSBORlQiLCJzeW1ib2wiOiJPQ0VBTi1ORlQiLCJkZXNjcmlwdGlvbiI6IlRoaXMgTkZUIHJlcHJlc2VudHMgYW4gYXNzZXQgaW4gdGhlIE9jZWFuIFByb3RvY29sIHY0IGVjb3N5c3RlbS5cblxuVmlldyBvbiBPY2VhbiBNYXJrZXQ6IGh0dHBzOi8vbWFya2V0Lm9jZWFucHJvdG9jb2wuY29tL2Fzc2V0L2RpZDpvcDo2NjU0YjA3OTM3NjViMjY5Njk2Y2VjOGQyZjBkMDc3ZDliYmNkZDNjNGYwMzNkOTQxYWI5Njg0ZThhZDA2NjMwIiwiZXh0ZXJuYWxfdXJsIjoiaHR0cHM6Ly9tYXJrZXQub2NlYW5wcm90b2NvbC5jb20vYXNzZXQvZGlkOm9wOjY2NTRiMDc5Mzc2NWIyNjk2OTZjZWM4ZDJmMGQwNzdkOWJiY2RkM2M0ZjAzM2Q5NDFhYjk2ODRlOGFkMDY2MzAiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiMTQxNDE0IiwiaW1hZ2VfZGF0YSI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0Nzdmcgdmlld0JveD0nMCAwIDk5IDk5JyBmaWxsPSd1bmRlZmluZWQnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyclM0UlM0NwYXRoIGZpbGw9JyUyM2ZmNDA5Mjc3JyBkPSdNMCw5OUwwLDI5QzksMjUgMTksMjIgMjksMjFDMzgsMTkgNDksMTkgNjEsMjFDNzIsMjIgODUsMjUgOTksMjlMOTksOTlaJy8lM0UlM0NwYXRoIGZpbGw9JyUyM2ZmNDA5MmJiJyBkPSdNMCw5OUwwLDU1QzgsNDkgMTcsNDQgMjgsNDNDMzgsNDEgNTAsNDIgNjMsNDNDNzUsNDMgODcsNDIgOTksNDJMOTksOTlaJyUzRSUzQy9wYXRoJTNFJTNDcGF0aCBmaWxsPSclMjNmZjQwOTJmZicgZD0nTTAsOTlMMCw2OEMxMSw2NiAyMiw2NSAzMiw2N0M0MSw2OCA1MCw3MyA2MSw3NkM3MSw3OCA4NSw3OCA5OSw3OUw5OSw5OVonJTNFJTNDL3BhdGglM0UlM0Mvc3ZnJTNFIn0=',
+      owner: '0x99840Df5Cb42faBE0Feb8811Aaa4BC99cA6C84e0',
+      created: '2022-09-29T11:31:12'
+    },
+    stats: {
+      orders: 22,
+      price: {
+        value: 3231343254,
+        tokenAddress: '0xCfDdA22C9837aE76E0faA845354f33C62E03653a',
+        tokenSymbol: 'OCEAN'
+      }
+    },
+    purgatory: {
+      state: false,
+      reason: ''
+    },
     id: 'did:ope:6654b0793765b269696cec8d2f0d077d9bbcdd3c4f033d941ab9684e8ad06630',
     nftAddress: '0xbA5BA7B09e2FA1eb0258f647503F81D2Af5cb07d',
     chainId: 1,

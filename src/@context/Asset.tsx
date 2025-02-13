@@ -109,13 +109,15 @@ function AssetProvider({
         return
       }
 
-      if (asset.nft.state === (1 | 2 | 3)) {
+      if (asset.credentialSubject.nft.state === (1 | 2 | 3)) {
         setTitle(
           `This asset has been set as "${assetStateToString(
-            asset.nft.state
+            asset.credentialSubject.nft.state
           )}" by the publisher`
         )
-        setError(did + `\n\nPublisher Address: ${asset.nft.owner}`)
+        setError(
+          did + `\n\nPublisher Address: ${asset.credentialSubject.nft.owner}`
+        )
         LoggerInstance.error(`[asset] Failed getting asset for ${did}`, asset)
         return
       }
@@ -138,10 +140,10 @@ function AssetProvider({
           accessDetails
         }))
         setTitle(asset.credentialSubject?.metadata?.name)
-        setOwner(asset.nft?.owner)
-        setIsInPurgatory(asset.purgatory?.state)
-        setPurgatoryData(asset.purgatory)
-        setAssetState(assetStateToString(asset.nft.state))
+        setOwner(asset.credentialSubject.nft?.owner)
+        setIsInPurgatory(asset.credentialSubject.purgatory?.state)
+        setPurgatoryData(asset.credentialSubject.purgatory)
+        setAssetState(assetStateToString(asset.credentialSubject.nft.state))
         LoggerInstance.log('[asset] Got asset', asset)
       }
 
@@ -235,9 +237,9 @@ function AssetProvider({
   // Set Asset State as a string
   // -----------------------------------
   useEffect(() => {
-    if (!asset?.nft) return
+    if (!asset?.credentialSubject.nft) return
 
-    setAssetState(assetStateToString(asset.nft.state))
+    setAssetState(assetStateToString(asset.credentialSubject.nft.state))
   }, [asset])
 
   return (

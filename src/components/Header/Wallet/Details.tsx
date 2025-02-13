@@ -4,10 +4,10 @@ import Button from '@shared/atoms/Button'
 import { useDisconnect, useAccount, useConnect } from 'wagmi'
 import styles from './Details.module.css'
 import Avatar from '@components/@shared/atoms/Avatar'
-import Bookmark from '@images/bookmark.svg'
 import { MenuLink } from '../Menu'
 import AddTokenList from './AddTokenList'
 import AddNetwork from '@components/@shared/AddNetwork'
+import { BookmarkIcon } from '@components/@shared/Icons'
 import { useSsiWallet } from '@context/SsiWallet'
 import { disconnectFromWallet } from '@utils/wallet/ssiWallet'
 import { LoggerInstance } from '@oceanprotocol/lib'
@@ -40,7 +40,7 @@ export default function Details(): ReactElement {
           />
         </li>
         <li className={styles.bookmarksLink}>
-          <Bookmark />
+          <BookmarkIcon />
           <MenuLink
             link="/bookmarks"
             name="View Bookmarks"

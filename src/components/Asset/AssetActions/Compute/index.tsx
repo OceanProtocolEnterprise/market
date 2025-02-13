@@ -356,7 +356,9 @@ export default function Compute({
       try {
         type === 'init' && setIsLoadingJobs(true)
         const computeJobs = await getComputeJobs(
-          [asset.credentialSubject?.chainId] || chainIds,
+          asset.credentialSubject?.chainId !== undefined
+            ? [asset.credentialSubject.chainId]
+            : chainIds,
           address,
           asset,
           service,

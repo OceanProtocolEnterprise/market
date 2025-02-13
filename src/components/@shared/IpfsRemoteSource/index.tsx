@@ -1,5 +1,5 @@
 import { downloadRemoteSourceFromIpfs, IpfsRemoteDocument } from '@utils/ipfs'
-import appConfig from 'app.config'
+import appConfig from 'app.config.cjs'
 import { RemoteSource } from '../../../@types/ddo/RemoteSource'
 import { ReactElement, useEffect, useState } from 'react'
 

@@ -21,13 +21,13 @@ import {
   FormPublishData,
   MetadataAlgorithmContainer
 } from './_types'
-import {
+import appConfig, {
   marketFeeAddress,
   publisherMarketOrderFee,
   publisherMarketFixedSwapFee,
   defaultDatatokenTemplateIndex,
   defaultDatatokenCap
-} from '../../../app.config'
+} from '../../../app.config.cjs'
 import { sanitizeUrl } from '@utils/url'
 import { getContainerChecksum } from '@utils/docker'
 import { hexlify, parseEther } from 'ethers/lib/utils'
@@ -36,7 +36,7 @@ import { Service } from 'src/@types/ddo/Service'
 import { Metadata } from 'src/@types/ddo/Metadata'
 import { Option } from 'src/@types/ddo/Option'
 import { createHash } from 'crypto'
-import { Signer } from 'ethers'
+import { ethers, Signer } from 'ethers'
 import { uploadToIPFS } from '@utils/ipfs'
 import { DDOVersion } from 'src/@types/DdoVersion'
 import {
@@ -51,20 +51,27 @@ import * as VCDataModel from 'src/@types/ddo/VerifiableCredential'
 import { asset } from '.jest/__fixtures__/datasetWithAccessDetails'
 import { convertLinks } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
-import { JWTHeaderParameters } from 'jose'
 import base64url from 'base64url'
-import appConfig from 'app.config'
+import { JWTHeaderParameters } from 'jose'
 import {
-  CredentialForm,
   PolicyArgument,
   PolicyRule,
   PolicyRuleLeftValuePrefix,
   PolicyRuleRightValuePrefix,
-  PolicyType
+  PolicyType,
+  CredentialForm
 } from '@components/@shared/PolicyEditor/types'
 import { SsiWalletContext } from '@context/SsiWallet'
 import { isSessionValid, signMessage } from '@utils/wallet/ssiWallet'
-import { DDOManager } from 'ddo.js'
+
+export function makeDid(nftAddress: string, chainId: string): string {
+  return (
+    'did:ope:' +
+    createHash('sha256')
+      .update(ethers.utils.getAddress(nftAddress) + chainId)
+      .digest('hex')
+  )
+}
 
 export async function getDefaultPolicies(): Promise<string[]> {
   const response = await fetch(appConfig.ssiDefaultPolicyUrl)
@@ -429,18 +436,23 @@ export async function transformPublishFormToDdo(
       ? transformConsumerParameters(values.services[0].consumerParameters)
       : undefined,
     name: '',
-    state: asset.stats[0],
+    state: asset.credentialSubject.stats[0],
     credentials: newServiceCredentials
   }
 
   const newCredentials = generateCredentials(values.credentials)
+  const did = makeDid(
+    asset.credentialSubject.nftAddress,
+    `${asset.credentialSubject.chainId}`
+  )
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const newDdo: any = {
-    '@context': ['https://w3id.org/did/v1'],
-    id: '',
+    '@context': ['https://www.w3.org/ns/credentials/v2'],
+    id: did,
     version: DDOVersion.V5_0_0,
     credentialSubject: {
-      id: '',
+      id: did,
       chainId,
       metadata: newMetadata,
       services: [newService],
@@ -453,26 +465,19 @@ export async function transformPublishFormToDdo(
           address: '',
           serviceId: ''
         }
-      ]
+      ],
+      // Only added for DDO preview, reflecting Asset response,
+      // again, we can assume if `datatokenAddress` is not passed,
+      // we are on preview.
+      nft: {
+        ...generateNftCreateData(values?.metadata.nft, accountId),
+        address: '',
+        state: 0,
+        created: ''
+      }
     },
-    additionalDdos: values?.additionalDdos || [],
-    // Only added for DDO preview, reflecting Asset response,
-    // again, we can assume if `datatokenAddress` is not passed,
-    // we are on preview.
-    nft: {
-      ...generateNftCreateData(values?.metadata.nft, accountId),
-      address: '',
-      state: 0,
-      created: ''
-    }
+    additionalDdos: values?.additionalDdos || []
   }
-
-  const ddoInstance = DDOManager.getDDOClass(newDdo)
-  const did = nftAddress
-    ? ddoInstance.makeDid(nftAddress, chainId.toString())
-    : '0x...'
-  newDdo.id = did
-  newDdo.credentialSubject.id = did
 
   return newDdo
 }
@@ -497,11 +502,12 @@ async function createJwtVerifiableCredential(
   }
   const headerBase64 = base64url(JSON.stringify(header))
   const payload: VCDataModel.VerifiableCredentialJWT = {
-    vc: credential,
+    ...credential,
     iss: credential.issuer,
-    sub: credential.credentialSubject.id,
+    sub: credential.id,
     jti: credential.id
   }
+
   const payloadBase64 = base64url(JSON.stringify(payload))
   const signature = await owner.signMessage(`${headerBase64}.${payloadBase64}`)
   const signatureBase64 = base64url(signature)
@@ -516,11 +522,9 @@ export async function signAssetAndUploadToIpfs(
   ssiWalletContext: SsiWalletContext
 ): Promise<IpfsUpload> {
   const credential: VCDataModel.Credential = {
-    credentialSubject: asset.credentialSubject,
-    issuer: `did:ope:${await owner.getAddress()}`,
-    '@context': asset['@context'],
-    version: asset.version,
-    type: asset.type
+    ...asset,
+    type: ['VerifiableCredential'],
+    issuer: `${await owner.getAddress()}`
   }
 
   // these properties are mutable due blockchain interaction
@@ -532,7 +536,7 @@ export async function signAssetAndUploadToIpfs(
     const valid = await isSessionValid()
     if (valid) {
       const payload: VCDataModel.VerifiableCredentialJWT = {
-        vc: credential,
+        ...credential,
         iss: credential.issuer,
         sub: credential.id,
         jti: credential.id
@@ -553,14 +557,11 @@ export async function signAssetAndUploadToIpfs(
     )
   }
 
-  // TODO: use the jwt verifiable credential
-  console.log(jwtVerifiableCredential)
+  const stringAsset = JSON.stringify(jwtVerifiableCredential)
+  const bytes = Buffer.from(stringAsset)
+  const metadata = hexlify(bytes)
 
-  const payloadString = JSON.stringify({ payload: asset })
-  const bytes: Buffer = Buffer.from(payloadString)
-  const encodedData = hexlify(bytes)
-
-  const data = { encryptedData: encodedData }
+  const data = { encryptedData: metadata }
   const ipfsHash = await uploadToIPFS(data)
 
   const remoteAsset = {
@@ -570,7 +571,7 @@ export async function signAssetAndUploadToIpfs(
     }
   }
 
-  let flags: number
+  let flags: number = 0
   let metadataIPFS: string
   if (encryptAsset) {
     try {
@@ -618,9 +619,7 @@ export async function createTokensAndPricing(
     minter: accountId,
     paymentCollector: accountId,
     mpFeeAddress: marketFeeAddress,
-    feeToken:
-      process.env.NEXT_PUBLIC_OCEAN_TOKEN_ADDRESS ||
-      values.pricing.baseToken.address,
+    feeToken: config.oceanTokenAddress,
     feeAmount: publisherMarketOrderFee,
     // max number
     cap: defaultDatatokenCap,

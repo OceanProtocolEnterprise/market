@@ -1,7 +1,7 @@
 import { FormEvent, ReactElement } from 'react'
-import SearchIcon from '@images/search.svg'
 import styles from './SearchButton.module.css'
 import { useSearchBarStatus } from '@context/SearchBarStatus'
+import { SearchIcon } from '@components/@shared/Icons'
 
 export default function SearchButton(): ReactElement {
   const { isSearchBarVisible, setSearchBarVisible } = useSearchBarStatus()
@@ -15,7 +15,7 @@ export default function SearchButton(): ReactElement {
   return (
     <div className={styles.search}>
       <button onClick={handleButtonClick} className={styles.button}>
-        <SearchIcon className={styles.searchIcon} />
+        <SearchIcon />
       </button>
     </div>
   )

@@ -32,7 +32,7 @@ import {
   defaultDatatokenTemplateIndex,
   marketFeeAddress,
   publisherMarketFixedSwapFee
-} from 'app.config'
+} from 'app.config.cjs'
 import { ethers } from 'ethers'
 import FormAddService from './FormAddService'
 import { transformComputeFormToServiceComputeOptions } from '@utils/compute'
@@ -205,12 +205,12 @@ export default function AddService({
       delete (updatedAsset as AssetExtended).accessDetails
       delete (updatedAsset as AssetExtended).views
       delete (updatedAsset as AssetExtended).offchain
-      delete (updatedAsset as AssetExtended).stats
+      delete (updatedAsset as AssetExtended).credentialSubject.stats
 
       const ipfsUpload: IpfsUpload = await signAssetAndUploadToIpfs(
         updatedAsset,
         signer,
-        true,
+        false,
         customProviderUrl ||
           updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
         ssiWalletContext
@@ -309,7 +309,8 @@ export default function AddService({
                     credentials: {
                       match_deny: 'any',
                       allow: [],
-                      deny: []
+                      deny: [],
+                      match_deny: 'any'
                     },
                     state: State.Active
                   }}

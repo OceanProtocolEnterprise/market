@@ -3,7 +3,6 @@ import Time from '@shared/atoms/Time'
 import Table, { TableOceanColumn } from '@shared/atoms/Table'
 import Button from '@shared/atoms/Button'
 import Details from './Details'
-import Refresh from '@images/refresh.svg'
 import { useUserPreferences } from '@context/UserPreferences'
 import NetworkName from '@shared/NetworkName'
 import styles from './index.module.css'
@@ -13,6 +12,7 @@ import { getAsset } from '@utils/aquarius'
 import { useCancelToken } from '@hooks/useCancelToken'
 import { getPdf } from '@utils/invoice/createInvoice'
 import { decodeBuyComputeJob } from '../../../../@types/invoice/buyInvoice'
+import { RefreshIcon } from '@components/@shared/Icons'
 
 export function Status({ children }: { children: string }): ReactElement {
   return <div className={styles.status}>{children}</div>
@@ -82,7 +82,7 @@ export default function ComputeJobs({
         const assetAlgo = await getAsset(row.algoDID, newCancelToken())
         const asset = await getAsset(row.inputDID[0], newCancelToken())
         const priceAlgo = assetAlgo.stats.price.value
-        const priceAsset = asset.stats.price.value
+        const priceAsset = asset.credentialSubject.stats.price.value
         const ownerAlgo = assetAlgo.event.from
         const ownerAsset = asset.event.from
 
@@ -91,9 +91,9 @@ export default function ComputeJobs({
           asset.id,
           asset.chainId,
           row.algoDID,
-          asset.stats.price.tokenSymbol,
+          asset.credentialSubject.stats.price.tokenSymbol,
           assetAlgo.stats.price.tokenSymbol,
-          asset.stats.price.tokenAddress,
+          asset.credentialSubject.stats.price.tokenAddress,
           assetAlgo.stats.price.tokenAddress,
           priceAsset,
           priceAlgo,
@@ -121,7 +121,7 @@ export default function ComputeJobs({
         const assetAlgo = await getAsset(row.algoDID, newCancelToken())
         const asset = await getAsset(row.inputDID[0], newCancelToken())
         const priceAlgo = assetAlgo.stats.price.value
-        const priceAsset = asset.stats.price.value
+        const priceAsset = asset.credentialSubject.stats.price.value
         const ownerAlgo = assetAlgo.event.from
         const ownerAsset = asset.event.from
 
@@ -130,9 +130,9 @@ export default function ComputeJobs({
           asset.id,
           asset.chainId,
           row.algoDID,
-          asset.stats.price.tokenSymbol,
+          asset.credentialSubject.stats.price.tokenSymbol,
           assetAlgo.stats.price.tokenSymbol,
-          asset.stats.price.tokenAddress,
+          asset.credentialSubject.stats.price.tokenAddress,
           assetAlgo.stats.price.tokenAddress,
           priceAsset,
           priceAlgo,
@@ -282,7 +282,7 @@ export default function ComputeJobs({
           disabled={isLoading}
           className={styles.refresh}
         >
-          <Refresh />
+          <RefreshIcon />
           Refresh
         </Button>
       )}

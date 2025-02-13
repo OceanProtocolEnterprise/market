@@ -31,7 +31,7 @@ import DebugEditService from './DebugEditService'
 import styles from './index.module.css'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
-import { customProviderUrl } from 'app.config'
+import { customProviderUrl } from 'app.config.cjs'
 import { ethers } from 'ethers'
 import { useSsiWallet } from '@context/SsiWallet'
 
@@ -152,12 +152,12 @@ export default function EditService({
       delete (updatedAsset as AssetExtended).accessDetails
       delete (updatedAsset as AssetExtended).views
       delete (updatedAsset as AssetExtended).offchain
-      delete (updatedAsset as AssetExtended).stats
+      delete (updatedAsset as AssetExtended).credentialSubject.stats
 
       const ipfsUpload: IpfsUpload = await signAssetAndUploadToIpfs(
         updatedAsset,
         signer,
-        true,
+        false,
         customProviderUrl ||
           updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
         ssiWalletContext

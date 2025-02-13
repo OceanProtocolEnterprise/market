@@ -8,7 +8,7 @@ import {
   getErrorMessage
 } from '@oceanprotocol/lib'
 import { SvgWaves } from './SvgWaves'
-import { customProviderUrl } from '../../app.config'
+import { customProviderUrl } from '../../app.config.cjs'
 import { Signer, ethers } from 'ethers'
 import { toast } from 'react-toastify'
 import { Asset } from 'src/@types/Asset'
@@ -183,15 +183,14 @@ export async function setNFTMetadataAndTokenURI(
             external_url: externalUrl
           }
         : {
-            name: (asset as Asset).nft.name,
-            symbol: (asset as Asset).nft.symbol,
+            name: (asset as Asset).credentialSubject.nft.name,
+            symbol: (asset as Asset).credentialSubject.nft.symbol,
             description: `${nftMetadataTemplate.description}\n\nView on Ocean Enterprise: ${externalUrl}`,
             external_url: externalUrl
           }
     )
   ).toString('base64')
-
-  const nft = new Nft(signer)
+  const nft = new Nft(signer, asset.credentialSubject.chainId)
 
   // theoretically used by aquarius or provider, not implemented yet, will remain hardcoded
   const flags = '0x02'

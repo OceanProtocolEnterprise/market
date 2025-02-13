@@ -1,6 +1,6 @@
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { serverSideDeleteIpfsFile, serverSideUploadToIpfs } from '@utils/ipfs'
-import appConfig from 'app.config'
+import appConfig from 'app.config.cjs'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 export default async function handler(
