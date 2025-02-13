@@ -8,7 +8,7 @@ import {
   isCredentialAddressBased,
   isCredentialPolicyBased
 } from '@utils/credentials'
-import appConfig from 'app.config'
+import appConfig from 'app.config.cjs'
 import {
   CredentialForm,
   RequestCredentialForm

@@ -309,8 +309,7 @@ export default function AddService({
                     credentials: {
                       match_deny: 'any',
                       allow: [],
-                      deny: [],
-                      match_deny: 'any'
+                      deny: []
                     },
                     state: State.Active
                   }}

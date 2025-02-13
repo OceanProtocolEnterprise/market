@@ -1,6 +1,5 @@
 import Button from '@components/@shared/atoms/Button'
 import { useSsiWallet } from '@context/SsiWallet'
-import appConfig from 'app.config'
 import { ReactElement, useCallback, useEffect, useRef, useState } from 'react'
 import styles from './index.module.css'
 import { SsiKeyDesc, SsiWalletDesc } from 'src/@types/SsiWallet'
@@ -12,6 +11,7 @@ import {
 } from '@utils/wallet/ssiWallet'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { useAccount, useSigner } from 'wagmi'
+import appConfig from 'app.config.cjs'
 
 export function SsiWallet(): ReactElement {
   const {
@@ -163,7 +163,6 @@ export function SsiWallet(): ReactElement {
               </select>
 
               <Button
-                type="button"
                 style="primary"
                 size="small"
                 className={`${styles.width100p} ${styles.closeButton}`}
