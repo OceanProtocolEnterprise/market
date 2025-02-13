@@ -121,7 +121,7 @@ const validationService = {
     .matches(/compute|access/g)
     .required('Required'),
   providerUrl: Yup.object().shape({
-    url: Yup.string().url('Must be a valid URL.').required('Required'),
+    //    url: Yup.string().url('Must be a valid URL.').required('Required'),
     valid: Yup.boolean().isTrue().required('Valid Provider is required.'),
     custom: Yup.boolean()
   }),

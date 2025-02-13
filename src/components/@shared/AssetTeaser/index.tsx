@@ -32,8 +32,8 @@ export default function AssetTeaser({
   const { datatokens } = asset.credentialSubject
   const isCompute = Boolean(getServiceByName(asset, 'compute'))
   const accessType = isCompute ? 'compute' : 'access'
-  const owner = asset.nft?.owner
-  const { orders, allocated, price } = asset.stats || {}
+  const owner = asset.credentialSubject.nft?.owner
+  const { orders, allocated, price } = asset.credentialSubject.stats || {}
   const [accessDetails, setAccessDetails] = useState(null)
   const [orderPriceAndFees, setOrderPriceAndFees] = useState(null)
   const [isUnsupportedPricing, setIsUnsupportedPricing] = useState(false)

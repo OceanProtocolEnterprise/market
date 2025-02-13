@@ -71,7 +71,7 @@ export default function DebugEditMetadata({
       delete (tmpAsset as AssetExtended).accessDetails
       delete (tmpAsset as AssetExtended).views
       delete (tmpAsset as AssetExtended).offchain
-      delete (tmpAsset as AssetExtended).stats
+      delete (tmpAsset as AssetExtended).credentialSubject.stats
 
       setUpdatedAsset(tmpAsset)
     }

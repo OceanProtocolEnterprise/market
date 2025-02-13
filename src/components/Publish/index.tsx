@@ -142,7 +142,7 @@ export default function PublishPage({
       const ipfsUpload: IpfsUpload = await signAssetAndUploadToIpfs(
         ddo,
         signer,
-        true,
+        false,
         customProviderUrl || values.services[0].providerUrl.url
       )
 

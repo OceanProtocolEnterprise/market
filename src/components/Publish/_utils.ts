@@ -290,14 +290,14 @@ export async function transformPublishFormToDdo(
       ? transformConsumerParameters(values.services[0].consumerParameters)
       : undefined,
     name: '',
-    state: asset.stats[0],
+    state: asset.credentialSubject.stats[0],
     credentials: newCredentials
   }
 
   const did = nftAddress ? makeDid(nftAddress, chainId.toString()) : '0x...'
 
   const newDdo: any = {
-    '@context': ['https://w3id.org/did/v1'],
+    '@context': ['https://www.w3.org/ns/credentials/v2'],
     id: did,
     version: DDOVersion.V5_0_0,
     credentialSubject: {
@@ -317,18 +317,18 @@ export async function transformPublishFormToDdo(
           address: '',
           serviceId: ''
         }
-      ]
+      ],
+      // Only added for DDO preview, reflecting Asset response,
+      // again, we can assume if `datatokenAddress` is not passed,
+      // we are on preview.
+      nft: {
+        ...generateNftCreateData(values?.metadata.nft, accountId),
+        address: '',
+        state: 0,
+        created: ''
+      }
     },
-    additionalDdos: [],
-    // Only added for DDO preview, reflecting Asset response,
-    // again, we can assume if `datatokenAddress` is not passed,
-    // we are on preview.
-    nft: {
-      ...generateNftCreateData(values?.metadata.nft, accountId),
-      address: '',
-      state: 0,
-      created: ''
-    }
+    additionalDdos: []
   }
 
   return newDdo
@@ -354,11 +354,12 @@ async function createJwtVerifiableCredential(
   }
   const headerBase64 = base64url(JSON.stringify(header))
   const payload: VCDataModel.VerifiableCredentialJWT = {
-    vc: credential,
+    ...credential,
     iss: credential.issuer,
     sub: credential.id,
     jti: credential.id
   }
+
   const payloadBase64 = base64url(JSON.stringify(payload))
   const signature = await owner.signMessage(`${headerBase64}.${payloadBase64}`)
   const signatureBase64 = base64url(signature)
@@ -377,12 +378,9 @@ export async function signAssetAndUploadToIpfs(
   // see https://www.w3.org/TR/vc-data-model/#proofs-signatures
 
   const credential: VCDataModel.Credential = {
-    id: asset.id,
-    credentialSubject: asset.credentialSubject,
-    issuer: `${await owner.getAddress()}`,
-    '@context': asset['@context'],
-    version: asset.version,
-    type: asset.type
+    ...asset,
+    type: ['VerifiableCredential'],
+    issuer: `${await owner.getAddress()}`
   }
 
   // these properties are mutable due blockchain interaction
@@ -393,11 +391,6 @@ export async function signAssetAndUploadToIpfs(
     credential,
     owner
   )
-
-  // const validateResult = await aquariusInstance.validate(credential)
-  // if (!validateResult.valid) {
-  //  throw new Error('Invalid Asset')
-  // }
 
   const stringAsset = JSON.stringify(jwtVerifiableCredential)
   const bytes = Buffer.from(stringAsset)
@@ -413,7 +406,7 @@ export async function signAssetAndUploadToIpfs(
     }
   }
 
-  let flags: number
+  let flags: number = 0
   let metadataIPFS: string
   if (encryptAsset) {
     try {

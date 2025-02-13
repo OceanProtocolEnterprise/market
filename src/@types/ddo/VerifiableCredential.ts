@@ -32,8 +32,7 @@ export interface VerifiableCredentialEmbeddedProof extends Credential {
  * A verifiable credential may use the `external proof` mechanism to JWT usage, in which case the `proof` field is not embedded.
  * @see https://www.w3.org/TR/vc-data-model/#proofs-signatures
  */
-export interface VerifiableCredentialJWT {
-  vc: Credential
+export interface VerifiableCredentialJWT extends Credential {
   iss: Credential['issuer']
   exp?: number
   nbf?: number

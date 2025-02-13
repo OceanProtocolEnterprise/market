@@ -41,7 +41,7 @@ export default function Preview(): ReactElement {
           paymentCollector: accountId
         }
       ]
-      asset.stats = {
+      asset.credentialSubject.stats = {
         orders: null,
         price: {
           value: values.pricing.type === 'free' ? 0 : values.pricing.price,

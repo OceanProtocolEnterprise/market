@@ -111,12 +111,12 @@ export default function Edit({
       delete (updatedAsset as AssetExtended).accessDetails
       delete (updatedAsset as AssetExtended).views
       delete (updatedAsset as AssetExtended).offchain
-      delete (updatedAsset as AssetExtended).stats
+      delete (updatedAsset as AssetExtended).credentialSubject.stats
 
       const ipfsUpload: IpfsUpload = await signAssetAndUploadToIpfs(
         updatedAsset,
         signer,
-        true,
+        false,
         customProviderUrl ||
           updatedAsset.credentialSubject.services[0]?.serviceEndpoint
       )

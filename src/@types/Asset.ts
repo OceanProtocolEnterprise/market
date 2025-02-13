@@ -1,3 +1,4 @@
+import { CredentialSubject } from './ddo/CredentialSubject'
 import { Credential } from './ddo/VerifiableCredential'
 
 export interface AssetNft {
@@ -139,23 +140,25 @@ export interface AssetLastEvent {
 }
 
 export interface Asset extends Credential {
-  /**
-   * Contains information about the ERC721 NFT contract which represents the intellectual property of the publisher.
-   * @type {string}
-   */
-  nft: AssetNft
+  credentialSubject: CredentialSubject & {
+    /**
+     * Contains information about the ERC721 NFT contract which represents the intellectual property of the publisher.
+     * @type {string}
+     */
+    nft?: AssetNft
 
-  /**
-   * The stats section contains different statistics fields. This section is added by Aquarius
-   * @type {Stats}
-   */
-  stats: Stats
+    /**
+     * The stats section contains different statistics fields. This section is added by Aquarius
+     * @type {Stats}
+     */
+    stats?: Stats
 
-  /**
-   * Contains information about an asset's purgatory status defined in
-   * [`list-purgatory`](https://github.com/oceanprotocol/list-purgatory).
-   * Marketplace interfaces are encouraged to prevent certain user actions like downloading on assets in purgatory.
-   * @type {Purgatory}
-   */
-  purgatory: Purgatory
+    /**
+     * Contains information about an asset's purgatory status defined in
+     * [`list-purgatory`](https://github.com/oceanprotocol/list-purgatory).
+     * Marketplace interfaces are encouraged to prevent certain user actions like downloading on assets in purgatory.
+     * @type {Purgatory}
+     */
+    purgatory?: Purgatory
+  }
 }
