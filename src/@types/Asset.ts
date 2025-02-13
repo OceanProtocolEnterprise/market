@@ -145,13 +145,13 @@ export interface Asset extends Credential {
      * Contains information about the ERC721 NFT contract which represents the intellectual property of the publisher.
      * @type {string}
      */
-    nft?: AssetNft
+    nft: AssetNft
 
     /**
      * The stats section contains different statistics fields. This section is added by Aquarius
      * @type {Stats}
      */
-    stats?: Stats
+    stats: Stats
 
     /**
      * Contains information about an asset's purgatory status defined in
@@ -159,6 +159,6 @@ export interface Asset extends Credential {
      * Marketplace interfaces are encouraged to prevent certain user actions like downloading on assets in purgatory.
      * @type {Purgatory}
      */
-    purgatory?: Purgatory
+    purgatory: Purgatory
   }
 }
