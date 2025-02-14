@@ -82,10 +82,7 @@ export default function AssetTeaser({
 
   return (
     <article className={`${styles.teaser} ${styles[type]}`}>
-      <Link
-        href={`/asset/${asset.credentialSubject?.id}`}
-        className={styles.link}
-      >
+      <Link href={`/asset/${asset.id}`} className={styles.link}>
         <aside className={styles.detailLine}>
           <AssetType
             className={styles.typeLabel}

@@ -179,7 +179,7 @@ export default function Edit({
               onClick: async () => {
                 await fetchAsset()
               },
-              to: `/asset/${asset.credentialSubject?.id}`
+              to: `/asset/${asset.id}`
             }}
           />
         ) : (

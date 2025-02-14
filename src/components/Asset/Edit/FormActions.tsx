@@ -22,10 +22,7 @@ export default function FormActions({
       <Button style="primary" disabled={isSubmitDisabled} onClick={handleClick}>
         Submit
       </Button>
-      <Link
-        href={`/asset/${asset?.credentialSubject?.id}`}
-        key={asset?.credentialSubject?.id}
-      >
+      <Link href={`/asset/${asset?.id}`} key={asset?.id}>
         Cancel
       </Link>
     </footer>

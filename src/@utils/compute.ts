@@ -234,7 +234,7 @@ async function getJobs(
 
       providersComputeJobsExtended.forEach((job) => {
         const did = job.inputDID[0]
-        const asset = assets.filter((x) => x.credentialSubject?.id === did)[0]
+        const asset = assets.filter((x) => x.id === did)[0]
         if (asset) {
           const compJob: ComputeJobMetaData = {
             ...job,
@@ -308,7 +308,7 @@ export async function createTrustedAlgorithmList(
 
   for (const selectedAlgorithm of selectedAssets) {
     const filesChecksum = await getFileDidInfo(
-      selectedAlgorithm?.credentialSubject?.id,
+      selectedAlgorithm?.id,
       selectedAlgorithm?.credentialSubject?.services?.[0].id,
       selectedAlgorithm?.credentialSubject?.services?.[0]?.serviceEndpoint,
       true
@@ -317,7 +317,7 @@ export async function createTrustedAlgorithmList(
       selectedAlgorithm.credentialSubject?.metadata.algorithm.container
         .entrypoint
     const trustedAlgorithm: PublisherTrustedAlgorithms = {
-      did: selectedAlgorithm.credentialSubject?.id,
+      did: selectedAlgorithm.id,
       containerSectionChecksum: getHash(containerChecksum),
       filesChecksum: filesChecksum?.[0]?.checksum,
       serviceId: ''

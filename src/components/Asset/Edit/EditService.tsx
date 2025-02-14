@@ -216,7 +216,7 @@ export default function EditService({
               onClick: async () => {
                 await fetchAsset()
               },
-              to: `/asset/${asset.credentialSubject?.id}`
+              to: `/asset/${asset.id}`
             }}
           />
         ) : (

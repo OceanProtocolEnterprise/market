@@ -69,10 +69,7 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
         ddo?.credentialSubject.metadata?.algorithm && (
           <MetaItem title="Docker Image" content={<DockerImage />} />
         )}
-      <MetaItem
-        title="DID"
-        content={<code>{ddo?.credentialSubject?.id}</code>}
-      />
+      <MetaItem title="DID" content={<code>{ddo?.id}</code>} />
       <div>
         <Label htmlFor="license">
           <strong>License</strong>

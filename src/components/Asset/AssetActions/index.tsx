@@ -92,11 +92,7 @@ export default function AssetActions({
               chain?.id,
               method
             )
-          : await getFileDidInfo(
-              asset.credentialSubject?.id,
-              service.id,
-              providerUrl
-            )
+          : await getFileDidInfo(asset.id, service.id, providerUrl)
 
         fileInfoResponse && setFileMetadata(fileInfoResponse[0])
 

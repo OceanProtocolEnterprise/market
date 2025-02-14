@@ -574,7 +574,7 @@ export async function signAssetAndUploadToIpfs(
       hash: ipfsHash
     }
   }
-  encryptAsset = false
+  encryptAsset = true
   LoggerInstance.log(encryptAsset)
   let flags: number = 0
   let metadataIPFS: string

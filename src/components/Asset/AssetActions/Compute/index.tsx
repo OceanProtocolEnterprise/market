@@ -406,7 +406,7 @@ export default function Compute({
       setIsOrdered(false)
       setError(undefined)
       const computeAlgorithm: ComputeAlgorithm = {
-        documentId: selectedAlgorithmAsset?.credentialSubject?.id,
+        documentId: selectedAlgorithmAsset?.id,
         serviceId: selectedAlgorithmAsset?.credentialSubject?.services[0].id,
         algocustomdata: userCustomParameters?.algoParams,
         userdata: userCustomParameters?.algoServiceParams
@@ -470,7 +470,7 @@ export default function Compute({
 
       LoggerInstance.log('[compute] Starting compute job.')
       const computeAsset: ComputeAsset = {
-        documentId: asset.credentialSubject?.id,
+        documentId: asset.id,
         serviceId: service.id,
         transferTxId: datasetOrderTx,
         userdata: userCustomParameters?.dataServiceParams

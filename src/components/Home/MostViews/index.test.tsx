@@ -26,7 +26,7 @@ describe('components/Home/MostViews', () => {
   it('renders without crashing', async () => {
     axiosMock.get.mockImplementation(() =>
       Promise.resolve({
-        data: [{ count: 666, did: datasetAquarius.credentialSubject?.id }]
+        data: [{ count: 666, did: datasetAquarius.id }]
       })
     )
     queryMetadataMock.mockResolvedValue(queryMetadataBaseReturn)

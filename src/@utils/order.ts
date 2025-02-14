@@ -34,7 +34,7 @@ async function initializeProvider(
   if (providerFees) return
   try {
     const provider = await ProviderInstance.initialize(
-      asset.credentialSubject?.id,
+      asset.id,
       service.id,
       0,
       accountId,

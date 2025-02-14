@@ -270,7 +270,7 @@ export default function AddService({
               onClick: async () => {
                 await fetchAsset()
               },
-              to: `/asset/${asset.credentialSubject?.id}`
+              to: `/asset/${asset.id}`
             }}
           />
         ) : (

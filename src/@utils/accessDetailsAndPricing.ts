@@ -51,7 +51,7 @@ export async function getOrderPriceAndFees(
     initializeData =
       !providerFees &&
       (await ProviderInstance.initialize(
-        asset.credentialSubject?.id,
+        asset.id,
         service.id,
         0,
         accountId,
@@ -69,7 +69,7 @@ export async function getOrderPriceAndFees(
     ) {
       if (accountId !== ZERO_ADDRESS) {
         toast.error(
-          `Consumer address not found in allow list for service ${asset.credentialSubject?.id}. Access has been denied.`
+          `Consumer address not found in allow list for service ${asset.id}. Access has been denied.`
         )
       }
       return
@@ -82,7 +82,7 @@ export async function getOrderPriceAndFees(
     ) {
       if (accountId !== ZERO_ADDRESS) {
         toast.error(
-          `Consumer address found in deny list for service ${asset.credentialSubject?.id}. Access has been denied.`
+          `Consumer address found in deny list for service ${asset.id}. Access has been denied.`
         )
       }
       return

@@ -46,7 +46,7 @@ export function getInitialValues(
   acceptPublishingLicense?: boolean
 ): ComputeDatasetForm {
   return {
-    algorithm: selectedAlgorithmAsset?.credentialSubject?.id,
+    algorithm: selectedAlgorithmAsset?.id,
     computeEnv: selectedComputeEnv?.id,
     dataServiceParams: getDefaultValues(service.consumerParameters),
     algoServiceParams: getDefaultValues(

@@ -292,9 +292,7 @@ export async function getAssetsFromDids(
     const result = await queryMetadata(query, cancelToken)
 
     didList.forEach((did: string) => {
-      const ddo = result.results.find(
-        (ddo: Asset) => ddo.credentialSubject?.id === did
-      )
+      const ddo = result.results.find((ddo: Asset) => ddo.id === did)
       if (ddo) orderedDDOListByDIDList.push(ddo)
     })
     return orderedDDOListByDIDList

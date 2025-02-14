@@ -41,9 +41,7 @@ export default function AssetListTitle({
 
   return (
     <h3 className={styles.title}>
-      <Link href={`/asset/${did || asset?.credentialSubject?.id}`}>
-        {assetTitle}
-      </Link>
+      <Link href={`/asset/${did || asset?.id}`}>{assetTitle}</Link>
     </h3>
   )
 }

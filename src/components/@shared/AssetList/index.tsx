@@ -20,7 +20,7 @@ const columns: TableOceanColumn<AssetExtended>[] = [
       return (
         <div>
           <AssetTitle title={metadata.name} asset={row} />
-          <p>{row.credentialSubject?.id}</p>
+          <p>{row.id}</p>
         </div>
       )
     },
@@ -139,7 +139,7 @@ export default function AssetList({
               assets?.map((asset) => (
                 <AssetTeaser
                   asset={asset}
-                  key={asset.credentialSubject?.id}
+                  key={asset.id}
                   noPublisher={noPublisher}
                   noDescription={noDescription}
                   noPrice={noPrice}

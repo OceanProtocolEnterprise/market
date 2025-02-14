@@ -172,7 +172,7 @@ export async function setNFTMetadataAndTokenURI(
   // add final did to external_url and asset link to description in nftMetadata before encoding
   const externalUrl = `${
     nftMetadata?.external_url || nftMetadataTemplate.external_url
-  }/asset/${asset.credentialSubject?.id}`
+  }/asset/${asset.id}`
   //  TODO: restore to old structure where nftMetadata is always provided
   const encodedMetadata = Buffer.from(
     JSON.stringify(

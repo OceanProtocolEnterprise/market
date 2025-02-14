@@ -107,7 +107,7 @@ export default function AssetContent({
         <div>
           <div className={styles.content}>
             <MetaMain asset={asset} nftPublisher={nftPublisher} />
-            <Bookmark did={asset.credentialSubject?.id} />
+            <Bookmark did={asset.id} />
             {isInPurgatory === true ? (
               <Alert
                 title={content.asset.title}
@@ -181,11 +181,7 @@ export default function AssetContent({
           )}
           {isOwner && isAssetNetwork && (
             <div className={styles.ownerActions}>
-              <Button
-                style="text"
-                size="small"
-                to={`/asset/${asset.credentialSubject?.id}/edit`}
-              >
+              <Button style="text" size="small" to={`/asset/${asset.id}/edit`}>
                 Edit Asset
               </Button>
             </div>
