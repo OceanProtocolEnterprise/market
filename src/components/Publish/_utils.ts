@@ -457,7 +457,6 @@ export async function transformPublishFormToDdo(
     id: '',
     version: DDOVersion.V5_0_0,
     credentialSubject: {
-      id: '',
       chainId,
       metadata: newMetadata,
       services: [newService],
@@ -550,8 +549,8 @@ export async function signAssetAndUploadToIpfs(
         ssiWalletContext?.selectedWallet?.id,
         ssiWalletContext?.selectedKey?.keyId?.id
       )
-      console.log(key)
-      // credential.issuer = `${await owner.getAddress()}`
+      const keyBase64 = base64url(JSON.stringify(key))
+      credential.issuer = `did:jwk:${keyBase64}`
       jwtVerifiableCredential = await signMessage(
         ssiWalletContext?.selectedWallet?.id,
         ssiWalletContext?.selectedKey.keyId?.id,

@@ -14,6 +14,7 @@ import { Service } from 'src/@types/ddo/Service'
 import { getDefaultPolicies } from '@components/Publish/_utils'
 import appConfig from 'app.config.cjs'
 import { PolicyEditor } from '@components/@shared/PolicyEditor'
+import { LoggerInstance } from '@oceanprotocol/lib'
 
 export default function FormEditService({
   data,
@@ -62,7 +63,9 @@ export default function FormEditService({
           setDefaultPolicies(policies)
         })
         .catch((error) => {
-          console.error(error)
+          LoggerInstance.error(error)
+          setFieldValue('credentials.vcPolicies', [])
+          setDefaultPolicies([])
         })
     }
   }, [])

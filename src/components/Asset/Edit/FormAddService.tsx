@@ -13,6 +13,7 @@ import styles from './index.module.css'
 import { getDefaultPolicies } from '@components/Publish/_utils'
 import appConfig from 'app.config.cjs'
 import { PolicyEditor } from '@components/@shared/PolicyEditor'
+import { LoggerInstance } from '@oceanprotocol/lib'
 
 export default function FormAddService({
   data,
@@ -53,7 +54,9 @@ export default function FormAddService({
           setDefaultPolicies(policies)
         })
         .catch((error) => {
-          console.error(error)
+          LoggerInstance.error(error)
+          setFieldValue('credentials.vcPolicies', [])
+          setDefaultPolicies([])
         })
     }
   }, [])

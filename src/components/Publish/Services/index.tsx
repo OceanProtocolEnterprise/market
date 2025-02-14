@@ -10,6 +10,7 @@ import { FormPublishData } from '../_types'
 import { useMarketMetadata } from '@context/MarketMetadata'
 import { PolicyEditor } from '@components/@shared/PolicyEditor'
 import { getDefaultPolicies } from '../_utils'
+import { LoggerInstance } from '@oceanprotocol/lib'
 
 const accessTypeOptionsTitles = getFieldContent(
   'access',
@@ -68,7 +69,9 @@ export default function ServicesFields(): ReactElement {
           setDefaultPolicies(policies)
         })
         .catch((error) => {
-          console.error(error)
+          LoggerInstance.error(error)
+          setFieldValue('credentials.vcPolicies', [])
+          setDefaultPolicies([])
         })
     }
   }, [])

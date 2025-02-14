@@ -80,7 +80,7 @@ export async function getWalletKeys(
 
 export async function getWalletKey(walletId: string, keyId: string) {
   try {
-    const response = await axios.post(
+    const response = await axios.get(
       `/ssi/wallet-api/wallet/${walletId}/keys/${keyId}/load`,
       { withCredentials: true }
     )

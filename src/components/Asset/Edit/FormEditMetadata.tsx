@@ -66,7 +66,9 @@ export default function FormEditMetadata(): ReactElement {
           setDefaultPolicies(policies)
         })
         .catch((error) => {
-          console.error(error)
+          LoggerInstance.error(error)
+          setFieldValue('credentials.vcPolicies', [])
+          setDefaultPolicies([])
         })
     }
   }, [])
