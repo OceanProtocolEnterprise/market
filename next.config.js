@@ -80,14 +80,12 @@ export default (phase, { defaultConfig }) => {
     async rewrites() {
       const walletApiBase =
         process.env.NEXT_PUBLIC_SSI_WALLET_API || 'https://wallet.walt.id'
-      return {
-        beforeFiles: [
-          {
-            source: '/ssi/:path',
-            destination: `${walletApiBase}/:path`
-          }
-        ]
-      }
+      return [
+        {
+          source: '/ssi/:path*',
+          destination: `${walletApiBase}/:path*`
+        }
+      ]
     }
     // Prefer loading of ES Modules over CommonJS
     // https://nextjs.org/blog/next-11-1#es-modules-support
