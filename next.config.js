@@ -1,4 +1,7 @@
-module.exports = (phase, { defaultConfig }) => {
+import { createRequire } from 'module'
+const require = createRequire(import.meta.url)
+
+export default (phase, { defaultConfig }) => {
   /**
    * @type {import('next').NextConfig}
    */
@@ -6,7 +9,8 @@ module.exports = (phase, { defaultConfig }) => {
     experimental: {
       esmExternals: 'loose'
     },
-    webpack: (config, options, { isServer }) => {
+    webpack: (config, options) => {
+      const { isServer } = options
       if (!isServer) {
         config.resolve.fallback.fs = false
       }
@@ -72,17 +76,19 @@ module.exports = (phase, { defaultConfig }) => {
         }
       ]
     },
+
     async rewrites() {
       const walletApiBase =
         process.env.NEXT_PUBLIC_SSI_WALLET_API || 'https://wallet.walt.id'
-      return [
-        {
-          source: '/ssi/:path',
-          destination: `${walletApiBase}/:path`
-        }
-      ]
+      return {
+        beforeFiles: [
+          {
+            source: '/ssi/:path',
+            destination: `${walletApiBase}/:path`
+          }
+        ]
+      }
     }
-
     // Prefer loading of ES Modules over CommonJS
     // https://nextjs.org/blog/next-11-1#es-modules-support
     // experimental: { esmExternals: true }
