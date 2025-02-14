@@ -63,7 +63,7 @@ export default function Actions({
     values.feedback?.[1].status === 'error' ||
     values.feedback?.[2].status === 'error' ||
     values.feedback?.[3].status === 'error'
-
+  console.log(did)
   return (
     <footer className={styles.actions}>
       {did ? (
