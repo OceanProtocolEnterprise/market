@@ -5,7 +5,6 @@ import { Credential } from './Credentials'
 import { AssetDatatoken } from '../Asset'
 
 export interface CredentialSubject {
-  id: string
   metadata: Metadata
   services: Service[]
   credentials: Credential

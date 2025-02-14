@@ -21,7 +21,7 @@ import useNftFactory from '@hooks/useNftFactory'
 import { LoggerInstance, Nft } from '@oceanprotocol/lib'
 import { getOceanConfig } from '@utils/ocean'
 import { validationSchema } from './_validation'
-import { customProviderUrl } from '../../../app.config.cjs'
+import appConfig, { customProviderUrl } from '../../../app.config.cjs'
 import { useAccount, useNetwork, useSigner } from 'wagmi'
 import { Asset } from 'src/@types/Asset'
 import { ethers } from 'ethers'
@@ -144,7 +144,7 @@ export default function PublishPage({
       const ipfsUpload: IpfsUpload = await signAssetAndUploadToIpfs(
         ddo,
         signer,
-        true,
+        appConfig.encryptAsset,
         customProviderUrl || values.services[0].providerUrl.url,
         ssiWalletContext
       )
@@ -194,7 +194,7 @@ export default function PublishPage({
         errorMessage: null
       }
     }))
-    console.log(ipfsUpload.flags)
+
     try {
       if (!ddo || !ipfsUpload)
         throw new Error('No DDO received. Please try again.')
@@ -222,7 +222,7 @@ export default function PublishPage({
         }
       }))
 
-      return { did: ddo.credentialSubject?.id }
+      return { did: ddo.id }
     } catch (error) {
       LoggerInstance.error('[publish] error', error.message)
       setFeedback((prevState) => ({

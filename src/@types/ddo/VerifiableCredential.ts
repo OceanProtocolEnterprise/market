@@ -3,9 +3,9 @@ import { CredentialSubject } from './CredentialSubject'
 import { Proof } from './Proof'
 
 export interface Credential {
-  '@context': string[]
-  id?: string
   type: string[]
+  '@context': string[]
+  id: string
   credentialSubject: CredentialSubject
   issuer: string
   version: string

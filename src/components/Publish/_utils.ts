@@ -9,7 +9,12 @@ import {
   NftFactory,
   ZERO_ADDRESS,
   getEventFromTx,
-  ProviderInstance
+  ProviderInstance,
+  AssetDatatoken,
+  AssetLastEvent,
+  AssetNft,
+  Purgatory,
+  Stats
 } from '@oceanprotocol/lib'
 import { mapTimeoutStringToSeconds, normalizeFile } from '@utils/ddo'
 import { generateNftCreateData } from '@utils/nft'
@@ -64,7 +69,7 @@ import {
 import { SsiWalletContext } from '@context/SsiWallet'
 import { isSessionValid, signMessage } from '@utils/wallet/ssiWallet'
 
-export function makeDid(nftAddress: string, chainId: string): string {
+function makeDid(nftAddress: string, chainId: string): string {
   return (
     'did:ope:' +
     createHash('sha256')
@@ -441,18 +446,14 @@ export async function transformPublishFormToDdo(
   }
 
   const newCredentials = generateCredentials(values.credentials)
-  const did = makeDid(
-    asset.credentialSubject.nftAddress,
-    `${asset.credentialSubject.chainId}`
-  )
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const newDdo: any = {
     '@context': ['https://www.w3.org/ns/credentials/v2'],
-    id: did,
+    id: '',
     version: DDOVersion.V5_0_0,
     credentialSubject: {
-      id: did,
+      id: '',
       chainId,
       metadata: newMetadata,
       services: [newService],
@@ -521,10 +522,17 @@ export async function signAssetAndUploadToIpfs(
   providerUrl: string,
   ssiWalletContext: SsiWalletContext
 ): Promise<IpfsUpload> {
+  const id = makeDid(
+    asset.credentialSubject.nftAddress,
+    asset.credentialSubject.chainId.toString()
+  )
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const credential: VCDataModel.Credential = {
     ...asset,
+    id,
     type: ['VerifiableCredential'],
-    issuer: `${await owner.getAddress()}`
+    issuer: ''
   }
 
   // these properties are mutable due blockchain interaction
@@ -535,24 +543,20 @@ export async function signAssetAndUploadToIpfs(
   if (appConfig.ssiEnabled) {
     const valid = await isSessionValid()
     if (valid) {
-      const payload: VCDataModel.VerifiableCredentialJWT = {
-        ...credential,
-        iss: credential.issuer,
-        sub: credential.id,
-        jti: credential.id
-      }
+      // credential.issuer = `${await owner.getAddress()}`
       jwtVerifiableCredential = await signMessage(
         ssiWalletContext?.selectedWallet?.id,
         ssiWalletContext?.selectedKey.keyId?.id,
-        payload
+        credential as VCDataModel.Credential
       )
     } else {
       ssiWalletContext.setSessionToken(undefined)
       throw new Error('Invalid SSI Wallet session')
     }
   } else {
+    credential.issuer = `${await owner.getAddress()}`
     jwtVerifiableCredential = await createJwtVerifiableCredential(
-      credential,
+      credential as VCDataModel.Credential,
       owner
     )
   }
@@ -570,7 +574,8 @@ export async function signAssetAndUploadToIpfs(
       hash: ipfsHash
     }
   }
-
+  encryptAsset = false
+  LoggerInstance.log(encryptAsset)
   let flags: number = 0
   let metadataIPFS: string
   if (encryptAsset) {

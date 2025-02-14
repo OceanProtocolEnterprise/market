@@ -83,6 +83,10 @@ module.exports = {
   // Display alert banner for the developer preview deployment
   showPreviewAlert: process.env.NEXT_PUBLIC_SHOW_PREVIEW_ALERT || 'false',
 
+  encryptAsset: process.env.NEXT_PUBLIC_ENCRYPT_ASSET
+    ? process.env.NEXT_PUBLIC_ENCRYPT_ASSET === 'true'
+    : false,
+
   // This enables / disables the ssi support
   ssiEnabled: process.env.NEXT_PUBLIC_SSI_ENABLED
     ? process.env.NEXT_PUBLIC_SSI_ENABLED === 'true'

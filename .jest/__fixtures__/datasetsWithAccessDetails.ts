@@ -7,7 +7,6 @@ export const assets: AssetExtended[] = [
   {
     '@context': ['https://www.w3.org/ns/credentials/v2'],
     id: 'did:ope:48406caf76d092e08af6703dde5bbab79ed7528939d8bbe733134284faf39075',
-
     version: '5.0.0',
     accessDetails: [
       {
@@ -57,7 +56,6 @@ export const assets: AssetExtended[] = [
           tokenSymbol: 'OCEAN'
         }
       },
-      id: 'did:ope:48406caf76d092e08af6703dde5bbab79ed7528939d8bbe733134284faf39075',
       chainId: 5,
       credentials: undefined,
       datatokens: [
@@ -177,7 +175,6 @@ export const assets: AssetExtended[] = [
           value: 100
         }
       },
-      id: 'did:ope:dabbcf352e9d90d4e4f44a50440b0798a1a1d90e762ab2c7edba6ab4f2129deb',
       chainId: 137,
       datatokens: [
         {
@@ -307,7 +304,6 @@ export const assets: AssetExtended[] = [
           tokenSymbol: 'OCEAN'
         }
       },
-      id: 'did:ope:fcfaffeab039fd4406b4546dab57a0380d971f6a2746f588bbeafeb38fc406c9',
       chainId: 5,
       datatokens: [
         {
@@ -425,7 +421,6 @@ export const assets: AssetExtended[] = [
           tokenSymbol: 'OCEAN'
         }
       },
-      id: 'did:ope:16cf424daaa8cf763c0a753c4fe9045981fdc728571b95021514450d2160bbb8',
       chainId: 5,
       datatokens: [
         {
@@ -543,7 +538,6 @@ export const assets: AssetExtended[] = [
           tokenSymbol: 'OCEAN'
         }
       },
-      id: 'did:ope:930b016ea9790156593e016ba2a4fe7a8bd276c8043320f8ba34d9b36395069e',
       chainId: 5,
       datatokens: [
         {
@@ -667,7 +661,6 @@ export const assets: AssetExtended[] = [
           tokenSymbol: 'OCEAN'
         }
       },
-      id: 'did:ope:6b4314bd7345d07a10ba2c82a352655273b00cdceb2eedd31c8e0d2b5881eb16',
       chainId: 5,
       datatokens: [
         {
@@ -800,7 +793,6 @@ export const assets: AssetExtended[] = [
           tokenSymbol: 'OCEAN'
         }
       },
-      id: 'did:ope:f86dedf3c872f79f788627025685a680eaac9f8bd7b6e622164fd8563e21e836',
       chainId: 5,
       datatokens: [
         {
@@ -933,7 +925,6 @@ export const assets: AssetExtended[] = [
           tokenSymbol: 'OCEAN'
         }
       },
-      id: 'did:ope:2f9cf3eba8ff21db32350aa6d48db89ca86beab7adf729a40a5debdcef8cd7cb',
       chainId: 5,
       datatokens: [
         {
@@ -1045,7 +1036,6 @@ export const assets: AssetExtended[] = [
           tokenSymbol: 'OCEAN'
         }
       },
-      id: 'did:ope:1ea697b447f0a0b3209048f144c0331ca1a8c10af27e233512a41623b93ff8ed',
       chainId: 137,
       datatokens: [
         {
@@ -1161,7 +1151,6 @@ export const assets: AssetExtended[] = [
           tokenSymbol: 'OCEAN'
         }
       },
-      id: 'did:ope:d1563919dd61c8ea5790b85f3a569fa69e46c84a600290ca377a1cb009bb7694',
       chainId: 5,
       datatokens: [
         {
@@ -1270,7 +1259,6 @@ export const assets: AssetExtended[] = [
           tokenSymbol: 'OCEAN'
         }
       },
-      id: 'did:ope:aeb9faad199e79eb21cddc15557fa42fe95a02e03c493be8e849594aae60221a',
       chainId: 5,
       datatokens: [
         {
@@ -1378,7 +1366,6 @@ export const assets: AssetExtended[] = [
           value: 0
         }
       },
-      id: 'did:ope:191af71e271d4eb6f9ac582b2a6a78e8d79167da7a13a30878c7b699842aa421',
       chainId: 137,
       datatokens: [
         {
@@ -1486,7 +1473,6 @@ export const assets: AssetExtended[] = [
           value: 0
         }
       },
-      id: 'did:ope:50c60ce0810bf8f8b1c6ca421e5231b106cf4de784945037498c84147e11dbc5',
       chainId: 5,
       datatokens: [
         {
@@ -1601,7 +1587,6 @@ export const assets: AssetExtended[] = [
           tokenSymbol: 'OCEAN'
         }
       },
-      id: 'did:ope:f4b49d04ee8c6973e4f844754805dbfe9e682812121131abbfc1bdf6d6b6eef1',
       chainId: 137,
       credentials: undefined,
       datatokens: [
@@ -1714,7 +1699,6 @@ export const assets: AssetExtended[] = [
         tokenURI:
           'data:application/json;base64,eyJuYW1lIjoiT2NlYW4gRGF0YSBORlQiLCJzeW1ib2wiOiJPQ0VBTi1ORlQiLCJkZXNjcmlwdGlvbiI6IlRoaXMgTkZUIHJlcHJlc2VudHMgYW4gYXNzZXQgaW4gdGhlIE9jZWFuIFByb3RvY29sIHY0IGVjb3N5c3RlbS5cblxuVmlldyBvbiBPY2VhbiBNYXJrZXQ6IGh0dHBzOi8vbWFya2V0Lm9jZWFucHJvdG9jb2wuY29tL2Fzc2V0L2RpZDpvcDo4MjY5ODYwMGM5ZjAwM2JkZmE5N2JmMDU0YjViYjliMGY4M2MxOGI0ZWE3NDhjZTFlZGRiYWI4MTEwZmY5ZWE5IiwiZXh0ZXJuYWxfdXJsIjoiaHR0cHM6Ly9tYXJrZXQub2NlYW5wcm90b2NvbC5jb20vYXNzZXQvZGlkOm9wOjgyNjk4NjAwYzlmMDAzYmRmYTk3YmYwNTRiNWJiOWIwZjgzYzE4YjRlYTc0OGNlMWVkZGJhYjgxMTBmZjllYTkiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiMTQxNDE0IiwiaW1hZ2VfZGF0YSI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0Nzdmcgdmlld0JveD0nMCAwIDk5IDk5JyBmaWxsPSd1bmRlZmluZWQnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyclM0UlM0NwYXRoIGZpbGw9JyUyM2ZmNDA5Mjc3JyBkPSdNMCw5OUwwLDE3QzYsMTYgMTMsMTYgMjIsMTdDMzAsMTcgNDAsMTkgNTAsMjBDNTksMjAgNjcsMjEgNzUsMjFDODIsMjAgOTAsMTkgOTksMTlMOTksOTlaJy8lM0UlM0NwYXRoIGZpbGw9JyUyM2ZmNDA5MmJiJyBkPSdNMCw5OUwwLDU0QzYsNTAgMTMsNDcgMjIsNDdDMzAsNDYgMzksNDkgNDksNTJDNTgsNTQgNjgsNTggNzcsNTdDODUsNTUgOTIsNDkgOTksNDNMOTksOTlaJyUzRSUzQy9wYXRoJTNFJTNDcGF0aCBmaWxsPSclMjNmZjQwOTJmZicgZD0nTTAsOTlMMCw4MkM3LDgwIDE1LDc5IDI0LDc2QzMyLDcyIDQwLDY2IDQ5LDY4QzU3LDY5IDY0LDc4IDczLDgxQzgxLDgzIDkwLDgwIDk5LDc4TDk5LDk5WiclM0UlM0MvcGF0aCUzRSUzQy9zdmclM0UifQ=='
       },
-      id: 'did:ope:82698600c9f003bdfa97bf054b5bb9b0f83c18b4ea748ce1eddbab8110ff9ea9',
       chainId: 5,
       datatokens: [
         {
@@ -1822,7 +1806,6 @@ export const assets: AssetExtended[] = [
           value: 0
         }
       },
-      id: 'did:ope:9c1235050bcd51c8ec9a7058110102c9595136834911c315b4f739bc9a880b8e',
       chainId: 5,
       datatokens: [
         {
@@ -1938,7 +1921,6 @@ export const assets: AssetExtended[] = [
           tokenSymbol: 'OCEAN'
         }
       },
-      id: 'did:ope:9442a55c25e9a0fd30231089ec34e430d0325ce0d3e03ab1aa27579eb56f7570',
       chainId: 1,
       datatokens: [
         {

@@ -28,7 +28,6 @@ export const datasetAquarius: Asset = {
       state: false,
       reason: ''
     },
-    id: 'did:ope:6654b0793765b269696cec8d2f0d077d9bbcdd3c4f033d941ab9684e8ad06630',
     nftAddress: '0xbA5BA7B09e2FA1eb0258f647503F81D2Af5cb07d',
     chainId: 1,
     metadata: {
