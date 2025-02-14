@@ -1,7 +1,7 @@
 import { useUserPreferences } from '@context/UserPreferences'
 import { ReactElement } from 'react'
 import styles from './Bookmark.module.css'
-import { BookmarkIcon } from '@components/@shared/Icons'
+import BookmarkIcon from '@images/bookmark.svg'
 
 export default function Bookmark({ did }: { did: string }): ReactElement {
   const { bookmarks, addBookmark, removeBookmark } = useUserPreferences()

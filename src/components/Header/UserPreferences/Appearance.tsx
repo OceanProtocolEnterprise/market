@@ -2,11 +2,12 @@ import { ReactElement, ChangeEvent } from 'react'
 import { DarkMode } from '@oceanprotocol/use-dark-mode'
 import FormHelp from '@shared/FormInput/Help'
 import Label from '@shared/FormInput/Label'
+import Moon from '@images/moon.svg'
+import Sun from '@images/sun.svg'
 import BoxSelection, {
   BoxSelectionOption
 } from '@shared/FormInput/InputElement/BoxSelection'
 import styles from './Appearance.module.css'
-import { MoonIcon, SunIcon } from '@components/@shared/Icons'
 
 export default function Appearance({
   darkMode
@@ -18,13 +19,13 @@ export default function Appearance({
       name: 'Light',
       checked: !darkMode.value,
       title: 'Light',
-      icon: <SunIcon />
+      icon: <Sun />
     },
     {
       name: 'Dark',
       checked: darkMode.value,
       title: 'Dark',
-      icon: <MoonIcon />
+      icon: <Moon />
     }
   ]
 

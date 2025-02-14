@@ -1,7 +1,7 @@
 import { ReactElement, ReactNode, useState } from 'react'
 import Button from '@shared/atoms/Button'
 import styles from './History.module.css'
-import { CaretIcon } from '@components/@shared/Icons'
+import Caret from '@images/caret.svg'
 
 export default function ComputeHistory({
   title,
@@ -30,7 +30,7 @@ export default function ComputeHistory({
           onClick={handleClick}
           className={styles.toggle}
         >
-          {open ? 'Hide' : 'Show'} <CaretIcon />
+          {open ? 'Hide' : 'Show'} <Caret />
         </Button>
       </h3>
       {open === true && children}

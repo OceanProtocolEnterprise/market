@@ -5,12 +5,13 @@ import FormActions from './FormActions'
 import { getFieldContent } from '@utils/form'
 import consumerParametersContent from '../../../../content/publish/consumerParameters.json'
 import { ServiceEditForm } from './_types'
+import IconDownload from '@images/download.svg'
+import IconCompute from '@images/compute.svg'
 import FormEditComputeService from './FormEditComputeService'
 import { defaultServiceComputeOptions } from './_constants'
 import styles from './index.module.css'
-import { ComputeIcon, DownloadIcon } from '@components/@shared/Icons'
-import appConfig from 'app.config.cjs'
 import { getDefaultPolicies } from '@components/Publish/_utils'
+import appConfig from 'app.config.cjs'
 import { PolicyEditor } from '@components/@shared/PolicyEditor'
 
 export default function FormAddService({
@@ -30,7 +31,7 @@ export default function FormAddService({
       name: 'access-download',
       value: 'access',
       title: accessTypeOptionsTitles[0],
-      icon: <DownloadIcon />,
+      icon: <IconDownload />,
       // BoxSelection component is not a Formik component
       // so we need to handle checked state manually.
       checked: values.access === 'access'
@@ -39,7 +40,7 @@ export default function FormAddService({
       name: 'access-compute',
       value: 'compute',
       title: accessTypeOptionsTitles[1],
-      icon: <ComputeIcon />,
+      icon: <IconCompute />,
       checked: values.access === 'compute'
     }
   ]

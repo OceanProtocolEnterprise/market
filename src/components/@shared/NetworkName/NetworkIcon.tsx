@@ -1,13 +1,11 @@
 import { ReactElement } from 'react'
+import EthIcon from '@images/eth.svg'
+import PolygonIcon from '@images/polygon.svg'
+import MoonbeamIcon from '@images/moonbeam.svg'
+import BscIcon from '@images/bsc.svg'
+import EnergywebIcon from '@images/energyweb.svg'
+import OptimismIcon from '@images/optimism.svg'
 import styles from './index.module.css'
-import {
-  EthIcon,
-  PolygonIcon,
-  MoonbeamIcon,
-  BscIcon,
-  EnergywebIcon,
-  OptimismIcon
-} from '../Icons'
 
 export function NetworkIcon({ name }: { name: string }): ReactElement {
   const IconMapped = name.includes('ETH')

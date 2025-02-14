@@ -2,8 +2,8 @@ import { ReactElement, ReactNode } from 'react'
 import { useSwitchNetwork } from 'wagmi'
 import Button from '@shared/atoms/Button'
 import styles from './index.module.css'
+import EthIcon from '@images/eth.svg'
 import AddTokenStyles from '../AddToken/index.module.css'
-import { EthIcon } from '../Icons'
 
 export interface AddNetworkProps {
   chainId: number

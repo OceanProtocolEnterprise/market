@@ -1,9 +1,9 @@
 import { ReactElement, ReactNode, useState } from 'react'
 import Button from '@shared/atoms/Button'
 import styles from './index.module.css'
+import Caret from '@images/caret.svg'
 import classNames from 'classnames/bind'
 import Badge from '@shared/atoms/Badge'
-import { CaretIcon } from '../Icons'
 
 const cx = classNames.bind(styles)
 
@@ -44,7 +44,7 @@ export default function Accordion({
           onClick={handleClick}
           className={styles.toggle}
         >
-          <CaretIcon />
+          <Caret />
         </Button>
       </h3>
       {action}

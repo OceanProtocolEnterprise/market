@@ -5,6 +5,8 @@ import { ReactElement, useEffect, useState } from 'react'
 import content from '../../../../content/publish/form.json'
 import consumerParametersContent from '../../../../content/publish/consumerParameters.json'
 import { FormPublishData } from '../_types'
+import IconDataset from '@images/dataset.svg'
+import IconAlgorithm from '@images/algorithm.svg'
 import styles from './index.module.css'
 import { algorithmContainerPresets } from '../_constants'
 import { useMarketMetadata } from '@context/MarketMetadata'
@@ -19,7 +21,6 @@ import { License } from 'src/@types/ddo/License'
 import { RemoteObject } from 'src/@types/ddo/RemoteObject'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import appConfig from 'app.config.cjs'
-import { AlgorithmIcon, DatasetIcon } from '@components/@shared/Icons'
 import { getDefaultPolicies } from '../_utils'
 import { PolicyEditor } from '@components/@shared/PolicyEditor'
 
@@ -46,13 +47,13 @@ export default function MetadataFields(): ReactElement {
       name: assetTypeOptionsTitles[0].toLowerCase(),
       title: assetTypeOptionsTitles[0],
       checked: values.metadata.type === assetTypeOptionsTitles[0].toLowerCase(),
-      icon: <DatasetIcon />
+      icon: <IconDataset />
     },
     {
       name: assetTypeOptionsTitles[1].toLowerCase(),
       title: assetTypeOptionsTitles[1],
       checked: values.metadata.type === assetTypeOptionsTitles[1].toLowerCase(),
-      icon: <AlgorithmIcon />
+      icon: <IconAlgorithm />
     }
   ]
 

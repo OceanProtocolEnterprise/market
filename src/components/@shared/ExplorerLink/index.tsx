@@ -1,8 +1,8 @@
 import { ReactElement, ReactNode, useEffect, useState } from 'react'
+import External from '@images/external.svg'
 import { Config } from '@oceanprotocol/lib'
 import styles from './index.module.css'
 import { getOceanConfig } from '@utils/ocean'
-import { ExternalIcon } from '../Icons'
 
 export default function ExplorerLink({
   networkId,
@@ -34,7 +34,7 @@ export default function ExplorerLink({
       rel="noreferrer"
       className={`${styles.link} ${className || ''}`}
     >
-      {children} <ExternalIcon />
+      {children} <External />
     </a>
   )
 }

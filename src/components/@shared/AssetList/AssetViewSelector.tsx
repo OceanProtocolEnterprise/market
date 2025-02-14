@@ -2,7 +2,8 @@ import { ReactElement } from 'react'
 import classNames from 'classnames/bind'
 import styles from './AssetViewSelector.module.css'
 import Button from '../atoms/Button'
-import { GridViewIcon, ListViewIcon } from '../Icons'
+import GridViewIcon from '@images/grid-view-icon.svg'
+import ListViewIcon from '@images/list-view-icon.svg'
 
 const cx = classNames.bind(styles)
 

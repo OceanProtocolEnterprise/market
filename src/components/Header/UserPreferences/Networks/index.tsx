@@ -2,6 +2,8 @@ import { ReactElement } from 'react'
 import Label from '@shared/FormInput/Label'
 import FormHelp from '@shared/FormInput/Help'
 import Tooltip from '@shared/atoms/Tooltip'
+import Caret from '@images/caret.svg'
+import Network from '@images/network.svg'
 import NetworksList from './NetworksList'
 import stylesIndex from '../index.module.css'
 import styles from './index.module.css'
@@ -10,7 +12,6 @@ import useNetworkMetadata, {
 } from '@hooks/useNetworkMetadata'
 import { useUserPreferences } from '@context/UserPreferences'
 import { useMarketMetadata } from '@context/MarketMetadata'
-import { CaretIcon, NetworkIcon } from '@components/@shared/Icons'
 
 export default function Networks(): ReactElement {
   const { appConfig } = useMarketMetadata()
@@ -46,8 +47,8 @@ export default function Networks(): ReactElement {
       className={`${stylesIndex.preferences} ${styles.networks}`}
     >
       <>
-        <NetworkIcon aria-label="Networks" className={stylesIndex.icon} />
-        <CaretIcon aria-hidden="true" className={stylesIndex.caret} />
+        <Network aria-label="Networks" className={stylesIndex.icon} />
+        <Caret aria-hidden="true" className={stylesIndex.caret} />
 
         <div className={styles.chainsSelected}>
           {chainIds.map((chainId) => (

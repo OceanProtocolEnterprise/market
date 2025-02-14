@@ -1,11 +1,11 @@
 import Copy from '@shared/atoms/Copy'
+import External from '@images/external.svg'
 import ExplorerLink from '@shared/ExplorerLink'
 import { NftMetadata } from '@utils/nft'
 import { ReactElement } from 'react'
 import styles from './NftTooltip.module.css'
 import explorerLinkStyles from '@shared/ExplorerLink/index.module.css'
 import { accountTruncate } from '@utils/wallet'
-import { ExternalIcon } from '@components/@shared/Icons'
 
 // Supported OpenSea networks:
 // https://support.opensea.io/hc/en-us/articles/4404027708051-Which-blockchains-does-OpenSea-support-
@@ -68,7 +68,7 @@ export default function NftTooltip({
               rel="noreferrer"
               className={explorerLinkStyles.link}
             >
-              View on OpenSea <ExternalIcon />
+              View on OpenSea <External />
             </a>
           )}
         </div>

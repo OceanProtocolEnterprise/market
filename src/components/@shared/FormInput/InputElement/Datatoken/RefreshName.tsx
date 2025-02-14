@@ -1,7 +1,7 @@
 import { ReactElement } from 'react'
 import styles from './RefreshName.module.css'
 import Button from '@shared/atoms/Button'
-import { RefreshIcon } from '@components/@shared/Icons'
+import Refresh from '@images/refresh.svg'
 
 export default function RefreshName({
   generateName
@@ -19,7 +19,7 @@ export default function RefreshName({
         generateName()
       }}
     >
-      <RefreshIcon />
+      <Refresh />
     </Button>
   )
 }

@@ -1,9 +1,10 @@
 import { ReactElement } from 'react'
 import Tooltip from '@shared/atoms/Tooltip'
+import Cog from '@images/cog.svg'
 import styles from './index.module.css'
 import Debug from './Debug'
+import Caret from '@images/caret.svg'
 import ExternalContent from './ExternalContent'
-import { CaretIcon, CogIcon } from '@components/@shared/Icons'
 
 export default function UserPreferences(): ReactElement {
   return (
@@ -22,8 +23,8 @@ export default function UserPreferences(): ReactElement {
       className={styles.preferences}
     >
       <>
-        <CogIcon aria-label="Preferences" className={styles.icon} />
-        <CaretIcon aria-hidden="true" className={styles.caret} />
+        <Cog aria-label="Preferences" className={styles.icon} />
+        <Caret aria-hidden="true" className={styles.caret} />
       </>
     </Tooltip>
   )

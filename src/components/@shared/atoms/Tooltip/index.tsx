@@ -1,8 +1,8 @@
 import { forwardRef, ReactElement } from 'react'
 import { useSpring, animated } from 'react-spring'
 import stylesTooltip from './index.module.css'
+import Info from '@images/info.svg'
 import Tippy, { TippyProps } from '@tippyjs/react/headless'
-import { InfoIcon } from '@components/@shared/Icons'
 
 const animation = {
   config: { tension: 400, friction: 20 },
@@ -13,7 +13,7 @@ const animation = {
 // Forward ref for Tippy.js
 // eslint-disable-next-line
 const DefaultTrigger = forwardRef((props, ref: any) => {
-  return <InfoIcon className={stylesTooltip.icon} ref={ref} />
+  return <Info className={stylesTooltip.icon} ref={ref} />
 })
 
 export default function Tooltip(props: TippyProps): ReactElement {

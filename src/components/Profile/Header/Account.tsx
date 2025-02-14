@@ -2,12 +2,12 @@ import { ReactElement } from 'react'
 import { useUserPreferences } from '@context/UserPreferences'
 import ExplorerLink from '@shared/ExplorerLink'
 import NetworkName from '@shared/NetworkName'
+import Jellyfish from '@oceanprotocol/art/creatures/jellyfish/jellyfish-grid.svg'
 import Copy from '@shared/atoms/Copy'
 import Avatar from '@shared/atoms/Avatar'
 import styles from './Account.module.css'
 import { accountTruncate } from '@utils/wallet'
 import { useAddressConfig } from '@hooks/useAddressConfig'
-import { JellyfishIcon } from '@components/@shared/Icons'
 
 export default function Account({
   accountId
@@ -23,7 +23,7 @@ export default function Account({
         {accountId ? (
           <Avatar accountId={accountId} className={styles.image} />
         ) : (
-          <JellyfishIcon className={styles.image} />
+          <Jellyfish className={styles.image} />
         )}
       </figure>
       <div>

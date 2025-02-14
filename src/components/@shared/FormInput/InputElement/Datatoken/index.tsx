@@ -1,10 +1,10 @@
 import { useField } from 'formik'
 import { ReactElement, useEffect } from 'react'
 import { InputProps } from '@shared/FormInput'
+import Key from '@images/key.svg'
 import RefreshName from './RefreshName'
 import styles from './index.module.css'
 import { generateDtName } from '@oceanprotocol/lib'
-import { KeyIcon } from '@components/@shared/Icons'
 
 export default function Datatoken({
   randomize,
@@ -29,7 +29,7 @@ export default function Datatoken({
   return (
     <div className={styles.datatoken}>
       <figure className={styles.image}>
-        <KeyIcon />
+        <Key />
       </figure>
       <div className={styles.token}>
         <strong>{field?.value?.name}</strong> —{' '}

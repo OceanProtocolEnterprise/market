@@ -1,9 +1,9 @@
 import { ReactElement } from 'react'
 import styles from './index.module.css'
+import Caret from '@images/caret.svg'
 import classNames from 'classnames/bind'
 import { MenuLink } from '@components/Header/Menu'
 import Tooltip from '../atoms/Tooltip'
-import { CaretIcon } from '../Icons'
 
 const cx = classNames.bind(styles)
 
@@ -23,7 +23,7 @@ export function ItemLabel({
   return (
     <div className={cx({ menuItem: true, [className]: className })}>
       {name}
-      <CaretIcon />
+      <Caret aria-hidden="true" className={styles.caret} />
     </div>
   )
 }
