@@ -522,7 +522,7 @@ export async function signAssetAndUploadToIpfs(
   providerUrl: string,
   ssiWalletContext: SsiWalletContext
 ): Promise<IpfsUpload> {
-  const id = makeDid(
+  asset.id = makeDid(
     asset.credentialSubject.nftAddress,
     asset.credentialSubject.chainId.toString()
   )
@@ -530,7 +530,6 @@ export async function signAssetAndUploadToIpfs(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const credential: VCDataModel.Credential = {
     ...asset,
-    id,
     type: ['VerifiableCredential'],
     issuer: ''
   }
@@ -574,8 +573,7 @@ export async function signAssetAndUploadToIpfs(
       hash: ipfsHash
     }
   }
-  encryptAsset = true
-  LoggerInstance.log(encryptAsset)
+
   let flags: number = 0
   let metadataIPFS: string
   if (encryptAsset) {

@@ -9,6 +9,7 @@ import { useModal } from 'connectkit'
 import { useSsiWallet } from '@context/SsiWallet'
 import { connectToWallet } from '@utils/wallet/ssiWallet'
 import { LoggerInstance } from '@oceanprotocol/lib'
+import appConfig from 'app.config.cjs'
 
 // Forward ref for Tippy.js
 // eslint-disable-next-line
@@ -19,7 +20,7 @@ const Account = forwardRef((props, ref: any) => {
   const { sessionToken, setSessionToken } = useSsiWallet()
 
   useEffect(() => {
-    if (!sessionToken && isConnected && signer) {
+    if (appConfig.ssiEnabled && !sessionToken && isConnected && signer) {
       connectToWallet(signer)
         .then((session) => {
           setSessionToken(session)
