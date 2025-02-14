@@ -79,6 +79,19 @@ export async function getWalletKeys(
   }
 }
 
+export async function getWalletKey(walletId: string, keyId: string) {
+  try {
+    const response = await axios.post(
+      `/ssi/wallet-api/wallet/${walletId}/keys/${keyId}/load`,
+      { withCredentials: true }
+    )
+
+    return response.data
+  } catch (error) {
+    throw error.response
+  }
+}
+
 export async function signMessage(
   walletId: string,
   keyId: string,
@@ -93,7 +106,6 @@ export async function signMessage(
 
     return response.data
   } catch (error) {
-    console.log(error)
     throw error.response
   }
 }

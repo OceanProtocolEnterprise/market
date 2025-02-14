@@ -67,7 +67,11 @@ import {
   CredentialForm
 } from '@components/@shared/PolicyEditor/types'
 import { SsiWalletContext } from '@context/SsiWallet'
-import { isSessionValid, signMessage } from '@utils/wallet/ssiWallet'
+import {
+  getWalletKey,
+  isSessionValid,
+  signMessage
+} from '@utils/wallet/ssiWallet'
 
 function makeDid(nftAddress: string, chainId: string): string {
   return (
@@ -542,6 +546,11 @@ export async function signAssetAndUploadToIpfs(
   if (appConfig.ssiEnabled) {
     const valid = await isSessionValid()
     if (valid) {
+      const key = await getWalletKey(
+        ssiWalletContext?.selectedWallet?.id,
+        ssiWalletContext?.selectedKey?.keyId?.id
+      )
+      console.log(key)
       // credential.issuer = `${await owner.getAddress()}`
       jwtVerifiableCredential = await signMessage(
         ssiWalletContext?.selectedWallet?.id,
