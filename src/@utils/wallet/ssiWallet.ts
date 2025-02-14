@@ -23,8 +23,7 @@ export async function connectToWallet(
       `/ssi/wallet-api/auth/account/web3/signed`,
       payload
     )
-
-    return response.data?.sessionToken
+    return response.data?.token
   } catch (error) {
     throw error.response
   }
