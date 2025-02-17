@@ -285,7 +285,7 @@ export default function MetadataFields(): ReactElement {
       {appConfig.ssiEnabled ? (
         <PolicyEditor
           label="SSI Policies"
-          credentials={values.services[0].credentials}
+          credentials={values.credentials}
           setCredentials={(newCredentials) =>
             setFieldValue('credentials', newCredentials)
           }

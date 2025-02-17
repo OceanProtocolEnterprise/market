@@ -70,7 +70,7 @@ export default function ServicesFields(): ReactElement {
         })
         .catch((error) => {
           LoggerInstance.error(error)
-          setFieldValue('credentials.vcPolicies', [])
+          setFieldValue('services[0].credentials.vcPolicies', [])
           setDefaultPolicies([])
         })
     }
