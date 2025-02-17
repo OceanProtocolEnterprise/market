@@ -166,7 +166,7 @@ export default function Compute({
       const hasAlgoDt = Number(dtBalance) >= 1
       setHasAlgoAssetDatatoken(hasAlgoDt)
     } catch (error) {
-      console.log(error)
+      LoggerInstance.error(error)
     }
   }
 
