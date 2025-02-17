@@ -41,6 +41,7 @@ function StaticPolicyView(props): ReactElement {
             />
           </div>
           <Button
+            type="button"
             style="primary"
             onClick={onDeletePolicy}
             className={`${styles.deleteButton} ${styles.marginBottomButton}`}
@@ -90,6 +91,7 @@ function ParameterizedPolicyView(props): ReactElement {
             />
           </div>
           <Button
+            type="button"
             style="primary"
             onClick={onDeletePolicy}
             className={`${styles.deleteButton} ${styles.marginBottomButton}`}
@@ -99,6 +101,7 @@ function ParameterizedPolicyView(props): ReactElement {
         </div>
 
         <Button
+          type="button"
           className={`${styles.marginTopMinus2em} ${styles.marginBottom2em}`}
           style="primary"
           onClick={() => newArgument(parameterizedPolicy)}
@@ -118,6 +121,7 @@ function ParameterizedPolicyView(props): ReactElement {
                 />
               </div>
               <Button
+                type="button"
                 style="primary"
                 onClick={() =>
                   deleteArgument(parameterizedPolicy, argumentIndex)
@@ -178,6 +182,7 @@ function CustomUrlPolicyView(props): ReactElement {
                 />
               </div>
               <Button
+                type="button"
                 style="primary"
                 onClick={onDeletePolicy}
                 className={`${styles.deleteButton} ${styles.marginBottomButton}`}
@@ -194,6 +199,7 @@ function CustomUrlPolicyView(props): ReactElement {
         </div>
 
         <Button
+          type="button"
           className={`${styles.marginTopMinus2em} ${styles.marginBottom2em}`}
           style="primary"
           onClick={() => newArgument(urlPolicy)}
@@ -221,6 +227,7 @@ function CustomUrlPolicyView(props): ReactElement {
                 />
               </div>
               <Button
+                type="button"
                 style="primary"
                 onClick={() => deleteArgument(urlPolicy, argumentIndex)}
                 className={`${styles.deleteButton} ${styles.marginBottomButton}`}
@@ -285,6 +292,7 @@ function CustomPolicyView(props): ReactElement {
             />
           </div>
           <Button
+            type="button"
             style="primary"
             onClick={onDeletePolicy}
             className={`${styles.deleteButton} ${styles.marginBottomButton}`}
@@ -294,6 +302,7 @@ function CustomPolicyView(props): ReactElement {
         </div>
 
         <Button
+          type="button"
           className={`${styles.marginTopMinus2em} ${styles.marginBottom2em}`}
           style="primary"
           onClick={() => newArgument(customPolicy)}
@@ -321,6 +330,7 @@ function CustomPolicyView(props): ReactElement {
                   />
                 </div>
                 <Button
+                  type="button"
                   style="primary"
                   onClick={() => deleteArgument(customPolicy, argumentIndex)}
                   className={`${styles.deleteButton} ${styles.marginBottomButton}`}
@@ -333,6 +343,7 @@ function CustomPolicyView(props): ReactElement {
         </div>
 
         <Button
+          type="button"
           className={`${styles.marginTopMinus2em} ${styles.marginBottom2em}`}
           style="primary"
           onClick={() => newRule(customPolicy)}
@@ -364,6 +375,7 @@ function CustomPolicyView(props): ReactElement {
                 />
               </div>
               <Button
+                type="button"
                 style="primary"
                 onClick={() => deleteRule(customPolicy, ruleIndex)}
                 className={`${styles.deleteButton} ${styles.marginBottomButton}`}
@@ -497,6 +509,7 @@ export function PolicyEditor(props): ReactElement {
       <div className={`${styles.editorPanel} ${styles.marginBottom4em}`}>
         <div className={`${styles.panelColumn} ${styles.marginBottom2em}`}>
           <Button
+            type="button"
             style="primary"
             className={styles.marginBottom1em}
             onClick={handleNewRequestCredential}
@@ -527,6 +540,7 @@ export function PolicyEditor(props): ReactElement {
                     />
                   </div>
                   <Button
+                    type="button"
                     style="primary"
                     onClick={() => handleDeleteRequestCredential(index)}
                     className={`${styles.deleteButton} ${styles.marginBottomButton}`}
@@ -544,6 +558,7 @@ export function PolicyEditor(props): ReactElement {
                       {{ ...getFieldContent('newPolicy', fields) }.label}
                     </label>
                     <Button
+                      type="button"
                       style="primary"
                       className={`${styles.marginBottom1em} ${styles.space}`}
                       onClick={() => handleNewStaticCustomPolicy(credential)}
@@ -551,6 +566,7 @@ export function PolicyEditor(props): ReactElement {
                       {{ ...getFieldContent('static', fields) }.label}
                     </Button>
                     <Button
+                      type="button"
                       style="primary"
                       className={`${styles.marginBottom1em} ${styles.space}`}
                       onClick={() =>
@@ -560,6 +576,7 @@ export function PolicyEditor(props): ReactElement {
                       {{ ...getFieldContent('parameterized', fields) }.label}
                     </Button>
                     <Button
+                      type="button"
                       style="primary"
                       className={`${styles.marginBottom1em} ${styles.space}`}
                       onClick={() => handleNewCustomUrlPolicy(credential)}
@@ -567,6 +584,7 @@ export function PolicyEditor(props): ReactElement {
                       {{ ...getFieldContent('customUrl', fields) }.label}
                     </Button>
                     <Button
+                      type="button"
                       style="primary"
                       className={`${styles.marginBottom1em} ${styles.space}`}
                       onClick={() => handleNewCustomPolicy(credential)}
@@ -603,6 +621,7 @@ export function PolicyEditor(props): ReactElement {
           className={`${styles.panelColumn} ${styles.marginBottom2em} ${styles.width100}`}
         >
           <Button
+            type="button"
             style="primary"
             className={`${styles.marginBottom1em} ${styles.marginTop2em}`}
             onClick={handleNewStaticPolicy}
@@ -634,6 +653,7 @@ export function PolicyEditor(props): ReactElement {
                   />
                 </div>
                 <Button
+                  type="button"
                   style="primary"
                   disabled={
                     index < filteredDefaultPolicies?.length &&

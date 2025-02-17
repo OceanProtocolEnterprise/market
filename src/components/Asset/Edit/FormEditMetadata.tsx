@@ -282,7 +282,7 @@ export default function FormEditMetadata(): ReactElement {
               ></IpfsRemoteSource>
               <Button
                 className={styles.deleteLicenseButton}
-                type="submit"
+                type="button"
                 style="primary"
                 onClick={handleLicenseRemove}
               >
