@@ -241,7 +241,8 @@ export function generateCredentials(
     const requestCredentials: RequestCredential[] =
       updatedCredentials?.requestCredentials?.map<RequestCredential>(
         (credential) => {
-          const policies: string[] = credential?.policies?.map((policy) =>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const policies: any[] = credential?.policies?.map((policy) =>
             generateSsiPolicy(policy)
           )
           return {

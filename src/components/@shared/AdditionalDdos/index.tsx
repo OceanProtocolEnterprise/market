@@ -34,7 +34,7 @@ export function AdditionalDdosFields(): ReactElement {
   return (
     <>
       <div className={styles.newDdoBtn}>
-        <Button style="primary" onClick={handleNewDdo}>
+        <Button type="button" style="primary" onClick={handleNewDdo}>
           New Credential
         </Button>
       </div>
@@ -59,7 +59,11 @@ export function AdditionalDdosFields(): ReactElement {
               />
             </div>
             <div className={styles.deleteBtn}>
-              <Button style={'primary'} onClick={() => handleDelete(index)}>
+              <Button
+                type="button"
+                style={'primary'}
+                onClick={() => handleDelete(index)}
+              >
                 Delete
               </Button>
             </div>
