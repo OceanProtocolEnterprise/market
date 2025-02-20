@@ -228,6 +228,17 @@ export default function FormEditMetadata(): ReactElement {
         </>
       )}
 
+      <Field
+        {...getFieldContent('allow', data)}
+        component={Input}
+        name="credentials.allow"
+      />
+      <Field
+        {...getFieldContent('deny', data)}
+        component={Input}
+        name="credentials.deny"
+      />
+
       {appConfig.ssiEnabled ? (
         <PolicyEditor
           label="SSI Policies"
@@ -241,17 +252,6 @@ export default function FormEditMetadata(): ReactElement {
       ) : (
         <></>
       )}
-
-      <Field
-        {...getFieldContent('allow', data)}
-        component={Input}
-        name="credentials.allow"
-      />
-      <Field
-        {...getFieldContent('deny', data)}
-        component={Input}
-        name="credentials.deny"
-      />
 
       <Field
         {...getFieldContent('assetState', data)}

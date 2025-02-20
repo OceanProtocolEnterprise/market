@@ -128,6 +128,17 @@ export default function FormEditService({
         name="timeout"
       />
 
+      <Field
+        {...getFieldContent('allow', data)}
+        component={Input}
+        name="credentials.allow"
+      />
+      <Field
+        {...getFieldContent('deny', data)}
+        component={Input}
+        name="credentials.deny"
+      />
+
       {appConfig.ssiEnabled ? (
         <PolicyEditor
           label="SSI Policies"
@@ -142,16 +153,6 @@ export default function FormEditService({
         <></>
       )}
 
-      <Field
-        {...getFieldContent('allow', data)}
-        component={Input}
-        name="credentials.allow"
-      />
-      <Field
-        {...getFieldContent('deny', data)}
-        component={Input}
-        name="credentials.deny"
-      />
       <Field
         {...getFieldContent('usesConsumerParameters', data)}
         component={Input}
