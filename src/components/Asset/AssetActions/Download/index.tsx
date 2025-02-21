@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { ReactElement, useEffect, useState } from 'react'
 import FileIcon from '@shared/FileIcon'
 import Price from '@shared/Price'
@@ -43,6 +44,16 @@ import { Row } from '../Row'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { AssetPrice } from 'src/@types/Asset'
+import { useSsiWallet } from '@context/SsiWallet'
+import Button from '@components/@shared/atoms/Button'
+import {
+  extractURLSearchParams,
+  requestCredentialPresentation,
+  requestPresentationDefinition
+} from '@utils/wallet/policyServer'
+import { PolicyServerResponse } from 'src/@types/PolicyServer'
+import axios from 'axios'
+import { matchCredentialForPresentationDefinition } from '@utils/wallet/ssiWallet'
 
 export default function Download({
   accountId,
@@ -90,6 +101,9 @@ export default function Download({
   const [orderPriceAndFees, setOrderPriceAndFees] =
     useState<OrderPriceAndFees>()
   const [retry, setRetry] = useState<boolean>(false)
+
+  const { verifierSessionId, setVerifierSessionId, selectedWallet } =
+    useSsiWallet()
 
   const price: AssetPrice = getAvailablePrice(accessDetails)
   const isUnsupportedPricing =
@@ -378,6 +392,44 @@ export default function Download({
     )
   }
 
+  const AssetActionCheckCredentials = ({ asset }: { asset: AssetExtended }) => {
+    async function handleCheckCredentials() {
+      const result: PolicyServerResponse = await requestCredentialPresentation(
+        asset
+      )
+      const searchParams = extractURLSearchParams(result.message)
+      console.log(searchParams)
+      const { state, presentation_definition_uri } = searchParams
+
+      const presentationDefinition = await requestPresentationDefinition(
+        state,
+        presentation_definition_uri
+      )
+      console.log(presentationDefinition.message)
+
+      const verifiableCredentials =
+        await matchCredentialForPresentationDefinition(
+          selectedWallet.id,
+          presentationDefinition.message
+        )
+      console.log(verifiableCredentials)
+    }
+
+    return (
+      <div style={{ textAlign: 'left', marginTop: '2%' }}>
+        <div style={{ textAlign: 'center' }}>
+          <Button
+            type="button"
+            style="primary"
+            onClick={handleCheckCredentials}
+          >
+            Check Credentials
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <Formik
       initialValues={{
@@ -411,24 +463,32 @@ export default function Download({
           </div>
           {!isFullPriceLoading && (
             <>
-              <AssetActionBuy asset={asset} />
-              <Field
-                component={Input}
-                name="termsAndConditions"
-                type="checkbox"
-                options={['Terms and Conditions']}
-                prefixes={['I agree to the']}
-                actions={['/terms']}
-                disabled={isLoading}
-              />
-              <Field
-                component={Input}
-                name="acceptPublishingLicense"
-                type="checkbox"
-                options={['Publishing License']}
-                prefixes={['I agree the']}
-                disabled={isLoading}
-              />
+              {verifierSessionId ? (
+                <>
+                  <AssetActionBuy asset={asset} />
+                  <Field
+                    component={Input}
+                    name="termsAndConditions"
+                    type="checkbox"
+                    options={['Terms and Conditions']}
+                    prefixes={['I agree to the']}
+                    actions={['/terms']}
+                    disabled={isLoading}
+                  />
+                  <Field
+                    component={Input}
+                    name="acceptPublishingLicense"
+                    type="checkbox"
+                    options={['Publishing License']}
+                    prefixes={['I agree the']}
+                    disabled={isLoading}
+                  />
+                </>
+              ) : (
+                <AssetActionCheckCredentials
+                  asset={asset}
+                ></AssetActionCheckCredentials>
+              )}
             </>
           )}
           <div className={styles.consumerParameters}>

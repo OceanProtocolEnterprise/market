@@ -1,6 +1,7 @@
 import axios from 'axios'
 import {
   SsiKeyDesc,
+  SsiVerifiableCredentialResponse,
   SsiWalletDesc,
   SsiWalletSession
 } from 'src/@types/SsiWallet'
@@ -95,11 +96,28 @@ export async function signMessage(
   walletId: string,
   keyId: string,
   message: any
-) {
+): Promise<string> {
   try {
     const response = await axios.post(
       `/ssi/wallet-api/wallet/${walletId}/keys/${keyId}/sign`,
       message,
+      { withCredentials: true }
+    )
+
+    return response.data
+  } catch (error) {
+    throw error.response
+  }
+}
+
+export async function matchCredentialForPresentationDefinition(
+  walletId: string,
+  presentationDefinition: any
+): Promise<SsiVerifiableCredentialResponse[]> {
+  try {
+    const response = await axios.post(
+      `/ssi/wallet-api/wallet/${walletId}/exchange/matchCredentialsForPresentationDefinition`,
+      presentationDefinition,
       { withCredentials: true }
     )
 

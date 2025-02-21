@@ -20,3 +20,11 @@ export interface SsiKeyDesc {
     id: string
   }
 }
+
+export interface SsiVerifiableCredentialResponse {
+  id: string
+  parsedDocument: {
+    id: string
+    type: string[]
+  }
+}

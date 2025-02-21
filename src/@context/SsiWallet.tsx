@@ -19,6 +19,8 @@ export interface SsiWalletContext {
   setSelectedWallet: (wallet: SsiWalletDesc) => void
   selectedKey: SsiKeyDesc
   setSelectedKey: (key: SsiKeyDesc) => void
+  verifierSessionId: string
+  setVerifierSessionId: (id: string) => void
 }
 
 const SsiWalletContext = createContext(null)
@@ -31,11 +33,13 @@ export function SsiWalletProvider({
   const [sessionToken, setSessionToken] = useState<SsiWalletSession>()
   const [selectedWallet, setSelectedWallet] = useState<SsiWalletDesc>()
   const [selectedKey, setSelectedKey] = useState<SsiKeyDesc>()
+  const [verifierSessionId, setVerifierSessionId] = useState<string>()
 
   useEffect(() => {
     if (!sessionToken) {
       setSelectedWallet(undefined)
       setSelectedKey(undefined)
+      setVerifierSessionId(undefined)
     }
   }, [sessionToken])
 
@@ -48,7 +52,9 @@ export function SsiWalletProvider({
           selectedWallet,
           setSelectedWallet,
           selectedKey,
-          setSelectedKey
+          setSelectedKey,
+          verifierSessionId,
+          setVerifierSessionId
         } as SsiWalletContext
       }
     >

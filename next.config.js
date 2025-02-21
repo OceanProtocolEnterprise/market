@@ -75,10 +75,16 @@ export default (phase, { defaultConfig }) => {
     async rewrites() {
       const walletApiBase =
         process.env.NEXT_PUBLIC_SSI_WALLET_API || 'https://wallet.walt.id'
+      const providerUrl = process.env.NEXT_PUBLIC_PROVIDER_URL
+      console.log(providerUrl)
       return [
         {
           source: '/ssi/:path*',
           destination: `${walletApiBase}/:path*`
+        },
+        {
+          source: '/provider/:path*',
+          destination: `${providerUrl}/:path*`
         }
       ]
     }
