@@ -1,9 +1,11 @@
 import axios from 'axios'
 import {
   SsiKeyDesc,
-  SsiVerifiableCredentialResponse,
+  SsiWalletIssuer,
+  SsiVerifiableCredential,
   SsiWalletDesc,
-  SsiWalletSession
+  SsiWalletSession,
+  SsiWalletDid
 } from 'src/@types/SsiWallet'
 import { Signer } from 'ethers'
 
@@ -110,14 +112,103 @@ export async function signMessage(
   }
 }
 
+export async function getWalletIssuers(
+  walletId: string
+): Promise<SsiWalletIssuer[]> {
+  try {
+    const response = await axios.get(
+      `/ssi/wallet-api/wallet/${walletId}/issuers`,
+      { withCredentials: true }
+    )
+
+    return response.data
+  } catch (error) {
+    throw error.response
+  }
+}
+
+export async function getWalletDids(walletId: string): Promise<SsiWalletDid[]> {
+  try {
+    const response = await axios.get(
+      `/ssi/wallet-api/wallet/${walletId}/dids`,
+      { withCredentials: true }
+    )
+
+    return response.data
+  } catch (error) {
+    throw error.response
+  }
+}
+
+export function extractURLSearchParams(
+  urlString: string
+): Record<string, string> {
+  const url = new URL(urlString)
+  const { searchParams } = url
+  const params: Record<string, string> = {}
+  searchParams.forEach((value, key) => (params[key] = value))
+  return params
+}
+
 export async function matchCredentialForPresentationDefinition(
   walletId: string,
   presentationDefinition: any
-): Promise<SsiVerifiableCredentialResponse[]> {
+): Promise<SsiVerifiableCredential[]> {
   try {
     const response = await axios.post(
       `/ssi/wallet-api/wallet/${walletId}/exchange/matchCredentialsForPresentationDefinition`,
       presentationDefinition,
+      { withCredentials: true }
+    )
+
+    return response.data
+  } catch (error) {
+    throw error.response
+  }
+}
+
+export async function resolvePresentationRequest(
+  walletId: string,
+  presentationRequest: string
+): Promise<string> {
+  try {
+    const response = await axios.post(
+      `/ssi/wallet-api/wallet/${walletId}/exchange/resolvePresentationRequest`,
+      presentationRequest,
+      { withCredentials: true }
+    )
+
+    return response.data
+  } catch (error) {
+    throw error.response
+  }
+}
+
+export async function requestPresentationDefinition(
+  presentationDefinitionUri: string
+): Promise<any> {
+  try {
+    const response = await axios.get(`${presentationDefinitionUri}`)
+    return response.data
+  } catch (error) {
+    throw error.response
+  }
+}
+
+export async function usePresentationRequest(
+  walletId: string,
+  did: string,
+  presentationRequest: string,
+  selectedCredentials: string[]
+) {
+  try {
+    const response = await axios.post(
+      `/ssi/wallet-api/wallet/${walletId}/exchange/usePresentationRequest`,
+      {
+        did,
+        presentationRequest,
+        selectedCredentials
+      },
       { withCredentials: true }
     )
 

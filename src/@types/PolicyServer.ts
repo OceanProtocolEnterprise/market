@@ -18,18 +18,17 @@ export interface PolicyServerInitiateAction {
 
 export interface PolicyServerGetPdAction {
   action: 'getPD'
-  sessionId?: string
+  sessionId: string
 }
 
 export interface PolicyServerCheckSessionIdAction {
   action: 'checkSessionId'
-  sessionId?: string
+  sessionId: string
 }
 
 export interface PolicyServerPresentationRequestAction {
   action: 'presentationRequest'
-  sessionId?: string
-  ddo: any
+  sessionId: string
   vp_token: any
   response: any
   presentation_submission: any
@@ -38,7 +37,7 @@ export interface PolicyServerPresentationRequestAction {
 export interface PolicyServerDownloadAction {
   action: 'download'
   policyServer: {
-    sessionId?: string
+    sessionId: string
   }
 }
 

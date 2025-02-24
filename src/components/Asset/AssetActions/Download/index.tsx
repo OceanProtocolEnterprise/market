@@ -44,16 +44,20 @@ import { Row } from '../Row'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { AssetPrice } from 'src/@types/Asset'
-import { useSsiWallet } from '@context/SsiWallet'
 import Button from '@components/@shared/atoms/Button'
+import { useSsiWallet } from '@context/SsiWallet'
+import {
+  checkSessionId,
+  requestCredentialPresentation
+} from '@utils/wallet/policyServer'
 import {
   extractURLSearchParams,
-  requestCredentialPresentation,
-  requestPresentationDefinition
-} from '@utils/wallet/policyServer'
-import { PolicyServerResponse } from 'src/@types/PolicyServer'
-import axios from 'axios'
-import { matchCredentialForPresentationDefinition } from '@utils/wallet/ssiWallet'
+  requestPresentationDefinition,
+  matchCredentialForPresentationDefinition,
+  getWalletDids,
+  resolvePresentationRequest,
+  usePresentationRequest
+} from '@utils/wallet/ssiWallet'
 
 export default function Download({
   accountId,
@@ -102,8 +106,12 @@ export default function Download({
     useState<OrderPriceAndFees>()
   const [retry, setRetry] = useState<boolean>(false)
 
-  const { verifierSessionId, setVerifierSessionId, selectedWallet } =
-    useSsiWallet()
+  const {
+    verifierSessionId,
+    setVerifierSessionId,
+    selectedWallet,
+    selectedKey
+  } = useSsiWallet()
 
   const price: AssetPrice = getAvailablePrice(accessDetails)
   const isUnsupportedPricing =
@@ -271,29 +279,106 @@ export default function Download({
     />
   )
 
-  const PurchaseButton = ({ isValid }: { isValid?: boolean }) => (
-    <ButtonBuy
-      action="download"
-      disabled={isDisabled || !isValid}
-      hasPreviousOrder={isOwned}
-      hasDatatoken={hasDatatoken}
-      btSymbol={accessDetails.baseToken?.symbol}
-      dtSymbol={asset.credentialSubject?.datatokens[serviceIndex]?.symbol} // TODO - check datatokens
-      dtBalance={dtBalance}
-      type="submit"
-      assetTimeout={secondsToString(service.timeout)}
-      assetType={asset.credentialSubject?.metadata?.type}
-      stepText={statusText}
-      isLoading={isLoading}
-      priceType={accessDetails.type}
-      isConsumable={accessDetails.isPurchasable}
-      isBalanceSufficient={isBalanceSufficient}
-      consumableFeedback={consumableFeedback}
-      retry={retry}
-      isSupportedOceanNetwork={isSupportedOceanNetwork}
-      isAccountConnected={isConnected}
-    />
-  )
+  const AssetActionCheckCredentials = ({ asset }: { asset: AssetExtended }) => {
+    async function handleCheckCredentials() {
+      if (verifierSessionId) {
+        console.log('yes')
+      } else {
+        console.log('no')
+      }
+
+      try {
+        const openid4vp = await requestCredentialPresentation(asset)
+        console.log(openid4vp)
+        const searchParams = extractURLSearchParams(openid4vp)
+        const { presentation_definition_uri, state } = searchParams
+        setVerifierSessionId(state)
+        console.log(searchParams)
+
+        const presentationDefinition = await requestPresentationDefinition(
+          presentation_definition_uri
+        )
+        console.log(presentationDefinition)
+
+        const verifiableCredentials =
+          await matchCredentialForPresentationDefinition(
+            selectedWallet?.id,
+            presentationDefinition
+          )
+        console.log(verifiableCredentials)
+        const selectedCredentials = verifiableCredentials.map((credential) => {
+          return credential.id
+        })
+        console.log(selectedCredentials)
+
+        const dids = await getWalletDids(selectedWallet.id)
+        console.log(dids)
+        const did = dids.length > 0 ? dids[0].did : ''
+        console.log(did)
+
+        const resolvedPresentationRequest = await resolvePresentationRequest(
+          selectedWallet?.id,
+          openid4vp
+        )
+        console.log(resolvedPresentationRequest)
+
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const result = await usePresentationRequest(
+          selectedWallet?.id,
+          did,
+          resolvedPresentationRequest,
+          selectedCredentials
+        )
+
+        console.log(result)
+      } catch (error) {
+        //  setVerifierSessionId(undefined)
+      }
+    }
+
+    return (
+      <div style={{ textAlign: 'left', marginTop: '2%' }}>
+        <div style={{ textAlign: 'center' }}>
+          <Button
+            type="button"
+            style="primary"
+            onClick={handleCheckCredentials}
+            disabled={!selectedWallet?.id}
+          >
+            Check Credentials
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const PurchaseButton = ({ isValid }: { isValid?: boolean }) => {
+    async function handleCheckSessionId() {}
+    return (
+      <ButtonBuy
+        action="download"
+        disabled={isDisabled || !isValid}
+        hasPreviousOrder={isOwned}
+        hasDatatoken={hasDatatoken}
+        btSymbol={accessDetails.baseToken?.symbol}
+        dtSymbol={asset.credentialSubject?.datatokens[serviceIndex]?.symbol} // TODO - check datatokens
+        dtBalance={dtBalance}
+        type="submit"
+        assetTimeout={secondsToString(service.timeout)}
+        assetType={asset.credentialSubject?.metadata?.type}
+        stepText={statusText}
+        isLoading={isLoading}
+        priceType={accessDetails.type}
+        isConsumable={accessDetails.isPurchasable}
+        isBalanceSufficient={isBalanceSufficient}
+        consumableFeedback={consumableFeedback}
+        retry={retry}
+        isSupportedOceanNetwork={isSupportedOceanNetwork}
+        isAccountConnected={isConnected}
+        onClick={handleCheckSessionId}
+      />
+    )
+  }
 
   const AssetAction = ({ asset }: { asset: AssetExtended }) => {
     const { isValid } = useFormikContext()
@@ -392,44 +477,6 @@ export default function Download({
     )
   }
 
-  const AssetActionCheckCredentials = ({ asset }: { asset: AssetExtended }) => {
-    async function handleCheckCredentials() {
-      const result: PolicyServerResponse = await requestCredentialPresentation(
-        asset
-      )
-      const searchParams = extractURLSearchParams(result.message)
-      console.log(searchParams)
-      const { state, presentation_definition_uri } = searchParams
-
-      const presentationDefinition = await requestPresentationDefinition(
-        state,
-        presentation_definition_uri
-      )
-      console.log(presentationDefinition.message)
-
-      const verifiableCredentials =
-        await matchCredentialForPresentationDefinition(
-          selectedWallet.id,
-          presentationDefinition.message
-        )
-      console.log(verifiableCredentials)
-    }
-
-    return (
-      <div style={{ textAlign: 'left', marginTop: '2%' }}>
-        <div style={{ textAlign: 'center' }}>
-          <Button
-            type="button"
-            style="primary"
-            onClick={handleCheckCredentials}
-          >
-            Check Credentials
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <Formik
       initialValues={{
@@ -440,6 +487,13 @@ export default function Download({
       validateOnMount
       validationSchema={getDownloadValidationSchema(service.consumerParameters)}
       onSubmit={async (values) => {
+        try {
+          const result = await checkSessionId(verifierSessionId)
+        } catch (error) {
+          setVerifierSessionId(undefined)
+          return
+        }
+
         const dataServiceParams = parseConsumerParameterValues(
           values?.dataServiceParams,
           service.consumerParameters
@@ -485,9 +539,7 @@ export default function Download({
                   />
                 </>
               ) : (
-                <AssetActionCheckCredentials
-                  asset={asset}
-                ></AssetActionCheckCredentials>
+                <AssetActionCheckCredentials asset={asset} />
               )}
             </>
           )}

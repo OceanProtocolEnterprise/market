@@ -21,10 +21,25 @@ export interface SsiKeyDesc {
   }
 }
 
-export interface SsiVerifiableCredentialResponse {
+export interface SsiVerifiableCredential {
   id: string
   parsedDocument: {
     id: string
     type: string[]
+    issuer: string
   }
+}
+
+export interface SsiWalletIssuer {
+  wallet: string
+  did: string
+  description: string
+  uiEndpoint: string
+}
+
+export interface SsiWalletDid {
+  alias: string
+  did: string
+  document: string
+  keyId: string
 }

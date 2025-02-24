@@ -1,27 +1,32 @@
+/* eslint-disable camelcase */
 import axios from 'axios'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import {
   PolicyServerGetPdAction,
   PolicyServerInitiateAction,
-  PolicyServerResponse
+  PolicyServerResponse,
+  PolicyServerPresentationRequestAction,
+  PolicyServerCheckSessionIdAction
 } from 'src/@types/PolicyServer'
 import appConfig from 'app.config.cjs'
 
 export async function requestCredentialPresentation(
   asset: AssetExtended
-): Promise<PolicyServerResponse> {
+): Promise<string> {
   try {
     const apiUrl = `${window.location.origin}`
 
+    const sessionId = crypto.randomUUID()
+
     const action: PolicyServerInitiateAction = {
       action: 'initiate',
-      sessionId: '',
+      sessionId,
       ddo: asset,
       policyServer: {
-        successRedirectUri: `${apiUrl}/api/verify`,
-        errorRedirectUri: `${apiUrl}/api/verify`,
-        responseRedirectUri: `${apiUrl}/api/verify`,
-        presentationDefinitionUri: `${apiUrl}/api/pd`
+        successRedirectUri: `${apiUrl}/api/verify/success`,
+        errorRedirectUri: `${apiUrl}/api/verify/error`,
+        responseRedirectUri: `${apiUrl}/api/verify/${sessionId}`,
+        presentationDefinitionUri: `${apiUrl}/api/pd/${sessionId}`
       }
     }
     const response = await axios.post(
@@ -30,25 +35,13 @@ export async function requestCredentialPresentation(
         policyServerPassthrough: action
       }
     )
-    return response.data
+    return response.data.message
   } catch (error) {
     throw error.response
   }
 }
 
-export async function requestPresentationDefinition(
-  state: string,
-  presentationDefinitionUri: string
-): Promise<PolicyServerResponse> {
-  try {
-    const response = await axios.get(`${presentationDefinitionUri}/${state}`)
-    return response.data
-  } catch (error) {
-    throw error.response
-  }
-}
-
-export async function serverSideRequestPresentationDefinition(
+export async function serverSidePresentationDefinition(
   sessionId: string
 ): Promise<PolicyServerResponse> {
   try {
@@ -63,18 +56,56 @@ export async function serverSideRequestPresentationDefinition(
         policyServerPassthrough: action
       }
     )
+
     return response.data
   } catch (error) {
     throw error.response
   }
 }
 
-export function extractURLSearchParams(
-  urlString: string
-): Record<string, string> {
-  const url = new URL(urlString)
-  const { searchParams } = url
-  const params: Record<string, string> = {}
-  searchParams.forEach((value, key) => (params[key] = value))
-  return params
+export async function serverSidePresentationRequest(
+  sessionId: string,
+  vp_token: string
+): Promise<PolicyServerResponse> {
+  try {
+    const action: PolicyServerPresentationRequestAction = {
+      action: 'presentationRequest',
+      sessionId,
+      vp_token,
+      response: null,
+      presentation_submission: null
+    }
+
+    const response = await axios.post(
+      `${appConfig.customProviderUrl}/api/services/PolicyServerPassthrough`,
+      {
+        policyServerPassthrough: action
+      }
+    )
+
+    return response.data
+  } catch (error) {
+    throw error.response
+  }
+}
+
+export async function checkSessionId(sessionId: string): Promise<string> {
+  try {
+    const apiUrl = `${window.location.origin}`
+
+    const action: PolicyServerCheckSessionIdAction = {
+      action: 'checkSessionId',
+      sessionId
+    }
+    const response = await axios.post(
+      `/provider/api/services/PolicyServerPassthrough`,
+      {
+        policyServerPassthrough: action
+      }
+    )
+    console.log(response.data)
+    return response.data.message
+  } catch (error) {
+    throw error.response
+  }
 }

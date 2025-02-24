@@ -1,5 +1,4 @@
 import { LoggerInstance } from '@oceanprotocol/lib'
-import { serverSidePresentationDefinition } from '@utils/wallet/policyServer'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 export default async function handler(
@@ -8,13 +7,8 @@ export default async function handler(
 ) {
   if (req.method === 'GET') {
     try {
-      const { sessionId } = req.query
-
-      const response = await serverSidePresentationDefinition(
-        typeof sessionId === 'string' ? sessionId : sessionId[0]
-      )
-
-      res.status(200).json(response.message)
+      console.log('error')
+      res.status(200).json({ message: `error` })
     } catch (error) {
       LoggerInstance.error(error.data)
       res.status(500).json(error.data)
