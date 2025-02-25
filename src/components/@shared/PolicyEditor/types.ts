@@ -40,7 +40,7 @@ export interface CustomPolicy {
   arguments: PolicyArgument[]
 }
 
-export const PolicyRuleLeftValuePrefix: string = 'input.parameter.'
+export const PolicyRuleLeftValuePrefix: string = 'input.parameter'
 export const PolicyRuleRightValuePrefix: string =
   'input.credentialData.credentialSubject'
 

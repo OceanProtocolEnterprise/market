@@ -159,7 +159,7 @@ function generateCustomPolicyScript(name: string, rules: PolicyRule[]): string {
   const rulesStrings = []
   rules?.forEach((rule) => {
     rulesStrings.push(
-      `${PolicyRuleLeftValuePrefix}${rule.leftValue} ${rule.operator} ${PolicyRuleRightValuePrefix}${rule.rightValue}`
+      `${PolicyRuleLeftValuePrefix}.${rule.leftValue} ${rule.operator} ${PolicyRuleRightValuePrefix}.${rule.rightValue}`
     )
   })
 
