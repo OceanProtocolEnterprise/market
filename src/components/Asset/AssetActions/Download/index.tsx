@@ -332,7 +332,7 @@ export default function Download({
 
         console.log(result)
       } catch (error) {
-        //  setVerifierSessionId(undefined)
+        setVerifierSessionId(undefined)
       }
     }
 

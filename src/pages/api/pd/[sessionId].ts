@@ -9,15 +9,14 @@ export default async function handler(
   if (req.method === 'GET') {
     try {
       const { sessionId } = req.query
-
       const response = await serverSidePresentationDefinition(
         typeof sessionId === 'string' ? sessionId : sessionId[0]
       )
 
-      res.status(200).json(response.message)
+      res.status(200).json(response)
     } catch (error) {
-      LoggerInstance.error(error.data)
-      res.status(500).json(error.data)
+      LoggerInstance.error(error)
+      res.status(500).json(error)
     }
   } else {
     res.status(405).json({ success: false, message: 'Method not allowed' })

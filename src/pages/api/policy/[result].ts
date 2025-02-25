@@ -7,8 +7,9 @@ export default async function handler(
 ) {
   if (req.method === 'GET') {
     try {
-      console.log('error')
-      res.status(200).json({ message: `error` })
+      const { result } = req.query
+      console.log('Result is ', result)
+      res.status(200).json({ message: result })
     } catch (error) {
       LoggerInstance.error(error.data)
       res.status(500).json(error.data)

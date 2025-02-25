@@ -23,8 +23,8 @@ export async function requestCredentialPresentation(
       sessionId,
       ddo: asset,
       policyServer: {
-        successRedirectUri: `${apiUrl}/api/verify/success`,
-        errorRedirectUri: `${apiUrl}/api/verify/error`,
+        successRedirectUri: `${apiUrl}/api/policy/success`,
+        errorRedirectUri: `${apiUrl}/api/policy/error`,
         responseRedirectUri: `${apiUrl}/api/verify/${sessionId}`,
         presentationDefinitionUri: `${apiUrl}/api/pd/${sessionId}`
       }
@@ -45,18 +45,9 @@ export async function serverSidePresentationDefinition(
   sessionId: string
 ): Promise<PolicyServerResponse> {
   try {
-    const action: PolicyServerGetPdAction = {
-      action: 'getPD',
-      sessionId
-    }
-
-    const response = await axios.post(
-      `${appConfig.customProviderUrl}/api/services/PolicyServerPassthrough`,
-      {
-        policyServerPassthrough: action
-      }
+    const response = await axios.get(
+      `${appConfig.ssiPolicyServer}/pd/${sessionId}`
     )
-
     return response.data
   } catch (error) {
     throw error.response
@@ -65,25 +56,14 @@ export async function serverSidePresentationDefinition(
 
 export async function serverSidePresentationRequest(
   sessionId: string,
-  vp_token: string
+  body: any
 ): Promise<PolicyServerResponse> {
   try {
-    const action: PolicyServerPresentationRequestAction = {
-      action: 'presentationRequest',
-      sessionId,
-      vp_token,
-      response: null,
-      presentation_submission: null
-    }
-
-    const response = await axios.post(
-      `${appConfig.customProviderUrl}/api/services/PolicyServerPassthrough`,
-      {
-        policyServerPassthrough: action
-      }
+    const result = await axios.post(
+      `${appConfig.ssiPolicyServer}/verify/${sessionId}`,
+      body
     )
-
-    return response.data
+    return result.data
   } catch (error) {
     throw error.response
   }
