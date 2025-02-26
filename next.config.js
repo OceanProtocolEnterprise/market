@@ -74,7 +74,7 @@ export default (phase, { defaultConfig }) => {
 
     async rewrites() {
       const walletApiBase =
-        process.env.NEXT_PUBLIC_SSI_WALLET_API || 'https://wallet.walt.id'
+        process.env.NEXT_PUBLIC_SSI_WALLET_API || 'https://wallet.demo.walt.id'
 
       const providerUrl = process.env.NEXT_PUBLIC_PROVIDER_URL
 
