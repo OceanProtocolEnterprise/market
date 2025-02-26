@@ -18,7 +18,8 @@ import {
   transformConsumerParameters,
   generateCredentials,
   signAssetAndUploadToIpfs,
-  IpfsUpload
+  IpfsUpload,
+  stringifyCredentialPolicies
 } from '@components/Publish/_utils'
 import { Metadata } from 'src/@types/ddo/Metadata'
 import { Asset } from 'src/@types/Asset'
@@ -107,6 +108,11 @@ export default function Edit({
         additionalDdos:
           (values?.additionalDdos as AdditionalVerifiableCredentials[]) || []
       }
+
+      stringifyCredentialPolicies(updatedAsset.credentialSubject.credentials)
+      updatedAsset.credentialSubject.services.forEach((service) => {
+        stringifyCredentialPolicies(service.credentials)
+      })
 
       // delete custom helper properties injected in the market so we don't write them on chain
       delete (updatedAsset as AssetExtended).accessDetails
