@@ -23,8 +23,8 @@ export async function requestCredentialPresentation(
       policyServer: {
         successRedirectUri: `${apiUrl}/api/policy/success`,
         errorRedirectUri: `${apiUrl}/api/policy/error`,
-        responseRedirectUri: `${apiUrl}/api/verify/${sessionId}`,
-        presentationDefinitionUri: `${apiUrl}/api/pd/${sessionId}`
+        responseRedirectUri: `${apiUrl}/policy/verify/${sessionId}`,
+        presentationDefinitionUri: `${apiUrl}/policy/pd/${sessionId}`
       }
     }
     const response = await axios.post(
