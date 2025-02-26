@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { ReactElement, useEffect, useState } from 'react'
 import FileIcon from '@shared/FileIcon'
 import Price from '@shared/Price'
@@ -44,20 +43,9 @@ import { Row } from '../Row'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { AssetPrice } from 'src/@types/Asset'
-import Button from '@components/@shared/atoms/Button'
 import { useSsiWallet } from '@context/SsiWallet'
-import {
-  checkSessionId,
-  requestCredentialPresentation
-} from '@utils/wallet/policyServer'
-import {
-  extractURLSearchParams,
-  requestPresentationDefinition,
-  matchCredentialForPresentationDefinition,
-  getWalletDids,
-  resolvePresentationRequest,
-  usePresentationRequest
-} from '@utils/wallet/ssiWallet'
+import { checkSessionId } from '@utils/wallet/policyServer'
+import { AssetActionCheckCredentials } from '../CheckCredentials'
 
 export default function Download({
   accountId,
@@ -106,12 +94,7 @@ export default function Download({
     useState<OrderPriceAndFees>()
   const [retry, setRetry] = useState<boolean>(false)
 
-  const {
-    verifierSessionId,
-    setVerifierSessionId,
-    selectedWallet,
-    selectedKey
-  } = useSsiWallet()
+  const { verifierSessionId, setVerifierSessionId } = useSsiWallet()
 
   const price: AssetPrice = getAvailablePrice(accessDetails)
   const isUnsupportedPricing =
@@ -279,81 +262,7 @@ export default function Download({
     />
   )
 
-  const AssetActionCheckCredentials = ({ asset }: { asset: AssetExtended }) => {
-    async function handleCheckCredentials() {
-      if (verifierSessionId) {
-        console.log('yes')
-      } else {
-        console.log('no')
-      }
-
-      try {
-        const openid4vp = await requestCredentialPresentation(asset)
-        console.log(openid4vp)
-        const searchParams = extractURLSearchParams(openid4vp)
-        const { presentation_definition_uri, state } = searchParams
-        setVerifierSessionId(state)
-        console.log(searchParams)
-
-        const presentationDefinition = await requestPresentationDefinition(
-          presentation_definition_uri
-        )
-        console.log(presentationDefinition)
-
-        const verifiableCredentials =
-          await matchCredentialForPresentationDefinition(
-            selectedWallet?.id,
-            presentationDefinition
-          )
-        console.log(verifiableCredentials)
-        const selectedCredentials = verifiableCredentials.map((credential) => {
-          return credential.id
-        })
-        console.log(selectedCredentials)
-
-        const dids = await getWalletDids(selectedWallet.id)
-        console.log(dids)
-        const did = dids.length > 0 ? dids[0].did : ''
-        console.log(did)
-
-        const resolvedPresentationRequest = await resolvePresentationRequest(
-          selectedWallet?.id,
-          openid4vp
-        )
-        console.log(resolvedPresentationRequest)
-
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const result = await usePresentationRequest(
-          selectedWallet?.id,
-          did,
-          resolvedPresentationRequest,
-          selectedCredentials
-        )
-
-        console.log(result)
-      } catch (error) {
-        setVerifierSessionId(undefined)
-      }
-    }
-
-    return (
-      <div style={{ textAlign: 'left', marginTop: '2%' }}>
-        <div style={{ textAlign: 'center' }}>
-          <Button
-            type="button"
-            style="primary"
-            onClick={handleCheckCredentials}
-            disabled={!selectedWallet?.id}
-          >
-            Check Credentials
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
   const PurchaseButton = ({ isValid }: { isValid?: boolean }) => {
-    async function handleCheckSessionId() {}
     return (
       <ButtonBuy
         action="download"
@@ -375,7 +284,6 @@ export default function Download({
         retry={retry}
         isSupportedOceanNetwork={isSupportedOceanNetwork}
         isAccountConnected={isConnected}
-        onClick={handleCheckSessionId}
       />
     )
   }

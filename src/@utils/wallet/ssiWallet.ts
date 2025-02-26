@@ -200,7 +200,7 @@ export async function usePresentationRequest(
   did: string,
   presentationRequest: string,
   selectedCredentials: string[]
-) {
+): Promise<{ success: boolean; data: any }> {
   try {
     const response = await axios.post(
       `/ssi/wallet-api/wallet/${walletId}/exchange/usePresentationRequest`,
@@ -212,7 +212,10 @@ export async function usePresentationRequest(
       { withCredentials: true }
     )
 
-    return response.data
+    return {
+      success: true,
+      data: response.data
+    }
   } catch (error) {
     throw error.response
   }

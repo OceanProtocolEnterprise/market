@@ -1,24 +1,27 @@
 import Button from '@components/@shared/atoms/Button'
-import { useSsiWallet } from '@context/SsiWallet'
-import { ReactElement, useCallback, useEffect, useRef, useState } from 'react'
+import { ReactElement, useEffect, useRef } from 'react'
 import styles from './index.module.css'
-import { SsiKeyDesc, SsiWalletDesc } from 'src/@types/SsiWallet'
-import {
-  connectToWallet,
-  getWalletKeys,
-  getWallets,
-  isSessionValid
-} from '@utils/wallet/ssiWallet'
-import { LoggerInstance } from '@oceanprotocol/lib'
-import { useAccount, useSigner } from 'wagmi'
-import appConfig from 'app.config.cjs'
 
-export function VpSelector(): ReactElement {
+export interface VpSelectorProps {
+  showDialog: boolean
+  setShowDialog: (boolean) => void
+}
+
+export function VpSelector(props: VpSelectorProps): ReactElement {
+  const { showDialog, setShowDialog } = props
   const selectorDialog = useRef<HTMLDialogElement>(null)
 
-  async function handleOpenDialog() {
-    selectorDialog.current.showModal()
+  function handleCloseDialog() {
+    setShowDialog(false)
   }
+
+  useEffect(() => {
+    if (showDialog) {
+      selectorDialog.current.showModal()
+    } else {
+      selectorDialog.current.close()
+    }
+  }, [showDialog, setShowDialog])
 
   return (
     <dialog id="ssiWallet" ref={selectorDialog} className={styles.dialogBorder}>
@@ -33,7 +36,7 @@ export function VpSelector(): ReactElement {
           style="primary"
           size="small"
           className={`${styles.width100p} ${styles.closeButton}`}
-          onClick={() => selectorDialog.current.close()}
+          onClick={handleCloseDialog}
         >
           Close
         </Button>

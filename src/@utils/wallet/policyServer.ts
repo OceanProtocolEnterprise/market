@@ -2,10 +2,8 @@
 import axios from 'axios'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import {
-  PolicyServerGetPdAction,
   PolicyServerInitiateAction,
   PolicyServerResponse,
-  PolicyServerPresentationRequestAction,
   PolicyServerCheckSessionIdAction
 } from 'src/@types/PolicyServer'
 import appConfig from 'app.config.cjs'
