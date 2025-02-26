@@ -9,12 +9,7 @@ import {
   NftFactory,
   ZERO_ADDRESS,
   getEventFromTx,
-  ProviderInstance,
-  AssetDatatoken,
-  AssetLastEvent,
-  AssetNft,
-  Purgatory,
-  Stats
+  ProviderInstance
 } from '@oceanprotocol/lib'
 import { mapTimeoutStringToSeconds, normalizeFile } from '@utils/ddo'
 import { generateNftCreateData } from '@utils/nft'
@@ -72,6 +67,7 @@ import {
   isSessionValid,
   signMessage
 } from '@utils/wallet/ssiWallet'
+import { isCredentialPolicyBased } from '@utils/credentials'
 
 function makeDid(nftAddress: string, chainId: string): string {
   return (
@@ -226,6 +222,70 @@ function generateSsiPolicy(policy: PolicyType): any {
       break
   }
   return result
+}
+
+export function parseCredentialPolicies(credentials: Credential) {
+  if (!credentials) {
+    return
+  }
+
+  credentials.allow = credentials?.allow?.map((credential) => {
+    if (isCredentialPolicyBased(credential)) {
+      credential.values = credential.values.map((value) => {
+        value.request_credentials = value.request_credentials.map(
+          (requestCredentials) => {
+            requestCredentials.policies = requestCredentials.policies
+              .map((policy) => {
+                try {
+                  return typeof policy === 'string'
+                    ? JSON.parse(policy)
+                    : undefined
+                } catch (error) {
+                  LoggerInstance.error(error)
+                  return undefined
+                }
+              })
+              .filter((policy) => policy !== undefined)
+            return requestCredentials
+          }
+        )
+        return value
+      })
+    }
+    return credential
+  })
+}
+
+export function stringifyCredentialPolicies(credentials: Credential) {
+  if (!credentials) {
+    return
+  }
+
+  console.log(credentials?.allow)
+
+  credentials.allow = credentials?.allow?.map((credential) => {
+    if (isCredentialPolicyBased(credential)) {
+      credential.values = credential.values.map((value) => {
+        value.request_credentials = value.request_credentials.map(
+          (requestCredentials) => {
+            requestCredentials.policies = requestCredentials.policies
+              .map((policy) => {
+                try {
+                  return JSON.stringify(policy)
+                } catch (error) {
+                  LoggerInstance.error(error)
+                  return undefined
+                }
+              })
+              .filter((policy) => policy !== undefined)
+            return requestCredentials
+          }
+        )
+        return value
+      })
+    }
+    return credential
+  })
 }
 
 export function generateCredentials(
@@ -483,6 +543,11 @@ export async function transformPublishFormToDdo(
     },
     additionalDdos: values?.additionalDdos || []
   }
+
+  stringifyCredentialPolicies(newDdo.credentialSubject.credentials)
+  newDdo.credentialSubject.services.forEach((service) => {
+    stringifyCredentialPolicies(service.credentials)
+  })
 
   return newDdo
 }

@@ -425,7 +425,7 @@ export default function Download({
           </div>
           {!isFullPriceLoading && (
             <>
-              {verifierSessionId ? (
+              {verifierSessionId && verifierSessionId?.length > 0 ? (
                 <>
                   <AssetActionBuy asset={asset} />
                   <Field

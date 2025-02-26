@@ -22,6 +22,7 @@ import { useAccount, useNetwork } from 'wagmi'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { Asset, Purgatory } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
+import { parseCredentialPolicies } from '@components/Publish/_utils'
 
 export interface AssetProviderValue {
   isInPurgatory: boolean
@@ -91,6 +92,10 @@ function AssetProvider({
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const asset: Asset = await getAsset(did, token)
+      parseCredentialPolicies(asset.credentialSubject.credentials)
+      asset.credentialSubject.services.forEach((service) => {
+        parseCredentialPolicies(service.credentials)
+      })
 
       const isWhitelisted = isDDOWhitelisted(asset)
 

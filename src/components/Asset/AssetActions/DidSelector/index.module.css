@@ -1,11 +1,11 @@
-.panelRow {
-  display: flex;
-  flex-direction: row;
-}
-
 .panelColumn {
   display: flex;
   flex-direction: column;
+}
+
+.panelRow {
+  display: flex;
+  flex-direction: row;
 }
 
 .widthAuto {
@@ -18,6 +18,29 @@
 
 .marginRight2 {
   margin-right: 2em;
+}
+
+.ssiPanel {
+  padding: 1em;
+  color: white;
+}
+
+.connected {
+  background-color: green;
+}
+
+.connected:hover {
+  background-color: darkgreen;
+  cursor: pointer;
+}
+
+.disconnected {
+  background-color: red;
+}
+
+.disconnected:hover {
+  background-color: darkred;
+  cursor: pointer;
 }
 
 .marginBottom7px {
@@ -48,15 +71,7 @@
   padding: 2em;
 }
 
-.acceptButton {
-  padding: calc(var(--spacer) / 3) var(--spacer);
-  font-size: var(--font-size-base);
-  font-family: var(--font-family-base);
-  font-weight: var(--font-weight-bold);
-  border-radius: var(--button-border-radius);
-}
-
-.abortButton {
+.closeButton {
   padding: calc(var(--spacer) / 3) var(--spacer);
   font-size: var(--font-size-base);
   font-family: var(--font-family-base);

@@ -13,7 +13,6 @@ export async function requestCredentialPresentation(
 ): Promise<string> {
   try {
     const apiUrl = `${window.location.origin}`
-
     const sessionId = crypto.randomUUID()
 
     const action: PolicyServerInitiateAction = {
