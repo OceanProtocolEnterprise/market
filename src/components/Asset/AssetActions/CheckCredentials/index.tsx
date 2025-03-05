@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import Button from '@components/@shared/atoms/Button'
 import { useSsiWallet } from '@context/SsiWallet'
-import { LoggerInstance } from '@oceanprotocol/lib'
+import { toast } from 'react-toastify'
 import { requestCredentialPresentation } from '@utils/wallet/policyServer'
 import {
   extractURLSearchParams,
@@ -16,6 +16,7 @@ import { AssetExtended } from 'src/@types/AssetExtended'
 import { SsiVerifiableCredential, SsiWalletDid } from 'src/@types/SsiWallet'
 import { VpSelector } from '../VpSelector'
 import { DidSelector } from '../DidSelector'
+import styles from './index.module.css'
 
 enum CheckCredentialState {
   Stop = 'Stop',
@@ -60,18 +61,12 @@ export function AssetActionCheckCredentials({
   const [showVpDialog, setShowVpDialog] = useState<boolean>(false)
   const [showDidDialog, setShowDidDialog] = useState<boolean>(false)
 
-  const {
-    verifierSessionId,
-    setVerifierSessionId,
-    selectedWallet,
-    selectedKey
-  } = useSsiWallet()
+  const { setVerifierSessionId, selectedWallet } = useSsiWallet()
 
   useEffect(() => {
     async function handleCredentialExchange() {
       switch (checkCredentialState) {
         case CheckCredentialState.StartCredentialExchange: {
-          console.log(CheckCredentialState.StartCredentialExchange)
           exchangeStateData.openid4vp = await requestCredentialPresentation(
             asset
           )
@@ -91,19 +86,12 @@ export function AssetActionCheckCredentials({
               selectedWallet?.id,
               presentationDefinition
             )
-
           setShowVpDialog(true)
           setExchangeStateData(exchangeStateData)
           break
         }
 
         case CheckCredentialState.ReadDids: {
-          console.log(CheckCredentialState.ReadDids)
-          exchangeStateData.selectedCredentials =
-            exchangeStateData.verifiableCredentials.map((credential) => {
-              return credential.id
-            })
-
           exchangeStateData.dids = await getWalletDids(selectedWallet.id)
           exchangeStateData.selectedDid =
             exchangeStateData.dids.length > 0
@@ -116,7 +104,6 @@ export function AssetActionCheckCredentials({
         }
 
         case CheckCredentialState.ResolveCredentials: {
-          console.log(CheckCredentialState.ResolveCredentials)
           const resolvedPresentationRequest = await resolvePresentationRequest(
             selectedWallet?.id,
             exchangeStateData.openid4vp
@@ -131,8 +118,9 @@ export function AssetActionCheckCredentials({
           )
 
           if (result.success) {
-            // setVerifierSessionId(exchangeStateData.sessionId)
-            console.log('success')
+            setVerifierSessionId(exchangeStateData.sessionId)
+          } else {
+            toast.error('Validation was not successful')
           }
 
           setExchangeStateData(newExchangeStateData())
@@ -141,7 +129,6 @@ export function AssetActionCheckCredentials({
         }
 
         case CheckCredentialState.AbortSelection: {
-          console.log(CheckCredentialState.AbortSelection)
           setVerifierSessionId(undefined)
           setExchangeStateData(newExchangeStateData())
           setCheckCredentialState(CheckCredentialState.Stop)
@@ -154,19 +141,29 @@ export function AssetActionCheckCredentials({
       setVerifierSessionId(undefined)
       setExchangeStateData(newExchangeStateData())
       setCheckCredentialState(CheckCredentialState.Stop)
-      LoggerInstance.error(error)
+      toast.error(error?.data?.message)
     })
   }, [checkCredentialState, setCheckCredentialState])
 
+  function handleAcceptCredentialSelection(selectedCredential: string[]) {
+    exchangeStateData.selectedCredentials = selectedCredential
+    setExchangeStateData(exchangeStateData)
+    setCheckCredentialState(CheckCredentialState.ReadDids)
+  }
+
+  function handleAcceptDidSelection(selectedDid: SsiWalletDid) {
+    exchangeStateData.selectedDid = selectedDid.did
+    setExchangeStateData(exchangeStateData)
+    setCheckCredentialState(CheckCredentialState.ResolveCredentials)
+  }
+
   return (
-    <div style={{ textAlign: 'left', marginTop: '2%' }}>
-      <div style={{ textAlign: 'center' }}>
+    <div className={`${styles.textAlignLeft} ${styles.marginTop2p}`}>
+      <div className={`${styles.panelColumn} ${styles.alignItemsCemter}`}>
         <VpSelector
           setShowDialog={setShowVpDialog}
           showDialog={showVpDialog}
-          acceptSelection={() =>
-            setCheckCredentialState(CheckCredentialState.ReadDids)
-          }
+          acceptSelection={handleAcceptCredentialSelection}
           abortSelection={() =>
             setCheckCredentialState(CheckCredentialState.AbortSelection)
           }
@@ -175,12 +172,11 @@ export function AssetActionCheckCredentials({
         <DidSelector
           setShowDialog={setShowDidDialog}
           showDialog={showDidDialog}
-          acceptSelection={() =>
-            setCheckCredentialState(CheckCredentialState.ResolveCredentials)
-          }
+          acceptSelection={handleAcceptDidSelection}
           abortSelection={() =>
             setCheckCredentialState(CheckCredentialState.AbortSelection)
           }
+          dids={exchangeStateData.dids}
         />
         <Button
           type="button"

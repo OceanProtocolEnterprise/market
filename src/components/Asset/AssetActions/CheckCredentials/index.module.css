@@ -1,0 +1,21 @@
+.panelColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.marginTop2p {
+  margin-top: 2%;
+}
+
+.textAlignCenter {
+  text-align: left;
+}
+
+.alignItemsCemter {
+  align-items: center;
+}
+
+.errorMessage {
+  font-size: 1.3em;
+  color: red;
+}

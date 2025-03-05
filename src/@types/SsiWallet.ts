@@ -27,6 +27,8 @@ export interface SsiVerifiableCredential {
     id: string
     type: string[]
     issuer: string
+    issuanceDate: Date
+    credentialSubject: Record<string, any>
   }
 }
 

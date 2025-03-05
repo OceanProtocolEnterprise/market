@@ -6,7 +6,6 @@ import {
   PolicyServerResponse,
   PolicyServerCheckSessionIdAction
 } from 'src/@types/PolicyServer'
-import appConfig from 'app.config.cjs'
 
 export async function requestCredentialPresentation(
   asset: AssetExtended
@@ -32,44 +31,25 @@ export async function requestCredentialPresentation(
         policyServerPassthrough: action
       }
     )
+
+    if (!response.data?.message) {
+      // eslint-disable-next-line no-throw-literal
+      throw { success: false, message: 'No openid4vc url found' }
+    }
+
     return response.data.message
   } catch (error) {
-    throw error.response
+    if (!error.response?.data) {
+      throw error.response.data
+    }
+    throw error
   }
 }
 
-export async function serverSidePresentationDefinition(
+export async function checkVerifierSessionId(
   sessionId: string
 ): Promise<PolicyServerResponse> {
   try {
-    const response = await axios.get(
-      `${appConfig.ssiPolicyServer}/pd/${sessionId}`
-    )
-    return response.data
-  } catch (error) {
-    throw error.response
-  }
-}
-
-export async function serverSidePresentationRequest(
-  sessionId: string,
-  body: any
-): Promise<PolicyServerResponse> {
-  try {
-    const result = await axios.post(
-      `${appConfig.ssiPolicyServer}/verify/${sessionId}`,
-      body
-    )
-    return result.data
-  } catch (error) {
-    throw error.response
-  }
-}
-
-export async function checkSessionId(sessionId: string): Promise<string> {
-  try {
-    const apiUrl = `${window.location.origin}`
-
     const action: PolicyServerCheckSessionIdAction = {
       action: 'checkSessionId',
       sessionId
@@ -80,9 +60,8 @@ export async function checkSessionId(sessionId: string): Promise<string> {
         policyServerPassthrough: action
       }
     )
-    console.log(response.data)
-    return response.data.message
+    return response.data
   } catch (error) {
-    throw error.response
+    return error.response.data
   }
 }

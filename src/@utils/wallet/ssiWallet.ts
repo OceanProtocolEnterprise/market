@@ -220,3 +220,17 @@ export async function usePresentationRequest(
     throw error.response
   }
 }
+
+export function getSsiVerifiableCredentialType(
+  credential: SsiVerifiableCredential
+): string {
+  let result = 'Unknown'
+  const list = credential?.parsedDocument?.type?.filter(
+    (value) =>
+      value !== 'VerifiableCredential' && value !== 'VerifiableAttestation'
+  )
+  if (list?.length > 0) {
+    result = list[0]
+  }
+  return result
+}

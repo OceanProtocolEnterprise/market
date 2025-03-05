@@ -8,6 +8,18 @@
   flex-direction: column;
 }
 
+.panelGrid {
+  display: grid;
+}
+
+.panelTemplateList {
+  grid-template-columns: [left] 20% [right] 80%;
+}
+
+.panelTemplateDate {
+  grid-template-columns: [left] 50% [right] 50%;
+}
+
 .widthAuto {
   width: auto;
 }
@@ -18,6 +30,10 @@
 
 .marginRight2 {
   margin-right: 2em;
+}
+
+.marginRight3 {
+  margin-right: 3em;
 }
 
 .marginBottom7px {
@@ -75,5 +91,17 @@
   background: var(--background-content);
   padding: calc(var(--spacer) / 3);
   border-radius: var(--input-border-radius);
-  height: 43px;
+  height: 1.5em;
+}
+
+.tableCell {
+  padding: 0px;
+}
+
+.alignItemsCenter {
+  align-items: center;
+}
+
+.justifyItemsStrech {
+  justify-items: stretch;
 }

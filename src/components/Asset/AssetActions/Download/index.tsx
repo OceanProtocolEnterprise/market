@@ -44,8 +44,9 @@ import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { AssetPrice } from 'src/@types/Asset'
 import { useSsiWallet } from '@context/SsiWallet'
-import { checkSessionId } from '@utils/wallet/policyServer'
+import { checkVerifierSessionId } from '@utils/wallet/policyServer'
 import { AssetActionCheckCredentials } from '../CheckCredentials'
+import { valueContainerCSS } from 'react-select/dist/declarations/src/components/containers'
 
 export default function Download({
   accountId,
@@ -249,6 +250,31 @@ export default function Download({
     setIsLoading(false)
   }
 
+  async function handleFormSubmit(values: any, resetForm: any) {
+    try {
+      const result = await checkVerifierSessionId(verifierSessionId)
+      console.log('jetzt')
+      console.log(result)
+      if (!result.success) {
+        toast.error('Invalid session')
+        setVerifierSessionId(undefined)
+        resetForm()
+        return
+      }
+
+      const dataServiceParams = parseConsumerParameterValues(
+        values?.dataServiceParams,
+        service.consumerParameters
+      )
+
+      await handleOrderOrDownload(dataServiceParams)
+    } catch (error) {
+      setVerifierSessionId(undefined)
+      toast.error('An error occurred')
+      resetForm()
+    }
+  }
+
   const handleFullPrice = () => {
     setIsFullPriceLoading(false)
   }
@@ -394,20 +420,8 @@ export default function Download({
       }}
       validateOnMount
       validationSchema={getDownloadValidationSchema(service.consumerParameters)}
-      onSubmit={async (values) => {
-        try {
-          const result = await checkSessionId(verifierSessionId)
-        } catch (error) {
-          setVerifierSessionId(undefined)
-          return
-        }
-
-        const dataServiceParams = parseConsumerParameterValues(
-          values?.dataServiceParams,
-          service.consumerParameters
-        )
-
-        await handleOrderOrDownload(dataServiceParams)
+      onSubmit={(values, { resetForm }) => {
+        handleFormSubmit(values, resetForm)
       }}
     >
       <Form>
