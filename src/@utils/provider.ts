@@ -238,7 +238,8 @@ export async function downloadFile(
   accessDetails: AccessDetails,
   accountId: string,
   validOrderTx?: string,
-  userCustomParameters?: UserCustomParameters
+  userCustomParameters?: UserCustomParameters,
+  verifierSessionId: string
 ) {
   let downloadUrl
   try {

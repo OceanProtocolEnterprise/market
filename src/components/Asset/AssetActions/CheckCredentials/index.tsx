@@ -17,6 +17,7 @@ import { SsiVerifiableCredential, SsiWalletDid } from 'src/@types/SsiWallet'
 import { VpSelector } from '../VpSelector'
 import { DidSelector } from '../DidSelector'
 import styles from './index.module.css'
+import { LoggerInstance } from '@oceanprotocol/lib'
 
 enum CheckCredentialState {
   Stop = 'Stop',
@@ -141,9 +142,16 @@ export function AssetActionCheckCredentials({
       setVerifierSessionId(undefined)
       setExchangeStateData(newExchangeStateData())
       setCheckCredentialState(CheckCredentialState.Stop)
-      toast.error(error?.data?.message)
+
+      if (error?.data?.message) {
+        LoggerInstance.error(error?.data?.message)
+      } else if (error?.message) {
+        LoggerInstance.error(error?.message)
+      }
+
+      toast.error('An error occurred')
     })
-  }, [checkCredentialState, setCheckCredentialState])
+  }, [checkCredentialState])
 
   function handleAcceptCredentialSelection(selectedCredential: string[]) {
     exchangeStateData.selectedCredentials = selectedCredential

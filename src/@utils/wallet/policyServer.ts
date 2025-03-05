@@ -32,15 +32,15 @@ export async function requestCredentialPresentation(
       }
     )
 
-    if (!response.data?.message) {
+    if (response.data.length === 0) {
       // eslint-disable-next-line no-throw-literal
       throw { success: false, message: 'No openid4vc url found' }
     }
 
-    return response.data.message
+    return response.data?.message
   } catch (error) {
-    if (!error.response?.data) {
-      throw error.response.data
+    if (error.response?.data) {
+      throw error.response?.data
     }
     throw error
   }
@@ -60,8 +60,18 @@ export async function checkVerifierSessionId(
         policyServerPassthrough: action
       }
     )
+
+    if (typeof response.data === 'string' && response.data.length === 0) {
+      // eslint-disable-next-line no-throw-literal
+      throw { success: false, message: 'Invalid session id' }
+    }
+
     return response.data
   } catch (error) {
-    return error.response.data
+    console.log(error)
+    if (error.response?.data) {
+      throw error.response?.data
+    }
+    throw error
   }
 }

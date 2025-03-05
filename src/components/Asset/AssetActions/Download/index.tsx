@@ -46,7 +46,6 @@ import { AssetPrice } from 'src/@types/Asset'
 import { useSsiWallet } from '@context/SsiWallet'
 import { checkVerifierSessionId } from '@utils/wallet/policyServer'
 import { AssetActionCheckCredentials } from '../CheckCredentials'
-import { valueContainerCSS } from 'react-select/dist/declarations/src/components/containers'
 
 export default function Download({
   accountId,
@@ -214,7 +213,8 @@ export default function Download({
           accessDetails,
           accountId,
           validOrderTx,
-          dataParams
+          dataParams,
+          verifierSessionId
         )
       } else {
         setStatusText(
@@ -250,15 +250,12 @@ export default function Download({
     setIsLoading(false)
   }
 
-  async function handleFormSubmit(values: any, resetForm: any) {
+  async function handleFormSubmit(values: any) {
     try {
       const result = await checkVerifierSessionId(verifierSessionId)
-      console.log('jetzt')
-      console.log(result)
       if (!result.success) {
         toast.error('Invalid session')
         setVerifierSessionId(undefined)
-        resetForm()
         return
       }
 
@@ -270,8 +267,8 @@ export default function Download({
       await handleOrderOrDownload(dataServiceParams)
     } catch (error) {
       setVerifierSessionId(undefined)
-      toast.error('An error occurred')
-      resetForm()
+      toast.error(error.message)
+      LoggerInstance.error(error)
     }
   }
 
@@ -420,8 +417,11 @@ export default function Download({
       }}
       validateOnMount
       validationSchema={getDownloadValidationSchema(service.consumerParameters)}
-      onSubmit={(values, { resetForm }) => {
-        handleFormSubmit(values, resetForm)
+      onSubmit={(values) => {
+        if (!verifierSessionId) {
+          return
+        }
+        handleFormSubmit(values)
       }}
     >
       <Form>
