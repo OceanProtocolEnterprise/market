@@ -18,6 +18,7 @@ import { VpSelector } from '../VpSelector'
 import { DidSelector } from '../DidSelector'
 import styles from './index.module.css'
 import { LoggerInstance } from '@oceanprotocol/lib'
+import { PolicyServerInitiateActionData } from 'src/@types/PolicyServer'
 
 enum CheckCredentialState {
   Stop = 'Stop',
@@ -34,6 +35,7 @@ interface ExchangeStateData {
   sessionId: string
   dids: SsiWalletDid[]
   selectedDid: string
+  poliyServerData: PolicyServerInitiateActionData
 }
 
 function newExchangeStateData(): ExchangeStateData {
@@ -43,7 +45,8 @@ function newExchangeStateData(): ExchangeStateData {
     sessionId: '',
     selectedCredentials: [],
     dids: [],
-    selectedDid: ''
+    selectedDid: '',
+    poliyServerData: undefined
   }
 }
 
@@ -68,9 +71,10 @@ export function AssetActionCheckCredentials({
     async function handleCredentialExchange() {
       switch (checkCredentialState) {
         case CheckCredentialState.StartCredentialExchange: {
-          exchangeStateData.openid4vp = await requestCredentialPresentation(
-            asset
-          )
+          const presentationResult = await requestCredentialPresentation(asset)
+          exchangeStateData.openid4vp = presentationResult.openid4vc
+          exchangeStateData.poliyServerData =
+            presentationResult.policyServerData
 
           const searchParams = extractURLSearchParams(
             exchangeStateData.openid4vp
@@ -93,6 +97,12 @@ export function AssetActionCheckCredentials({
         }
 
         case CheckCredentialState.ReadDids: {
+          if (exchangeStateData.selectedCredentials.length === 0) {
+            toast.error('You must select at least one credential')
+            setCheckCredentialState(CheckCredentialState.Stop)
+            break
+          }
+
           exchangeStateData.dids = await getWalletDids(selectedWallet.id)
           exchangeStateData.selectedDid =
             exchangeStateData.dids.length > 0
@@ -118,7 +128,10 @@ export function AssetActionCheckCredentials({
             exchangeStateData.selectedCredentials
           )
 
-          if (result.success) {
+          if (
+            exchangeStateData.poliyServerData?.successRedirectUri ===
+            result.redirectUri
+          ) {
             setVerifierSessionId(exchangeStateData.sessionId)
           } else {
             toast.error('Validation was not successful')

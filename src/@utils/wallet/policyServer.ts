@@ -4,26 +4,33 @@ import { AssetExtended } from 'src/@types/AssetExtended'
 import {
   PolicyServerInitiateAction,
   PolicyServerResponse,
-  PolicyServerCheckSessionIdAction
+  PolicyServerCheckSessionIdAction,
+  PolicyServerInitiateActionData
 } from 'src/@types/PolicyServer'
 
 export async function requestCredentialPresentation(
   asset: AssetExtended
-): Promise<string> {
+): Promise<{
+  success: boolean
+  openid4vc: string
+  policyServerData: PolicyServerInitiateActionData
+}> {
   try {
     const apiUrl = `${window.location.origin}`
     const sessionId = crypto.randomUUID()
+
+    const policyServer: PolicyServerInitiateActionData = {
+      successRedirectUri: `${apiUrl}/api/policy/success`,
+      errorRedirectUri: `${apiUrl}/api/policy/error`,
+      responseRedirectUri: `${apiUrl}/policy/verify/${sessionId}`,
+      presentationDefinitionUri: `${apiUrl}/policy/pd/${sessionId}`
+    }
 
     const action: PolicyServerInitiateAction = {
       action: 'initiate',
       sessionId,
       ddo: asset,
-      policyServer: {
-        successRedirectUri: `${apiUrl}/api/policy/success`,
-        errorRedirectUri: `${apiUrl}/api/policy/error`,
-        responseRedirectUri: `${apiUrl}/policy/verify/${sessionId}`,
-        presentationDefinitionUri: `${apiUrl}/policy/pd/${sessionId}`
-      }
+      policyServer
     }
     const response = await axios.post(
       `/provider/api/services/PolicyServerPassthrough`,
@@ -37,7 +44,11 @@ export async function requestCredentialPresentation(
       throw { success: false, message: 'No openid4vc url found' }
     }
 
-    return response.data?.message
+    return {
+      success: response.data?.success,
+      openid4vc: response.data?.message,
+      policyServerData: policyServer
+    }
   } catch (error) {
     if (error.response?.data) {
       throw error.response?.data
