@@ -101,22 +101,33 @@ export function AssetActionCheckCredentials({
                 selectedWallet?.id,
                 presentationDefinition
               )
-            ssiWalletCache.cacheCredentials(
-              exchangeStateData.verifiableCredentials
-            )
+
+            setShowVpDialog(true)
+          } else {
+            exchangeStateData.selectedCredentials =
+              exchangeStateData.verifiableCredentials.map(
+                (credential) => credential.id
+              )
+            setCheckCredentialState(CheckCredentialState.ReadDids)
           }
 
-          setShowVpDialog(true)
           setExchangeStateData(exchangeStateData)
           break
         }
 
         case CheckCredentialState.ReadDids: {
-          if (exchangeStateData.selectedCredentials.length === 0) {
+          const selectedCredentials =
+            exchangeStateData.verifiableCredentials.filter((credential) =>
+              exchangeStateData.selectedCredentials.includes(credential.id)
+            )
+
+          if (selectedCredentials.length === 0) {
             toast.error('You must select at least one credential')
             setCheckCredentialState(CheckCredentialState.Stop)
             break
           }
+
+          ssiWalletCache.cacheCredentials(selectedCredentials)
 
           exchangeStateData.dids = await getWalletDids(selectedWallet.id)
 
