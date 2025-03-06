@@ -1,3 +1,5 @@
+import { getSsiVerifiableCredentialType } from '@utils/wallet/ssiWallet'
+
 export interface SsiWalletSession {
   session_id: string
   status: string
@@ -44,4 +46,61 @@ export interface SsiWalletDid {
   did: string
   document: string
   keyId: string
+}
+
+export class SsiWalletCache {
+  cacheCredentialStorage = 'cachedCredentials'
+
+  readCredentialStorage(): SsiVerifiableCredential[] {
+    let credentialStorage = []
+    try {
+      const cachedCredentialString = localStorage.getItem(
+        this.cacheCredentialStorage
+      )
+      if (cachedCredentialString) {
+        credentialStorage = JSON.parse(cachedCredentialString)
+      }
+    } catch (error) {
+      credentialStorage = []
+    }
+    return credentialStorage
+  }
+
+  writeCredentialStorage(credentialStorage: SsiVerifiableCredential[]) {
+    const credentialString = JSON.stringify(credentialStorage)
+    localStorage.setItem(this.cacheCredentialStorage, credentialString)
+  }
+
+  public cacheCredentials(credentials: SsiVerifiableCredential[]) {
+    let credentialStorage = this.readCredentialStorage()
+    credentialStorage = [...credentialStorage, ...credentials]
+    credentialStorage = this.removeDups(credentialStorage)
+    this.writeCredentialStorage(credentialStorage)
+  }
+
+  public lookupCredentials(
+    credentialTypes: string[]
+  ): SsiVerifiableCredential[] {
+    const credentialStorage = this.readCredentialStorage()
+    const credentials = credentialStorage.filter((credential) => {
+      const credentialType = getSsiVerifiableCredentialType(credential)
+      const result = credentialTypes.includes(credentialType)
+      return result
+    })
+    return credentials.length === credentialTypes.length ? credentials : []
+  }
+
+  private removeDups<T>(array: T[]): T[] {
+    const seen = new Map<string, T>()
+    const result = array.filter((item) => {
+      const serialized = JSON.stringify(item)
+      if (seen.has(serialized)) {
+        return false
+      } else {
+        seen.set(serialized, item)
+        return true
+      }
+    })
+    return result
+  }
 }

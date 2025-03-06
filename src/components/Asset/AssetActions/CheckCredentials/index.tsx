@@ -65,7 +65,8 @@ export function AssetActionCheckCredentials({
   const [showVpDialog, setShowVpDialog] = useState<boolean>(false)
   const [showDidDialog, setShowDidDialog] = useState<boolean>(false)
 
-  const { setVerifierSessionId, selectedWallet } = useSsiWallet()
+  const { setVerifierSessionId, selectedWallet, ssiWalletCache } =
+    useSsiWallet()
 
   useEffect(() => {
     async function handleCredentialExchange() {
@@ -86,11 +87,25 @@ export function AssetActionCheckCredentials({
             presentation_definition_uri
           )
 
-          exchangeStateData.verifiableCredentials =
-            await matchCredentialForPresentationDefinition(
-              selectedWallet?.id,
-              presentationDefinition
+          const requiredCredentials =
+            presentationDefinition.input_descriptors.map(
+              (credential) => credential.id
             )
+
+          exchangeStateData.verifiableCredentials =
+            ssiWalletCache.lookupCredentials(requiredCredentials)
+
+          if (exchangeStateData.verifiableCredentials?.length === 0) {
+            exchangeStateData.verifiableCredentials =
+              await matchCredentialForPresentationDefinition(
+                selectedWallet?.id,
+                presentationDefinition
+              )
+            ssiWalletCache.cacheCredentials(
+              exchangeStateData.verifiableCredentials
+            )
+          }
+
           setShowVpDialog(true)
           setExchangeStateData(exchangeStateData)
           break
@@ -104,6 +119,7 @@ export function AssetActionCheckCredentials({
           }
 
           exchangeStateData.dids = await getWalletDids(selectedWallet.id)
+
           exchangeStateData.selectedDid =
             exchangeStateData.dids.length > 0
               ? exchangeStateData.dids[0].did
