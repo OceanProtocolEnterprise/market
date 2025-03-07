@@ -31,6 +31,7 @@ enum CheckCredentialState {
 interface ExchangeStateData {
   openid4vp: string
   verifiableCredentials: SsiVerifiableCredential[]
+  cachedVerifiableCredentials: SsiVerifiableCredential[]
   selectedCredentials: string[]
   sessionId: string
   dids: SsiWalletDid[]
@@ -42,6 +43,7 @@ function newExchangeStateData(): ExchangeStateData {
   return {
     openid4vp: '',
     verifiableCredentials: [],
+    cachedVerifiableCredentials: [],
     sessionId: '',
     selectedCredentials: [],
     dids: [],
@@ -92,21 +94,33 @@ export function AssetActionCheckCredentials({
               (credential) => credential.id
             )
 
-          exchangeStateData.verifiableCredentials =
+          exchangeStateData.cachedVerifiableCredentials =
             ssiWalletCache.lookupCredentials(requiredCredentials)
-
-          if (exchangeStateData.verifiableCredentials?.length === 0) {
+          if (
+            requiredCredentials.length >
+            exchangeStateData.cachedVerifiableCredentials.length
+          ) {
             exchangeStateData.verifiableCredentials =
               await matchCredentialForPresentationDefinition(
                 selectedWallet?.id,
                 presentationDefinition
               )
 
+            const cachedCredentialsIds =
+              exchangeStateData.cachedVerifiableCredentials.map(
+                (credential) => credential.id
+              )
+
+            exchangeStateData.verifiableCredentials =
+              exchangeStateData.verifiableCredentials.filter(
+                (credential) => !cachedCredentialsIds.includes(credential.id)
+              )
+
             setShowVpDialog(true)
           } else {
             exchangeStateData.selectedCredentials =
               exchangeStateData.verifiableCredentials.map(
-                (credential) => credential.id
+                (credential) => credential.parsedDocument.id
               )
             setCheckCredentialState(CheckCredentialState.ReadDids)
           }
@@ -116,10 +130,17 @@ export function AssetActionCheckCredentials({
         }
 
         case CheckCredentialState.ReadDids: {
-          const selectedCredentials =
+          let selectedCredentials =
             exchangeStateData.verifiableCredentials.filter((credential) =>
-              exchangeStateData.selectedCredentials.includes(credential.id)
+              exchangeStateData.selectedCredentials.includes(
+                credential.parsedDocument.id
+              )
             )
+
+          selectedCredentials = [
+            ...selectedCredentials,
+            ...exchangeStateData.cachedVerifiableCredentials
+          ]
 
           if (selectedCredentials.length === 0) {
             toast.error('You must select at least one credential')

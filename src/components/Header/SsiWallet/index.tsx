@@ -2,7 +2,11 @@ import Button from '@components/@shared/atoms/Button'
 import { useSsiWallet } from '@context/SsiWallet'
 import { ReactElement, useCallback, useEffect, useRef, useState } from 'react'
 import styles from './index.module.css'
-import { SsiKeyDesc, SsiWalletDesc } from 'src/@types/SsiWallet'
+import {
+  SsiKeyDesc,
+  SsiVerifiableCredential,
+  SsiWalletDesc
+} from 'src/@types/SsiWallet'
 import {
   connectToWallet,
   getSsiVerifiableCredentialType,
@@ -22,12 +26,14 @@ export function SsiWallet(): ReactElement {
     setSelectedWallet,
     selectedKey,
     setSelectedKey,
-    ssiWalletCache,
-    setSsiWalletCache
+    ssiWalletCache
   } = useSsiWallet()
 
   const [ssiWallets, setSsiWallets] = useState<SsiWalletDesc[]>([])
   const [ssiKeys, setSsiKey] = useState<SsiKeyDesc[]>([])
+  const [ssiWalletCachedCredentials, setSsiWalletCachedCredentials] = useState<
+    SsiVerifiableCredential[]
+  >([])
 
   const selectorDialog = useRef<HTMLDialogElement>(null)
 
@@ -43,7 +49,7 @@ export function SsiWallet(): ReactElement {
       setSessionToken(undefined)
       LoggerInstance.error(error)
     }
-  }, [setSelectedWallet, selectedWallet])
+  }, [selectedWallet])
 
   const fetchKeys = useCallback(async () => {
     if (!selectedWallet) {
@@ -57,7 +63,7 @@ export function SsiWallet(): ReactElement {
       setSessionToken(undefined)
       LoggerInstance.error(error)
     }
-  }, [selectedWallet, setSelectedKey, selectedKey])
+  }, [selectedWallet, selectedKey])
 
   useEffect(() => {
     if (!sessionToken) {
@@ -93,6 +99,8 @@ export function SsiWallet(): ReactElement {
       return
     }
 
+    setSsiWalletCachedCredentials(ssiWalletCache.readCredentialStorage())
+
     selectorDialog.current.showModal()
 
     fetchWallets()
@@ -115,6 +123,7 @@ export function SsiWallet(): ReactElement {
 
   function handleResetWalletCache() {
     ssiWalletCache.clearCredentials()
+    setSsiWalletCachedCredentials(ssiWalletCache.readCredentialStorage())
   }
 
   return (
@@ -189,11 +198,13 @@ export function SsiWallet(): ReactElement {
 
               <div>
                 <label>Cached Credentials:</label>
-                {ssiWalletCache.readCredentialStorage().map((credential) => {
-                  const credentialType =
-                    getSsiVerifiableCredentialType(credential)
-                  return <div key={credential.id}>{credentialType}</div>
-                })}
+                <ul className={styles.list}>
+                  {ssiWalletCachedCredentials.map((credential) => (
+                    <li key={credential.id} className={styles.listItem}>
+                      {getSsiVerifiableCredentialType(credential)}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </dialog>

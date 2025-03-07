@@ -261,8 +261,6 @@ export function stringifyCredentialPolicies(credentials: Credential) {
     return
   }
 
-  console.log(credentials?.allow)
-
   credentials.allow = credentials?.allow?.map((credential) => {
     if (isCredentialPolicyBased(credential)) {
       credential.values = credential.values.map((value) => {

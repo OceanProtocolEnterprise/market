@@ -106,12 +106,10 @@ export class SsiWalletCache {
     credentialTypes: string[]
   ): SsiVerifiableCredential[] {
     const credentialStorage = this.readCredentialStorage()
-    const credentials = credentialStorage.filter((credential) => {
+    return credentialStorage.filter((credential) => {
       const credentialType = getSsiVerifiableCredentialType(credential)
-      const result = credentialTypes.includes(credentialType)
-      return result
+      return credentialTypes.includes(credentialType)
     })
-    return credentials.length === credentialTypes.length ? credentials : []
   }
 
   public clearCredentials() {

@@ -13,11 +13,28 @@
 }
 
 .panelTemplateList {
-  grid-template-columns: [left] 20% [right] 80%;
+  grid-template-columns: max-content auto;
 }
 
-.panelTemplateDate {
-  grid-template-columns: [left] 50% [right] 50%;
+.panelTemplateData {
+  grid-template-columns: minmax(max-content, 10%) auto;
+  gap: 0.3em;
+}
+
+.dialogWidth {
+  width: 60%;
+}
+
+@media (max-width: 1900px) {
+  .dialogWidth {
+    width: 80%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .dialogWidth {
+    width: 100%;
+  }
 }
 
 .widthAuto {
@@ -87,7 +104,7 @@
   color: var(--input-font-color);
   border: var(--input-border-size) solid var(--input-border-color);
   box-shadow: none;
-  width: 100%;
+  width: 2em;
   background: var(--background-content);
   padding: calc(var(--spacer) / 3);
   border-radius: var(--input-border-radius);
@@ -104,4 +121,12 @@
 
 .justifyItemsStrech {
   justify-items: stretch;
+}
+
+.justifyContentFlexEnd {
+  justify-content: flex-end;
+}
+
+.flexWrap {
+  flex-wrap: wrap;
 }

@@ -21,10 +21,36 @@ interface VpFieldProps {
 
 function VpField(props: VpFieldProps): ReactElement {
   const { credential, checked, index, onChange } = props
-  const maxLength = 20
+  const maxLength = 60
+
+  function DataView({
+    data,
+    maxLength
+  }: {
+    data: any
+    maxLength: number
+  }): ReactElement {
+    let dataString
+    if (typeof data === 'string') {
+      dataString = data
+    } else {
+      dataString = JSON.stringify(data)
+    }
+
+    return (
+      <>
+        {dataString?.length > maxLength
+          ? dataString?.slice(0, maxLength).concat('...')
+          : dataString}
+      </>
+    )
+  }
+
   return (
     <>
-      <label>
+      <label
+        className={`${styles.panelRow} ${styles.justifyContentFlexEnd} ${styles.marginRight2} ${styles.flexWrap}`}
+      >
         {getSsiVerifiableCredentialType(credential)}
         <input
           type="checkbox"
@@ -34,7 +60,7 @@ function VpField(props: VpFieldProps): ReactElement {
         />
       </label>
       <div
-        className={`${styles.panelGrid} ${styles.panelTemplateDate} ${styles.marginBottom3}`}
+        className={`${styles.panelGrid} ${styles.panelTemplateData} ${styles.marginBottom3}`}
       >
         {Object.keys(credential?.parsedDocument?.credentialSubject || {}).map(
           (key) => {
@@ -42,12 +68,10 @@ function VpField(props: VpFieldProps): ReactElement {
               <>
                 <div>{key}</div>
                 <div>
-                  {credential?.parsedDocument?.credentialSubject?.[key]
-                    ?.length > maxLength
-                    ? credential?.parsedDocument?.credentialSubject?.[key]
-                        ?.slice(0, maxLength)
-                        .concat('...')
-                    : credential?.parsedDocument?.credentialSubject?.[key]}
+                  <DataView
+                    data={credential?.parsedDocument?.credentialSubject?.[key]}
+                    maxLength={maxLength}
+                  />
                 </div>
               </>
             )
@@ -105,7 +129,7 @@ export function VpSelector(props: VpSelectorProps): ReactElement {
     <dialog
       id="vpSelector"
       ref={selectorDialog}
-      className={styles.dialogBorder}
+      className={`${styles.dialogBorder} ${styles.dialogWidth}`}
     >
       <div className={`${styles.panelColumn} ${styles.width100p}`}>
         <h3>Verifiable Credentials to present</h3>
