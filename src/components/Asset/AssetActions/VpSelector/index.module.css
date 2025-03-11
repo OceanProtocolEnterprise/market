@@ -17,8 +17,8 @@
 }
 
 .panelTemplateData {
-  grid-template-columns: minmax(max-content, 10%) auto;
-  gap: 0.3em;
+  grid-template-columns: minmax(max-content, 30%) auto;
+  gap: 0.2em;
 }
 
 .dialogWidth {
