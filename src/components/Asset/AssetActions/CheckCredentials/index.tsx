@@ -157,6 +157,9 @@ export function AssetActionCheckCredentials({
             )
 
           selectedCredentials = [...selectedCredentials, ...cachedCredentials]
+          exchangeStateData.selectedCredentials = selectedCredentials.map(
+            (credential) => credential.id
+          )
 
           if (selectedCredentials.length === 0) {
             toast.error('You must select at least one credential')
@@ -184,7 +187,7 @@ export function AssetActionCheckCredentials({
             selectedWallet?.id,
             exchangeStateData.openid4vp
           )
-
+          console.log(exchangeStateData)
           // eslint-disable-next-line react-hooks/rules-of-hooks
           const result = await usePresentationRequest(
             selectedWallet?.id,
