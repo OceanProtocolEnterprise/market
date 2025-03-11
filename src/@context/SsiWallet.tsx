@@ -8,6 +8,7 @@ import {
 } from 'react'
 import {
   SsiKeyDesc,
+  SsiVerifiableCredential,
   SsiWalletCache,
   SsiWalletDesc,
   SsiWalletSession
@@ -24,6 +25,8 @@ export interface SsiWalletContext {
   setVerifierSessionId: (id: string) => void
   ssiWalletCache: SsiWalletCache
   setSsiWalletCache: (cache: SsiWalletCache) => void
+  cachedCredentials: SsiVerifiableCredential[]
+  setCachedCredentials: (credentials: SsiVerifiableCredential[]) => void
 }
 
 const SsiWalletContext = createContext(null)
@@ -40,6 +43,9 @@ export function SsiWalletProvider({
   const [ssiWalletCache, setSsiWalletCache] = useState<SsiWalletCache>(
     new SsiWalletCache()
   )
+  const [cachedCredentials, setCachedCredentials] = useState<
+    SsiVerifiableCredential[]
+  >([])
 
   useEffect(() => {
     if (!sessionToken) {
@@ -62,7 +68,9 @@ export function SsiWalletProvider({
           verifierSessionId,
           setVerifierSessionId,
           ssiWalletCache,
-          setSsiWalletCache
+          setSsiWalletCache,
+          cachedCredentials,
+          setCachedCredentials
         } as SsiWalletContext
       }
     >

@@ -2,11 +2,7 @@ import Button from '@components/@shared/atoms/Button'
 import { useSsiWallet } from '@context/SsiWallet'
 import { ReactElement, useCallback, useEffect, useRef, useState } from 'react'
 import styles from './index.module.css'
-import {
-  SsiKeyDesc,
-  SsiVerifiableCredential,
-  SsiWalletDesc
-} from 'src/@types/SsiWallet'
+import { SsiKeyDesc, SsiWalletDesc } from 'src/@types/SsiWallet'
 import {
   connectToWallet,
   getSsiVerifiableCredentialType,
@@ -26,14 +22,13 @@ export function SsiWallet(): ReactElement {
     setSelectedWallet,
     selectedKey,
     setSelectedKey,
-    ssiWalletCache
+    ssiWalletCache,
+    cachedCredentials,
+    setCachedCredentials
   } = useSsiWallet()
 
   const [ssiWallets, setSsiWallets] = useState<SsiWalletDesc[]>([])
   const [ssiKeys, setSsiKey] = useState<SsiKeyDesc[]>([])
-  const [ssiWalletCachedCredentials, setSsiWalletCachedCredentials] = useState<
-    SsiVerifiableCredential[]
-  >([])
 
   const selectorDialog = useRef<HTMLDialogElement>(null)
 
@@ -99,7 +94,7 @@ export function SsiWallet(): ReactElement {
       return
     }
 
-    setSsiWalletCachedCredentials(ssiWalletCache.readCredentialStorage())
+    setCachedCredentials(ssiWalletCache.readCredentialStorage())
 
     selectorDialog.current.showModal()
 
@@ -123,7 +118,7 @@ export function SsiWallet(): ReactElement {
 
   function handleResetWalletCache() {
     ssiWalletCache.clearCredentials()
-    setSsiWalletCachedCredentials(ssiWalletCache.readCredentialStorage())
+    setCachedCredentials(ssiWalletCache.readCredentialStorage())
   }
 
   return (
@@ -193,13 +188,13 @@ export function SsiWallet(): ReactElement {
                 className={`${styles.width100p} ${styles.resetButton} ${styles.marginBottom2}`}
                 onClick={handleResetWalletCache}
               >
-                Reset Wallet Cache
+                Reset Credential Cache
               </Button>
 
               <div>
                 <label>Cached Credentials:</label>
                 <ul className={styles.list}>
-                  {ssiWalletCachedCredentials.map((credential) => (
+                  {cachedCredentials?.map((credential) => (
                     <li key={credential.id} className={styles.listItem}>
                       {getSsiVerifiableCredentialType(credential)}
                     </li>

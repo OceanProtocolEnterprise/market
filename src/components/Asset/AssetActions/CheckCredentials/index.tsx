@@ -9,7 +9,8 @@ import {
   matchCredentialForPresentationDefinition,
   getWalletDids,
   resolvePresentationRequest,
-  usePresentationRequest
+  usePresentationRequest,
+  getSsiVerifiableCredentialType
 } from '@utils/wallet/ssiWallet'
 import { useEffect, useState } from 'react'
 import { AssetExtended } from 'src/@types/AssetExtended'
@@ -19,6 +20,8 @@ import { DidSelector } from '../DidSelector'
 import styles from './index.module.css'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { PolicyServerInitiateActionData } from 'src/@types/PolicyServer'
+import Cross from '@images/cross.svg'
+import VerifiedPatch from '@images/patch_check.svg'
 
 enum CheckCredentialState {
   Stop = 'Stop',
@@ -31,7 +34,6 @@ enum CheckCredentialState {
 interface ExchangeStateData {
   openid4vp: string
   verifiableCredentials: SsiVerifiableCredential[]
-  cachedVerifiableCredentials: SsiVerifiableCredential[]
   selectedCredentials: string[]
   sessionId: string
   dids: SsiWalletDid[]
@@ -43,13 +45,22 @@ function newExchangeStateData(): ExchangeStateData {
   return {
     openid4vp: '',
     verifiableCredentials: [],
-    cachedVerifiableCredentials: [],
     sessionId: '',
     selectedCredentials: [],
     dids: [],
     selectedDid: '',
     poliyServerData: undefined
   }
+}
+
+function isCredentialCached(
+  cachedCredentials: SsiVerifiableCredential[],
+  credentialType: string
+): boolean {
+  const credentials = cachedCredentials.map((credential) =>
+    getSsiVerifiableCredentialType(credential)
+  )
+  return credentials.includes(credentialType)
 }
 
 export function AssetActionCheckCredentials({
@@ -59,6 +70,7 @@ export function AssetActionCheckCredentials({
 }) {
   const [checkCredentialState, setCheckCredentialState] =
     useState<CheckCredentialState>(CheckCredentialState.Stop)
+  const [requiredCredentials, setRequiredCredentials] = useState<string[]>([])
 
   const [exchangeStateData, setExchangeStateData] = useState<ExchangeStateData>(
     newExchangeStateData()
@@ -67,8 +79,13 @@ export function AssetActionCheckCredentials({
   const [showVpDialog, setShowVpDialog] = useState<boolean>(false)
   const [showDidDialog, setShowDidDialog] = useState<boolean>(false)
 
-  const { setVerifierSessionId, selectedWallet, ssiWalletCache } =
-    useSsiWallet()
+  const {
+    setVerifierSessionId,
+    selectedWallet,
+    ssiWalletCache,
+    cachedCredentials,
+    setCachedCredentials
+  } = useSsiWallet()
 
   useEffect(() => {
     async function handleCredentialExchange() {
@@ -89,16 +106,19 @@ export function AssetActionCheckCredentials({
             presentation_definition_uri
           )
 
-          const requiredCredentials =
+          const resultRequiredCredentials =
             presentationDefinition.input_descriptors.map(
               (credential) => credential.id
             )
+          setRequiredCredentials(resultRequiredCredentials)
 
-          exchangeStateData.cachedVerifiableCredentials =
-            ssiWalletCache.lookupCredentials(requiredCredentials)
+          const resultCachedCredentials = ssiWalletCache.lookupCredentials(
+            resultRequiredCredentials
+          )
+          setCachedCredentials(resultCachedCredentials)
+
           if (
-            requiredCredentials.length >
-            exchangeStateData.cachedVerifiableCredentials.length
+            resultRequiredCredentials.length > resultCachedCredentials.length
           ) {
             exchangeStateData.verifiableCredentials =
               await matchCredentialForPresentationDefinition(
@@ -106,10 +126,9 @@ export function AssetActionCheckCredentials({
                 presentationDefinition
               )
 
-            const cachedCredentialsIds =
-              exchangeStateData.cachedVerifiableCredentials.map(
-                (credential) => credential.id
-              )
+            const cachedCredentialsIds = resultCachedCredentials.map(
+              (credential) => credential.id
+            )
 
             exchangeStateData.verifiableCredentials =
               exchangeStateData.verifiableCredentials.filter(
@@ -137,10 +156,7 @@ export function AssetActionCheckCredentials({
               )
             )
 
-          selectedCredentials = [
-            ...selectedCredentials,
-            ...exchangeStateData.cachedVerifiableCredentials
-          ]
+          selectedCredentials = [...selectedCredentials, ...cachedCredentials]
 
           if (selectedCredentials.length === 0) {
             toast.error('You must select at least one credential')
@@ -149,6 +165,7 @@ export function AssetActionCheckCredentials({
           }
 
           ssiWalletCache.cacheCredentials(selectedCredentials)
+          setCachedCredentials(selectedCredentials)
 
           exchangeStateData.dids = await getWalletDids(selectedWallet.id)
 
@@ -226,6 +243,10 @@ export function AssetActionCheckCredentials({
     setCheckCredentialState(CheckCredentialState.ResolveCredentials)
   }
 
+  useEffect(() => {
+    console.log(cachedCredentials, requiredCredentials)
+  }, [cachedCredentials, requiredCredentials])
+
   return (
     <div className={`${styles.textAlignLeft} ${styles.marginTop2p}`}>
       <div className={`${styles.panelColumn} ${styles.alignItemsCemter}`}>
@@ -259,6 +280,30 @@ export function AssetActionCheckCredentials({
         >
           Check Credentials
         </Button>
+
+        <div
+          className={`${styles.panelGrid} ${styles.panelTemplateData} ${styles.marginTop1}`}
+        >
+          {requiredCredentials?.map((credential) => {
+            return (
+              <>
+                {isCredentialCached(cachedCredentials, credential) ? (
+                  <VerifiedPatch
+                    key={credential}
+                    className={`${styles.marginTop6px} ${styles.fillGreen}`}
+                  />
+                ) : (
+                  <Cross
+                    key={credential}
+                    className={`${styles.marginTop6px} ${styles.fillRed}`}
+                  />
+                )}
+
+                {credential}
+              </>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
