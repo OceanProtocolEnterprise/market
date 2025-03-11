@@ -162,7 +162,7 @@ export function AssetActionCheckCredentials({
           )
 
           if (selectedCredentials.length === 0) {
-            toast.error('You must select at least one credential')
+            toast.error('You must select at least one credential to present')
             setCheckCredentialState(CheckCredentialState.Stop)
             break
           }
