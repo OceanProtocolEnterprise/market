@@ -243,10 +243,6 @@ export function AssetActionCheckCredentials({
     setCheckCredentialState(CheckCredentialState.ResolveCredentials)
   }
 
-  useEffect(() => {
-    console.log(cachedCredentials, requiredCredentials)
-  }, [cachedCredentials, requiredCredentials])
-
   return (
     <div className={`${styles.textAlignLeft} ${styles.marginTop2p}`}>
       <div className={`${styles.panelColumn} ${styles.alignItemsCemter}`}>

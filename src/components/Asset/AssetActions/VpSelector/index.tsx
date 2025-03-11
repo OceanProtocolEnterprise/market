@@ -135,7 +135,7 @@ export function VpSelector(props: VpSelectorProps): ReactElement {
         <h3>Verifiable Credentials to present</h3>
 
         <label htmlFor="verifiableCredentials" className={styles.marginBottom2}>
-          Choose your VP:
+          Choose your Wallet VPs:
         </label>
 
         <div
