@@ -14,6 +14,9 @@ import {
   SsiWalletSession
 } from 'src/@types/SsiWallet'
 
+const verifierSessionIdStorage = 'verifierSessionId'
+const sessionTokenStorage = 'sessionToken'
+
 export interface SsiWalletContext {
   sessionToken: SsiWalletSession
   setSessionToken: (token: SsiWalletSession) => void
@@ -48,12 +51,28 @@ export function SsiWalletProvider({
   >([])
 
   useEffect(() => {
+    try {
+      const token = localStorage.getItem(sessionTokenStorage)
+      setSessionToken(JSON.parse(token))
+    } catch (error) {
+      setSessionToken(undefined)
+    }
+
+    setVerifierSessionId(localStorage.getItem(verifierSessionIdStorage))
+  }, [])
+
+  useEffect(() => {
     if (!sessionToken) {
       setSelectedWallet(undefined)
       setSelectedKey(undefined)
-      setVerifierSessionId(undefined)
     }
+
+    localStorage.setItem(sessionTokenStorage, JSON.stringify(sessionToken))
   }, [sessionToken])
+
+  useEffect(() => {
+    localStorage.setItem(verifierSessionIdStorage, verifierSessionId)
+  }, [verifierSessionId])
 
   return (
     <SsiWalletContext.Provider

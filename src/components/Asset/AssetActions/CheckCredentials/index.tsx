@@ -187,7 +187,7 @@ export function AssetActionCheckCredentials({
             selectedWallet?.id,
             exchangeStateData.openid4vp
           )
-          console.log(exchangeStateData)
+
           // eslint-disable-next-line react-hooks/rules-of-hooks
           const result = await usePresentationRequest(
             selectedWallet?.id,
