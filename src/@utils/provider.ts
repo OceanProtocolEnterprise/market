@@ -237,9 +237,9 @@ export async function downloadFile(
   service: Service,
   accessDetails: AccessDetails,
   accountId: string,
+  verifierSessionId: string,
   validOrderTx?: string,
-  userCustomParameters?: UserCustomParameters,
-  verifierSessionId: string
+  userCustomParameters?: UserCustomParameters
 ) {
   let downloadUrl
   try {
@@ -250,8 +250,12 @@ export async function downloadFile(
       validOrderTx || accessDetails.validOrderTx,
       customProviderUrl || service.serviceEndpoint,
       signer,
+      {
+        sessionId: verifierSessionId
+      },
       userCustomParameters
     )
+    console.log(downloadUrl)
   } catch (error) {
     const message = getErrorMessage(error.message)
     LoggerInstance.error('[Provider Get download url] Error:', message)

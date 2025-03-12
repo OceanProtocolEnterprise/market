@@ -5,9 +5,13 @@ export interface Credential {
   deny?: CredentialAddressBased[]
 }
 
+export interface Address {
+  address: string
+}
+
 export interface CredentialAddressBased {
   type: 'address'
-  values: string[]
+  values: Address[]
 }
 
 export interface CredentialPolicyBased {

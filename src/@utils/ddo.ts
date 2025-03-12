@@ -273,7 +273,7 @@ export function isAddressWhitelisted(
       if (isCredentialAddressBased(allowCredential)) {
         if (
           allowCredential.values.some(
-            (address) => address.toLowerCase() === accountId.toLowerCase()
+            (item) => item.address.toLowerCase() === accountId.toLowerCase()
           )
         ) {
           isAddressWhitelisted = true
@@ -289,7 +289,7 @@ export function isAddressWhitelisted(
       if (isCredentialAddressBased(allowCredential)) {
         if (
           allowCredential.values.some(
-            (address) => address.toLowerCase() === accountId.toLowerCase()
+            (item) => item.address.toLowerCase() === accountId.toLowerCase()
           )
         ) {
           isAddressWhitelisted = true
@@ -305,7 +305,7 @@ export function isAddressWhitelisted(
       if (isCredentialAddressBased(allowCredential)) {
         if (
           allowCredential.values.some(
-            (address) => address.toLowerCase() === accountId.toLowerCase()
+            (item) => item.address.toLowerCase() === accountId.toLowerCase()
           )
         ) {
           isAddressWhitelisted = true
@@ -328,7 +328,7 @@ export function isAddressWhitelisted(
       if (isCredentialAddressBased(denyCredential)) {
         if (
           denyCredential.values.some(
-            (address) => address.toLowerCase() === accountId.toLowerCase()
+            (item) => item.address.toLowerCase() === accountId.toLowerCase()
           )
         ) {
           isAddressBlacklisted = true
@@ -344,7 +344,7 @@ export function isAddressWhitelisted(
       if (isCredentialAddressBased(denyCredential)) {
         if (
           denyCredential.values.some(
-            (address) => address.toLowerCase() === accountId.toLowerCase()
+            (item) => item.address.toLowerCase() === accountId.toLowerCase()
           )
         ) {
           isAddressBlacklisted = true
@@ -360,7 +360,7 @@ export function isAddressWhitelisted(
       if (isCredentialAddressBased(denyCredential)) {
         if (
           denyCredential.values.some(
-            (address) => address.toLowerCase() === accountId.toLowerCase()
+            (item) => item.address.toLowerCase() === accountId.toLowerCase()
           )
         ) {
           isAddressBlacklisted = true
