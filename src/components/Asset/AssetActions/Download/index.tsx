@@ -212,9 +212,9 @@ export default function Download({
           service,
           accessDetails,
           accountId,
+          verifierSessionId,
           validOrderTx,
-          dataParams,
-          verifierSessionId
+          dataParams
         )
       } else {
         setStatusText(

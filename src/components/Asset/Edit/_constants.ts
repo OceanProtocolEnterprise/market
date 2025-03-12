@@ -87,7 +87,6 @@ function generateCredentials(credentials: Credential): CredentialForm {
   })
   denyAddresses = Array.from(new Set(denyAddresses))
   credentialForm.deny = denyAddresses
-  console.log(credentialForm)
   return credentialForm
 }
 

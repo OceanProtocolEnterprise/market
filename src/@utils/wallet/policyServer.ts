@@ -79,7 +79,6 @@ export async function checkVerifierSessionId(
 
     return response.data
   } catch (error) {
-    console.log(error)
     if (error.response?.data) {
       throw error.response?.data
     }

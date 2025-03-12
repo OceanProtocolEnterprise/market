@@ -255,7 +255,6 @@ export async function downloadFile(
       },
       userCustomParameters
     )
-    console.log(downloadUrl)
   } catch (error) {
     const message = getErrorMessage(error.message)
     LoggerInstance.error('[Provider Get download url] Error:', message)
