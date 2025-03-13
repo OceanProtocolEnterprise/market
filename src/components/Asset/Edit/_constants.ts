@@ -70,7 +70,8 @@ function generateCredentials(credentials: Credential): CredentialForm {
   let allowAddresses = []
   credentials.allow?.forEach((allowCredential) => {
     if (isCredentialAddressBased(allowCredential)) {
-      allowAddresses = [...allowAddresses, ...allowCredential.values]
+      const addresses = allowCredential.values.map((item) => item.address)
+      allowAddresses = [...allowAddresses, ...addresses]
     }
   })
   allowAddresses = Array.from(new Set(allowAddresses))
@@ -79,12 +80,12 @@ function generateCredentials(credentials: Credential): CredentialForm {
   let denyAddresses = []
   credentials.deny?.forEach((denyCredential) => {
     if (isCredentialAddressBased(denyCredential)) {
-      denyAddresses = [...denyAddresses, ...denyCredential.values]
+      const addresses = denyCredential.values.map((item) => item.address)
+      denyAddresses = [...denyAddresses, ...addresses]
     }
   })
   denyAddresses = Array.from(new Set(denyAddresses))
   credentialForm.deny = denyAddresses
-
   return credentialForm
 }
 

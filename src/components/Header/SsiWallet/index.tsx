@@ -5,6 +5,7 @@ import styles from './index.module.css'
 import { SsiKeyDesc, SsiWalletDesc } from 'src/@types/SsiWallet'
 import {
   connectToWallet,
+  getSsiVerifiableCredentialType,
   getWalletKeys,
   getWallets,
   isSessionValid
@@ -20,7 +21,10 @@ export function SsiWallet(): ReactElement {
     selectedWallet,
     setSelectedWallet,
     selectedKey,
-    setSelectedKey
+    setSelectedKey,
+    ssiWalletCache,
+    cachedCredentials,
+    setCachedCredentials
   } = useSsiWallet()
 
   const [ssiWallets, setSsiWallets] = useState<SsiWalletDesc[]>([])
@@ -40,7 +44,7 @@ export function SsiWallet(): ReactElement {
       setSessionToken(undefined)
       LoggerInstance.error(error)
     }
-  }, [setSelectedWallet, selectedWallet])
+  }, [selectedWallet])
 
   const fetchKeys = useCallback(async () => {
     if (!selectedWallet) {
@@ -54,7 +58,7 @@ export function SsiWallet(): ReactElement {
       setSessionToken(undefined)
       LoggerInstance.error(error)
     }
-  }, [selectedWallet, setSelectedKey, selectedKey])
+  }, [selectedWallet, selectedKey])
 
   useEffect(() => {
     if (!sessionToken) {
@@ -90,6 +94,8 @@ export function SsiWallet(): ReactElement {
       return
     }
 
+    setCachedCredentials(ssiWalletCache.readCredentialStorage())
+
     selectorDialog.current.showModal()
 
     fetchWallets()
@@ -108,6 +114,11 @@ export function SsiWallet(): ReactElement {
       (key) => key.keyId.id === (event.target.value as string)
     )
     setSelectedKey(result)
+  }
+
+  function handleResetWalletCache() {
+    ssiWalletCache.clearCredentials()
+    setCachedCredentials(ssiWalletCache.readCredentialStorage())
   }
 
   return (
@@ -165,11 +176,31 @@ export function SsiWallet(): ReactElement {
               <Button
                 style="primary"
                 size="small"
-                className={`${styles.width100p} ${styles.closeButton}`}
+                className={`${styles.width100p} ${styles.closeButton} ${styles.marginBottom2}`}
                 onClick={() => selectorDialog.current.close()}
               >
                 Close
               </Button>
+
+              <Button
+                style="primary"
+                size="small"
+                className={`${styles.width100p} ${styles.resetButton} ${styles.marginBottom2}`}
+                onClick={handleResetWalletCache}
+              >
+                Reset Credential Cache
+              </Button>
+
+              <div>
+                <label>Cached Credentials:</label>
+                <ul className={styles.list}>
+                  {cachedCredentials?.map((credential) => (
+                    <li key={credential.id} className={styles.listItem}>
+                      {getSsiVerifiableCredentialType(credential)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </dialog>
 

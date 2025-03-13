@@ -261,8 +261,6 @@ export function stringifyCredentialPolicies(credentials: Credential) {
     return
   }
 
-  console.log(credentials?.allow)
-
   credentials.allow = credentials?.allow?.map((credential) => {
     if (isCredentialPolicyBased(credential)) {
       credential.values = credential.values.map((value) => {
@@ -343,17 +341,29 @@ export function generateCredentials(
   }
 
   if (updatedCredentials?.allow?.length > 0) {
+    const newList = updatedCredentials?.allow?.map((address: string) => {
+      return {
+        address
+      }
+    })
+
     const newAllowList: CredentialAddressBased = {
       type: 'address',
-      values: updatedCredentials?.allow
+      values: newList
     }
     newCredentials.allow.push(newAllowList)
   }
 
   if (updatedCredentials?.deny?.length > 0) {
+    const newList = updatedCredentials?.deny?.map((address: string) => {
+      return {
+        address
+      }
+    })
+
     const newDenyList: CredentialAddressBased = {
       type: 'address',
-      values: updatedCredentials?.deny
+      values: newList
     }
     newCredentials.deny.push(newDenyList)
   }
@@ -548,7 +558,7 @@ export async function transformPublishFormToDdo(
   newDdo.credentialSubject.services.forEach((service) => {
     stringifyCredentialPolicies(service.credentials)
   })
-
+  console.log(newDdo)
   return newDdo
 }
 

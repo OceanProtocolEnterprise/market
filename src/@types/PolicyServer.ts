@@ -4,16 +4,18 @@ export interface PolicyServerResponse {
   httpStatus: number
 }
 
+export interface PolicyServerInitiateActionData {
+  successRedirectUri: string
+  errorRedirectUri: string
+  responseRedirectUri: string
+  presentationDefinitionUri: string
+}
+
 export interface PolicyServerInitiateAction {
   action: 'initiate'
   sessionId?: string
   ddo: any
-  policyServer: {
-    successRedirectUri: string
-    errorRedirectUri: string
-    responseRedirectUri: string
-    presentationDefinitionUri: string
-  }
+  policyServer: PolicyServerInitiateActionData
 }
 
 export interface PolicyServerGetPdAction {

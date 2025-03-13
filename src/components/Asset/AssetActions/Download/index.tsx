@@ -44,7 +44,7 @@ import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { AssetPrice } from 'src/@types/Asset'
 import { useSsiWallet } from '@context/SsiWallet'
-import { checkSessionId } from '@utils/wallet/policyServer'
+import { checkVerifierSessionId } from '@utils/wallet/policyServer'
 import { AssetActionCheckCredentials } from '../CheckCredentials'
 
 export default function Download({
@@ -212,6 +212,7 @@ export default function Download({
           service,
           accessDetails,
           accountId,
+          verifierSessionId,
           validOrderTx,
           dataParams
         )
@@ -247,6 +248,28 @@ export default function Download({
       toast.error(message)
     }
     setIsLoading(false)
+  }
+
+  async function handleFormSubmit(values: any) {
+    try {
+      const result = await checkVerifierSessionId(verifierSessionId)
+      if (!result.success) {
+        toast.error('Invalid session')
+        setVerifierSessionId(undefined)
+        return
+      }
+
+      const dataServiceParams = parseConsumerParameterValues(
+        values?.dataServiceParams,
+        service.consumerParameters
+      )
+
+      await handleOrderOrDownload(dataServiceParams)
+    } catch (error) {
+      setVerifierSessionId(undefined)
+      toast.error(error.message)
+      LoggerInstance.error(error)
+    }
   }
 
   const handleFullPrice = () => {
@@ -394,20 +417,11 @@ export default function Download({
       }}
       validateOnMount
       validationSchema={getDownloadValidationSchema(service.consumerParameters)}
-      onSubmit={async (values) => {
-        try {
-          const result = await checkSessionId(verifierSessionId)
-        } catch (error) {
-          setVerifierSessionId(undefined)
+      onSubmit={(values) => {
+        if (!verifierSessionId) {
           return
         }
-
-        const dataServiceParams = parseConsumerParameterValues(
-          values?.dataServiceParams,
-          service.consumerParameters
-        )
-
-        await handleOrderOrDownload(dataServiceParams)
+        handleFormSubmit(values)
       }}
     >
       <Form>

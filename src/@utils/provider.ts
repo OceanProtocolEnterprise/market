@@ -237,6 +237,7 @@ export async function downloadFile(
   service: Service,
   accessDetails: AccessDetails,
   accountId: string,
+  verifierSessionId: string,
   validOrderTx?: string,
   userCustomParameters?: UserCustomParameters
 ) {
@@ -249,6 +250,9 @@ export async function downloadFile(
       validOrderTx || accessDetails.validOrderTx,
       customProviderUrl || service.serviceEndpoint,
       signer,
+      {
+        sessionId: verifierSessionId
+      },
       userCustomParameters
     )
   } catch (error) {

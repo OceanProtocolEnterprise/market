@@ -8,9 +8,14 @@ import {
 } from 'react'
 import {
   SsiKeyDesc,
+  SsiVerifiableCredential,
+  SsiWalletCache,
   SsiWalletDesc,
   SsiWalletSession
 } from 'src/@types/SsiWallet'
+
+const verifierSessionIdStorage = 'verifierSessionId'
+const sessionTokenStorage = 'sessionToken'
 
 export interface SsiWalletContext {
   sessionToken: SsiWalletSession
@@ -21,6 +26,10 @@ export interface SsiWalletContext {
   setSelectedKey: (key: SsiKeyDesc) => void
   verifierSessionId: string
   setVerifierSessionId: (id: string) => void
+  ssiWalletCache: SsiWalletCache
+  setSsiWalletCache: (cache: SsiWalletCache) => void
+  cachedCredentials: SsiVerifiableCredential[]
+  setCachedCredentials: (credentials: SsiVerifiableCredential[]) => void
 }
 
 const SsiWalletContext = createContext(null)
@@ -34,14 +43,36 @@ export function SsiWalletProvider({
   const [selectedWallet, setSelectedWallet] = useState<SsiWalletDesc>()
   const [selectedKey, setSelectedKey] = useState<SsiKeyDesc>()
   const [verifierSessionId, setVerifierSessionId] = useState<string>()
+  const [ssiWalletCache, setSsiWalletCache] = useState<SsiWalletCache>(
+    new SsiWalletCache()
+  )
+  const [cachedCredentials, setCachedCredentials] = useState<
+    SsiVerifiableCredential[]
+  >([])
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem(sessionTokenStorage)
+      setSessionToken(JSON.parse(token))
+    } catch (error) {
+      setSessionToken(undefined)
+    }
+
+    setVerifierSessionId(localStorage.getItem(verifierSessionIdStorage))
+  }, [])
 
   useEffect(() => {
     if (!sessionToken) {
       setSelectedWallet(undefined)
       setSelectedKey(undefined)
-      setVerifierSessionId(undefined)
     }
+
+    localStorage.setItem(sessionTokenStorage, JSON.stringify(sessionToken))
   }, [sessionToken])
+
+  useEffect(() => {
+    localStorage.setItem(verifierSessionIdStorage, verifierSessionId)
+  }, [verifierSessionId])
 
   return (
     <SsiWalletContext.Provider
@@ -54,7 +85,11 @@ export function SsiWalletProvider({
           selectedKey,
           setSelectedKey,
           verifierSessionId,
-          setVerifierSessionId
+          setVerifierSessionId,
+          ssiWalletCache,
+          setSsiWalletCache,
+          cachedCredentials,
+          setCachedCredentials
         } as SsiWalletContext
       }
     >
