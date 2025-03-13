@@ -51,7 +51,7 @@
   },
   {
     "name": "requestCredential",
-    "label": "Request Credential",
+    "label": "Credential Request",
     "type": "textarea",
     "placeholder": "Example:\n{\n\t\"type\": \"OpenBadgeCredential\",\n\t\"format\": \"jwt_vc_json\"\n\t\"policies\": [\"signature\"]\n}"
   },
