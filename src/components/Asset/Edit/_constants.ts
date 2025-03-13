@@ -15,7 +15,6 @@ import {
 } from '@components/@shared/PolicyEditor/types'
 import { convertToPolicyType } from '@components/@shared/PolicyEditor/utils'
 import { AdditionalVerifiableCredentials } from 'src/@types/ddo/AdditionalVerifiableCredentials'
-import { add } from 'date-fns'
 
 export const defaultServiceComputeOptions: Compute = {
   allowRawAlgorithm: false,

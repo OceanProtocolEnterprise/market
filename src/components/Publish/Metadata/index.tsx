@@ -1,7 +1,7 @@
 import { BoxSelectionOption } from '@shared/FormInput/InputElement/BoxSelection'
 import Input from '@shared/FormInput'
 import { Field, useField, useFormikContext } from 'formik'
-import { ReactElement, useEffect, useState } from 'react'
+import { ReactElement, useEffect } from 'react'
 import content from '../../../../content/publish/form.json'
 import consumerParametersContent from '../../../../content/publish/consumerParameters.json'
 import { FormPublishData } from '../_types'
@@ -21,8 +21,6 @@ import { License } from 'src/@types/ddo/License'
 import { RemoteObject } from 'src/@types/ddo/RemoteObject'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import appConfig from 'app.config.cjs'
-import { getDefaultPolicies } from '../_utils'
-import { PolicyEditor } from '@components/@shared/PolicyEditor'
 
 const assetTypeOptionsTitles = getFieldContent(
   'type',
@@ -37,8 +35,6 @@ export default function MetadataFields(): ReactElement {
     useFormikContext<FormPublishData>()
 
   const [field, meta] = useField('metadata.dockerImageCustomChecksum')
-
-  const [defaultPolicies, setDefaultPolicies] = useState<string[]>([])
 
   // BoxSelection component is not a Formik component
   // so we need to handle checked state manually.
@@ -78,21 +74,6 @@ export default function MetadataFields(): ReactElement {
   }, [values.metadata.type])
 
   dockerImageOptions.push({ name: 'custom', title: 'Custom', checked: false })
-
-  useEffect(() => {
-    if (appConfig.ssiEnabled) {
-      getDefaultPolicies()
-        .then((policies) => {
-          setFieldValue('credentials.vcPolicies', policies)
-          setDefaultPolicies(policies)
-        })
-        .catch((error) => {
-          LoggerInstance.error(error)
-          setFieldValue('credentials.vcPolicies', [])
-          setDefaultPolicies([])
-        })
-    }
-  }, [])
 
   function handleLicenseFileUpload(
     fileItems: FileItem[],
@@ -269,31 +250,6 @@ export default function MetadataFields(): ReactElement {
             />
           )}
         </>
-      )}
-
-      <Field
-        {...getFieldContent('allow', content.credentials.fields)}
-        component={Input}
-        name="credentials.allow"
-      />
-      <Field
-        {...getFieldContent('deny', content.credentials.fields)}
-        component={Input}
-        name="credentials.deny"
-      />
-
-      {appConfig.ssiEnabled ? (
-        <PolicyEditor
-          label="SSI Policies"
-          credentials={values.credentials}
-          setCredentials={(newCredentials) =>
-            setFieldValue('credentials', newCredentials)
-          }
-          name="credentials"
-          defaultPolicies={defaultPolicies}
-        />
-      ) : (
-        <></>
       )}
 
       {/*

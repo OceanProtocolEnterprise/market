@@ -1,6 +1,6 @@
 import Input from '@shared/FormInput'
 import { Field, useFormikContext } from 'formik'
-import { ReactElement, useEffect } from 'react'
+import { ReactElement } from 'react'
 import content from '../../../../content/publish/form.json'
 import styles from './index.module.css'
 import { getFieldContent } from '@utils/form'
@@ -72,15 +72,4 @@ export function AdditionalDdosFields(): ReactElement {
       })}
     </>
   )
-}
-
-export function AdditionalDdoWizardTab(): ReactElement {
-  const { values, setFieldValue } = useFormikContext<FormPublishData>()
-  useEffect(() => {
-    if (values.additionalDdosPageVisited) {
-      return
-    }
-    setFieldValue('additionalDdosPageVisited', true)
-  })
-  return <AdditionalDdosFields />
 }
