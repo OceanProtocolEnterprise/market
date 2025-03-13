@@ -326,6 +326,9 @@
       }
     ]
   },
+  "policies": {
+    "title": "Asset Level Credentials"
+  },
   "additionalDdos": {
     "title": "Additional Credentials",
     "fields": [
