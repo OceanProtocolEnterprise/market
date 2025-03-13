@@ -12,28 +12,26 @@ import consumerParametersContent from '../../../../content/publish/consumerParam
 import IconDataset from '@images/dataset.svg'
 import IconAlgorithm from '@images/algorithm.svg'
 import { BoxSelectionOption } from '@components/@shared/FormInput/InputElement/BoxSelection'
-import { FileDrop } from '@shared/FileDrop'
+import { FileUpload } from '@components/@shared/FileUpload'
 import Label from '@components/@shared/FormInput/Label'
 import { deleteIpfsFile, uploadFileItemToIPFS } from '@utils/ipfs'
 import { FileItem } from '@utils/fileItem'
 import { License } from '../../../@types/ddo/License'
-import { IpfsRemoteSource } from 'src/components/@shared/IpfsRemoteSource'
 import { RemoteObject } from '../../../@types/ddo/RemoteObject'
-import { sha256 } from 'ohash'
-import Button from '@components/@shared/atoms/Button'
-import styles from './index.module.css'
 import { PolicyEditor } from '@components/@shared/PolicyEditor'
 import { getDefaultPolicies } from '@components/Publish/_utils'
 import { AdditionalDdosFields } from '@components/@shared/AdditionalDdos'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import appConfig from 'app.config.cjs'
+import { toast } from 'react-toastify'
+import { sha256 } from 'ethers/lib/utils.js'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
 
 export default function FormEditMetadata(): ReactElement {
   const { asset } = useAsset()
-  const { values, setFieldValue, errors, setFieldTouched } =
+  const { values, setFieldValue, setFieldTouched } =
     useFormikContext<MetadataEditForm>()
   const firstPageLoad = useRef<boolean>(true)
   const [defaultPolicies, setDefaultPolicies] = useState<string[]>([])
@@ -104,44 +102,42 @@ export default function FormEditMetadata(): ReactElement {
       })
   }, [])
 
-  function handleLicenseFileUpload(
-    fileItems: FileItem[],
-    setSuccess: any,
-    setError: any
+  async function handleLicenseFileUpload(
+    fileItem: FileItem,
+    onError: () => void
   ) {
     try {
-      fileItems.forEach(async (fileItem: FileItem) => {
-        const remoteSource = await uploadFileItemToIPFS(fileItem)
+      const remoteSource = await uploadFileItemToIPFS(fileItem)
 
-        const remoteObject: RemoteObject = {
-          name: fileItem.name,
-          fileType: fileItem.name.split('.').pop(),
-          sha256: sha256(fileItem.content),
-          additionalInformation: {},
-          description: {
-            '@value': '',
-            '@direction': '',
-            '@language': ''
-          },
-          displayName: {
-            '@value': fileItem.name,
-            '@language': '',
-            '@direction': ''
-          },
-          mirrors: [remoteSource]
-        }
+      const remoteObject: RemoteObject = {
+        name: fileItem.name,
+        fileType: fileItem.name.split('.').pop(),
+        sha256: fileItem.checksum,
+        additionalInformation: {},
+        description: {
+          '@value': '',
+          '@direction': '',
+          '@language': ''
+        },
+        displayName: {
+          '@value': fileItem.name,
+          '@language': '',
+          '@direction': ''
+        },
+        mirrors: [remoteSource]
+      }
 
-        const license: License = {
-          name: fileItem.name,
-          licenseDocuments: [remoteObject]
-        }
+      const license: License = {
+        name: fileItem.name,
+        licenseDocuments: [remoteObject]
+      }
 
-        setFieldValue('uploadedLicense', license)
-
-        setSuccess('License uploaded', 4000)
-      })
+      setFieldValue('uploadedLicense', license)
     } catch (err) {
-      setError(err, 4000)
+      toast.error('Could not upload file')
+      LoggerInstance.error(err)
+      setFieldValue('uploadedLicense', undefined)
+      onError()
     }
   }
 
@@ -271,34 +267,10 @@ export default function FormEditMetadata(): ReactElement {
       {values.useRemoteLicense ? (
         <>
           <Label htmlFor="license">License *</Label>
-          {values.uploadedLicense ? (
-            <div className={styles.license}>
-              <IpfsRemoteSource
-                className={styles.licenseItem}
-                noDocumentLabel="No license document available"
-                remoteSource={values.uploadedLicense?.licenseDocuments
-                  ?.at(0)
-                  ?.mirrors?.at(0)}
-              ></IpfsRemoteSource>
-              <Button
-                className={styles.deleteLicenseButton}
-                type="button"
-                style="primary"
-                onClick={handleLicenseRemove}
-              >
-                Delete
-              </Button>
-            </div>
-          ) : (
-            <></>
-          )}
-          <FileDrop
-            dropAreaLabel="Drop a license file here"
+          <FileUpload
             buttonLabel="Upload"
-            onApply={handleLicenseFileUpload}
-            singleFile={true}
-            errorMessage={errors?.uploadedLicense as string}
-          ></FileDrop>
+            setFileItem={handleLicenseFileUpload}
+          ></FileUpload>
         </>
       ) : (
         <>

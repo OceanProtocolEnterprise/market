@@ -20,7 +20,6 @@ export default function Navigation(): ReactElement {
   }
 
   function getSuccessClass(step: number) {
-    console.log(errors)
     const isSuccessMetadata = errors.metadata === undefined
     const isSuccessAccessPolicies =
       values.accessPolicyPageVisited && errors.credentials === undefined

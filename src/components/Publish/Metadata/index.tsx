@@ -13,7 +13,7 @@ import { useMarketMetadata } from '@context/MarketMetadata'
 import { getFieldContent } from '@utils/form'
 import { deleteIpfsFile, uploadFileItemToIPFS } from '@utils/ipfs'
 import Button from '@components/@shared/atoms/Button'
-import { FileDrop } from '@components/@shared/FileDrop'
+import { FileUpload } from '@components/@shared/FileUpload'
 import Label from '@components/@shared/FormInput/Label'
 import { IpfsRemoteSource } from '@components/@shared/IpfsRemoteSource'
 import { FileItem } from '@utils/fileItem'
@@ -21,6 +21,8 @@ import { License } from 'src/@types/ddo/License'
 import { RemoteObject } from 'src/@types/ddo/RemoteObject'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import appConfig from 'app.config.cjs'
+import { toast } from 'react-toastify'
+import { sha256 } from 'ethers/lib/utils.js'
 
 const assetTypeOptionsTitles = getFieldContent(
   'type',
@@ -75,44 +77,42 @@ export default function MetadataFields(): ReactElement {
 
   dockerImageOptions.push({ name: 'custom', title: 'Custom', checked: false })
 
-  function handleLicenseFileUpload(
-    fileItems: FileItem[],
-    setSuccess: any,
-    setError: any
+  async function handleLicenseFileUpload(
+    fileItem: FileItem,
+    onError: () => void
   ) {
     try {
-      fileItems.forEach(async (fileItem: FileItem) => {
-        const remoteSource = await uploadFileItemToIPFS(fileItem)
+      const remoteSource = await uploadFileItemToIPFS(fileItem)
+      console.log(fileItem)
+      const remoteObject: RemoteObject = {
+        name: fileItem.name,
+        fileType: fileItem.name.split('.').pop(),
+        sha256: fileItem.checksum,
+        additionalInformation: {},
+        description: {
+          '@value': '',
+          '@direction': '',
+          '@language': ''
+        },
+        displayName: {
+          '@value': fileItem.name,
+          '@language': '',
+          '@direction': ''
+        },
+        mirrors: [remoteSource]
+      }
 
-        const remoteObject: RemoteObject = {
-          name: fileItem.name,
-          fileType: fileItem.name.split('.').pop(),
-          sha256: fileItem.checksum,
-          additionalInformation: {},
-          description: {
-            '@value': '',
-            '@direction': '',
-            '@language': ''
-          },
-          displayName: {
-            '@value': fileItem.name,
-            '@language': '',
-            '@direction': ''
-          },
-          mirrors: [remoteSource]
-        }
+      const license: License = {
+        name: fileItem.name,
+        licenseDocuments: [remoteObject]
+      }
 
-        const license: License = {
-          name: fileItem.name,
-          licenseDocuments: [remoteObject]
-        }
-
-        setFieldValue('metadata.uploadedLicense', license)
-
-        setSuccess('License uploaded', 4000)
-      })
+      setFieldValue('uploadedLicense', license)
     } catch (err) {
-      setError(err, 4000)
+      toast.error('Could not upload file')
+      LoggerInstance.error(err)
+      setFieldValue('uploadedLicense', undefined)
+      onError()
     }
   }
 
@@ -263,33 +263,10 @@ export default function MetadataFields(): ReactElement {
       {values.metadata.useRemoteLicense ? (
         <>
           <Label htmlFor="license">License *</Label>
-          {values.metadata?.uploadedLicense ? (
-            <div className={styles.license}>
-              <IpfsRemoteSource
-                className={styles.licenseItem}
-                noDocumentLabel="No license document available"
-                remoteSource={values.metadata.uploadedLicense?.licenseDocuments
-                  ?.at(0)
-                  ?.mirrors?.at(0)}
-              ></IpfsRemoteSource>
-              <Button
-                type="button"
-                style="primary"
-                onClick={handleLicenseRemove}
-              >
-                Delete
-              </Button>
-            </div>
-          ) : (
-            <></>
-          )}
-          <FileDrop
-            dropAreaLabel="Drop a license file here"
+          <FileUpload
             buttonLabel="Upload"
-            onApply={handleLicenseFileUpload}
-            singleFile={true}
-            errorMessage={errors?.metadata?.uploadedLicense as string}
-          ></FileDrop>
+            setFileItem={handleLicenseFileUpload}
+          ></FileUpload>
         </>
       ) : (
         <>
