@@ -135,7 +135,12 @@ export function AssetActionCheckCredentials({
                 (credential) => !cachedCredentialsIds.includes(credential.id)
               )
 
-            setShowVpDialog(true)
+            if (exchangeStateData.verifiableCredentials.length > 0) {
+              setShowVpDialog(true)
+            } else {
+              toast.info('No more credentials found')
+              setCheckCredentialState(CheckCredentialState.ReadDids)
+            }
           } else {
             exchangeStateData.selectedCredentials =
               exchangeStateData.verifiableCredentials.map(
