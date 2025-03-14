@@ -126,8 +126,11 @@ export default function MetadataFields(): ReactElement {
       }
     }
 
-    setFieldValue('metadata.licenseUrl', [{ url: '', type: 'url' }])
-    deleteRemoteFile()
+    if (!values.metadata.useRemoteLicense) {
+      deleteRemoteFile()
+    } else {
+      setFieldValue('metadata.licenseUrl', [{ url: '', type: 'url' }])
+    }
   }, [values.metadata.useRemoteLicense])
 
   return (
@@ -239,6 +242,7 @@ export default function MetadataFields(): ReactElement {
         <>
           <Label htmlFor="license">License *</Label>
           <FileUpload
+            fileName={values.metadata?.uploadedLicense?.name}
             buttonLabel="Upload"
             setFileItem={handleLicenseFileUpload}
           ></FileUpload>
