@@ -161,8 +161,11 @@ export default function FormEditMetadata(): ReactElement {
       return
     }
 
-    setFieldValue('licenseUrl', [{ url: '', type: 'url' }])
-    deleteRemoteFile()
+    if (!values.useRemoteLicense) {
+      deleteRemoteFile()
+    } else {
+      setFieldValue('licenseUrl', [{ url: '', type: 'url' }])
+    }
   }, [values.useRemoteLicense])
 
   return (
