@@ -558,7 +558,7 @@ export async function transformPublishFormToDdo(
   newDdo.credentialSubject.services.forEach((service) => {
     stringifyCredentialPolicies(service.credentials)
   })
-  console.log(newDdo)
+
   return newDdo
 }
 
