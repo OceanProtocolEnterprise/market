@@ -1,4 +1,4 @@
-enum PolicyServerActions {
+export enum PolicyServerActions {
   INITIATE = 'initiate',
   GET_PD = 'getPd',
   CHECK_SESSION_ID = 'checkSessionId',

@@ -5,7 +5,8 @@ import {
   PolicyServerInitiateAction,
   PolicyServerResponse,
   PolicyServerCheckSessionIdAction,
-  PolicyServerInitiateActionData
+  PolicyServerInitiateActionData,
+  PolicyServerActions
 } from 'src/@types/PolicyServer'
 
 export async function requestCredentialPresentation(
@@ -27,7 +28,7 @@ export async function requestCredentialPresentation(
     }
 
     const action: PolicyServerInitiateAction = {
-      action: 'initiate',
+      action: PolicyServerActions.INITIATE,
       sessionId,
       ddo: asset,
       policyServer
@@ -62,7 +63,7 @@ export async function checkVerifierSessionId(
 ): Promise<PolicyServerResponse> {
   try {
     const action: PolicyServerCheckSessionIdAction = {
-      action: 'checkSessionId',
+      action: PolicyServerActions.CHECK_SESSION_ID,
       sessionId
     }
     const response = await axios.post(
