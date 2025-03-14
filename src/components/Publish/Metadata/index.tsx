@@ -7,22 +7,17 @@ import consumerParametersContent from '../../../../content/publish/consumerParam
 import { FormPublishData } from '../_types'
 import IconDataset from '@images/dataset.svg'
 import IconAlgorithm from '@images/algorithm.svg'
-import styles from './index.module.css'
 import { algorithmContainerPresets } from '../_constants'
-import { useMarketMetadata } from '@context/MarketMetadata'
 import { getFieldContent } from '@utils/form'
 import { deleteIpfsFile, uploadFileItemToIPFS } from '@utils/ipfs'
-import Button from '@components/@shared/atoms/Button'
 import { FileUpload } from '@components/@shared/FileUpload'
 import Label from '@components/@shared/FormInput/Label'
-import { IpfsRemoteSource } from '@components/@shared/IpfsRemoteSource'
 import { FileItem } from '@utils/fileItem'
 import { License } from 'src/@types/ddo/License'
 import { RemoteObject } from 'src/@types/ddo/RemoteObject'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import appConfig from 'app.config.cjs'
 import { toast } from 'react-toastify'
-import { sha256 } from 'ethers/lib/utils.js'
 
 const assetTypeOptionsTitles = getFieldContent(
   'type',
@@ -30,11 +25,8 @@ const assetTypeOptionsTitles = getFieldContent(
 ).options
 
 export default function MetadataFields(): ReactElement {
-  const { siteContent } = useMarketMetadata()
-
   // connect with Form state, use for conditional field rendering
-  const { values, setFieldValue, setFieldTouched, errors } =
-    useFormikContext<FormPublishData>()
+  const { values, setFieldValue } = useFormikContext<FormPublishData>()
 
   const [field, meta] = useField('metadata.dockerImageCustomChecksum')
 
@@ -83,7 +75,6 @@ export default function MetadataFields(): ReactElement {
   ) {
     try {
       const remoteSource = await uploadFileItemToIPFS(fileItem)
-      console.log(fileItem)
       const remoteObject: RemoteObject = {
         name: fileItem.name,
         fileType: fileItem.name.split('.').pop(),
@@ -107,11 +98,11 @@ export default function MetadataFields(): ReactElement {
         licenseDocuments: [remoteObject]
       }
 
-      setFieldValue('uploadedLicense', license)
+      setFieldValue('metadata.uploadedLicense', license)
     } catch (err) {
       toast.error('Could not upload file')
       LoggerInstance.error(err)
-      setFieldValue('uploadedLicense', undefined)
+      setFieldValue('metadata.uploadedLicense', undefined)
       onError()
     }
   }
@@ -138,22 +129,6 @@ export default function MetadataFields(): ReactElement {
     setFieldValue('metadata.licenseUrl', [{ url: '', type: 'url' }])
     deleteRemoteFile()
   }, [values.metadata.useRemoteLicense])
-
-  async function handleLicenseRemove() {
-    const ipfsHash =
-      values.metadata.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]
-        ?.ipfsCid
-    if (appConfig.ipfsUnpinFiles && ipfsHash && ipfsHash.length > 0) {
-      try {
-        await deleteIpfsFile(ipfsHash)
-      } catch (error) {
-        LoggerInstance.error("Can't delete license file")
-      }
-    }
-
-    await setFieldValue('metadata.uploadedLicense', undefined)
-    await setFieldTouched('metadata.uploadedLicense', true, true)
-  }
 
   return (
     <>

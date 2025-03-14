@@ -24,15 +24,13 @@ import { AdditionalDdosFields } from '@components/@shared/AdditionalDdos'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import appConfig from 'app.config.cjs'
 import { toast } from 'react-toastify'
-import { sha256 } from 'ethers/lib/utils.js'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
 
 export default function FormEditMetadata(): ReactElement {
   const { asset } = useAsset()
-  const { values, setFieldValue, setFieldTouched } =
-    useFormikContext<MetadataEditForm>()
+  const { values, setFieldValue } = useFormikContext<MetadataEditForm>()
   const firstPageLoad = useRef<boolean>(true)
   const [defaultPolicies, setDefaultPolicies] = useState<string[]>([])
 
@@ -108,7 +106,6 @@ export default function FormEditMetadata(): ReactElement {
   ) {
     try {
       const remoteSource = await uploadFileItemToIPFS(fileItem)
-
       const remoteObject: RemoteObject = {
         name: fileItem.name,
         fileType: fileItem.name.split('.').pop(),
@@ -167,21 +164,6 @@ export default function FormEditMetadata(): ReactElement {
     setFieldValue('licenseUrl', [{ url: '', type: 'url' }])
     deleteRemoteFile()
   }, [values.useRemoteLicense])
-
-  async function handleLicenseRemove() {
-    const ipfsHash =
-      values.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]?.ipfsCid
-    if (appConfig.ipfsUnpinFiles && ipfsHash && ipfsHash.length > 0) {
-      try {
-        await deleteIpfsFile(ipfsHash)
-      } catch (error) {
-        LoggerInstance.error("Can't delete license file")
-      }
-    }
-
-    await setFieldValue('uploadedLicense', undefined)
-    await setFieldTouched('uploadedLicense', true, true)
-  }
 
   return (
     <Form>
@@ -268,6 +250,7 @@ export default function FormEditMetadata(): ReactElement {
         <>
           <Label htmlFor="license">License *</Label>
           <FileUpload
+            fileName={values.uploadedLicense?.name}
             buttonLabel="Upload"
             setFileItem={handleLicenseFileUpload}
           ></FileUpload>

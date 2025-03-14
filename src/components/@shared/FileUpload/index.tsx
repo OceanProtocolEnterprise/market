@@ -4,21 +4,23 @@ import styles from './index.module.css'
 import crypto from 'crypto'
 
 export interface FileUploadProps {
+  fileName?: string
   buttonLabel: string
   setFileItem: (fileItem: FileItem, onError: () => void) => void
 }
 
 export function FileUpload({
   buttonLabel,
-  setFileItem
+  setFileItem,
+  fileName
 }: FileUploadProps): ReactElement {
-  const [fileName, setFileName] = useState('')
+  const [uploadFileName, setUploadFileName] = useState('')
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     event.preventDefault()
 
     for (const file of event.target.files) {
-      setFileName(file.name)
+      setUploadFileName(file.name)
 
       const reader = new FileReader()
 
@@ -42,7 +44,7 @@ export function FileUpload({
           name: file.name
         }
 
-        setFileItem(newFileItem, () => setFileName(''))
+        setFileItem(newFileItem, () => setUploadFileName(''))
       }
 
       reader.onerror = () => {
@@ -52,6 +54,16 @@ export function FileUpload({
       }
 
       reader.readAsDataURL(file)
+    }
+  }
+
+  function fileNameLabel(): string {
+    if (uploadFileName) {
+      return uploadFileName
+    } else if (fileName) {
+      return fileName
+    } else {
+      return ''
     }
   }
 
@@ -69,7 +81,7 @@ export function FileUpload({
       >
         {buttonLabel}
       </label>
-      {fileName ? `${fileName}` : <></>}
+      {fileNameLabel()}
     </div>
   )
 }
