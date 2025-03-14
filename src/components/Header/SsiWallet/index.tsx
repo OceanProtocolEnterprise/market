@@ -159,7 +159,7 @@ export function SsiWallet(): ReactElement {
               <select
                 value={selectedKey?.keyId.id}
                 id="ssiKeys"
-                className={`${styles.marginBottom3} ${styles.padding1} ${styles.inputField}`}
+                className={`${styles.marginBottom2} ${styles.padding1} ${styles.inputField}`}
                 onChange={handleKeySelection}
               >
                 {ssiKeys?.map((keys) => {
@@ -178,31 +178,35 @@ export function SsiWallet(): ReactElement {
               <Button
                 style="primary"
                 size="small"
-                className={`${styles.width100p} ${styles.closeButton} ${styles.marginBottom2}`}
-                onClick={() => selectorDialog.current.close()}
-              >
-                Close
-              </Button>
-
-              <Button
-                style="primary"
-                size="small"
-                className={`${styles.width100p} ${styles.resetButton} ${styles.marginBottom2}`}
+                className={`${styles.width100p} ${styles.resetButton} ${styles.marginBottom1}`}
                 onClick={handleResetWalletCache}
               >
                 Reset Credential Cache
               </Button>
 
-              <div>
-                <label>Cached Credentials:</label>
-                <ul className={styles.list}>
-                  {cachedCredentials?.map((credential) => (
-                    <li key={credential.id} className={styles.listItem}>
-                      {getSsiVerifiableCredentialType(credential)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {cachedCredentials?.length > 0 ? (
+                <div className={`${styles.marginBottom2}`}>
+                  <label>Cached Credentials:</label>
+                  <ul className={styles.list}>
+                    {cachedCredentials?.map((credential) => (
+                      <li key={credential.id} className={styles.listItem}>
+                        {getSsiVerifiableCredentialType(credential)}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className={`${styles.marginBottom1}`} />
+              )}
+
+              <Button
+                style="primary"
+                size="small"
+                className={`${styles.width100p} ${styles.closeButton}`}
+                onClick={() => selectorDialog.current.close()}
+              >
+                Close
+              </Button>
             </div>
           </dialog>
 
