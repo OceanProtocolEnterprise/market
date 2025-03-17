@@ -228,15 +228,18 @@ export function findCredential(
   consumerCredentials: CredentialAddressBased
 ) {
   return credentials.find((credential) => {
+    if (!isCredentialAddressBased(credential)) {
+      return false
+    }
+
     if (Array.isArray(credential?.values)) {
       if (credential.values.length > 0) {
         const credentialType = String(credential?.type)?.toLowerCase()
         const credentialValues = credential.values.map((v) => v.address)
-        console.log(JSON.stringify(credentialValues))
-        return (
+        const result =
           credentialType === consumerCredentials.type &&
           credentialValues.includes(consumerCredentials.values[0].address)
-        )
+        return result
       }
     }
     return false
