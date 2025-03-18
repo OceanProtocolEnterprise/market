@@ -22,8 +22,6 @@ import { PolicyServerInitiateActionData } from 'src/@types/PolicyServer'
 import Cross from '@images/cross.svg'
 import VerifiedPatch from '@images/patch_check.svg'
 import { Asset } from 'src/@types/Asset'
-import { Service } from 'src/@types/ddo/Service'
-import { getRequiredCredentials } from '@utils/ddo'
 
 enum CheckCredentialState {
   Stop = 'Stop',
@@ -65,13 +63,7 @@ function isCredentialCached(
   return credentials.includes(credentialType)
 }
 
-export function AssetActionCheckCredentials({
-  asset,
-  service
-}: {
-  asset: Asset
-  service: Service
-}) {
+export function AssetActionCheckCredentials({ asset }: { asset: Asset }) {
   const [checkCredentialState, setCheckCredentialState] =
     useState<CheckCredentialState>(CheckCredentialState.Stop)
   const [requiredCredentials, setRequiredCredentials] = useState<string[]>([])
@@ -90,16 +82,6 @@ export function AssetActionCheckCredentials({
     cachedCredentials,
     setCachedCredentials
   } = useSsiWallet()
-
-  useEffect(() => {
-    const resultRequiredCredentials = getRequiredCredentials(asset, service)
-    setRequiredCredentials(resultRequiredCredentials)
-    console.log(resultRequiredCredentials)
-    const resultCachedCredentials = ssiWalletCache.lookupCredentials(
-      resultRequiredCredentials
-    )
-    setCachedCredentials(resultCachedCredentials)
-  }, [asset, service])
 
   useEffect(() => {
     async function handleCredentialExchange() {
