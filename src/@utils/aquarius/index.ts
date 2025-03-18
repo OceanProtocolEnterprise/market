@@ -125,7 +125,7 @@ export function generateBaseQuery(
   index?: string
 ): SearchQuery {
   const generatedQuery = {
-    index: index ?? 'op_ddo_v4.1.0',
+    index: index ?? 'op_ddo_v5.0.0',
     from: baseQueryParams.esPaginationOptions?.from || 0,
     size:
       baseQueryParams.esPaginationOptions?.size >= 0
