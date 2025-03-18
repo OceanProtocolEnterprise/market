@@ -125,6 +125,15 @@ export function VpSelector(props: VpSelectorProps): ReactElement {
     setSelections(newValues)
   }
 
+  function sortCredentials(
+    credential1: SsiVerifiableCredential,
+    credential2: SsiVerifiableCredential
+  ) {
+    const credential1Type = getSsiVerifiableCredentialType(credential1)
+    const credential2Type = getSsiVerifiableCredentialType(credential2)
+    return credential1Type.localeCompare(credential2Type)
+  }
+
   return (
     <dialog
       id="vpSelector"
@@ -141,17 +150,19 @@ export function VpSelector(props: VpSelectorProps): ReactElement {
         <div
           className={`${styles.panelGrid} ${styles.panelTemplateList} ${styles.alignItemsCenter} ${styles.justifyItemsStrech} ${styles.marginBottom2}`}
         >
-          {ssiVerifiableCredentials?.map((credential, index) => {
-            return (
-              <VpField
-                key={credential.id}
-                credential={credential}
-                onChange={handleOnChange}
-                index={index}
-                checked={selections[index]}
-              />
-            )
-          })}
+          {ssiVerifiableCredentials
+            ?.sort(sortCredentials)
+            .map((credential, index) => {
+              return (
+                <VpField
+                  key={credential.id}
+                  credential={credential}
+                  onChange={handleOnChange}
+                  index={index}
+                  checked={selections[index]}
+                />
+              )
+            })}
         </div>
 
         <div className={styles.panelRow}>
