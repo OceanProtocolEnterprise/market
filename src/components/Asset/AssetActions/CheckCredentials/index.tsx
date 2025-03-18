@@ -288,25 +288,29 @@ export function AssetActionCheckCredentials({
         <div
           className={`${styles.panelGrid} ${styles.panelTemplateData} ${styles.marginTop1}`}
         >
-          {requiredCredentials?.map((credential) => {
-            return (
-              <>
-                {isCredentialCached(cachedCredentials, credential) ? (
-                  <VerifiedPatch
-                    key={credential}
-                    className={`${styles.marginTop6px} ${styles.fillGreen}`}
-                  />
-                ) : (
-                  <Cross
-                    key={credential}
-                    className={`${styles.marginTop6px} ${styles.fillRed}`}
-                  />
-                )}
-
-                {credential}
-              </>
+          {requiredCredentials
+            ?.sort((credential1, credential2) =>
+              credential1.localeCompare(credential2)
             )
-          })}
+            .map((credential) => {
+              return (
+                <>
+                  {isCredentialCached(cachedCredentials, credential) ? (
+                    <VerifiedPatch
+                      key={credential}
+                      className={`${styles.marginTop6px} ${styles.fillGreen}`}
+                    />
+                  ) : (
+                    <Cross
+                      key={credential}
+                      className={`${styles.marginTop6px} ${styles.fillRed}`}
+                    />
+                  )}
+
+                  {credential}
+                </>
+              )
+            })}
         </div>
       </div>
     </div>
