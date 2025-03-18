@@ -19,12 +19,16 @@ import { checkJson } from './codemirror'
 import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
 import { Option } from 'src/@types/ddo/Option'
-import { isCredentialAddressBased } from './credentials'
+import {
+  isCredentialAddressBased,
+  isCredentialPolicyBased
+} from './credentials'
 import {
   CredentialAddressBased,
   Credential,
   CredentialPolicyBased
 } from 'src/@types/ddo/Credentials'
+import { getSsiVerifiableCredentialType } from './wallet/ssiWallet'
 
 export function isValidDid(did: string): boolean {
   const regex = /^did:ope:[A-Za-z0-9]{64}$/
@@ -299,4 +303,49 @@ export function isAddressWhitelisted(
   )
   const serviceAccessGranted = checkCredentials(service.credentials, accountId)
   return assetAccessGranted && serviceAccessGranted
+}
+
+export function getRequiredCredentials(
+  asset: Asset,
+  service: Service
+): string[] {
+  if (!asset || !service) {
+    return []
+  }
+
+  const assetRequiredCredentials =
+    asset.credentialSubject.credentials.allow.map((credential) => {
+      if (isCredentialPolicyBased(credential)) {
+        return credential.values
+          .map((value) => {
+            return value.request_credentials.map(
+              (requestCredential) => requestCredential.type
+            )
+          })
+          .flat()
+      } else {
+        return []
+      }
+    })
+
+  const serviceRequiredCredentials = service.credentials.allow.map(
+    (credential) => {
+      if (isCredentialPolicyBased(credential)) {
+        return credential.values
+          .map((value) => {
+            return value.request_credentials.map(
+              (requestCredential) => requestCredential.type
+            )
+          })
+          .flat()
+      } else {
+        return []
+      }
+    }
+  )
+
+  const newList = assetRequiredCredentials
+    .concat(serviceRequiredCredentials)
+    .flat()
+  return [...new Set(newList)]
 }

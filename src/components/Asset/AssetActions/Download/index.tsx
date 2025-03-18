@@ -461,7 +461,7 @@ export default function Download({
                   />
                 </>
               ) : (
-                <AssetActionCheckCredentials asset={asset} />
+                <AssetActionCheckCredentials asset={asset} service={service} />
               )}
             </>
           )}

@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import axios from 'axios'
-import { AssetExtended } from 'src/@types/AssetExtended'
+import { Asset } from 'src/@types/Asset'
 import {
   PolicyServerInitiateAction,
   PolicyServerResponse,
@@ -9,9 +9,7 @@ import {
   PolicyServerActions
 } from 'src/@types/PolicyServer'
 
-export async function requestCredentialPresentation(
-  asset: AssetExtended
-): Promise<{
+export async function requestCredentialPresentation(asset: Asset): Promise<{
   success: boolean
   openid4vc: string
   policyServerData: PolicyServerInitiateActionData
