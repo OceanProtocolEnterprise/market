@@ -440,7 +440,7 @@ export default function Download({
           {!isFullPriceLoading &&
             (appConfig.ssiEnabled ? (
               <>
-                {verifierSessionId && verifierSessionId?.length > 0 ? (
+                {verifierSessionId && verifierSessionId.length > 0 ? (
                   <>
                     <AssetActionBuy asset={asset} />
                     <Field

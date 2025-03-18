@@ -57,8 +57,12 @@ export function SsiWalletProvider({
     } catch (error) {
       setSessionToken(undefined)
     }
-
-    setVerifierSessionId(localStorage.getItem(verifierSessionIdStorage))
+    const token = localStorage.getItem(verifierSessionIdStorage)
+    if (token) {
+      setVerifierSessionId(token)
+    } else {
+      setVerifierSessionId(undefined)
+    }
   }, [])
 
   useEffect(() => {
@@ -71,7 +75,11 @@ export function SsiWalletProvider({
   }, [sessionToken])
 
   useEffect(() => {
-    localStorage.setItem(verifierSessionIdStorage, verifierSessionId)
+    if (verifierSessionId) {
+      localStorage.setItem(verifierSessionIdStorage, verifierSessionId)
+    } else {
+      localStorage.removeItem(verifierSessionIdStorage)
+    }
   }, [verifierSessionId])
 
   return (

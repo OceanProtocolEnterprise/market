@@ -625,7 +625,66 @@ export default function Compute({
             onSubmit(values)
           }}
         >
-          {verifierSessionId && verifierSessionId?.length > 0 ? (
+          {appConfig.ssiEnabled ? (
+            <>
+              {verifierSessionId && verifierSessionId?.length > 0 ? (
+                <FormStartComputeDataset
+                  asset={asset}
+                  service={service}
+                  accessDetails={accessDetails}
+                  algorithms={algorithmList}
+                  ddoListAlgorithms={ddoAlgorithmList}
+                  selectedAlgorithmAsset={selectedAlgorithmAsset}
+                  setSelectedAlgorithmAsset={setSelectedAlgorithmAsset}
+                  isLoading={isOrdering || isRequestingAlgoOrderPrice}
+                  isComputeButtonDisabled={isComputeButtonDisabled}
+                  hasPreviousOrder={!!validOrderTx}
+                  hasDatatoken={hasDatatoken}
+                  dtBalance={dtBalance}
+                  assetTimeout={secondsToString(service.timeout)}
+                  hasPreviousOrderSelectedComputeAsset={!!validAlgorithmOrderTx}
+                  hasDatatokenSelectedComputeAsset={hasAlgoAssetDatatoken}
+                  isAccountIdWhitelisted={isAccountIdWhitelisted}
+                  datasetSymbol={
+                    accessDetails.baseToken?.symbol ||
+                    (asset.credentialSubject?.chainId === 137
+                      ? 'mOCEAN'
+                      : 'OCEAN')
+                  }
+                  algorithmSymbol={
+                    selectedAlgorithmAsset?.accessDetails?.[0]?.baseToken
+                      ?.symbol ||
+                    (selectedAlgorithmAsset?.credentialSubject?.chainId === 137
+                      ? 'mOCEAN'
+                      : 'OCEAN')
+                  }
+                  providerFeesSymbol={providerFeesSymbol}
+                  dtSymbolSelectedComputeAsset={
+                    selectedAlgorithmAsset?.accessDetails?.[0]?.datatoken.symbol
+                  }
+                  dtBalanceSelectedComputeAsset={algorithmDTBalance}
+                  selectedComputeAssetType="algorithm"
+                  selectedComputeAssetTimeout={secondsToString(
+                    selectedAlgorithmAsset?.credentialSubject?.services[0]
+                      ?.timeout
+                  )}
+                  computeEnvs={computeEnvs}
+                  setSelectedComputeEnv={setSelectedComputeEnv}
+                  // lazy comment when removing pricingStepText
+                  stepText={computeStatusText}
+                  isConsumable={isConsumablePrice}
+                  consumableFeedback={consumableFeedback}
+                  datasetOrderPriceAndFees={datasetOrderPriceAndFees}
+                  algoOrderPriceAndFees={algoOrderPriceAndFees}
+                  providerFeeAmount={providerFeeAmount}
+                  validUntil={computeValidUntil}
+                  retry={retry}
+                />
+              ) : (
+                <AssetActionCheckCredentials asset={asset} />
+              )}
+            </>
+          ) : (
             <FormStartComputeDataset
               asset={asset}
               service={service}
@@ -674,8 +733,6 @@ export default function Compute({
               validUntil={computeValidUntil}
               retry={retry}
             />
-          ) : (
-            <AssetActionCheckCredentials asset={asset} />
           )}
         </Formik>
       )}
