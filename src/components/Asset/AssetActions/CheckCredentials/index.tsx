@@ -297,11 +297,18 @@ export function AssetActionCheckCredentials({ asset }: { asset: Asset }) {
                       className={`${styles.marginTop6px} ${styles.fillGreen}`}
                     />
                   ) : (
-                    <Cross
+                    <div
                       key={credential}
                       className={`${styles.marginTop6px} ${styles.fillRed}`}
-                    />
+                    ></div>
                   )}
+
+                  {
+                    // <Cross
+                    // key={credential}
+                    // className={`${styles.marginTop6px} ${styles.fillRed}`}
+                    // />
+                  }
 
                   {credential}
                 </>
