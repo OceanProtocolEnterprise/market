@@ -134,7 +134,7 @@ export function AssetActionCheckCredentials({ asset }: { asset: Asset }) {
             if (exchangeStateData.verifiableCredentials.length > 0) {
               setShowVpDialog(true)
             } else {
-              toast.info('No more credentials found')
+              toast.info('No more credentials found in your ssi wallet')
               setCheckCredentialState(CheckCredentialState.ReadDids)
             }
           } else {
