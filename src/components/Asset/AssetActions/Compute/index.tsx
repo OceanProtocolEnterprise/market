@@ -67,7 +67,7 @@ import { AssetExtended } from 'src/@types/AssetExtended'
 import { AssetActionCheckCredentials } from '../CheckCredentials'
 import { useSsiWallet } from '@context/SsiWallet'
 import { checkVerifierSessionId } from '@utils/wallet/policyServer'
-import Button from '@components/@shared/atoms/Button'
+import appConfig from 'app.config.cjs'
 
 const refreshInterval = 10000 // 10 sec.
 
@@ -675,7 +675,7 @@ export default function Compute({
               retry={retry}
             />
           ) : (
-            <AssetActionCheckCredentials asset={asset} service={service} />
+            <AssetActionCheckCredentials asset={asset} />
           )}
         </Formik>
       )}

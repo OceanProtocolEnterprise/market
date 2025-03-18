@@ -38,7 +38,7 @@ import Input from '@components/@shared/FormInput'
 import CalculateButtonBuy from '../CalculateButtonBuy'
 import Decimal from 'decimal.js'
 import { MAX_DECIMALS } from '@utils/constants'
-import { consumeMarketFixedSwapFee } from 'app.config.cjs'
+import appConfig, { consumeMarketFixedSwapFee } from 'app.config.cjs'
 import { Row } from '../Row'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
@@ -437,34 +437,56 @@ export default function Download({
             </div>
             <AssetAction asset={asset} />
           </div>
-          {!isFullPriceLoading && (
-            <>
-              {verifierSessionId && verifierSessionId?.length > 0 ? (
-                <>
-                  <AssetActionBuy asset={asset} />
-                  <Field
-                    component={Input}
-                    name="termsAndConditions"
-                    type="checkbox"
-                    options={['Terms and Conditions']}
-                    prefixes={['I agree to the']}
-                    actions={['/terms']}
-                    disabled={isLoading}
-                  />
-                  <Field
-                    component={Input}
-                    name="acceptPublishingLicense"
-                    type="checkbox"
-                    options={['Publishing License']}
-                    prefixes={['I agree the']}
-                    disabled={isLoading}
-                  />
-                </>
-              ) : (
-                <AssetActionCheckCredentials asset={asset} service={service} />
-              )}
-            </>
-          )}
+          {!isFullPriceLoading &&
+            (appConfig.ssiEnabled ? (
+              <>
+                {verifierSessionId && verifierSessionId?.length > 0 ? (
+                  <>
+                    <AssetActionBuy asset={asset} />
+                    <Field
+                      component={Input}
+                      name="termsAndConditions"
+                      type="checkbox"
+                      options={['Terms and Conditions']}
+                      prefixes={['I agree to the']}
+                      actions={['/terms']}
+                      disabled={isLoading}
+                    />
+                    <Field
+                      component={Input}
+                      name="acceptPublishingLicense"
+                      type="checkbox"
+                      options={['Publishing License']}
+                      prefixes={['I agree the']}
+                      disabled={isLoading}
+                    />
+                  </>
+                ) : (
+                  <AssetActionCheckCredentials asset={asset} />
+                )}
+              </>
+            ) : (
+              <>
+                <AssetActionBuy asset={asset} />
+                <Field
+                  component={Input}
+                  name="termsAndConditions"
+                  type="checkbox"
+                  options={['Terms and Conditions']}
+                  prefixes={['I agree to the']}
+                  actions={['/terms']}
+                  disabled={isLoading}
+                />
+                <Field
+                  component={Input}
+                  name="acceptPublishingLicense"
+                  type="checkbox"
+                  options={['Publishing License']}
+                  prefixes={['I agree the']}
+                  disabled={isLoading}
+                />
+              </>
+            ))}
           <div className={styles.consumerParameters}>
             {/* TODO - */}
             <ConsumerParameters service={service} isLoading={isLoading} />
