@@ -33,7 +33,6 @@ export function escapeEsReservedCharacters(value: string): string {
  */
 type TFilterValue = string | number | boolean | number[] | string[]
 type TFilterKey = 'terms' | 'term' | 'match' | 'match_phrase'
-
 export function getFilterTerm(
   filterField: string,
   value: TFilterValue,
@@ -137,15 +136,21 @@ export function generateBaseQuery(
         filter: [
           ...(baseQueryParams.filters || []),
           ...(baseQueryParams.chainIds
-            ? [getFilterTerm('chainId', baseQueryParams.chainIds)]
+            ? [
+                getFilterTerm(
+                  'credentialSubject.chainId',
+                  baseQueryParams.chainIds
+                )
+              ]
             : []),
           ...(baseQueryParams.ignorePurgatory
             ? []
-            : [getFilterTerm('purgatory.state', false)]),
+            : [getFilterTerm('credentialSubject.purgatory.state', false)]),
           {
             bool: {
               must_not: [
-                !baseQueryParams.ignoreState && getFilterTerm('nft.state', 5),
+                !baseQueryParams.ignoreState &&
+                  getFilterTerm('credentialSubject.nft.state', 5),
                 getDynamicPricingMustNot()
               ]
             }
@@ -159,12 +164,13 @@ export function generateBaseQuery(
     generatedQuery.aggs = baseQueryParams.aggs
   }
 
-  if (baseQueryParams.sortOptions !== undefined)
+  if (baseQueryParams.sortOptions !== undefined) {
     generatedQuery.sort = {
-      [baseQueryParams.sortOptions.sortBy]:
+      [`${baseQueryParams.sortOptions.sortBy}.keyword`]:
         baseQueryParams.sortOptions.sortDirection ||
         SortDirectionOptions.Descending
     }
+  }
 
   // add whitelist filtering
   if (getWhitelistShould()?.length > 0) {
