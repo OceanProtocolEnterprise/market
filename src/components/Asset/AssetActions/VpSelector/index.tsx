@@ -62,8 +62,9 @@ function VpField(props: VpFieldProps): ReactElement {
       <div
         className={`${styles.panelGrid} ${styles.panelTemplateData} ${styles.marginBottom3}`}
       >
-        {Object.keys(credential?.parsedDocument?.credentialSubject || {}).map(
-          (key) => {
+        {Object.keys(credential?.parsedDocument?.credentialSubject || {})
+          .sort((key1, key2) => key1.localeCompare(key2))
+          .map((key) => {
             return (
               <>
                 <div>{key}</div>
@@ -75,8 +76,7 @@ function VpField(props: VpFieldProps): ReactElement {
                 </div>
               </>
             )
-          }
-        )}
+          })}
       </div>
     </>
   )
