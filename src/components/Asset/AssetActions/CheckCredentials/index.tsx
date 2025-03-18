@@ -13,7 +13,6 @@ import {
   getSsiVerifiableCredentialType
 } from '@utils/wallet/ssiWallet'
 import { useEffect, useState } from 'react'
-import { AssetExtended } from 'src/@types/AssetExtended'
 import { SsiVerifiableCredential, SsiWalletDid } from 'src/@types/SsiWallet'
 import { VpSelector } from '../VpSelector'
 import { DidSelector } from '../DidSelector'
@@ -22,6 +21,9 @@ import { LoggerInstance } from '@oceanprotocol/lib'
 import { PolicyServerInitiateActionData } from 'src/@types/PolicyServer'
 import Cross from '@images/cross.svg'
 import VerifiedPatch from '@images/patch_check.svg'
+import { Asset } from 'src/@types/Asset'
+import { Service } from 'src/@types/ddo/Service'
+import { getRequiredCredentials } from '@utils/ddo'
 
 enum CheckCredentialState {
   Stop = 'Stop',
@@ -64,9 +66,11 @@ function isCredentialCached(
 }
 
 export function AssetActionCheckCredentials({
-  asset
+  asset,
+  service
 }: {
-  asset: AssetExtended
+  asset: Asset
+  service: Service
 }) {
   const [checkCredentialState, setCheckCredentialState] =
     useState<CheckCredentialState>(CheckCredentialState.Stop)
@@ -86,6 +90,16 @@ export function AssetActionCheckCredentials({
     cachedCredentials,
     setCachedCredentials
   } = useSsiWallet()
+
+  useEffect(() => {
+    const resultRequiredCredentials = getRequiredCredentials(asset, service)
+    setRequiredCredentials(resultRequiredCredentials)
+    console.log(resultRequiredCredentials)
+    const resultCachedCredentials = ssiWalletCache.lookupCredentials(
+      resultRequiredCredentials
+    )
+    setCachedCredentials(resultCachedCredentials)
+  }, [asset, service])
 
   useEffect(() => {
     async function handleCredentialExchange() {

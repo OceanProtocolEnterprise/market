@@ -675,7 +675,7 @@ export default function Compute({
               retry={retry}
             />
           ) : (
-            <AssetActionCheckCredentials asset={asset} />
+            <AssetActionCheckCredentials asset={asset} service={service} />
           )}
         </Formik>
       )}
