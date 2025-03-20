@@ -89,7 +89,7 @@ export async function getOrderPriceAndFees(
     }
     toast.error(message)
   }
-  orderPriceAndFee.providerFee = providerFees || initializeData.providerFee
+  orderPriceAndFee.providerFee = providerFees || initializeData?.providerFee
 
   // fetch price and swap fees
   if (accessDetails.type === 'fixed') {
