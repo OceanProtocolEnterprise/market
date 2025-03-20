@@ -43,7 +43,6 @@ import {
   Credential,
   CredentialAddressBased,
   CredentialPolicyBased,
-  isVpType,
   RequestCredential,
   VP
 } from 'src/@types/ddo/Credentials'
@@ -59,7 +58,8 @@ import {
   PolicyRuleLeftValuePrefix,
   PolicyRuleRightValuePrefix,
   PolicyType,
-  CredentialForm
+  CredentialForm,
+  VpPolicyType
 } from '@components/@shared/PolicyEditor/types'
 import { SsiWalletContext } from '@context/SsiWallet'
 import {
@@ -249,9 +249,21 @@ export function parseCredentialPolicies(credentials: Credential) {
             return requestCredentials
           }
         )
+
+        value.vp_policies = value.vp_policies
+          .map((policy) => {
+            try {
+              return JSON.parse(policy)
+            } catch (error) {
+              LoggerInstance.error(error)
+              return null
+            }
+          })
+          .filter((policy) => !!policy)
         return value
       })
     }
+
     return credential
   })
 }
@@ -278,6 +290,10 @@ export function stringifyCredentialPolicies(credentials: Credential) {
               .filter((policy) => policy !== undefined)
             return requestCredentials
           }
+        )
+
+        value.vp_policies = value.vp_policies.map((policy) =>
+          JSON.stringify(policy)
         )
         return value
       })
@@ -311,18 +327,21 @@ export function generateCredentials(
         }
       )
 
-    const vpPolicies: VP[] = updatedCredentials?.vpPolicies?.map<VP>(
-      (credential) => {
-        try {
-          const obj = JSON.parse(credential)
-          if (isVpType(obj)) {
-            return obj as VP
-          } else {
-            return credential
-          }
-        } catch (error) {
-          return credential
+    const vpPolicies: VP[] = updatedCredentials?.vpPolicies?.map(
+      (credential: VpPolicyType) => {
+        let policy: VP
+        switch (credential.type) {
+          case 'staticVpPolicy':
+            policy = credential.name
+            break
+          case 'argumentVpPolicy':
+            policy = {
+              policy: credential.policy,
+              args: parseInt(credential.args)
+            }
+            break
         }
+        return policy
       }
     )
 

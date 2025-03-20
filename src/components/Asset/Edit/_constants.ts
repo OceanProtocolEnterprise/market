@@ -2,7 +2,7 @@ import { FileInfo, LoggerInstance } from '@oceanprotocol/lib'
 import { parseConsumerParameters, secondsToString } from '@utils/ddo'
 import { ComputeEditForm, MetadataEditForm, ServiceEditForm } from './_types'
 import { Metadata } from 'src/@types/ddo/Metadata'
-import { Credential } from 'src/@types/ddo/Credentials'
+import { Credential, isVpValue } from 'src/@types/ddo/Credentials'
 import { Compute, Service } from 'src/@types/ddo/Service'
 import {
   isCredentialAddressBased,
@@ -10,8 +10,11 @@ import {
 } from '@utils/credentials'
 import appConfig from 'app.config.cjs'
 import {
+  ArgumentVpPolicy,
   CredentialForm,
-  RequestCredentialForm
+  RequestCredentialForm,
+  StaticVpPolicy,
+  VpPolicyType
 } from '@components/@shared/PolicyEditor/types'
 import { convertToPolicyType } from '@components/@shared/PolicyEditor/utils'
 import { AdditionalVerifiableCredentials } from 'src/@types/ddo/AdditionalVerifiableCredentials'
@@ -29,7 +32,7 @@ function generateCredentials(credentials: Credential): CredentialForm {
   if (appConfig.ssiEnabled) {
     const requestCredentials: RequestCredentialForm[] = []
     let vcPolicies: string[] = []
-    let vpPolicies = []
+    let vpPolicies: VpPolicyType[] = []
     credentials.allow?.forEach((policyCredential) => {
       if (isCredentialPolicyBased(policyCredential)) {
         policyCredential.values.forEach((value) => {
@@ -52,12 +55,27 @@ function generateCredentials(credentials: Credential): CredentialForm {
             requestCredentials.push(newRequestCredential)
           })
 
-          const vpPoliciesStrings = value.vp_policies.map((policy) =>
-            JSON.stringify(policy, null, 2)
+          const newVpPolicies: VpPolicyType[] = value.vp_policies.map(
+            (policy) => {
+              if (isVpValue(policy)) {
+                const result: ArgumentVpPolicy = {
+                  type: 'argumentVpPolicy',
+                  policy: policy.policy,
+                  args: policy.args.toString()
+                }
+                return result
+              } else {
+                const result: StaticVpPolicy = {
+                  type: 'staticVpPolicy',
+                  name: policy
+                }
+                return result
+              }
+            }
           )
 
           vcPolicies = [...vcPolicies, ...value.vc_policies]
-          vpPolicies = [...vpPolicies, ...vpPoliciesStrings]
+          vpPolicies = [...vpPolicies, ...newVpPolicies]
         })
       }
     })
