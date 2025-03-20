@@ -61,6 +61,12 @@
     "type": "text"
   },
   {
+    "name": "args",
+    "label": "Args",
+    "type": "text",
+    "required": true
+  },
+  {
     "name": "policy",
     "label": "Policy",
     "type": "text",
@@ -120,8 +126,13 @@
     "type": "text"
   },
   {
-    "name": "vpPolicy",
-    "label": "VP Policy",
+    "name": "argumentVpPolicy",
+    "label": "Argument VP Policy",
+    "type": "text"
+  },
+  {
+    "name": "staticVpPolicy",
+    "label": "Static VP Policy",
     "type": "text"
   },
   {
