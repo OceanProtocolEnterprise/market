@@ -34,8 +34,13 @@ export function AdditionalDdosFields(): ReactElement {
   return (
     <>
       <div className={styles.newDdoBtn}>
-        <Button type="button" style="primary" onClick={handleNewDdo}>
-          New Credential
+        <Button
+          type="button"
+          style="primary"
+          onClick={handleNewDdo}
+          title="To add a description of the asset relevant for other data ecosystems, use the button below"
+        >
+          Create Additional Asset Description
         </Button>
       </div>
 
