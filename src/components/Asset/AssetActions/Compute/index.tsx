@@ -516,11 +516,13 @@ export default function Compute({
 
   const onSubmit = async (values: ComputeDatasetForm) => {
     try {
-      const result = await checkVerifierSessionId(verifierSessionId)
-      if (!result.success) {
-        toast.error('Invalid session')
-        setVerifierSessionId(undefined)
-        return
+      if (appConfig.ssiEnabled) {
+        const result = await checkVerifierSessionId(verifierSessionId)
+        if (!result.success) {
+          toast.error('Invalid session')
+          setVerifierSessionId(undefined)
+          return
+        }
       }
 
       if (
