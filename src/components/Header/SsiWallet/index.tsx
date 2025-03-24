@@ -13,6 +13,7 @@ import {
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { useAccount, useSigner } from 'wagmi'
 import appConfig from 'app.config.cjs'
+import { toast } from 'react-toastify'
 
 export function SsiWallet(): ReactElement {
   const {
@@ -75,21 +76,33 @@ export function SsiWallet(): ReactElement {
   }, [sessionToken, selectedWallet, selectedKey])
 
   async function handleReconnection() {
-    const valid = await isSessionValid()
-    if ((!valid || !sessionToken) && isConnected && signer) {
-      try {
-        const session = await connectToWallet(signer)
-        setSessionToken(session)
-      } catch (error) {
-        setSessionToken(undefined)
-        LoggerInstance.error(error)
-        return false
+    if (isConnected && signer) {
+      const valid = await isSessionValid()
+      if ((!valid || !sessionToken) && isConnected && signer) {
+        try {
+          const session = await connectToWallet(signer)
+          setSessionToken(session)
+        } catch (error) {
+          setSessionToken(undefined)
+          LoggerInstance.error(error)
+          return false
+        }
       }
+      return true
+    } else {
+      toast.error('You need to connect to your wallet first')
+      return false
     }
-    return true
   }
 
   async function handleOpenDialog() {
+    const valid = await isSessionValid()
+    if (!valid) {
+      toast.error('SSI wallet session token is invalid or expired')
+      setSessionToken(undefined)
+      return
+    }
+
     const succeed = await handleReconnection()
     if (!succeed) {
       return
@@ -222,7 +235,6 @@ export function SsiWallet(): ReactElement {
           ) : (
             <button
               className={`${styles.ssiPanel} ${styles.disconnected}`}
-              disabled={!(isConnected && signer)}
               onClick={handleReconnection}
             >
               {isConnected && signer ? (
