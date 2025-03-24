@@ -30,7 +30,7 @@ export async function initializeProviderForCompute(
   datasetService: Service,
   datasetAccessDetails: AccessDetails,
   algorithm: AssetExtended,
-  accountId: string,
+  accountId: Signer,
   computeEnv: ComputeEnvironment = null
 ): Promise<ProviderComputeInitializeResults> {
   const computeAsset: ComputeAsset = {

@@ -263,7 +263,7 @@ export default function Compute({
         service,
         accessDetails,
         selectedAlgorithmAsset,
-        accountId || ZERO_ADDRESS, // if the user is not connected, we use ZERO_ADDRESS as accountId
+        signer,
         selectedComputeEnv
       )
       if (
@@ -492,11 +492,12 @@ export default function Compute({
         service.serviceEndpoint,
         signer,
         selectedComputeEnv?.id,
-        computeAsset,
+        [computeAsset],
         computeAlgorithm,
-        newAbortController(),
         null,
-        output
+        null,
+        output,
+        newAbortController()
       )
       if (!response) throw new Error('Error starting compute job.')
 

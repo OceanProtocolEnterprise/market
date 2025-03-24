@@ -31,7 +31,7 @@ export interface VPValue {
 }
 
 export type VC = string
-
+export type VP = string | VPValue
 export interface RequestCredential {
   type: string
   format: string
