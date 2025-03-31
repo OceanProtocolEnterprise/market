@@ -105,6 +105,8 @@ export default function FormEditMetadata(): ReactElement {
     onError: () => void
   ) {
     try {
+      const oldFile = values.uploadedLicense
+
       const remoteSource = await uploadFileItemToIPFS(fileItem)
       const remoteObject: RemoteObject = {
         name: fileItem.name,
@@ -130,6 +132,17 @@ export default function FormEditMetadata(): ReactElement {
       }
 
       setFieldValue('uploadedLicense', license)
+
+      if (oldFile) {
+        const ipfsHash = oldFile?.licenseDocuments?.[0]?.mirrors?.[0]?.ipfsCid
+        if (appConfig.ipfsUnpinFiles && ipfsHash && ipfsHash?.length > 0) {
+          try {
+            await deleteIpfsFile(ipfsHash)
+          } catch (error) {
+            LoggerInstance.error("Can't delete license file")
+          }
+        }
+      }
     } catch (err) {
       toast.error('Could not upload file')
       LoggerInstance.error(err)
