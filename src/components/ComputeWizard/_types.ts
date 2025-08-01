@@ -22,6 +22,35 @@ export interface FormComputeData {
   step2Completed: boolean
   step3Completed: boolean
   step4Completed: boolean
+  // New fields for multi-dataset support
+  datasets?: Array<{
+    id: string
+    name: string
+    services: Array<{
+      id: string
+      name: string
+      price: string
+      duration: string
+    }>
+    credentialsStatus: 'pending' | 'valid' | 'invalid'
+    credentialsValidUntil?: Date
+  }>
+  algorithmDetails?: {
+    id: string
+    name: string
+    price: string
+    duration: string
+  }
+  computeResources?: {
+    price: string
+    duration: string
+  }
+  marketFees?: {
+    dataset: string
+    algorithm: string
+    c2d: string
+  }
+  totalPrice?: string
 }
 
 export interface StepContent {

@@ -477,3 +477,27 @@ body .inputSmall {
 .actions button:last-child:hover {
   background: var(--publish-primary-hover);
 }
+
+/* Configuration Warning */
+.configurationWarning {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 16px;
+  gap: 8px;
+  width: 100%;
+  background: var(--publish-background-highlight);
+  border: 1px solid var(--publish-accent);
+  border-radius: var(--publish-border-radius);
+  margin-top: 16px;
+}
+
+.configurationWarning p {
+  font-family: var(--font-family-base);
+  font-style: normal;
+  font-weight: var(--publish-font-weight-normal);
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--publish-text);
+  margin: 0;
+}

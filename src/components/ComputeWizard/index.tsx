@@ -14,7 +14,6 @@ import PageHeader from '@shared/Page/PageHeader'
 import Title from './Title'
 import styles from './index.module.css'
 import Actions from './Actions'
-import WizardActions from '@shared/WizardActions'
 import Navigation from './Navigation'
 import Steps from './Steps'
 import { useUserPreferences } from '@context/UserPreferences'
@@ -132,15 +131,7 @@ export default function ComputeWizard({
                 computeEnvs={computeEnvs}
                 isAlgorithm={isAlgorithm}
               />
-              <WizardActions
-                navigationType="path"
-                basePath={`/asset/${asset?.id}/compute`}
-                totalSteps={totalSteps}
-                submitButtonText="Buy Dataset"
-                showSuccessConfetti={false}
-                formikContext={formikContext}
-                rightAlignFirstStep={false}
-              />
+              <Actions />
             </SectionContainer>
           </Form>
           {debug && (

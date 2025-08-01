@@ -7,7 +7,7 @@ import styles from './index.module.css'
 
 export default function Actions(): ReactElement {
   const router = useRouter()
-  const { values, isSubmitting, submitForm }: any =
+  const { values, isSubmitting, submitForm, setFieldValue }: any =
     useFormikContext<FormComputeData>()
 
   const currentStep = values.user.stepCurrent
@@ -25,6 +25,17 @@ export default function Actions(): ReactElement {
 
   function handleContinue() {
     if (currentStep < 4) {
+      // Mark current step as completed when user continues (same as publish flow)
+      const stepCompletions = {
+        1: ['step1Completed'],
+        2: ['step2Completed'],
+        3: ['step3Completed'],
+        4: ['step4Completed']
+      }
+
+      const fieldsToSet = stepCompletions[currentStep] || []
+      fieldsToSet.forEach((field) => setFieldValue(field, true))
+
       const { did } = router.query
       router.push(`/asset/${did}/compute/${currentStep + 1}`)
     }
@@ -34,10 +45,13 @@ export default function Actions(): ReactElement {
     submitForm()
   }
 
+  const isFirstStep = currentStep === 1
+  const actionsClassName = isFirstStep ? styles.actionsRight : styles.actions
+
   return (
-    <footer className={styles.actions}>
+    <footer className={actionsClassName}>
       {values.user.stepCurrent > 1 && (
-        <Button style="text" onClick={handleBack} disabled={isSubmitting}>
+        <Button onClick={handleBack} disabled={isSubmitting}>
           Back
         </Button>
       )}
@@ -49,7 +63,27 @@ export default function Actions(): ReactElement {
         <Button
           style="publish"
           onClick={handleContinue}
-          disabled={isSubmitting}
+          disabled={
+            isSubmitting ||
+            // Step 1: Must have algorithm selected
+            (currentStep === 1 &&
+              (!values.algorithm || values.algorithm === null)) ||
+            // Step 2: Must have algorithm completed and environment selected
+            (currentStep === 2 && (!values.algorithm || !values.computeEnv)) ||
+            // Step 3: Must have previous steps completed and all configuration values set
+            (currentStep === 3 &&
+              (!values.algorithm ||
+                !values.computeEnv ||
+                values.cpu <= 0 ||
+                values.ram <= 0 ||
+                values.disk <= 0 ||
+                values.jobDuration <= 0)) ||
+            // Step 4: Must have all previous steps completed
+            (currentStep === 4 &&
+              (!values.algorithm ||
+                !values.computeEnv ||
+                !values.step3Completed))
+          }
         >
           Continue
         </Button>

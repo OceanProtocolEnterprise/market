@@ -10,7 +10,11 @@ export function useComputeStepCompletion() {
     const isSuccessEnvironment =
       values.computeEnv !== null && values.computeEnv !== undefined
     const isSuccessConfiguration =
-      values.cpu > 0 && values.ram > 0 && values.disk > 0 && values.gpu >= 0
+      values.step3Completed &&
+      values.cpu > 0 &&
+      values.ram > 0 &&
+      values.disk > 0 &&
+      values.gpu >= 0
     const isSuccessReview =
       values.step4Completed && values.algorithm && values.computeEnv
 

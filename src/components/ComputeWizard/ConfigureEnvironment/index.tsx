@@ -20,20 +20,21 @@ export default function ConfigureEnvironment(): ReactElement {
 
   const [mode, setMode] = useState<'free' | 'paid'>('free')
   const [symbolMap, setSymbolMap] = useState<{ [address: string]: string }>({})
+  const [isConfigurationComplete, setIsConfigurationComplete] = useState(false)
 
-  // Separate state for free and paid values
+  // Separate state for free and paid values with 0 defaults
   const [freeValues, setFreeValues] = useState<ResourceValues>({
-    cpu: values.cpu || 1,
-    ram: values.ram || 8,
-    disk: values.disk || 100,
-    jobDuration: values.jobDuration || 3600
+    cpu: values.cpu || 0,
+    ram: values.ram || 0,
+    disk: values.disk || 0,
+    jobDuration: values.jobDuration || 0
   })
 
   const [paidValues, setPaidValues] = useState<ResourceValues>({
-    cpu: values.cpu || 1,
-    ram: values.ram || 8,
-    disk: values.disk || 100,
-    jobDuration: values.jobDuration || 3600
+    cpu: values.cpu || 0,
+    ram: values.ram || 0,
+    disk: values.disk || 0,
+    jobDuration: values.jobDuration || 0
   })
 
   const formatMB = (bytes: number) => Math.floor(bytes / 1_000_000)
@@ -48,35 +49,59 @@ export default function ConfigureEnvironment(): ReactElement {
     return sym
   }
 
-  // Update form values when mode changes
+  // Check if configuration is complete
+  const checkConfigurationComplete = () => {
+    const currentValues = mode === 'free' ? freeValues : paidValues
+    const isComplete =
+      currentValues.cpu > 0 &&
+      currentValues.ram > 0 &&
+      currentValues.disk > 0 &&
+      currentValues.jobDuration > 0
+    setIsConfigurationComplete(isComplete)
+    return isComplete
+  }
+
+  // Update form values when mode changes or when user interacts with inputs
   useEffect(() => {
     const currentValues = mode === 'free' ? freeValues : paidValues
-    setFieldValue('cpu', currentValues.cpu)
-    setFieldValue('ram', currentValues.ram)
-    setFieldValue('disk', currentValues.disk)
-    setFieldValue('jobDuration', currentValues.jobDuration)
-  }, [mode, freeValues, paidValues, setFieldValue])
+    // Only update form values if they are different from current form values
+    // This prevents auto-setting values on mount
+    if (values.cpu !== currentValues.cpu)
+      setFieldValue('cpu', currentValues.cpu)
+    if (values.ram !== currentValues.ram)
+      setFieldValue('ram', currentValues.ram)
+    if (values.disk !== currentValues.disk)
+      setFieldValue('disk', currentValues.disk)
+    if (values.jobDuration !== currentValues.jobDuration)
+      setFieldValue('jobDuration', currentValues.jobDuration)
+    checkConfigurationComplete()
+  }, [
+    mode,
+    freeValues,
+    paidValues,
+    setFieldValue,
+    values.cpu,
+    values.ram,
+    values.disk,
+    values.jobDuration
+  ])
 
-  if (!values.computeEnv) {
-    return (
-      <div className={styles.container}>
-        <StepTitle title="C2D Environment Configuration" />
-        <p>Please select an environment first</p>
-      </div>
-    )
-  }
+  // Check configuration completion on mount
+  useEffect(() => {
+    checkConfigurationComplete()
+  }, [])
 
   const env = values.computeEnv
   const chainId = chain?.id?.toString() || '11155111'
-  const fee = env.fees?.[chainId]?.[0]
-  const freeAvailable = !!env.free
+  const fee = env?.fees?.[chainId]?.[0]
+  const freeAvailable = !!env?.free
   const tokenAddress = fee?.feeToken
   const tokenSymbol = symbolMap[tokenAddress] || '...'
 
   if (tokenAddress) fetchSymbol(tokenAddress)
 
   const getLimits = (id: string, isFree: boolean) => {
-    const resourceLimits = isFree ? env.free?.resources : env.resources
+    const resourceLimits = isFree ? env?.free?.resources : env?.resources
     return resourceLimits?.find((r) => r.id === id) ?? { max: 0, min: 0 }
   }
 
@@ -90,6 +115,8 @@ export default function ConfigureEnvironment(): ReactElement {
     } else {
       setPaidValues((prev) => ({ ...prev, [type]: value }))
     }
+    // Check completion after each update
+    setTimeout(() => checkConfigurationComplete(), 0)
   }
 
   const calculatePrice = () => {
@@ -223,7 +250,7 @@ export default function ConfigureEnvironment(): ReactElement {
           {renderResourceRow('cpu', 'CPU', '', false)}
           {renderResourceRow('ram', 'RAM', '', false)}
           {renderResourceRow('disk', 'DISK', '', false)}
-          {renderResourceRow('jobDuration', 'JOB DURATION', '', true)}
+          {renderResourceRow('jobDuration', 'JOB DURATION', '', false)}
         </div>
       </div>
 
@@ -246,6 +273,16 @@ export default function ConfigureEnvironment(): ReactElement {
           </div>
         </div>
       </div>
+
+      {/* Configuration Status */}
+      {!isConfigurationComplete && (
+        <div className={styles.configurationWarning}>
+          <p>
+            Please configure all resource values (CPU, RAM, Disk, Job Duration)
+            to continue.
+          </p>
+        </div>
+      )}
     </div>
   )
 }
