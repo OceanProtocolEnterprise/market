@@ -42,6 +42,7 @@
     "@uiw/react-codemirror": "^4.19.5",
     "@urql/core": "3.0.3",
     "@urql/exchange-refocus": "1.0.0",
+    "@wagmi/chains": "^1.8.0",
     "@zazuko/env-node": "^2.1.4",
     "axios": "^1.2.0",
     "base64url": "^3.0.1",
@@ -140,7 +141,8 @@
     "typescript": "^5.2.2"
   },
   "overrides": {
-    "graphql": "15.8.0"
+    "graphql": "15.8.0",
+    "ethers": "^6.15.0"
   },
   "repository": {
     "type": "git",

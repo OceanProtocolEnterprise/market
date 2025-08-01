@@ -6,7 +6,7 @@ import { getNetworkDisplayName } from '@hooks/useNetworkMetadata'
 import { getOceanConfig } from '../ocean'
 import { getSupportedChains } from './chains'
 import { chainIdsSupported } from '../../../app.config.cjs'
-import { localhost } from 'wagmi/dist/chains'
+import { localhost } from '@wagmi/chains'
 
 export async function getDummySigner(chainId: number): Promise<Signer> {
   if (typeof chainId !== 'number') {
