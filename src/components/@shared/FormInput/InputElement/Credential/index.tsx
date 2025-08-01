@@ -2,11 +2,11 @@ import { useField } from 'formik'
 import { useState, ChangeEvent, FormEvent, useEffect } from 'react'
 import Button from '../../../atoms/Button'
 import styles from './index.module.css'
-import { isAddress } from 'ethers/lib/utils.js'
 import { toast } from 'react-toastify'
 import InputGroup from '../../InputGroup'
 import InputElement from '..'
 import { InputProps } from '../..'
+import { isAddress } from 'ethers'
 
 export default function Credentials(props: InputProps) {
   const [field, meta, helpers] = useField(props.name)

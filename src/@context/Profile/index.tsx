@@ -17,8 +17,8 @@ import {
 } from '@utils/aquarius'
 import axios, { CancelToken } from 'axios'
 import { useMarketMetadata } from '../MarketMetadata'
-import { isAddress } from 'ethers/lib/utils'
 import { Asset } from 'src/@types/Asset'
+import { isAddress } from 'ethers'
 
 interface ProfileProviderValue {
   assets: Asset[]

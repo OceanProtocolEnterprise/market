@@ -114,9 +114,7 @@ export default function AddService({
           marketFeeCollector: marketFeeAddress,
           baseTokenDecimals: 18,
           datatokenDecimals: 18,
-          fixedRate: ethers.utils
-            .parseEther(values.price.toString())
-            .toString(),
+          fixedRate: ethers.parseEther(values.price.toString()).toString(),
           marketFee: publisherMarketFixedSwapFee,
           withMint: true
         }
@@ -132,8 +130,8 @@ export default function AddService({
         )
 
         const dispenserParams: DispenserParams = {
-          maxTokens: ethers.utils.parseEther('1').toString(),
-          maxBalance: ethers.utils.parseEther('1').toString(),
+          maxTokens: ethers.parseEther('1').toString(),
+          maxBalance: ethers.parseEther('1').toString(),
           withMint: true
         }
 
@@ -234,7 +232,7 @@ export default function AddService({
           customProviderUrl ||
             updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
           '',
-          ethers.utils.hexlify(ipfsUpload.flags),
+          ethers.hexlify(new Uint8Array([ipfsUpload.flags])),
           ipfsUpload.metadataIPFS,
           ipfsUpload.metadataIPFSHash
         )

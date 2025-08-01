@@ -31,13 +31,12 @@ import appConfig, {
 } from '../../../app.config.cjs'
 import { sanitizeUrl } from '@utils/url'
 import { getContainerChecksum } from '@utils/docker'
-import { hexlify, parseEther } from 'ethers/lib/utils'
 import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
 import { Metadata } from 'src/@types/ddo/Metadata'
 import { Option } from 'src/@types/ddo/Option'
 import { createHash } from 'crypto'
-import { ethers, Signer } from 'ethers'
+import { ethers, hexlify, parseEther, Signer } from 'ethers'
 import { uploadToIPFS } from '@utils/ipfs'
 import { DDOVersion } from 'src/@types/DdoVersion'
 import {
@@ -60,11 +59,7 @@ import {
   VpPolicyType
 } from '@components/@shared/PolicyEditor/types'
 import { SsiWalletContext } from '@context/SsiWallet'
-import {
-  getWalletKey,
-  isSessionValid,
-  signMessage
-} from '@utils/wallet/ssiWallet'
+import { isSessionValid, signMessage } from '@utils/wallet/ssiWallet'
 import { isCredentialPolicyBased } from '@utils/credentials'
 import { State } from 'src/@types/ddo/State'
 import { transformComputeFormToServiceComputeOptions } from '@utils/compute'
@@ -75,7 +70,7 @@ function makeDid(nftAddress: string, chainId: string): string {
   return (
     'did:ope:' +
     createHash('sha256')
-      .update(ethers.utils.getAddress(nftAddress) + chainId)
+      .update(ethers.getAddress(nftAddress) + chainId)
       .digest('hex')
   )
 }
@@ -759,9 +754,10 @@ export async function signAssetAndUploadToIpfs(
       owner
     )
   }
+
   const stringAsset = JSON.stringify(jwtVerifiableCredential)
-  const bytes = Buffer.from(stringAsset)
-  const metadata = hexlify(bytes)
+  const buffer = Buffer.from(stringAsset, 'utf-8')
+  const metadata = hexlify(new Uint8Array(buffer))
 
   const data = { encryptedData: metadata }
   const ipfsHash = await uploadToIPFS(data)
@@ -787,9 +783,9 @@ export async function signAssetAndUploadToIpfs(
       LoggerInstance.error('[Provider Encrypt] Error:', error.message)
     }
   } else {
-    const stringDDO: string = JSON.stringify(remoteAsset)
-    const bytes: Buffer = Buffer.from(stringDDO)
-    metadataIPFS = hexlify(bytes)
+    const stringDDO = JSON.stringify(remoteAsset)
+    const buffer = Buffer.from(stringDDO, 'utf-8')
+    const metadataIPFS = hexlify(new Uint8Array(buffer))
     flags = 0
   }
 
@@ -868,7 +864,7 @@ export async function createTokensAndPricing(
 
       erc721Address = nftCreatedEvent.args.newTokenAddress
       datatokenAddress = tokenCreatedEvent.args.newTokenAddress
-      txHash = trxReceipt.transactionHash
+      txHash = trxReceipt?.hash
 
       LoggerInstance.log('[publish] createNftErcWithFixedRate tx', txHash)
 
@@ -902,7 +898,7 @@ export async function createTokensAndPricing(
 
       erc721Address = nftCreatedEvent.args.newTokenAddress
       datatokenAddress = tokenCreatedEvent.args.newTokenAddress
-      txHash = trxReceipt.transactionHash
+      txHash = trxReceipt?.hash
 
       LoggerInstance.log('[publish] createNftErcWithDispenser tx', txHash)
 

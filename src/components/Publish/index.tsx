@@ -207,7 +207,7 @@ export default function PublishPage({
         0,
         customProviderUrl || values.services[0].providerUrl.url,
         '',
-        ethers.utils.hexlify(ipfsUpload.flags),
+        ethers.hexlify(new Uint8Array([ipfsUpload.flags])),
         ipfsUpload.metadataIPFS,
         ipfsUpload.metadataIPFSHash
       )

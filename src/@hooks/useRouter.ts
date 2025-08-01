@@ -35,10 +35,10 @@ function useFactoryRouter() {
         router.contract.getOPCProviderFee()
       ])
       return {
-        swapOceanFee: ethers.utils.formatUnits(opcFees[0], 18),
-        swapNonOceanFee: ethers.utils.formatUnits(opcFees[1], 18),
-        consumeFee: ethers.utils.formatUnits(consumeFee, 18),
-        providerFee: ethers.utils.formatUnits(providerFee, 18)
+        swapOceanFee: ethers.formatUnits(opcFees[0], 18),
+        swapNonOceanFee: ethers.formatUnits(opcFees[1], 18),
+        consumeFee: ethers.formatUnits(consumeFee, 18),
+        providerFee: ethers.formatUnits(providerFee, 18)
       }
     } catch (error) {
       console.error('Error fetching fees:', error)

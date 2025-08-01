@@ -49,7 +49,7 @@ export function testLinks(isEdit?: boolean) {
           : 'Transaction ID not valid.'
         break
       case 'smartcontract':
-        validField = ethers.utils.isAddress(value?.toString())
+        validField = ethers.isAddress(value?.toString())
         errorMessage = !value?.toString()
           ? 'Address required.'
           : 'Address not valid.'

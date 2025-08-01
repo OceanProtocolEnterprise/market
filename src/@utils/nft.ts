@@ -106,7 +106,7 @@ export async function setNftMetadata(
   accountId: string,
   signer: Signer,
   signal: AbortSignal
-): Promise<ethers.providers.TransactionResponse> {
+): Promise<ethers.TransactionResponse> {
   let encryptedDdo
   try {
     encryptedDdo = await ProviderInstance.encrypt(
@@ -126,7 +126,7 @@ export async function setNftMetadata(
   const nft = new Nft(signer)
 
   // theoretically used by aquarius or provider, not implemented yet, will remain hardcoded
-  const flags = ethers.utils.hexlify(2)
+  const flags = ethers.hexlify(new Uint8Array([2]))
 
   const setMetadataTx = await nft.setMetadata(
     asset.credentialSubject.nftAddress,
@@ -148,7 +148,7 @@ export async function setNFTMetadataAndTokenURI(
   signer: Signer,
   nftMetadata: NftMetadata | undefined,
   signal: AbortSignal
-): Promise<ethers.providers.TransactionResponse> {
+): Promise<ethers.TransactionResponse> {
   let encryptedDdo
   try {
     encryptedDdo = await ProviderInstance.encrypt(

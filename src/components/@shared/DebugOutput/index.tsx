@@ -11,7 +11,13 @@ export default function DebugOutput({
     <div style={{ marginTop: 'var(--spacer)' }}>
       {title && <h5>{title}</h5>}
       <pre style={{ wordWrap: 'break-word' }}>
-        <code>{JSON.stringify(output, null, 2)}</code>
+        <code>
+          {JSON.stringify(
+            output,
+            (_, v) => (typeof v === 'bigint' ? v.toString() + 'n' : v),
+            2
+          )}
+        </code>
       </pre>
     </div>
   )

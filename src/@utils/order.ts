@@ -11,8 +11,7 @@ import {
   ProviderFees,
   ProviderInstance,
   ProviderInitialize,
-  getErrorMessage,
-  ZERO_ADDRESS
+  getErrorMessage
 } from '@oceanprotocol/lib'
 import { Signer, ethers } from 'ethers'
 import { getOceanConfig } from './ocean'
@@ -34,14 +33,33 @@ async function initializeProvider(
 ): Promise<ProviderInitialize> {
   if (providerFees) return
   try {
-    const provider = await ProviderInstance.initialize(
-      asset.id,
-      service.id,
-      0,
-      accountId,
-      customProviderUrl || service.serviceEndpoint
+    const command = {
+      documentId: asset.id,
+      serviceId: service.id,
+      consumerAddress: accountId,
+      policyServer: {
+        sessionId: '',
+        successRedirectUri: '',
+        errorRedirectUri: '',
+        responseRedirectUri: '',
+        presentationDefinitionUri: ''
+      }
+    }
+    const initializePs = await ProviderInstance.initializePSVerification(
+      customProviderUrl || service.serviceEndpoint,
+      command
     )
-    return provider
+    if (initializePs?.success) {
+      const provider = await ProviderInstance.initialize(
+        asset.id,
+        service.id,
+        0,
+        accountId,
+        customProviderUrl || service.serviceEndpoint
+      )
+      return provider
+    }
+    throw new Error(`Provider initialization failed: ${initializePs.error}`)
   } catch (error) {
     const message = getErrorMessage(error.message)
     LoggerInstance.log('[Initialize Provider] Error:', message)
@@ -56,7 +74,7 @@ async function initializeProvider(
  * @param accountId
  * @param providerFees
  * @param computeConsumerAddress
- * @returns {ethers.providers.TransactionResponse | BigNumber} receipt of the order
+ * @returns {ethers.TransactionResponse | BigNumber} receipt of the order
  */
 export async function order(
   signer: Signer,
@@ -68,7 +86,7 @@ export async function order(
   hasDatatoken: boolean,
   providerFees?: ProviderFees,
   computeConsumerAddress?: string
-): Promise<ethers.providers.TransactionResponse> {
+): Promise<ethers.TransactionResponse> {
   const datatoken = new Datatoken(signer, asset.credentialSubject?.chainId)
   const config = getOceanConfig(asset.credentialSubject?.chainId)
   const initializeData = await initializeProvider(
@@ -224,7 +242,7 @@ export async function reuseOrder(
   accountId: string,
   validOrderTx: string,
   providerFees?: ProviderFees
-): Promise<ethers.providers.TransactionResponse> {
+): Promise<ethers.TransactionResponse> {
   const datatoken = new Datatoken(signer)
   const initializeData = await initializeProvider(
     asset,
@@ -248,7 +266,7 @@ async function approveProviderFee(
   accountId: string,
   signer: Signer,
   providerFeeAmount: string
-): Promise<ethers.providers.TransactionResponse> {
+): Promise<ethers.TransactionResponse> {
   const config = getOceanConfig(asset.credentialSubject?.chainId)
   const baseToken =
     accessDetails.type === 'free'
@@ -340,7 +358,7 @@ export async function handleComputeOrder(
       if (!txReuseOrder) throw new Error('Failed to reuse order!')
       const tx = await txReuseOrder.wait()
       LoggerInstance.log('[compute] Reused order:', tx)
-      return tx?.transactionHash
+      return tx?.hash
     }
 
     LoggerInstance.log(
@@ -361,10 +379,11 @@ export async function handleComputeOrder(
       initializeData.providerFee,
       computeConsumerAddress
     )
+    console.log('txOrder', txStartOrder)
 
     const tx = await txStartOrder.wait()
     LoggerInstance.log('[compute] Order succeeded', tx)
-    return tx?.transactionHash
+    return tx?.hash
   } catch (error) {
     toast.error(error.message)
     LoggerInstance.error(`[compute] ${error.message}`)

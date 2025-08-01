@@ -252,7 +252,7 @@ export default function Download({
           throw new Error()
         }
         setIsOwned(true)
-        setValidOrderTx(tx.transactionHash)
+        setValidOrderTx(tx?.hash)
       }
     } catch (error) {
       LoggerInstance.error(error)

@@ -1,5 +1,4 @@
-import { Event, ethers } from 'ethers'
-import { TransactionResponse } from '@ethersproject/abstract-provider'
+import { ethers, Log, TransactionResponse } from 'ethers'
 import { InvoiceData } from '../../@types/invoice/InvoiceData'
 import ERC20TemplateEnterprise from '@oceanprotocol/contracts/artifacts/contracts/templates/ERC20TemplateEnterprise.sol/ERC20TemplateEnterprise.json'
 import FixedRateExchange from '@oceanprotocol/contracts/artifacts/contracts/pools/fixedRate/FixedRateExchange.sol/FixedRateExchange.json'
@@ -11,8 +10,13 @@ import {
 import Decimal from 'decimal.js'
 import { getOceanConfig } from '@utils/ocean'
 
+export interface DecodedEvent {
+  event: string
+  args: Record<string, any>
+}
+
 function createInvoices(
-  events: Event[],
+  events: DecodedEvent[],
   tx: TransactionResponse,
   transactionFee: number,
   invoiceDate: Date,
@@ -216,7 +220,7 @@ function createInvoices(
 }
 
 function createInvoicesComputeJobs(
-  events: Event[],
+  events: DecodedEvent[],
   tx: TransactionResponse,
   transactionFee: number,
   invoiceDate: Date,
@@ -529,7 +533,7 @@ export async function decodeBuyComputeJob(
 ): Promise<InvoiceData[]> {
   try {
     const { nodeUri } = getOceanConfig(chainId)
-    const provider = new ethers.providers.JsonRpcProvider(nodeUri)
+    const provider = new ethers.JsonRpcProvider(nodeUri)
     const transaction = await provider.getTransaction(txHash)
     const contractAddress = transaction.to // Extract contract address from transaction details
     const txReceipt = await provider.getTransactionReceipt(txHash)
@@ -550,16 +554,26 @@ export async function decodeBuyComputeJob(
       transaction.blockNumber,
       transaction.blockNumber
     )
-    const reusedEvent = events.find((event) => event.event === 'OrderReused')
+    const reusedEvent = events.find(
+      (event) => 'event' in event && event.event === 'OrderReused'
+    )
 
     const decodedEvents = []
     for (const event of events) {
-      decodedEvents.push({
-        event: event.event,
-        args: event.args
-      })
+      if ('event' in event && 'args' in event) {
+        decodedEvents.push({
+          event: event.event,
+          args: event.args
+        })
+      }
     }
-    if (reusedEvent) {
+    if (
+      reusedEvent &&
+      'args' in reusedEvent &&
+      typeof reusedEvent.args === 'object' &&
+      reusedEvent.args !== null &&
+      'orderTxId' in reusedEvent.args
+    ) {
       return decodeBuyComputeJob(
         reusedEvent.args.orderTxId,
         assetId,
@@ -588,10 +602,13 @@ export async function decodeBuyComputeJob(
         transaction.blockNumber
       )
       if (eventsFixedRate.length > 0) {
-        decodedEvents.push({
-          event: eventsFixedRate[0].event,
-          args: eventsFixedRate[0].args
-        })
+        const eventLog = eventsFixedRate[0]
+        if ('event' in eventLog && 'args' in eventLog) {
+          decodedEvents.push({
+            event: eventLog.event,
+            args: eventLog.args
+          })
+        }
       }
     }
 
@@ -618,7 +635,7 @@ export async function decodeBuyComputeJob(
 }
 
 export async function decodeBuy(
-  provider: ethers.providers.JsonRpcProvider,
+  provider: ethers.JsonRpcProvider,
   txHash: string,
   chainId: number,
   id: string,
@@ -650,10 +667,12 @@ export async function decodeBuy(
     )
     const decodedEvents = []
     for (const event of events) {
-      decodedEvents.push({
-        event: event.event,
-        args: event.args
-      })
+      if ('event' in event && 'args' in event) {
+        decodedEvents.push({
+          event: event.event,
+          args: event.args
+        })
+      }
     }
 
     const { fixedRateExchangeAddress } = getOceanConfig(chainId)
@@ -668,10 +687,13 @@ export async function decodeBuy(
       transaction.blockNumber + 10
     )
     if (eventsFixedRate.length > 0) {
-      decodedEvents.push({
-        event: eventsFixedRate[0].event,
-        args: eventsFixedRate[0].args
-      })
+      const eventLog = eventsFixedRate[0]
+      if ('event' in eventLog && 'args' in eventLog) {
+        decodedEvents.push({
+          event: eventLog.event,
+          args: eventLog.args
+        })
+      }
     }
 
     return createInvoices(
@@ -691,7 +713,7 @@ export async function decodeBuy(
 }
 
 async function getContractCreationBlock(
-  provider: ethers.providers.Provider,
+  provider: ethers.Provider,
   contractAddress: string
 ): Promise<number> {
   const latest = await provider.getBlockNumber()
@@ -731,7 +753,7 @@ export async function decodeBuyDataSet(
 ): Promise<InvoiceData[]> {
   try {
     const { nodeUri } = getOceanConfig(chainId)
-    const provider = new ethers.providers.JsonRpcProvider(nodeUri)
+    const provider = new ethers.JsonRpcProvider(nodeUri)
     const contract = new ethers.Contract(
       dataTokenAddress,
       ERC20TemplateEnterprise.abi,
@@ -740,7 +762,7 @@ export async function decodeBuyDataSet(
 
     const startBlock = await getContractCreationBlock(
       provider,
-      contract.address
+      contract.target as string
     )
     const latestBlock = await provider.getBlockNumber()
     let fromBlock = startBlock

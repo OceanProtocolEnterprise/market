@@ -1,14 +1,13 @@
-import { Event, ethers } from 'ethers'
-import { TransactionResponse } from '@ethersproject/abstract-provider'
+import { ethers } from 'ethers'
 import { InvoiceData } from '../../@types/invoice/InvoiceData'
 import NftFactory from '@oceanprotocol/contracts/artifacts/contracts/ERC721Factory.sol/ERC721Factory.json'
 import ERC20TemplateEnterprise from '@oceanprotocol/contracts/artifacts/contracts/templates/ERC20TemplateEnterprise.sol/ERC20TemplateEnterprise.json'
 import { getOceanConfig } from '@utils/ocean'
 
 function createInvoicePublish(
-  txPublish: TransactionResponse,
+  txPublish: ethers.TransactionResponse,
   transactionFee: number,
-  event: Event,
+  event: { args: any },
   invoiceDate: Date,
   invoiceId: string
 ): InvoiceData {
@@ -69,7 +68,7 @@ export async function decodePublish(
 ): Promise<InvoiceData> {
   try {
     const { nftFactoryAddress, nodeUri } = getOceanConfig(chainId)
-    const provider = new ethers.providers.JsonRpcProvider(nodeUri)
+    const provider = new ethers.JsonRpcProvider(nodeUri)
     const transactionPublish = await provider.getTransaction(txHash)
     const txReceipt = await provider.getTransactionReceipt(txHash)
 
@@ -91,7 +90,9 @@ export async function decodePublish(
       transactionPublish.blockNumber // toBlock
     )
     const filteredEvents = eventInstance.filter(
-      (event) => event.args.instance === transactionPublish.to
+      (event) =>
+        'args' in event &&
+        (event as ethers.EventLog).args.instance === transactionPublish.to
     )
 
     if (filteredEvents.length === 0) {
@@ -111,8 +112,12 @@ export async function decodePublish(
     const transactionFee = transactionFeeWei + transactionFeeWei2
 
     // Get past events emitted by the contract instance
+    const lastEvent = eventInstance[eventInstance.length - 1]
+    if (!('args' in lastEvent)) {
+      throw new Error('Event does not have args property')
+    }
     const contractInstance = new ethers.Contract(
-      eventInstance[eventInstance.length - 1].args.instance,
+      (lastEvent as ethers.EventLog).args.instance,
       ERC20TemplateEnterprise.abi,
       provider
     )
@@ -125,7 +130,7 @@ export async function decodePublish(
     return createInvoicePublish(
       transactionPublish,
       transactionFee,
-      events[0],
+      events[0] as ethers.EventLog,
       invoiceDate,
       id
     )

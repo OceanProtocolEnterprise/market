@@ -31,20 +31,26 @@ export async function requestCredentialPresentation(
       responseRedirectUri: ``,
       presentationDefinitionUri: ``
     }
-
+    const assetSafe = JSON.parse(
+      JSON.stringify(asset, (_, v) =>
+        typeof v === 'bigint' ? v.toString() : v
+      )
+    )
     const action: PolicyServerInitiateAction = {
       action: PolicyServerActions.INITIATE,
-      ddo: asset,
+      ddo: assetSafe,
       policyServer,
       serviceId,
       consumerAddress
     }
+    console.log('before axios post', action)
     const response = await axios.post(
       `${customProviderUrl}/api/services/PolicyServerPassthrough`,
       {
         policyServerPassthrough: action
       }
     )
+    console.log('after axios post', response.data)
 
     if (response.data.length === 0) {
       // eslint-disable-next-line no-throw-literal
@@ -57,6 +63,7 @@ export async function requestCredentialPresentation(
       policyServerData: policyServer
     }
   } catch (error) {
+    console.log('error', error)
     if (error.request?.response) {
       const err = JSON.parse(error.request.response)
       throw err

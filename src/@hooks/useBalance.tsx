@@ -8,6 +8,7 @@ import {
   useBalance as useBalanceWagmi
 } from 'wagmi'
 import { getTokenBalance } from '@utils/wallet'
+import { ethers } from 'ethers'
 
 interface BalanceProviderValue {
   balance: UserBalance
@@ -40,7 +41,7 @@ function useBalance(): BalanceProviderValue {
               address,
               decimals,
               tokenAddress,
-              web3provider
+              web3provider as ethers.Provider
             )
             newBalance[symbol.toLocaleLowerCase()] = tokenBalance
           })

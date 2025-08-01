@@ -2,7 +2,7 @@ import { DragEvent, ReactElement, useState } from 'react'
 import styles from './index.module.css'
 import Button from '@shared/atoms/Button'
 import { FileItem } from '@utils/fileItem'
-import { sha256 } from 'ohash'
+import { sha256 } from 'ethers'
 
 export interface FileDropProps {
   dropAreaLabel: string

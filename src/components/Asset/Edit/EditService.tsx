@@ -185,7 +185,7 @@ export default function EditService({
           customProviderUrl ||
             updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
           '',
-          ethers.utils.hexlify(ipfsUpload.flags),
+          ethers.hexlify(new Uint8Array([ipfsUpload.flags])),
           ipfsUpload.metadataIPFS,
           ipfsUpload.metadataIPFSHash
         )

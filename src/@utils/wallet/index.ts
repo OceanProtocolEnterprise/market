@@ -1,13 +1,12 @@
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { createClient, erc20ABI } from 'wagmi'
-import { localhost } from '@wagmi/core/chains'
-import { ethers, Contract, Signer } from 'ethers'
-import { formatEther } from 'ethers/lib/utils'
+import { ethers, Contract, Signer, formatEther } from 'ethers'
 import { getDefaultClient } from 'connectkit'
 import { getNetworkDisplayName } from '@hooks/useNetworkMetadata'
 import { getOceanConfig } from '../ocean'
 import { getSupportedChains } from './chains'
 import { chainIdsSupported } from '../../../app.config.cjs'
+import { localhost } from 'wagmi/dist/chains'
 
 export async function getDummySigner(chainId: number): Promise<Signer> {
   if (typeof chainId !== 'number') {
@@ -19,7 +18,7 @@ export async function getDummySigner(chainId: number): Promise<Signer> {
   try {
     const privateKey =
       '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-    const provider = new ethers.providers.JsonRpcProvider(config.nodeUri)
+    const provider = new ethers.JsonRpcProvider(config.nodeUri)
     return new ethers.Wallet(privateKey, provider)
   } catch (error) {
     throw new Error(`Failed to create dummy signer: ${error.message}`)
@@ -160,7 +159,7 @@ export async function getTokenBalance(
   accountId: string,
   decimals: number,
   tokenAddress: string,
-  web3Provider: ethers.providers.Provider
+  web3Provider: ethers.Provider
 ): Promise<string> {
   if (!web3Provider || !accountId || !tokenAddress) return
 

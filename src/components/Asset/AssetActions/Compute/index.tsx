@@ -52,7 +52,7 @@ import { useUserPreferences } from '@context/UserPreferences'
 import { getDummySigner } from '@utils/wallet'
 import WhitelistIndicator from './WhitelistIndicator'
 import { parseConsumerParameterValues } from '../ConsumerParameters'
-import { BigNumber, ethers, Signer } from 'ethers'
+import { ethers, Signer, toBigInt } from 'ethers'
 import { useAccount } from 'wagmi'
 import { Service } from '../../../../@types/ddo/Service'
 import { Asset, AssetPrice } from '../../../../@types/Asset'
@@ -305,20 +305,18 @@ export default function Compute({
             )
 
             const escrow = new EscrowContract(
-              ethers.utils.getAddress(
-                initializedProvider.payment.escrowAddress
-              ),
+              ethers.getAddress(initializedProvider.payment.escrowAddress),
               signer,
               asset.credentialSubject.chainId
             )
 
-            const price = BigNumber.from(selectedResources.price)
-            const payment = BigNumber.from(initializedProvider.payment.amount)
+            const price = BigInt(selectedResources.price)
+            const payment = BigInt(initializedProvider.payment.amount)
 
-            const amountToDeposit = price
-              .mul(BigNumber.from(10).pow(18))
-              .add(payment)
-              .toString()
+            const amountToDeposit = (
+              BigInt(price) * BigInt('1000000000000000000') +
+              BigInt(payment)
+            ).toString()
 
             await escrow.verifyFundsForEscrowPayment(
               oceanTokenAddress,
@@ -635,6 +633,7 @@ export default function Compute({
           datasetResponses[0].actualDatasetAsset.credentialSubject.chainId,
           null,
           null,
+          null,
           policiesServer
         )
       } else {
@@ -655,6 +654,7 @@ export default function Compute({
           })),
           algorithm,
           resourceRequests,
+          null,
           null,
           null,
           policiesServer
