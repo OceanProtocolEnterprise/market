@@ -9,6 +9,7 @@ export const validationSchema: Yup.SchemaOf<FormComputeData> = Yup.object()
       chainId: Yup.number().required()
     }),
     algorithm: Yup.object().nullable().required('Algorithm is required'),
+    dataset: Yup.array().of(Yup.string()), // Added for algorithm flow
     computeEnv: Yup.object().nullable().required('Environment is required'),
     cpu: Yup.number().min(1).required('CPU is required'),
     gpu: Yup.number().min(0).required('GPU is required'),
@@ -29,6 +30,10 @@ export const validationSchema: Yup.SchemaOf<FormComputeData> = Yup.object()
     step1Completed: Yup.boolean(),
     step2Completed: Yup.boolean(),
     step3Completed: Yup.boolean(),
-    step4Completed: Yup.boolean()
+    step4Completed: Yup.boolean(),
+    // Added fields required by onSubmit
+    dataServiceParams: Yup.object(),
+    algoServiceParams: Yup.object(),
+    algoParams: Yup.object()
   })
   .required()

@@ -9,7 +9,21 @@ import PricingRow from './PricingRow'
 import FormErrorGroup from '@shared/FormInput/CheckboxGroupWithErrors'
 import styles from './index.module.css'
 
-export default function Review(): ReactElement {
+interface ReviewProps {
+  totalPrices?: { value: string; symbol: string }[]
+  datasetOrderPrice?: string
+  algoOrderPrice?: string
+  c2dPrice?: string
+  isRequestingPrice?: boolean
+}
+
+export default function Review({
+  totalPrices = [],
+  datasetOrderPrice = '0',
+  algoOrderPrice = '0',
+  c2dPrice = '0',
+  isRequestingPrice = false
+}: ReviewProps): ReactElement {
   const { values } = useFormikContext<FormComputeData>()
 
   const handleCheckCredentials = (datasetId: string) => {
@@ -30,12 +44,16 @@ export default function Review(): ReactElement {
     return parts.join(' ') || '0s'
   }
 
-  // Data arrays for mapping
+  // Data arrays for mapping - now using real pricing data
   const computeItems = [
-    { name: 'ALGORITHM', value: '4', duration: '1 day' },
+    {
+      name: 'ALGORITHM',
+      value: algoOrderPrice,
+      duration: '1 day'
+    },
     {
       name: 'C2D RESOURCES',
-      value: '0',
+      value: c2dPrice,
       duration: formatDuration(values.jobDuration)
     }
   ]
@@ -100,8 +118,24 @@ export default function Review(): ReactElement {
         <div className={styles.totalSection}>
           <span className={styles.totalLabel}>YOU WILL PAY</span>
           <span className={styles.totalValue}>
-            <span className={styles.totalValueNumber}>6</span>
-            <span className={styles.totalValueSymbol}> OCEAN</span>
+            {isRequestingPrice ? (
+              <span className={styles.totalValueNumber}>Calculating...</span>
+            ) : totalPrices.length > 0 ? (
+              <>
+                <span className={styles.totalValueNumber}>
+                  {totalPrices[0].value}
+                </span>
+                <span className={styles.totalValueSymbol}>
+                  {' '}
+                  {totalPrices[0].symbol}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className={styles.totalValueNumber}>0</span>
+                <span className={styles.totalValueSymbol}> OCEAN</span>
+              </>
+            )}
           </span>
         </div>
 

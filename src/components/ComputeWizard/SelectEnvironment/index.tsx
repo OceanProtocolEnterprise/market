@@ -20,15 +20,19 @@ export default function SelectEnvironment({
 
   // Initialize selected environment from form values
   useEffect(() => {
+    console.log('SelectEnvironment - current form values:', values)
     if (values.computeEnv?.id) {
       setSelectedEnvId(values.computeEnv.id)
     }
   }, [values.computeEnv])
 
   const handleEnvironmentSelect = (envId: string) => {
+    console.log('Environment selected:', { envId, computeEnvs })
     setSelectedEnvId(envId)
     const selectedEnv = computeEnvs.find((env) => env.id === envId)
+    console.log('Selected environment:', selectedEnv)
     setFieldValue('computeEnv', selectedEnv)
+    console.log('Form field set to:', selectedEnv)
   }
 
   return (

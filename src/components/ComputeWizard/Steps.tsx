@@ -9,17 +9,36 @@ import SelectAlgorithm from './SelectAlgorithm'
 import SelectServices from './SelectServices'
 import PreviewSelectedServices from './PreviewSelectedServices'
 import SelectEnvironment from './SelectEnvironment'
+import SelectDataset from './SelectDataset'
 import ConfigureEnvironment from './ConfigureEnvironment'
 import Review from './Review'
 
 export default function Steps({
+  datasets,
   algorithms,
   computeEnvs,
-  isAlgorithm
+  isAlgorithm,
+  totalPrices,
+  datasetOrderPrice,
+  algoOrderPrice,
+  c2dPrice,
+  isRequestingPrice,
+  allResourceValues,
+  setAllResourceValues
 }: {
+  datasets?: AssetSelectionAsset[]
   algorithms: AssetSelectionAsset[]
   computeEnvs: ComputeEnvironment[]
   isAlgorithm: boolean
+  totalPrices?: { value: string; symbol: string }[]
+  datasetOrderPrice?: string
+  algoOrderPrice?: string
+  c2dPrice?: string
+  isRequestingPrice?: boolean
+  allResourceValues?: { [envId: string]: any }
+  setAllResourceValues?: React.Dispatch<
+    React.SetStateAction<{ [envId: string]: any }>
+  >
 }): ReactElement {
   const { address: accountId } = useAccount()
   const { chain } = useNetwork()
@@ -42,9 +61,23 @@ export default function Steps({
       case 2:
         return <SelectEnvironment computeEnvs={computeEnvs} />
       case 3:
-        return <ConfigureEnvironment />
+        return (
+          <ConfigureEnvironment
+            allResourceValues={allResourceValues}
+            setAllResourceValues={setAllResourceValues}
+            computeEnvs={computeEnvs}
+          />
+        )
       case 4:
-        return <Review />
+        return (
+          <Review
+            totalPrices={totalPrices}
+            datasetOrderPrice={datasetOrderPrice}
+            algoOrderPrice={algoOrderPrice}
+            c2dPrice={c2dPrice}
+            isRequestingPrice={isRequestingPrice}
+          />
+        )
       default:
         return <div>Invalid step</div>
     }
@@ -53,17 +86,31 @@ export default function Steps({
   // For algorithm flow
   switch (currentStep) {
     case 1:
-      return steps[0].component
+      return <SelectDataset />
     case 2:
       return <SelectServices />
     case 3:
       return <PreviewSelectedServices />
     case 4:
-      return steps[3].component
+      return <SelectEnvironment computeEnvs={computeEnvs} />
     case 5:
-      return steps[4].component
+      return (
+        <ConfigureEnvironment
+          allResourceValues={allResourceValues}
+          setAllResourceValues={setAllResourceValues}
+          computeEnvs={computeEnvs}
+        />
+      )
     case 6:
-      return steps[5].component
+      return (
+        <Review
+          totalPrices={totalPrices}
+          datasetOrderPrice={datasetOrderPrice}
+          algoOrderPrice={algoOrderPrice}
+          c2dPrice={c2dPrice}
+          isRequestingPrice={isRequestingPrice}
+        />
+      )
     default:
       return <div>Invalid step</div>
   }
