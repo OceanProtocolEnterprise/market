@@ -92,7 +92,7 @@ export default function Results({
 
   return (
     <div className={styles.results}>
-      <h4 className={styles.title}>Results</h4>
+      <div className={styles.title}>Results</div>
       {isFinished ? (
         <ul>
           {job.results &&
@@ -121,7 +121,12 @@ export default function Results({
       ) : (
         <p> Waiting for results...</p>
       )}
-      <FormHelp className={styles.help}>{content.compute.storage}</FormHelp>
+      <div className={styles.alert}>
+        <div className={styles.rightAlert}></div>
+        <div>
+          <FormHelp className={styles.help}>{content.compute.storage}</FormHelp>
+        </div>
+      </div>
     </div>
   )
 }
