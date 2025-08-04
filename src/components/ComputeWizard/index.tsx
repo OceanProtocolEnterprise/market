@@ -30,7 +30,7 @@ export default function ComputeWizard(): ReactElement {
 
   const [algorithms, setAlgorithms] = useState<AssetSelectionAsset[]>([])
   const [computeEnvs, setComputeEnvs] = useState<ComputeEnvironment[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string>()
   const isAlgorithm = asset?.credentialSubject.metadata.type === 'algorithm'
   const steps = isAlgorithm ? algorithmSteps : datasetSteps
