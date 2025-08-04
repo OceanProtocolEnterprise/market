@@ -18,35 +18,33 @@ import Navigation from './Navigation'
 import Steps from './Steps'
 import { useUserPreferences } from '@context/UserPreferences'
 import { validationSchema } from './_validation'
-import ContainerForm from '../@shared/atoms/ContainerForm'
 import { initialValues, algorithmSteps, datasetSteps } from './_constants'
 import SectionContainer from '../@shared/SectionContainer/SectionContainer'
+import Loader from '@shared/atoms/Loader'
 
-export default function ComputeWizard({
-  content
-}: {
-  content: { title: string; description: string; warning: string }
-}): ReactElement {
+export default function ComputeWizard(): ReactElement {
   const { debug } = useUserPreferences()
-  const { asset } = useAsset()
+  const { asset, loading: assetLoading } = useAsset()
   const { address: accountId } = useAccount()
   const newCancelToken = useCancelToken()
 
   const [algorithms, setAlgorithms] = useState<AssetSelectionAsset[]>([])
   const [computeEnvs, setComputeEnvs] = useState<ComputeEnvironment[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string>()
   const isAlgorithm = asset?.credentialSubject.metadata.type === 'algorithm'
   const steps = isAlgorithm ? algorithmSteps : datasetSteps
-  const totalSteps = steps.length
+
+  const hasFetchedRef = useRef(false)
 
   useEffect(() => {
-    if (!asset || !accountId) return
+    if (!asset || !accountId || hasFetchedRef.current) return
 
     async function fetchData() {
       try {
         setIsLoading(true)
         setError(undefined)
+        hasFetchedRef.current = true
 
         const computeService = asset.credentialSubject?.services?.find(
           (service) => service.type === 'compute'
@@ -89,14 +87,10 @@ export default function ComputeWizard({
     fetchData()
   }, [asset, accountId, newCancelToken])
 
-  if (!asset) {
-    return null
-  }
-
-  if (isLoading) {
+  if (!asset || assetLoading || isLoading) {
     return (
       <div className={styles.container}>
-        <h2>Loading compute wizard...</h2>
+        <Loader message="Loading compute wizard..." />
       </div>
     )
   }
