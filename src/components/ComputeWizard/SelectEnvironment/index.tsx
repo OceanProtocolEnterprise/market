@@ -9,10 +9,12 @@ import styles from './index.module.css'
 
 interface SelectEnvironmentProps {
   computeEnvs: ComputeEnvironment[]
+  setOuterFieldValue?: (field: string, value: any) => void
 }
 
 export default function SelectEnvironment({
-  computeEnvs
+  computeEnvs,
+  setOuterFieldValue
 }: SelectEnvironmentProps): ReactElement {
   const { address: accountId } = useAccount()
   const { values, setFieldValue } = useFormikContext<FormComputeData>()
@@ -28,7 +30,9 @@ export default function SelectEnvironment({
   const handleEnvironmentSelect = (envId: string) => {
     setSelectedEnvId(envId)
     const selectedEnv = computeEnvs.find((env) => env.id === envId)
-    setFieldValue('computeEnv', selectedEnv)
+    // Set as id strings in both inner and outer forms for consistency
+    setFieldValue('computeEnv', envId)
+    setOuterFieldValue && setOuterFieldValue('computeEnv', envId)
   }
 
   return (

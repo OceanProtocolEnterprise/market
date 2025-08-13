@@ -4,6 +4,7 @@ import Input from '@shared/FormInput'
 import StepTitle from '@shared/StepTitle'
 import { FormComputeData } from '../_types'
 import DatasetItem from './DatasetItem'
+import ConnectedIcon from '@images/connected.svg'
 import PriceDisplay from './PriceDisplay'
 import PricingRow from './PricingRow'
 import FormErrorGroup from '@shared/FormInput/CheckboxGroupWithErrors'
@@ -78,7 +79,8 @@ export default function Review({
   validUntil,
   retry,
   allResourceValues,
-  setAllResourceValues
+  setAllResourceValues,
+  setOuterFieldValue
 }: {
   asset: AssetExtended
   service: Service
@@ -119,6 +121,7 @@ export default function Review({
       [envId: string]: ResourceType
     }>
   >
+  setOuterFieldValue?: (field: string, value: any) => void
   totalPrices?: { value: string; symbol: string }[]
   datasetOrderPrice?: string
   algoOrderPrice?: string
@@ -209,6 +212,20 @@ export default function Review({
 
     if (index !== -1) setServiceIndex(index)
   }, [asset, service])
+
+  // Mirror agreements to outer wizard form so gating/UI can read them
+  useEffect(() => {
+    setOuterFieldValue &&
+      setOuterFieldValue('termsAndConditions', values?.termsAndConditions)
+  }, [values?.termsAndConditions, setOuterFieldValue])
+
+  useEffect(() => {
+    setOuterFieldValue &&
+      setOuterFieldValue(
+        'acceptPublishingLicense',
+        values?.acceptPublishingLicense
+      )
+  }, [values?.acceptPublishingLicense, setOuterFieldValue])
   // async function getDatasetAssets(datasets: Dataset[]): Promise<{
   //   assets: AssetExtended[]
   //   services: Service[]
@@ -526,30 +543,56 @@ export default function Review({
 
       <div className={styles.contentContainer}>
         <div className={styles.pricingBreakdown}>
-          {/* Datasets */}
-          {selectedDatasets?.map((dataset) => (
-            <div key={dataset.id} className={styles.pricingRow}>
-              <div className={styles.itemInfo}>
-                <DatasetItem
-                  dataset={dataset}
-                  onCheckCredentials={handleCheckCredentials}
-                />
+          {/* Datasets with verification tags */}
+          {selectedDatasets?.map((dataset) => {
+            const allServicesVerified = dataset.services?.every((svc) =>
+              lookupVerifierSessionId?.(dataset.id, svc.id)
+            )
+            return (
+              <div key={dataset.id} className={styles.pricingRow}>
+                <div className={styles.itemInfo}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                  >
+                    <DatasetItem
+                      dataset={dataset}
+                      onCheckCredentials={handleCheckCredentials}
+                    />
+                    {allServicesVerified && (
+                      <span title="Verified">
+                        <ConnectedIcon width={16} height={16} />
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <PriceDisplay value="1" />
               </div>
-              <PriceDisplay value="1" />
-            </div>
-          ))}
+            )
+          })}
 
-          {/* Dataset Services */}
+          {/* Dataset Services with verification tag per service */}
           {selectedDatasets?.map((dataset) =>
-            dataset.services.map((service) => (
-              <PricingRow
-                key={`${dataset.id}-${service.id}`}
-                itemName={service.name}
-                value={service.price}
-                duration={service.duration}
-                isService={true}
-              />
-            ))
+            dataset.services.map((service) => {
+              const verified = lookupVerifierSessionId?.(dataset.id, service.id)
+              return (
+                <div
+                  key={`${dataset.id}-${service.id}`}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                >
+                  <PricingRow
+                    itemName={service.name}
+                    value={service.price}
+                    duration={service.duration}
+                    isService={true}
+                  />
+                  {verified && (
+                    <span title="Verified">
+                      <ConnectedIcon width={14} height={14} />
+                    </span>
+                  )}
+                </div>
+              )
+            })
           )}
 
           {/* Compute Items */}

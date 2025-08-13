@@ -13,7 +13,11 @@ interface ResourceValues {
   jobDuration: number
 }
 
-export default function ConfigureEnvironment(): ReactElement {
+export default function ConfigureEnvironment({
+  setOuterFieldValue
+}: {
+  setOuterFieldValue?: (field: string, value: any) => void
+}): ReactElement {
   const { values, setFieldValue } = useFormikContext<FormComputeData>()
   const { chain } = useNetwork()
   const { data: signer } = useSigner()
@@ -55,7 +59,13 @@ export default function ConfigureEnvironment(): ReactElement {
     setFieldValue('ram', currentValues.ram)
     setFieldValue('disk', currentValues.disk)
     setFieldValue('jobDuration', currentValues.jobDuration)
-  }, [mode, freeValues, paidValues, setFieldValue])
+    // Mirror to the outer wizard Formik so completion logic sees the updates
+    setOuterFieldValue && setOuterFieldValue('cpu', currentValues.cpu)
+    setOuterFieldValue && setOuterFieldValue('ram', currentValues.ram)
+    setOuterFieldValue && setOuterFieldValue('disk', currentValues.disk)
+    setOuterFieldValue &&
+      setOuterFieldValue('jobDuration', currentValues.jobDuration)
+  }, [mode, freeValues, paidValues, setFieldValue, setOuterFieldValue])
 
   if (!values.computeEnv) {
     return (

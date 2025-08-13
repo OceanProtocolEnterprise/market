@@ -25,6 +25,8 @@ export interface FormComputeData {
   step2Completed: boolean
   step3Completed: boolean
   step4Completed: boolean
+  step5Completed?: boolean
+  step6Completed?: boolean
   // Added fields required by onSubmit function
   dataServiceParams?: UserCustomParameters // UserCustomParameters - will be properly typed later
   algoServiceParams?: UserCustomParameters // UserCustomParameters - will be properly typed later
