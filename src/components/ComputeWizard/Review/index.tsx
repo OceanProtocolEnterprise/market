@@ -30,6 +30,9 @@ import appConfig, { consumeMarketOrderFee } from 'app.config.cjs'
 import { getTokenBalanceFromSymbol } from '@utils/wallet'
 import { compareAsBN } from '@utils/numbers'
 import type { Dataset } from '../SelectServices'
+import ButtonBuy from '@components/Asset/AssetActions/ButtonBuy'
+import { useAsset } from '@context/Asset'
+import { Asset } from 'src/@types/Asset'
 interface ReviewProps {
   totalPrices?: { value: string; symbol: string }[]
   datasetOrderPrice?: string
@@ -51,8 +54,11 @@ export default function Review({
   isAlgorithm = false,
   accessDetails,
   datasets,
+  selectedAlgorithmAsset,
   selectedDatasetAsset,
+  ddoListAlgorithms,
   setSelectedDatasetAsset,
+  setSelectedAlgorithmAsset,
   isLoading,
   isComputeButtonDisabled,
   hasPreviousOrder,
@@ -87,7 +93,12 @@ export default function Review({
   accessDetails: AccessDetails
   datasets: AssetSelectionAsset[]
   selectedDatasetAsset: AssetExtended[]
+  selectedAlgorithmAsset?: AssetExtended
+  ddoListAlgorithms?: Asset[]
   setSelectedDatasetAsset: React.Dispatch<React.SetStateAction<AssetExtended[]>>
+  setSelectedAlgorithmAsset?: React.Dispatch<
+    React.SetStateAction<AssetExtended>
+  >
   isLoading: boolean
   isComputeButtonDisabled: boolean
   hasPreviousOrder: boolean
@@ -137,13 +148,14 @@ export default function Review({
   const { isSupportedOceanNetwork } = useNetworkMetadata()
   const { isValid, setFieldValue, values }: FormikContextType<FormComputeData> =
     useFormikContext()
-  // const { isAssetNetwork } = useAsset()
+  const { isAssetNetwork } = useAsset()
 
   const [algoOrderPrice, setAlgoOrderPrice] = useState<string | null>(
-    accessDetails.price
+    selectedAlgorithmAsset?.accessDetails?.[0]?.price ??
+      accessDetails.price ??
+      null
   )
 
-  const [datasetOrderPrice, setDatasetOrderPrice] = useState('0')
   const [serviceIndex, setServiceIndex] = useState(0)
   const [totalPrices, setTotalPrices] = useState([])
   const [isBalanceSufficient, setIsBalanceSufficient] = useState<boolean>(true)
@@ -151,15 +163,20 @@ export default function Review({
   const c2dPrice = selectedResources?.price
   const [allDatasetServices, setAllDatasetServices] = useState<Service[]>([])
   const [datasetVerificationIndex, setDatasetVerificationIndex] = useState(0)
-  const verifiedCount = selectedDatasetAsset.filter((asset) => {
+  const verifiedCount = selectedDatasetAsset?.filter((asset) => {
     const svc = asset.credentialSubject?.services?.[asset.serviceIndex || 0]
     return lookupVerifierSessionId?.(asset.id, svc?.id)
   }).length
   console.log('Field values ', values)
-  const allVerified = selectedDatasetAsset.every((asset) => {
-    const service = asset.credentialSubject?.services?.[asset.serviceIndex || 0]
-    return lookupVerifierSessionId?.(asset.id, service?.id)
-  })
+
+  const [datasetOrderPrice, setDatasetOrderPrice] = useState<string | null>(
+    accessDetails.price
+  )
+  console.log('Field values ', values)
+  // const allVerified = selectedDatasetAsset?.every((asset) => {
+  //   const service = asset.credentialSubject?.services?.[asset.serviceIndex || 0]
+  //   return lookupVerifierSessionId?.(asset.id, service?.id)
+  // })
   const selectedDatasets = Array.isArray(values?.datasets)
     ? values.datasets
     : []
@@ -201,18 +218,6 @@ export default function Review({
     { name: 'CONSUME MARKET ORDER FEE C2C (0%)', value: '0' }
   ]
 
-  // imorted code
-  useEffect(() => {
-    if (!asset || !service?.id || !asset.credentialSubject?.services?.length)
-      return
-
-    const index = asset.credentialSubject.services.findIndex(
-      (svc) => svc.id === service.id
-    )
-
-    if (index !== -1) setServiceIndex(index)
-  }, [asset, service])
-
   // Mirror agreements to outer wizard form so gating/UI can read them
   useEffect(() => {
     setOuterFieldValue &&
@@ -226,6 +231,18 @@ export default function Review({
         values?.acceptPublishingLicense
       )
   }, [values?.acceptPublishingLicense, setOuterFieldValue])
+
+  // imorted code
+  useEffect(() => {
+    if (!asset || !service?.id || !asset.credentialSubject?.services?.length)
+      return
+
+    const index = asset.credentialSubject.services.findIndex(
+      (svc) => svc.id === service.id
+    )
+
+    if (index !== -1) setServiceIndex(index)
+  }, [asset, service])
   // async function getDatasetAssets(datasets: Dataset[]): Promise<{
   //   assets: AssetExtended[]
   //   services: Service[]
@@ -283,6 +300,38 @@ export default function Review({
   //   }
   // }
 
+  function getAlgorithmAsset(algo: string): {
+    algorithmAsset: AssetExtended | null
+    serviceIndexAlgo: number | null
+  } {
+    let algorithmId: string
+    let serviceId: string = ''
+    try {
+      const parsed = JSON.parse(algo)
+      algorithmId = parsed?.algoDid || algo
+      serviceId = parsed?.serviceId || ''
+    } catch (e) {
+      algorithmId = algo
+    }
+
+    let assetDdo: AssetExtended | null = null
+    let serviceIndexAlgo: number | null = null
+
+    ddoListAlgorithms.forEach((ddo: Asset) => {
+      if (ddo.id === algorithmId) {
+        assetDdo = ddo
+        if (serviceId && ddo.credentialSubject?.services) {
+          const index = ddo.credentialSubject.services.findIndex(
+            (svc: any) => svc.id === serviceId
+          )
+          serviceIndexAlgo = index !== -1 ? index : null
+        }
+      }
+    })
+
+    return { algorithmAsset: assetDdo, serviceIndexAlgo }
+  }
+
   // Pre-select computeEnv and/or dataset if there is only one available option
   useEffect(() => {
     if (computeEnvs?.length === 1 && !values.computeEnv) {
@@ -304,6 +353,38 @@ export default function Review({
     values.algorithm,
     values.computeEnv
   ])
+  useEffect(() => {
+    if (!values.algorithm || !isConsumable) return
+
+    async function fetchAlgorithmAssetExtended() {
+      // TODO test this type override
+      const { algorithmAsset, serviceIndexAlgo } = getAlgorithmAsset(
+        values.algorithm
+      )
+      if (serviceIndexAlgo) {
+        setServiceIndex(serviceIndexAlgo)
+      }
+      const algoAccessDetails = await Promise.all(
+        algorithmAsset.credentialSubject?.services.map((service) =>
+          getAccessDetails(
+            algorithmAsset.credentialSubject?.chainId,
+            service,
+            accountId,
+            newCancelToken()
+          )
+        )
+      )
+
+      const extendedAlgoAsset: AssetExtended = {
+        ...algorithmAsset,
+        accessDetails: algoAccessDetails,
+        serviceIndex: serviceIndexAlgo
+      }
+      setSelectedAlgorithmAsset(extendedAlgoAsset)
+    }
+    fetchAlgorithmAssetExtended()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values.algorithm, accountId, isConsumable, setSelectedAlgorithmAsset])
 
   // useEffect(() => {
   //   if (!values.dataset || !isConsumable) return
@@ -354,6 +435,7 @@ export default function Review({
   // Set price for calculation output
   //
   useEffect(() => {
+    if (!isAlgorithm) return
     if (!asset?.accessDetails || !selectedDatasetAsset?.length) return
 
     setAlgoOrderPrice(algoOrderPriceAndFees?.price || accessDetails.price)
@@ -364,7 +446,7 @@ export default function Review({
     let datasetFee = new Decimal(0)
     let datasetOrderPriceSum = new Decimal(0) // nou
 
-    selectedDatasetAsset.forEach((dataset) => {
+    selectedDatasetAsset?.forEach((dataset) => {
       const index = dataset.serviceIndex || 0
       const details = dataset.accessDetails?.[index]
 
@@ -468,6 +550,129 @@ export default function Review({
   }, [serviceIndex, selectedDatasetAsset])
 
   useEffect(() => {
+    if (isAlgorithm) return
+    if (!asset?.accessDetails || !selectedAlgorithmAsset?.accessDetails?.length)
+      return
+
+    setDatasetOrderPrice(datasetOrderPriceAndFees?.price || accessDetails.price)
+    const details = selectedAlgorithmAsset.accessDetails[serviceIndex]
+    if (details?.validOrderTx) {
+      setAlgoOrderPrice('0')
+    } else {
+      setAlgoOrderPrice(algoOrderPriceAndFees?.price)
+    }
+
+    const totalPrices: totalPriceMap[] = []
+
+    // Always use resources price for C2D (provider) part
+    const priceDataset =
+      !datasetOrderPrice || hasPreviousOrder || hasDatatoken
+        ? new Decimal(0)
+        : new Decimal(datasetOrderPrice).toDecimalPlaces(MAX_DECIMALS)
+    const rawPrice = details?.validOrderTx ? 0 : details?.price
+
+    // wrap in Decimal and round to your MAX_DECIMALS
+    const priceAlgo = new Decimal(rawPrice).toDecimalPlaces(MAX_DECIMALS)
+
+    const priceC2D =
+      c2dPrice !== undefined
+        ? new Decimal(c2dPrice).toDecimalPlaces(MAX_DECIMALS)
+        : new Decimal(0)
+
+    // Now use priceC2D everywhere you'd use providerFees
+    const feeAlgo = new Decimal(consumeMarketOrderFee).mul(priceAlgo).div(100)
+    const feeC2D = new Decimal(consumeMarketOrderFee).mul(priceC2D).div(100)
+    const feeDataset = new Decimal(consumeMarketOrderFee)
+      .mul(priceDataset)
+      .div(100)
+
+    // This part determines how you aggregate, but **always use priceC2D instead of providerFeeAmount/providerFees**
+    if (algorithmSymbol === providerFeesSymbol) {
+      let sum = priceC2D.add(priceAlgo).add(feeC2D).add(feeAlgo)
+      totalPrices.push({
+        value: sum.toDecimalPlaces(MAX_DECIMALS).toString(),
+        symbol: algorithmSymbol
+      })
+      if (algorithmSymbol === datasetSymbol) {
+        sum = sum.add(priceDataset).add(feeDataset)
+        totalPrices[0].value = sum.toDecimalPlaces(MAX_DECIMALS).toString()
+      } else {
+        totalPrices.push({
+          value: priceDataset
+            .add(feeDataset)
+            .toDecimalPlaces(MAX_DECIMALS)
+            .toString(),
+          symbol: datasetSymbol
+        })
+      }
+    } else {
+      if (datasetSymbol === providerFeesSymbol) {
+        const sum = priceC2D.add(priceDataset).add(feeC2D).add(feeDataset)
+        totalPrices.push({
+          value: sum.toDecimalPlaces(MAX_DECIMALS).toString(),
+          symbol: datasetSymbol
+        })
+        totalPrices.push({
+          value: priceAlgo
+            .add(feeAlgo)
+            .toDecimalPlaces(MAX_DECIMALS)
+            .toString(),
+          symbol: algorithmSymbol
+        })
+      } else if (datasetSymbol === algorithmSymbol) {
+        const sum = priceAlgo.add(priceDataset).add(feeAlgo).add(feeDataset)
+        totalPrices.push({
+          value: sum.toDecimalPlaces(MAX_DECIMALS).toString(),
+          symbol: algorithmSymbol
+        })
+        totalPrices.push({
+          value: priceC2D.add(feeC2D).toDecimalPlaces(MAX_DECIMALS).toString(),
+          symbol: providerFeesSymbol
+        })
+      } else {
+        totalPrices.push({
+          value: priceDataset
+            .add(feeDataset)
+            .toDecimalPlaces(MAX_DECIMALS)
+            .toString(),
+          symbol: datasetSymbol
+        })
+        totalPrices.push({
+          value: priceC2D.add(feeC2D).toDecimalPlaces(MAX_DECIMALS).toString(),
+          symbol: providerFeesSymbol
+        })
+        totalPrices.push({
+          value: priceAlgo
+            .add(feeAlgo)
+            .toDecimalPlaces(MAX_DECIMALS)
+            .toString(),
+          symbol: algorithmSymbol
+        })
+      }
+    }
+
+    setTotalPrices(totalPrices)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    asset,
+    hasPreviousOrder,
+    hasDatatoken,
+    hasPreviousOrderSelectedComputeAsset,
+    hasDatatokenSelectedComputeAsset,
+    datasetOrderPriceAndFees,
+    algoOrderPriceAndFees,
+    isAssetNetwork,
+    selectedAlgorithmAsset,
+    datasetOrderPrice,
+    algoOrderPrice,
+    algorithmSymbol,
+    datasetSymbol,
+    providerFeesSymbol,
+    values.computeEnv, // Add this!
+    allResourceValues // Add this!
+  ])
+
+  useEffect(() => {
     // Copy totalPrices so you don't mutate the original array
     const priceChecks = [...totalPrices]
 
@@ -506,6 +711,54 @@ export default function Review({
     allResourceValues,
     values.computeEnv
   ])
+
+  const PurchaseButton = () => {
+    console.log('purchase is called! ')
+
+    return (
+      <ButtonBuy
+        action="compute"
+        disabled={
+          isComputeButtonDisabled ||
+          !isValid ||
+          !isBalanceSufficient ||
+          !isAssetNetwork ||
+          !selectedDatasetAsset?.every(
+            (asset) =>
+              asset.accessDetails?.[asset.serviceIndex || 0]?.isPurchasable
+          ) ||
+          !isAccountIdWhitelisted
+        }
+        hasPreviousOrder={hasPreviousOrder}
+        hasDatatoken={hasDatatoken}
+        btSymbol={accessDetails.baseToken?.symbol}
+        dtSymbol={accessDetails.datatoken?.symbol}
+        dtBalance={dtBalance}
+        assetTimeout={assetTimeout}
+        assetType={asset.credentialSubject?.metadata.type}
+        hasPreviousOrderSelectedComputeAsset={
+          hasPreviousOrderSelectedComputeAsset
+        }
+        hasDatatokenSelectedComputeAsset={hasDatatokenSelectedComputeAsset}
+        dtSymbolSelectedComputeAsset={dtSymbolSelectedComputeAsset}
+        dtBalanceSelectedComputeAsset={dtBalanceSelectedComputeAsset}
+        selectedComputeAssetType={selectedComputeAssetType}
+        stepText={stepText}
+        isLoading={isLoading}
+        type="submit"
+        priceType={accessDetails.type}
+        algorithmPriceType={asset?.accessDetails?.[0]?.type}
+        isBalanceSufficient={isBalanceSufficient}
+        isConsumable={isConsumable}
+        consumableFeedback={consumableFeedback}
+        isAlgorithmConsumable={asset?.accessDetails?.[0]?.isPurchasable}
+        isSupportedOceanNetwork={isSupportedOceanNetwork}
+        hasProviderFee={providerFeeAmount && providerFeeAmount !== '0'}
+        retry={retry}
+        isAccountConnected={isConnected}
+      />
+    )
+  }
 
   // Show credentials check if needed
   if (showCredentialsCheck && asset && service) {

@@ -24,6 +24,7 @@ export default function Steps({
   accessDetails,
   datasets,
   selectedDatasetAsset,
+  selectedAlgorithmAsset,
   setSelectedAlgorithmAsset,
   setSelectedDatasetAsset,
   isLoading,
@@ -62,7 +63,8 @@ export default function Steps({
   refetchJobs,
   formikValues, // Updated type below
   setFieldValue,
-  onComputeClick
+  onComputeClick,
+  ddoListAlgorithms
 }: {
   asset: AssetExtended
   service: Service
@@ -199,6 +201,9 @@ export default function Steps({
               isRequestingPrice={false}
               accessDetails={accessDetails}
               datasets={datasets}
+              ddoListAlgorithms={ddoListAlgorithms}
+              selectedAlgorithmAsset={selectedAlgorithmAsset}
+              setSelectedAlgorithmAsset={setSelectedAlgorithmAsset}
               selectedDatasetAsset={selectedDatasetAsset}
               setSelectedDatasetAsset={setSelectedDatasetAsset}
               isLoading={isLoading}
