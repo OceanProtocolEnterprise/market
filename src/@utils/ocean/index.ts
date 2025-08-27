@@ -41,7 +41,10 @@ export function getOceanConfig(network: string | number): Config {
   if (network === 11155111 && process.env.NEXT_PUBLIC_NODE_URI) {
     config.nodeUri = process.env.NEXT_PUBLIC_NODE_URI
   }
-
+  // Override Fixed Rate Exchange address if it's set for test
+  config.fixedRateExchangeAddress =
+    process.env.NEXT_PUBLIC_FIXED_RATE_EXCHANGE_ADDRESS ||
+    config.fixedRateExchangeAddress
   return config as Config
 }
 
