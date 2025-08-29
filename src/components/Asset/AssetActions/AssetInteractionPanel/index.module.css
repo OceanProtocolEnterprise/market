@@ -1,38 +1,5 @@
-.actions {
-  composes: box from '@shared/atoms/Box.module.css';
-
-  max-width: 35rem;
-  margin: auto;
-  padding: var(--spacer) calc(var(--spacer) / 1.5);
-}
-
-.headerRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-  margin-bottom: calc(var(--spacer) / 2);
-  padding: 0 10px;
-  gap: var(--sp-2_5);
-}
-
-body .backButton {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-1) !important;
-  padding: 4px 8px !important;
-
-  line-height: 117% !important;
-}
-
-.backButton svg {
-  width: 16px;
-  height: 16px;
-  fill: currentColor;
-}
-
 .assetInteractionCard {
-  padding: 20px;
+  padding: calc(var(--spacer) * 0.5) var(--spacer);
   border: 1px solid rgba(48, 48, 49, 0.1);
   border-radius: 20px;
   box-shadow: 1px 4px 8px 0 rgba(0, 0, 0, 0.15);
@@ -96,12 +63,6 @@ body .backButton {
 
 .actionButtonWrapper {
   display: flex;
-  flex-direction: column;
   justify-content: flex-start;
   margin-top: calc(var(--spacer) / 2);
-  align-items: flex-start;
-}
-
-.actionButtonWrapper form {
-  width: 100%;
 }

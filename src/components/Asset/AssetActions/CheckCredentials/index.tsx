@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-import Button from '@components/@shared/atoms/Button'
 import { useSsiWallet } from '@context/SsiWallet'
 import { toast } from 'react-toastify'
 import {
@@ -11,20 +10,19 @@ import {
   matchCredentialForPresentationDefinition,
   getWalletDids,
   resolvePresentationRequest,
-  usePresentationRequest,
-  getSsiVerifiableCredentialType
+  usePresentationRequest
 } from '@utils/wallet/ssiWallet'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { SsiVerifiableCredential, SsiWalletDid } from 'src/@types/SsiWallet'
 import { VpSelector } from '../VpSelector'
 import { DidSelector } from '../DidSelector'
 import styles from './index.module.css'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { PolicyServerInitiateActionData } from 'src/@types/PolicyServer'
-import VerifiedPatch from '@images/patch_check.svg'
 import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
 import { useAccount } from 'wagmi'
+import Button from '@shared/atoms/Button'
 
 enum CheckCredentialState {
   Stop = 'Stop',
@@ -54,19 +52,6 @@ function newExchangeStateData(): ExchangeStateData {
     selectedDid: '',
     poliyServerData: undefined
   }
-}
-
-function isCredentialCached(
-  cachedCredentials: SsiVerifiableCredential[],
-  credentialType: string
-): boolean {
-  if (!cachedCredentials) {
-    return false
-  }
-  const credentials = cachedCredentials.map((credential) =>
-    getSsiVerifiableCredentialType(credential)
-  )
-  return credentials.includes(credentialType)
 }
 
 export function AssetActionCheckCredentials({
@@ -100,9 +85,8 @@ export function AssetActionCheckCredentials({
   } = useSsiWallet()
 
   function handleResetWalletCache() {
-    ssiWalletCache.clearCredentials()
-    setCachedCredentials(undefined)
     clearVerifierSessionCache()
+    setCachedCredentials([])
   }
 
   useEffect(() => {
@@ -243,6 +227,7 @@ export function AssetActionCheckCredentials({
                 exchangeStateData.selectedCredentials,
                 sessionToken.token
               )
+
               if (
                 'errorMessage' in result ||
                 result.redirectUri.includes('error')
@@ -335,44 +320,16 @@ export function AssetActionCheckCredentials({
       <div className={styles.buttonWrapper}>
         <Button
           type="button"
-          style="primary"
           onClick={() =>
             setCheckCredentialState(
               CheckCredentialState.StartCredentialExchange
             )
           }
           disabled={!selectedWallet?.id}
+          style="publish"
         >
           Check Credentials
         </Button>
-      </div>
-
-      <div
-        className={`${styles.panelGrid} ${styles.panelTemplateData} ${styles.marginTop1}`}
-      >
-        {requiredCredentials
-          ?.sort((credential1, credential2) =>
-            credential1.localeCompare(credential2)
-          )
-          .map((credential) => {
-            return (
-              <React.Fragment key={credential}>
-                {isCredentialCached(cachedCredentials, credential) ? (
-                  <VerifiedPatch
-                    key={credential}
-                    className={`${styles.marginTop6px} ${styles.fillGreen}`}
-                  />
-                ) : (
-                  <div
-                    key={credential}
-                    className={`${styles.marginTop6px} ${styles.fillRed}`}
-                  ></div>
-                )}
-
-                {credential}
-              </React.Fragment>
-            )
-          })}
       </div>
     </div>
   )

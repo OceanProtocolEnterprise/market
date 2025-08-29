@@ -218,9 +218,21 @@ export function AssetActionCheckCredentialsAlgo({
                 'errorMessage' in result ||
                 result.redirectUri.includes('error')
               ) {
+                console.error(
+                  'Algorithm credential verification failed:',
+                  result
+                )
                 toast.error('Validation was not successful as use presentation')
                 handleResetWalletCache()
               } else {
+                console.log(
+                  'Algorithm credential verification successful, caching session:',
+                  {
+                    assetId: asset.id,
+                    serviceId: service.id,
+                    sessionId: exchangeStateData.sessionId
+                  }
+                )
                 cacheVerifierSessionId(
                   asset.id,
                   service.id,
@@ -229,9 +241,11 @@ export function AssetActionCheckCredentialsAlgo({
                 onVerified?.() // ✅ Verification successful → move to next
               }
             } catch (error) {
+              console.error('Algorithm credential verification error:', error)
               handleResetWalletCache()
               toast.error('Validation was not successful')
             }
+            console.log('Resetting algorithm component state to Stop')
             setExchangeStateData({
               ...exchangeStateData,
               ...newExchangeStateData()
@@ -300,7 +314,7 @@ export function AssetActionCheckCredentialsAlgo({
       <div className={styles.buttonWrapperAlgo}>
         <Button
           type="button"
-          style="primary"
+          style="publish"
           onClick={() =>
             setCheckCredentialState(
               CheckCredentialState.StartCredentialExchange
