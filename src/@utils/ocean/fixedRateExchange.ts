@@ -31,6 +31,7 @@ export async function getFixedBuyPrice(
       '1',
       consumeMarketFixedSwapFee
     )
+    console.log('estimatedPrice', estimatedPrice)
     return estimatedPrice
   } catch (error) {
     console.log('Error:', error)
