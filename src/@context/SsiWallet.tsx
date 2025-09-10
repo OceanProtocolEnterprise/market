@@ -112,15 +112,12 @@ export function SsiWalletProvider({
     let storageString = localStorage.getItem(VerifierSessionIdStorage)
     let sessions
     try {
-      sessions = JSON.parse(storageString) as Record<string, string>
-      if (!sessions) {
-        sessions = {}
-      }
-    } catch (error) {
+      sessions = storageString ? JSON.parse(storageString) : {}
+    } catch {
       sessions = {}
     }
-    sessions[`${did}_${serviceId}`] = sessionId
-    sessions[`${did}_${serviceId}_skip`] = skipCheck
+    const key = skipCheck ? `${did}_${serviceId}_skip` : `${did}_${serviceId}`
+    sessions[key] = sessionId
     storageString = JSON.stringify(sessions)
     localStorage.setItem(VerifierSessionIdStorage, storageString)
     setVerifierSessionCache(sessions)

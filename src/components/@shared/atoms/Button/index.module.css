@@ -66,7 +66,7 @@
   padding: 0;
   display: inline-block;
   background: 0;
-  color: var(--button-text-font-color);
+  color: var(--ocean-blue);
   box-shadow: none;
   cursor: pointer;
   min-width: auto;
@@ -234,4 +234,27 @@ body .publish:focus {
 
 :global(.action) .button.publish {
   padding: 14px 20px;
+}
+
+.slim {
+  min-width: auto;
+  background: var(--publish-accent);
+  color: var(--publish-primary);
+  border-radius: var(--publish-border-radius);
+  padding: 2px 8px;
+  font-family: var(--publish-font-family);
+  font-weight: 700;
+  font-size: 12px;
+  box-shadow: none;
+  text-transform: none;
+  transition: none;
+  border: none;
+}
+
+.slim:hover,
+.slim:focus {
+  transform: none;
+  box-shadow: none;
+  background: var(--publish-accent);
+  color: var(--publish-primary);
 }

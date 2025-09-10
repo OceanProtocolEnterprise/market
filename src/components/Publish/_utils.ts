@@ -403,16 +403,12 @@ export function generateCredentials(
       }
     )
 
-    const shouldCreateSsiPolicy =
-      updatedCredentials?.vpPolicies?.length > 0 ||
-      updatedCredentials?.requestCredentials?.length > 0 ||
-      updatedCredentials?.vcPolicies?.length > 0
     const hasAny =
       (requestCredentials?.length ?? 0) > 0 ||
       (updatedCredentials?.vcPolicies?.length ?? 0) > 0 ||
       (vpPolicies?.length ?? 0) > 0
 
-    if (hasAny && shouldCreateSsiPolicy) {
+    if (hasAny) {
       const newAllowList: CredentialPolicyBased = {
         type: 'SSIpolicy',
         values: []
