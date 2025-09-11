@@ -62,7 +62,7 @@ function generateCredentials(
             requestCredentials.push(newRequestCredential)
           })
 
-          const newVpPolicies: VpPolicyType[] = value.vp_policies.map(
+          const newVpPolicies: VpPolicyType[] = (value.vp_policies ?? []).map(
             (policy) => {
               if (isVpValue(policy)) {
                 const result: ArgumentVpPolicy = {
