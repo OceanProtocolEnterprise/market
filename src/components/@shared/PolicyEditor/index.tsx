@@ -23,11 +23,7 @@ import CredentialCard from './CredentialCard/Card'
 import StaticPolicyBlock from './PolicyBlocks/Static'
 import AllowedIssuerPolicyBlock from './PolicyBlocks/AllowedIssuer'
 import CustomUrlPolicyBlock from './PolicyBlocks/CustomUrl'
-import CustomFieldPolicyBlock from './PolicyBlocks/CustomField'
 import AdvancedOptions from './AdvancedOptions/Advanced'
-import FieldRow from './FieldRow/Row'
-import fieldRowStyles from './FieldRow/Row.module.css'
-import DeleteButton from '../DeleteButton/DeleteButton'
 import CustomPolicyBlock from './PolicyBlocks/Custom'
 
 import AddIcon from '@images/add_param.svg'
@@ -234,6 +230,20 @@ export function PolicyEditor(props): ReactElement {
     ) as ArgumentVpPolicy | undefined
     return !!minCredsPolicy
   })
+
+  const [externalEvpForward, setExternalEvpForward] = useState(() => {
+    return (
+      credentials.vpPolicies?.some(
+        (p) => p?.type === 'externalEvpForwardVpPolicy'
+      ) ?? false
+    )
+  })
+  const [externalEvpForwardUrl, setExternalEvpForwardUrl] = useState(() => {
+    const p = credentials.vpPolicies?.find(
+      (p) => p?.type === 'externalEvpForwardVpPolicy'
+    ) as any
+    return p?.url || ''
+  })
   const [hasUserSetEnabled, setHasUserSetEnabled] = useState(false)
 
   const [defaultPolicyStates, setDefaultPolicyStates] = useState(() => {
@@ -293,6 +303,15 @@ export function PolicyEditor(props): ReactElement {
     }
   }, [credentials.vpPolicies])
 
+  // keep local external EVP states in sync when navigating steps
+  useEffect(() => {
+    const p = credentials.vpPolicies?.find(
+      (p) => p?.type === 'externalEvpForwardVpPolicy'
+    ) as any
+    setExternalEvpForward(!!p)
+    setExternalEvpForwardUrl(p?.url || '')
+  }, [credentials.vpPolicies])
+
   useEffect(() => {
     if (enabledView) {
       setEnabled(true)
@@ -311,16 +330,9 @@ export function PolicyEditor(props): ReactElement {
   ])
 
   useEffect(() => {
-    if (!credentials?.vpPolicies?.length) {
-      return
-    }
-
-    const { vpPolicies } = credentials
-
-    if (!hasUserSetEnabled || editAdvancedFeatures) {
-      setEditAdvancedFeatures(true)
-    }
-  }, [credentials, hasUserSetEnabled, editAdvancedFeatures])
+    if (!credentials?.vpPolicies?.length) return
+    if (!hasUserSetEnabled) setEditAdvancedFeatures(true)
+  }, [credentials?.vpPolicies?.length, hasUserSetEnabled])
 
   const allPolicies = [
     'signature',
@@ -720,6 +732,35 @@ export function PolicyEditor(props): ReactElement {
       }
     }
 
+    if (externalEvpForward) {
+      const idx = updatedVpPolicies.findIndex(
+        (p) => (p as any)?.type === 'externalEvpForwardVpPolicy'
+      )
+      const newVal = {
+        type: 'externalEvpForwardVpPolicy',
+        url: externalEvpForwardUrl
+      } as any
+      if (idx === -1) {
+        updatedVpPolicies.push(newVal)
+        changed = true
+      } else {
+        const curr = updatedVpPolicies[idx] as any
+        if (curr?.url !== externalEvpForwardUrl) {
+          updatedVpPolicies[idx] = newVal
+          changed = true
+        }
+      }
+    } else {
+      const filtered = updatedVpPolicies.filter(
+        (p) => (p as any)?.type !== 'externalEvpForwardVpPolicy'
+      )
+      if (filtered.length !== updatedVpPolicies.length) {
+        updatedVpPolicies.length = 0
+        updatedVpPolicies.push(...filtered)
+        changed = true
+      }
+    }
+
     if (changed) {
       setCredentials({ ...credentials, vpPolicies: updatedVpPolicies })
     }
@@ -731,7 +772,9 @@ export function PolicyEditor(props): ReactElement {
     holderBinding,
     requireAllTypes,
     minimumCredentials,
-    maximumCredentials
+    maximumCredentials,
+    externalEvpForward,
+    externalEvpForwardUrl
   ])
 
   useEffect(() => {
@@ -931,6 +974,13 @@ export function PolicyEditor(props): ReactElement {
             setLimitMaxCredentials(!limitMaxCredentials)
           }
           onMaxCredentialsCountChange={(value) => setMaximumCredentials(value)}
+          externalEvpForward={externalEvpForward}
+          onExternalEvpForwardChange={() =>
+            setExternalEvpForward(!externalEvpForward)
+          }
+          onExternalEvpForwardUrlChange={(value) =>
+            setExternalEvpForwardUrl(value)
+          }
         />
       )}
     </>
