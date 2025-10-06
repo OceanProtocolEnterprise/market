@@ -32,7 +32,12 @@ function generateCredentials(
   credentials: Credential,
   type?: string
 ): CredentialForm {
-  const credentialForm: CredentialForm = {}
+  const credentialForm: CredentialForm = {
+    vpPolicies: [],
+    allowInputValue: '',
+    denyInputValue: '',
+    externalEvpForwardUrl: ''
+  }
   if (appConfig.ssiEnabled) {
     const requestCredentials: RequestCredentialForm[] = []
     let vcPolicies: string[] = []
@@ -69,6 +74,7 @@ function generateCredentials(
                     policy.policy === 'external-evp-forward' &&
                     typeof policy.args === 'string'
                   ) {
+                    credentialForm.externalEvpForwardUrl = policy.args
                     return {
                       type: 'externalEvpForwardVpPolicy',
                       url: policy.args
@@ -179,30 +185,48 @@ function getComputeSettingsInitialValues({
   publisherTrustedAlgorithms,
   publisherTrustedAlgorithmPublishers
 }: Compute): ComputeEditForm {
-  const allowAllPublishedAlgorithms = publisherTrustedAlgorithms === null
-  const publisherTrustedAlgorithmsForForm =
-    allowAllPublishedAlgorithms === true
-      ? null
-      : publisherTrustedAlgorithms.map((algo) =>
-          JSON.stringify({
-            algoDid: algo.did,
-            serviceId: algo.serviceId
-          })
-        )
+  // Determine if "allow all" is set either via wildcard publishers or a wildcard algorithm entry
+  const hasWildcardPublishers =
+    Array.isArray(publisherTrustedAlgorithmPublishers) &&
+    publisherTrustedAlgorithmPublishers.includes('*')
 
-  const publisherTrustedAlgorithmPublishersValue =
-    publisherTrustedAlgorithmPublishers &&
-    publisherTrustedAlgorithmPublishers.length > 0
-      ? 'Allow specific trusted algorithm publishers'
-      : 'Allow all trusted algorithm publishers'
+  let hasWildcardAlgorithms = false
+  if (
+    Array.isArray(publisherTrustedAlgorithms) &&
+    publisherTrustedAlgorithms.length === 1
+  ) {
+    const a = publisherTrustedAlgorithms[0] as any
+    hasWildcardAlgorithms =
+      a?.did === '*' &&
+      a?.containerSectionChecksum === '*' &&
+      a?.filesChecksum === '*' &&
+      a?.serviceId === '*'
+  }
+
+  const allowAllPublishedAlgorithms =
+    hasWildcardPublishers || hasWildcardAlgorithms
+
+  const publisherTrustedAlgorithmsForForm = allowAllPublishedAlgorithms
+    ? []
+    : publisherTrustedAlgorithms.map((algo) =>
+        JSON.stringify({
+          algoDid: algo.did,
+          serviceId: algo.serviceId
+        })
+      )
+
+  const publisherTrustedAlgorithmPublishersValue = hasWildcardPublishers
+    ? 'Allow all trusted algorithm publishers'
+    : 'Allow specific trusted algorithm publishers'
 
   return {
     allowAllPublishedAlgorithms,
-    publisherTrustedAlgorithms: publisherTrustedAlgorithmsForForm || [],
+    publisherTrustedAlgorithms: publisherTrustedAlgorithmsForForm,
     publisherTrustedAlgorithmPublishers:
       publisherTrustedAlgorithmPublishersValue,
-    publisherTrustedAlgorithmPublishersAddresses:
-      publisherTrustedAlgorithmPublishers?.join(',') || ''
+    publisherTrustedAlgorithmPublishersAddresses: hasWildcardPublishers
+      ? ''
+      : publisherTrustedAlgorithmPublishers?.join(',') || ''
   }
 }
 
