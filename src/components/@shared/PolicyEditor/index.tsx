@@ -310,8 +310,8 @@ export function PolicyEditor(props): ReactElement {
       (p) => p?.type === 'externalEvpForwardVpPolicy'
     ) as any
     setExternalEvpForward(!!p)
-    setExternalEvpForwardUrl(p?.url || '')
-  }, [credentials.vpPolicies])
+    setExternalEvpForwardUrl(p?.url || credentials.externalEvpForwardUrl || '')
+  }, [credentials.vpPolicies, credentials.externalEvpForwardUrl])
 
   useEffect(() => {
     if (enabledView) {
@@ -742,7 +742,7 @@ export function PolicyEditor(props): ReactElement {
       )
       const newVal = {
         type: 'externalEvpForwardVpPolicy',
-        url: externalEvpForwardUrl
+        url: credentials.externalEvpForwardUrl || externalEvpForwardUrl
       } as any
       if (idx === -1) {
         updatedVpPolicies.push(newVal)
@@ -778,7 +778,8 @@ export function PolicyEditor(props): ReactElement {
     minimumCredentials,
     maximumCredentials,
     externalEvpForward,
-    externalEvpForwardUrl
+    externalEvpForwardUrl,
+    credentials.externalEvpForwardUrl
   ])
 
   useEffect(() => {
