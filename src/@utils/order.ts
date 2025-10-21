@@ -156,6 +156,7 @@ export async function order(
           )
 
           const txApprove = typeof tx !== 'number' ? await tx.wait() : tx
+
           if (!txApprove) return
 
           const fre = new FixedRateExchange(
@@ -375,7 +376,7 @@ export async function handleComputeOrder(
     }
 
     if (!initializeData) {
-      console.error('❌ initializeData is missing')
+      console.error('initializeData is missing')
       throw new Error('No initializeData found, please try again.')
     }
 
@@ -441,8 +442,8 @@ export async function handleComputeOrder(
       asset,
       service
     )
-    console.log('🚀 Starting new order flow...')
-    console.log('🚀 Params ->', {
+    console.log('Starting new order flow...')
+    console.log('Params ->', {
       assetId: asset?.id || asset?.['@id'],
       serviceId: service?.id,
       accountId,
@@ -479,7 +480,7 @@ export async function handleComputeOrder(
       throw orderErr
     }
   } catch (error: any) {
-    console.error('❌ Top-level handleComputeOrder error:', error)
+    console.error('Top-level handleComputeOrder error:', error)
     toast.error(error?.message || 'Unknown error during compute order')
     LoggerInstance.error(`[compute] ${error?.message}`)
   }
