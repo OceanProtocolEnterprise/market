@@ -52,7 +52,6 @@ export function getOceanConfig(network: string | number): Config {
   if (rpcMap[networkKey]) {
     config.nodeUri = rpcMap[networkKey]
   }
-  console.log('config ', config)
   return config as Config
 }
 export function getDevelopmentConfig(): Config {
