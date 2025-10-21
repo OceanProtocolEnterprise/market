@@ -1094,9 +1094,6 @@ export default function Compute({
                       checkAssetDTBalance(selectedAlgorithmAsset)
                     }
                     computeEnvs={computeEnvs}
-                    jobs={jobs}
-                    isLoadingJobs={isLoadingJobs}
-                    refetchJobs={() => setRefetchJobs(!refetchJobs)}
                   />
                 </CredentialDialogProvider>
               ) : (
@@ -1162,9 +1159,6 @@ export default function Compute({
                   checkAssetDTBalance(selectedAlgorithmAsset)
                 }
                 computeEnvs={computeEnvs}
-                jobs={jobs}
-                isLoadingJobs={isLoadingJobs}
-                refetchJobs={() => setRefetchJobs(!refetchJobs)}
               />
             </CredentialDialogProvider>
           )}
