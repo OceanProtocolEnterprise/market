@@ -12,7 +12,7 @@ module.exports = {
   nodeUri:
     process.env.NEXT_PUBLIC_NODE_URI ||
     'https://eth-sepolia.blastapi.io/a91cc615-dbae-493b-b011-5796477a64de',
-
+  // test push
   // List of chainIds which metadata cache queries will return by default.
   // This preselects the Chains user preferences.
   chainIds: [1, 10, 11155111, 11155420],
