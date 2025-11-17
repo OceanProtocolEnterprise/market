@@ -51,7 +51,6 @@ interface WizardActionsProps {
 }
 
 export default function WizardActions({
-  // totalSteps,
   submitButtonText,
   continueButtonText = 'Continue',
   showSuccessConfetti = false,
