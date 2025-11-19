@@ -8,14 +8,11 @@ import {
   LoggerInstance,
   ComputeAlgorithm,
   ProviderComputeInitializeResults,
-  unitsToAmount,
   ProviderFees,
   UserCustomParameters,
   EscrowContract
 } from '@oceanprotocol/lib'
 import { toast } from 'react-toastify'
-import Price from '@shared/Price'
-import FileIcon from '@shared/FileIcon'
 import Alert from '@shared/atoms/Alert'
 import { Formik } from 'formik'
 import {
@@ -48,9 +45,8 @@ import {
 } from '@utils/provider'
 import { useUserPreferences } from '@context/UserPreferences'
 import { getDummySigner } from '@utils/wallet'
-import WhitelistIndicator from './WhitelistIndicator'
 import { parseConsumerParameterValues } from '../ConsumerParameters'
-import { BigNumber, ethers, Signer } from 'ethers'
+import { ethers, Signer } from 'ethers'
 import { useAccount } from 'wagmi'
 import { Service } from '../../../../@types/ddo/Service'
 import { Asset, AssetPrice } from '../../../../@types/Asset'

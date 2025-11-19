@@ -1,7 +1,6 @@
 import { FormComputeData, StepContent } from './_types'
 import SelectEnvironment from './SelectEnvironment'
 import ConfigureEnvironment from './ConfigureEnvironment'
-import Review from './Review'
 
 import { ComputeEnvironment, UserCustomParameters } from '@oceanprotocol/lib'
 import * as Yup from 'yup'

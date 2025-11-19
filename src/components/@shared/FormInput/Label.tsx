@@ -1,4 +1,4 @@
-import { ReactElement, ReactNode } from 'react'
+import { ReactElement } from 'react'
 import styles from './Label.module.css'
 import cs from 'classnames'
 

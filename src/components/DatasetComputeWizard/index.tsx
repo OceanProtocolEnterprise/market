@@ -37,7 +37,6 @@ import {
 } from '@utils/provider'
 import { useUserPreferences } from '@context/UserPreferences'
 import { getDummySigner } from '@utils/wallet'
-import { parseConsumerParameterValues } from '../Asset/AssetActions/ConsumerParameters'
 import { ethers, Signer } from 'ethers'
 import { useAccount } from 'wagmi'
 import { Asset } from 'src/@types/Asset'
