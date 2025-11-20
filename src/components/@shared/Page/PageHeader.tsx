@@ -3,8 +3,6 @@ import classNames from 'classnames/bind'
 import styles from './PageHeader.module.css'
 import Markdown from '@shared/Markdown'
 import SearchBar from '@components/Header/SearchBar'
-import BrandLogo from '@images/brand-logo.svg'
-import Logo from '@images/logo.svg'
 
 const cx = classNames.bind(styles)
 

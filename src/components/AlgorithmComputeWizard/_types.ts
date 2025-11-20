@@ -1,6 +1,5 @@
 import { ReactElement } from 'react'
 import { UserCustomParameters } from '@oceanprotocol/lib'
-import { UserParameter } from './types/DatasetSelection'
 
 export interface FormComputeData {
   user: {

@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Loader from '@shared/atoms/Loader'
 import { truncateDid } from '@utils/string'
 import styles from './index.module.css'

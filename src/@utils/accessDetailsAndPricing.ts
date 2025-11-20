@@ -1,5 +1,4 @@
 import {
-  ComputeAsset,
   Datatoken,
   FixedRateExchange,
   getErrorMessage,
@@ -9,7 +8,6 @@ import {
   ZERO_ADDRESS
 } from '@oceanprotocol/lib'
 import { getFixedBuyPrice } from './ocean/fixedRateExchange'
-import Decimal from 'decimal.js'
 import {
   consumeMarketOrderFee,
   publisherMarketOrderFee,

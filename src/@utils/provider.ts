@@ -3,7 +3,6 @@ import {
   ComputeAlgorithm,
   ComputeAsset,
   ComputeEnvironment,
-  downloadFileBrowser,
   FileInfo,
   Ipfs,
   LoggerInstance,

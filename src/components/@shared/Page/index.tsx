@@ -2,7 +2,6 @@ import { ReactNode, ReactElement } from 'react'
 import PageHeader from './PageHeader'
 import Seo from './Seo'
 import Container from '@shared/atoms/Container'
-import SearchBar from '@components/Header/SearchBar'
 import { useUserPreferences } from '@context/UserPreferences'
 import ExternalContentWarning from '../ExternalContentWarning'
 

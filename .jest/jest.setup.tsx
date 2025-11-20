@@ -10,12 +10,3 @@ jest.mock('next/router', () => ({
     pathname: '/'
   }))
 }))
-
-// jest.mock('next/head', () => {
-//   return {
-//     __esModule: true,
-//     default: ({ children }: { children: Array<React.ReactElement> }) => {
-//       return <>{children}</>
-//     }
-//   }
-// })

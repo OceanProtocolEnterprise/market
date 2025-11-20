@@ -15,7 +15,7 @@ import {
 import { toast } from 'react-toastify'
 import { Formik, Form } from 'formik'
 import Button from '@shared/atoms/Button'
-import { initialValues, algorithmSteps, datasetSteps } from './_constants'
+import { initialValues } from './_constants'
 import styles from './index.module.css'
 import SuccessConfetti from '@shared/SuccessConfetti'
 import { secondsToString } from '@utils/ddo'
@@ -37,7 +37,6 @@ import {
 } from '@utils/provider'
 import { useUserPreferences } from '@context/UserPreferences'
 import { getDummySigner } from '@utils/wallet'
-import { parseConsumerParameterValues } from '../Asset/AssetActions/ConsumerParameters'
 import { ethers, Signer } from 'ethers'
 import { useAccount } from 'wagmi'
 import { Asset } from 'src/@types/Asset'
@@ -98,10 +97,6 @@ export default function ComputeWizard({
   const { isSupportedOceanNetwork } = useNetworkMetadata()
 
   const [isLoading, setIsLoading] = useState(true)
-  const isAlgorithm = asset?.credentialSubject.metadata.type === 'algorithm'
-  const steps = isAlgorithm ? algorithmSteps : datasetSteps
-  const totalSteps = steps.length
-
   // copied from compute
   const { address } = useAccount()
   const { chainIds } = useUserPreferences()
@@ -1291,7 +1286,6 @@ export default function ComputeWizard({
 
                 {!showSuccess && (
                   <WizardActions
-                    totalSteps={totalSteps}
                     submitButtonText="Buy Compute Job"
                     showSuccessConfetti={false}
                     rightAlignFirstStep={false}

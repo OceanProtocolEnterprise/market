@@ -1,6 +1,5 @@
 import {
   ComputeResultType,
-  downloadFileBrowser,
   getErrorMessage,
   LoggerInstance,
   Provider

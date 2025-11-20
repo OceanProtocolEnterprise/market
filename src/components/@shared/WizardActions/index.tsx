@@ -2,7 +2,6 @@ import React, { FormEvent, ReactElement, RefObject } from 'react'
 import Button from '@shared/atoms/Button'
 import styles from './index.module.css'
 import { FormikContextType, useFormikContext } from 'formik'
-import Loader from '@shared/atoms/Loader'
 import { FormComputeData } from '@components/DatasetComputeWizard/_types'
 import ButtonBuy from '@components/Asset/AssetActions/ButtonBuy'
 
@@ -51,7 +50,6 @@ interface WizardActionsProps {
 }
 
 export default function WizardActions({
-  // totalSteps,
   submitButtonText,
   continueButtonText = 'Continue',
   showSuccessConfetti = false,

@@ -1,7 +1,6 @@
 import { ReactElement } from 'react'
 import styles from './index.module.css'
 import MetaAsset from './MetaAsset'
-import MetaInfo from './MetaInfo'
 import Nft from '../Nft'
 import { AssetExtended } from 'src/@types/AssetExtended'
 
