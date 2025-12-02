@@ -68,8 +68,6 @@ export function getOceanConfig(network: string | number): any {
     Number(network)
   )
 
-  console.log('enterpriseContracts:', enterpriseContracts)
-
   // Override config with enterprise contracts if present
   if (enterpriseContracts) {
     config.fixedRateExchangeAddress =
@@ -95,9 +93,11 @@ export function getOceanConfig(network: string | number): any {
     config.ERC721Template = enterpriseContracts.ERC721Template
     config.OPFCommunityFeeCollectorCompute =
       enterpriseContracts.OPFCommunityFeeCollectorCompute
-    config.escrowAddress = enterpriseContracts.EnterpriseEscrow
+    config.escrowAddress =
+      enterpriseContracts.EnterpriseEscrow ||
+      enterpriseContracts.Escrow ||
+      config.escrowAddress
   }
-  console.log('[getOceanConfig] Using config for network:', network, config)
   return config as Config
 }
 
