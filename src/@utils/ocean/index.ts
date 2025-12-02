@@ -68,6 +68,8 @@ export function getOceanConfig(network: string | number): any {
     Number(network)
   )
 
+  console.log('enterpriseContracts:', enterpriseContracts)
+
   // Override config with enterprise contracts if present
   if (enterpriseContracts) {
     config.fixedRateExchangeAddress =
