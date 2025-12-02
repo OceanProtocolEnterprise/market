@@ -95,6 +95,7 @@ export function getOceanConfig(network: string | number): any {
       enterpriseContracts.OPFCommunityFeeCollectorCompute
     config.escrowAddress = enterpriseContracts.EnterpriseEscrow
   }
+  console.log('[getOceanConfig] Using config for network:', network, config)
   return config as Config
 }
 
