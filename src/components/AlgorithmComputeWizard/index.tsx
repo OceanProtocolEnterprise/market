@@ -98,7 +98,6 @@ export default function ComputeWizard({
   const [isLoading, setIsLoading] = useState(true)
   const isAlgorithm = asset?.credentialSubject.metadata.type === 'algorithm'
   const steps = isAlgorithm ? algorithmSteps : datasetSteps
-  const totalSteps = steps.length
 
   // copied from compute
   const { address } = useAccount()

@@ -7,6 +7,7 @@ import { getAddress } from 'ethers'
 
 export interface ConfigEnterprise extends Config {
   tokenAddresses: string[]
+  escrowAddress?: string
 }
 
 /**
@@ -90,11 +91,6 @@ export function getOceanConfig(network: string | number): ConfigEnterprise {
     const validAddresses = validateAndChecksumAddresses(erc20Map[networkKey])
 
     config.tokenAddresses = validAddresses
-
-    // Set primary Ocean token to first valid address if available
-    if (validAddresses.length > 0) {
-      config.oceanTokenAddress = validAddresses[0]
-    }
   } else {
     // Fallback if no map entry exists: use the default config ocean token as a single-item array
     config.tokenAddresses = [config.oceanTokenAddress]
