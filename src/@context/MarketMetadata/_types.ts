@@ -1,9 +1,15 @@
-export interface OpcFee {
-  chainId: number
+export interface OpcTokenData {
+  tokenAddress: string
   feePercentage: string
   maxFee: string
   minFee: string
-  approvedTokens: string[]
+  approved: boolean
+}
+
+export interface OpcFee {
+  chainId: number
+  // Instead of a single fee, we have an array of fee data per token
+  tokensData: OpcTokenData[]
 }
 
 export interface AppConfig {
