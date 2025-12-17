@@ -1,4 +1,4 @@
-import { useState, ReactElement } from 'react'
+import { useState, ReactElement, useEffect } from 'react'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import styles from './Login.module.css'
@@ -11,16 +11,33 @@ export default function LoginPage(): ReactElement {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('') // New success state
+
+  // Clear messages when switching modes
+  useEffect(() => {
+    setError('')
+    setSuccess('')
+  }, [isRegistering])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
 
     if (isRegistering) {
-      // Mock Registration Logic
-      console.log('Registering user with:', { email, password })
-      alert('Mock registration successful! Now please login.')
-      setIsRegistering(false)
+      console.log('Registering user:', { email, password })
+
+      // 1. Set the success message first
+      setSuccess('Registration successful!')
+
+      // 2. Wait a moment so the user actually sees the green box
+      setTimeout(() => {
+        setIsRegistering(false)
+        setPassword('')
+        // Optionally keep the success message visible on the login screen
+        setSuccess('Account created! You can now sign in.')
+      }, 2000)
+
       return
     }
 
@@ -44,7 +61,7 @@ export default function LoginPage(): ReactElement {
     return (
       <div className={styles.container}>
         <div className={styles.card}>
-          <h1 className={styles.title}>Welcome!</h1>
+          <h1 className={styles.title}>Welcome back!</h1>
           <button
             onClick={() => router.push('/')}
             className={styles.buttonPrimary}
@@ -53,8 +70,8 @@ export default function LoginPage(): ReactElement {
           </button>
           <button
             onClick={() => signOut()}
-            className={styles.buttonPrimary}
-            style={{ marginTop: '10px', backgroundColor: '#e53e3e' }}
+            className={styles.buttonSecondary}
+            style={{ marginTop: '10px' }}
           >
             Log Out
           </button>
@@ -70,9 +87,9 @@ export default function LoginPage(): ReactElement {
           {isRegistering ? 'Create Account' : 'Login'}
         </h1>
 
-        {error && (
-          <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>
-        )}
+        {/* Feedback Mechanism */}
+        {error && <div className={styles.errorFeedback}>{error}</div>}
+        {success && <div className={styles.successFeedback}>{success}</div>}
 
         <div className={styles.formGroup}>
           <label className={styles.label}>Email Address</label>
@@ -108,9 +125,11 @@ export default function LoginPage(): ReactElement {
         </button>
 
         <div className={styles.toggleContainer}>
-          {isRegistering
-            ? 'Already have an account?'
-            : "Don't have an account?"}
+          <span>
+            {isRegistering
+              ? 'Already have an account?'
+              : "Don't have an account?"}
+          </span>
           <button
             type="button"
             className={styles.toggleButton}

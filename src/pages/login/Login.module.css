@@ -56,16 +56,15 @@
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-top: 1rem;
-}
-
-.buttonRegister {
-  background-color: #125eb4;
 }
 
 .buttonPrimary:hover {
   opacity: 0.85;
   transform: translateY(-1px);
+}
+
+.buttonRegister {
+  background-color: #125eb4;
 }
 
 .toggleContainer {
@@ -85,4 +84,80 @@
   cursor: pointer;
   text-decoration: underline;
   margin-left: 0.25rem;
+}
+
+.errorFeedback {
+  background-color: #fff5f5;
+  color: #c53030;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #feb2b2;
+  text-align: center;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.successFeedback {
+  background-color: #f0fff4;
+  color: #2f855a;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #c6f6d5;
+  text-align: center;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.buttonRegister {
+  background-color: #0070f3 !important;
+}
+
+.buttonPrimary {
+  background-color: #141414;
+  color: white;
+  border-radius: 30px;
+  padding: 0.75rem;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.buttonSecondary {
+  width: 100%;
+  background-color: transparent;
+  color: #e53e3e; /* Standard red for logout */
+  padding: 0.75rem;
+  border-radius: 30px;
+  font-weight: 600;
+  border: 1px solid #e53e3e;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 10px;
+}
+
+.buttonSecondary:hover {
+  background-color: #fff5f5;
+  opacity: 0.9;
+}
+
+.logoutText {
+  margin-bottom: 1.5rem;
+  color: #718096;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
