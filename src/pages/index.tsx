@@ -3,6 +3,8 @@ import Home from '../components/Home'
 import Page from '@shared/Page'
 import { useRouter } from 'next/router'
 import { useMarketMetadata } from '@context/MarketMetadata'
+import { GetServerSideProps } from 'next'
+import { AuthRequiredProps, withAuth } from '@utils/auth/withAuth'
 
 export default function PageHome(): ReactElement {
   const { siteContent } = useMarketMetadata()
@@ -19,3 +21,5 @@ export default function PageHome(): ReactElement {
     </Page>
   )
 }
+
+export const getServerSideProps: GetServerSideProps = withAuth()

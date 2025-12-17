@@ -6,6 +6,8 @@ import ProfileProvider from '@context/Profile'
 import { useRouter } from 'next/router'
 import { useAccount } from 'wagmi'
 import { isAddress } from 'ethers'
+import { withAuth } from '@utils/auth/withAuth'
+import { GetServerSideProps } from 'next'
 
 export default function PageProfile(): ReactElement {
   const router = useRouter()
@@ -49,3 +51,5 @@ export default function PageProfile(): ReactElement {
     </Page>
   )
 }
+
+export const getServerSideProps: GetServerSideProps = withAuth()

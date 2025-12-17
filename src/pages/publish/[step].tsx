@@ -3,6 +3,8 @@ import Publish from '../../components/Publish'
 import Page from '@shared/Page'
 import content from '../../../content/publish/index.json'
 import router from 'next/router'
+import { GetServerSideProps } from 'next'
+import { withAuth } from '@utils/auth/withAuth' // Assuming correct path
 
 export default function PagePublish(): ReactElement {
   const { title, description } = content
@@ -18,3 +20,8 @@ export default function PagePublish(): ReactElement {
     </Page>
   )
 }
+
+// ----------------------------------------------------
+// Authentication Guard
+// ----------------------------------------------------
+export const getServerSideProps: GetServerSideProps = withAuth()

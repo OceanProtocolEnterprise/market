@@ -17,10 +17,15 @@ import { connectKitTheme, wagmiConfig } from '@utils/wallet'
 import { FilterProvider } from '@context/Filter'
 import { SsiWalletProvider } from '@context/SsiWallet'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-const queryClient = new QueryClient()
-function MyApp({ Component, pageProps }: AppProps): ReactElement {
-  const [mounted, setMounted] = useState(false)
+import { SessionProvider } from 'next-auth/react'
 
+const queryClient = new QueryClient()
+function MyApp({
+  Component,
+  pageProps: { session, ...pageProps }
+}: AppProps): ReactElement {
+  const [mounted, setMounted] = useState(false)
+  console.log('myapp session', session)
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -36,23 +41,25 @@ function MyApp({ Component, pageProps }: AppProps): ReactElement {
           options={{ initialChainId: 0 }}
           customTheme={connectKitTheme}
         >
-          <MarketMetadataProvider>
-            <UrqlProvider>
-              <UserPreferencesProvider>
-                <ConsentProvider>
-                  <SearchBarStatusProvider>
-                    <FilterProvider>
-                      <SsiWalletProvider>
-                        <App>
-                          <Component {...pageProps} />
-                        </App>
-                      </SsiWalletProvider>
-                    </FilterProvider>
-                  </SearchBarStatusProvider>
-                </ConsentProvider>
-              </UserPreferencesProvider>
-            </UrqlProvider>
-          </MarketMetadataProvider>
+          <SessionProvider session={session}>
+            <MarketMetadataProvider>
+              <UrqlProvider>
+                <UserPreferencesProvider>
+                  <ConsentProvider>
+                    <SearchBarStatusProvider>
+                      <FilterProvider>
+                        <SsiWalletProvider>
+                          <App>
+                            <Component {...pageProps} />
+                          </App>
+                        </SsiWalletProvider>
+                      </FilterProvider>
+                    </SearchBarStatusProvider>
+                  </ConsentProvider>
+                </UserPreferencesProvider>
+              </UrqlProvider>
+            </MarketMetadataProvider>
+          </SessionProvider>
         </ConnectKitProvider>
       </WagmiProvider>
     </QueryClientProvider>

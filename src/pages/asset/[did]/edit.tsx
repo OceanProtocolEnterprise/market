@@ -2,13 +2,42 @@ import { ReactElement } from 'react'
 import { useRouter } from 'next/router'
 import EditPage from '../../../components/Asset/Edit'
 import AssetProvider from '@context/Asset'
+import { GetServerSideProps, GetServerSidePropsContext } from 'next'
+import { AuthRequiredProps, withAuth } from '@utils/auth/withAuth'
 
-export default function PageEditAsset(): ReactElement {
+interface PageEditAssetProps extends AuthRequiredProps {
+  did: string
+}
+
+export default function PageEditAsset({
+  session,
+  did
+}: PageEditAssetProps): ReactElement {
   const router = useRouter()
-  const { did } = router.query
+
+  if (session) {
+    console.log('User is authenticated for editing:', session.user?.email)
+  }
+
   return (
-    <AssetProvider did={did as string}>
+    <AssetProvider did={did}>
       <EditPage uri={router.pathname} />
     </AssetProvider>
   )
 }
+
+// ----------------------------------------------------
+// Page-Specific SSR Logic
+// ----------------------------------------------------
+const editAssetSsr: GetServerSideProps = async (
+  context: GetServerSidePropsContext
+) => {
+  const did = context.query.did as string
+  return {
+    props: {
+      did
+    }
+  }
+}
+
+export const getServerSideProps: GetServerSideProps = withAuth(editAssetSsr)
