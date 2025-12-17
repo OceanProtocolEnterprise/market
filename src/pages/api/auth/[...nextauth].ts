@@ -1,6 +1,6 @@
 import NextAuth, { AuthOptions } from 'next-auth' // <-- IMPORT AuthOptions
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { compare } from 'bcrypt'
+import { compare, hash } from 'bcrypt'
 
 export const authOptions: AuthOptions = {
   session: {
@@ -26,28 +26,28 @@ export const authOptions: AuthOptions = {
           id: '1',
           name: 'John Doe',
           email: 'test@test.com',
-          passwordHash: 'test' // Replace with actual hash from DB
+          passwordHash:
+            '$2b$10$IIAcoJaRhnR0rPFyr.sBDun.JwTmsoORoVT//ghaV3xZ17fOZvBDO' // 'test' hashed
         }
 
         // --- 2. CHECK IF USER EXISTS & PASSWORD MATCHES ---
-        console.log('Credentials received:', credentials)
-        console.log('User fetched from DB:', user)
         if (!user) {
           return null // User not found
         }
-
+        const hashedPassword = await hash('test', 10)
+        console.log(hashedPassword)
         // **USE compare() HERE**
         console.log(
           'Comparing password for user:',
           user.email,
           credentials?.password,
-          user.passwordHash
+          user.passwordHash,
+          hashedPassword
         )
-        // const passwordCorrect = await compare(
-        //   credentials?.password || '', // Plain text password from the form
-        //   user.passwordHash // Hashed password from the database
-        // )
-        const passwordCorrect = credentials?.password === user.passwordHash // MOCK comparison
+        const passwordCorrect = await compare(
+          credentials?.password || '', // Plain text password from the form
+          user.passwordHash // Hashed password from the database
+        )
         console.log('Password correct:', passwordCorrect)
 
         if (passwordCorrect) {

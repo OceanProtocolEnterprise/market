@@ -25,16 +25,6 @@
   text-align: center;
 }
 
-.error {
-  background-color: #fff5f5;
-  color: #c53030;
-  padding: 0.75rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-  border: 1px solid #feb2b2;
-}
-
 .formGroup {
   margin-bottom: 1.25rem;
 }
@@ -53,13 +43,7 @@
   border: 1px solid #cbd5e0;
   border-radius: 8px;
   font-size: 1rem;
-  transition: border-color 0.2s;
   color: #1a202c;
-}
-
-.input:focus {
-  outline: none;
-  border-color: #141414;
 }
 
 .buttonPrimary {
@@ -71,28 +55,34 @@
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.2s ease;
   margin-top: 1rem;
 }
 
-.buttonSecondary {
-  width: 100%;
-  background-color: transparent;
-  color: #141414;
-  padding: 0.75rem;
-  border-radius: 30px;
-  font-weight: 600;
-  border: 1px solid #141414;
-  cursor: pointer;
-  margin-top: 0.75rem;
+.buttonRegister {
+  background-color: #125eb4;
 }
 
-.buttonPrimary:hover,
-.buttonSecondary:hover {
-  opacity: 0.8;
+.buttonPrimary:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
 }
 
-.logoutText {
-  margin-bottom: 1.5rem;
+.toggleContainer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+  font-size: 0.875rem;
   color: #718096;
+}
+
+.toggleButton {
+  background: none;
+  border: none;
+  color: #141414;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-left: 0.25rem;
 }

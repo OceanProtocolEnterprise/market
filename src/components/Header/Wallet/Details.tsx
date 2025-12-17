@@ -13,6 +13,7 @@ import { useSsiWallet } from '@context/SsiWallet'
 import { disconnectFromWallet } from '@utils/wallet/ssiWallet'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { signOut } from 'next-auth/react'
+import { isAuthEnabled } from 'app.config.cjs'
 
 export default function Details(): ReactElement {
   const { connector: activeConnector, address: accountId } = useAccount()
@@ -102,16 +103,18 @@ export default function Details(): ReactElement {
                 Disconnect Wallet
               </Button>
             </div>
-            <div className={styles.walletActionRow}>
-              <DisconnectWallet className={styles.walletActionIcon} />
-              <Button
-                style="text"
-                size="small"
-                onClick={() => signOut({ callbackUrl: '/login' })}
-              >
-                Logout
-              </Button>
-            </div>
+            {isAuthEnabled && (
+              <div className={styles.walletActionRow}>
+                <DisconnectWallet className={styles.walletActionIcon} />
+                <Button
+                  style="text"
+                  size="small"
+                  onClick={() => signOut({ callbackUrl: '/login' })}
+                >
+                  Logout
+                </Button>
+              </div>
+            )}
           </div>
         </li>
       </ul>

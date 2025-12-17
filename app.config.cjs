@@ -114,5 +114,6 @@ module.exports = {
     : [
         process.env.NEXT_PUBLIC_PROVIDER_URL ||
           'https://ocean-node-vm3.oceanenterprise.io'
-      ]
+      ],
+  isAuthEnabled: process.env.NEXT_PUBLIC_ENABLE_AUTH === 'true'
 }

@@ -25,7 +25,6 @@ function MyApp({
   pageProps: { session, ...pageProps }
 }: AppProps): ReactElement {
   const [mounted, setMounted] = useState(false)
-  console.log('myapp session', session)
   useEffect(() => {
     setMounted(true)
   }, [])

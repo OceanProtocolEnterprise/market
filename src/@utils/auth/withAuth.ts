@@ -1,5 +1,3 @@
-// lib/withAuth.ts
-
 import {
   GetServerSideProps,
   GetServerSidePropsContext,
@@ -7,6 +5,7 @@ import {
 } from 'next'
 import { getSession } from 'next-auth/react'
 import { Session } from 'next-auth'
+import { isAuthEnabled } from 'app.config.cjs'
 
 export interface AuthRequiredProps {
   session: Session
@@ -28,6 +27,13 @@ export function withAuth(
   return async (
     context: GetServerSidePropsContext
   ): Promise<GetServerSidePropsResult<any>> => {
+    if (!isAuthEnabled) {
+      // If auth is disabled, skip session check and just run inner logic
+      if (innerSsrFunction) {
+        return await innerSsrFunction(context)
+      }
+      return { props: { session: null } }
+    }
     // 1. Core Authentication Check
     const session = await getSession(context)
 

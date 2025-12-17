@@ -5,11 +5,18 @@ import { accountTruncate } from '@utils/wallet'
 import { MAXIMUM_NUMBER_OF_PAGES_WITH_RESULTS } from '@utils/aquarius'
 import { useRouter } from 'next/router'
 import { isAddress } from 'ethers'
+import { GetServerSideProps, GetServerSidePropsContext } from 'next'
+import { AuthRequiredProps, withAuth } from '@utils/auth/withAuth'
 
-export default function PageSearch(): ReactElement {
+interface PageSearchProps extends AuthRequiredProps {
+  query: any
+}
+
+export default function PageSearch({ query }: PageSearchProps): ReactElement {
   const router = useRouter()
-  const parsed = router.query
-  const { text, owner, tags, categories } = parsed
+
+  // Use the query passed from SSR props instead of router.query for stability
+  const { text, owner, tags, categories } = query
   const [totalResults, setTotalResults] = useState<number>()
   const [totalPagesNumber, setTotalPagesNumber] = useState<number>()
 
@@ -18,6 +25,7 @@ export default function PageSearch(): ReactElement {
     (isETHAddress ? accountTruncate(text as string) : text) ||
     tags ||
     categories
+
   const title = owner
     ? `Published by ${accountTruncate(owner as string)}`
     : `${
@@ -57,3 +65,19 @@ export default function PageSearch(): ReactElement {
     </Page>
   )
 }
+
+// ----------------------------------------------------
+// Page-Specific SSR Logic
+// ----------------------------------------------------
+
+const searchSsr: GetServerSideProps = async (
+  context: GetServerSidePropsContext
+) => {
+  return {
+    props: {
+      query: context.query
+    }
+  }
+}
+
+export const getServerSideProps: GetServerSideProps = withAuth(searchSsr)
