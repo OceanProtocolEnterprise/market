@@ -1,6 +1,7 @@
 import { useState, ReactElement } from 'react'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
+import styles from './login/Login.module.css'
 
 export default function LoginPage(): ReactElement {
   const router = useRouter()
@@ -20,43 +21,40 @@ export default function LoginPage(): ReactElement {
       password
     })
 
-    console.log('Login result:', result)
-
     if (result?.error) {
       setError('Invalid email or password.')
     } else {
-      console.log('Login successful.')
-      // Redirect after successful login
       router.push('/')
     }
   }
 
   if (status === 'loading') {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+      <div className={styles.container}>
+        <p>Loading...</p>
       </div>
     )
   }
 
   if (status === 'authenticated') {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="p-8 border rounded shadow-md w-80 text-center">
-          <h1 className="text-xl font-bold mb-4">You are already logged in!</h1>
-          <p className="mb-4">Welcome back, **{session.user?.email}**.</p>
+      <div className={styles.container}>
+        <div className={styles.card}>
+          <h1 className={styles.title}>Welcome back!</h1>
+          <p className={styles.logoutText}>
+            Logged in as <strong>{session.user?.email}</strong>
+          </p>
 
-          {/* Add Go to Home button */}
           <button
             onClick={() => router.push('/')}
-            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mb-3"
+            className={styles.buttonPrimary}
           >
             Go to Home
           </button>
 
           <button
             onClick={() => signOut({ callbackUrl: '/login' })}
-            className="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600"
+            className={styles.buttonSecondary}
           >
             Log Out
           </button>
@@ -66,40 +64,37 @@ export default function LoginPage(): ReactElement {
   }
 
   return (
-    <div className="flex h-screen items-center justify-center">
-      <form
-        onSubmit={handleSubmit}
-        className="p-8 border rounded shadow-md w-80"
-      >
-        <h1 className="text-xl font-bold mb-4">Login</h1>
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+    <div className={styles.container}>
+      <form onSubmit={handleSubmit} className={styles.card}>
+        <h1 className={styles.title}>Login</h1>
 
-        <div className="mb-4">
-          <label className="block mb-1">Email</label>
+        {error && <div className={styles.error}>{error}</div>}
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Email Address</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border p-2 rounded text-black"
+            className={styles.input}
+            placeholder="name@example.com"
             required
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block mb-1">Password</label>
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Password</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border p-2 rounded text-black"
+            className={styles.input}
+            placeholder="••••••••"
             required
           />
         </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-        >
+        <button type="submit" className={styles.buttonPrimary}>
           Sign In
         </button>
       </form>

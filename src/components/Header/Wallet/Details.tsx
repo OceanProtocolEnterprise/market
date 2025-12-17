@@ -9,10 +9,10 @@ import DisconnectWallet from '@images/disconnect.svg'
 import SwitchWallet from '@images/switchWallet.svg'
 import { MenuLink } from '../Menu'
 import AddTokenList from './AddTokenList'
-import AddNetwork from '@components/@shared/AddNetwork'
 import { useSsiWallet } from '@context/SsiWallet'
 import { disconnectFromWallet } from '@utils/wallet/ssiWallet'
 import { LoggerInstance } from '@oceanprotocol/lib'
+import { signOut } from 'next-auth/react'
 
 export default function Details(): ReactElement {
   const { connector: activeConnector, address: accountId } = useAccount()
@@ -99,7 +99,17 @@ export default function Details(): ReactElement {
                   await disconnectSsiWallet()
                 }}
               >
-                Disconnect
+                Disconnect Wallet
+              </Button>
+            </div>
+            <div className={styles.walletActionRow}>
+              <DisconnectWallet className={styles.walletActionIcon} />
+              <Button
+                style="text"
+                size="small"
+                onClick={() => signOut({ callbackUrl: '/login' })}
+              >
+                Logout
               </Button>
             </div>
           </div>
