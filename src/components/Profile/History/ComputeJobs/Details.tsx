@@ -13,6 +13,7 @@ import { Asset as AssetType } from 'src/@types/Asset'
 import External from '@images/external.svg'
 import CloseIcon from '@images/closeIcon.svg'
 import useIsMobile from '@hooks/useIsMobile'
+import Link from 'next/link'
 
 const extractString = (
   value: string | { '@value': string } | undefined
@@ -42,14 +43,14 @@ function Asset({
           <span className={styles.assetTitleText} title={title}>
             {title}
           </span>
-          <a
+          <Link
             className={styles.assetLink}
             href={`/asset/${did}`}
             target="_blank"
             rel="noreferrer"
           >
             <External />
-          </a>
+          </Link>
         </h3>
       </div>
       <div className={styles.assetDetails}>

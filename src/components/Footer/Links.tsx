@@ -3,13 +3,12 @@ import { useUserPreferences } from '@context/UserPreferences'
 import { useGdprMetadata } from '@hooks/useGdprMetadata'
 import styles from './Links.module.css'
 import { useMarketMetadata } from '@context/MarketMetadata'
-import { useRouter } from 'next/router'
+import Link from 'next/link'
 
 export default function Links(): ReactElement {
   const { appConfig, siteContent } = useMarketMetadata()
   const { setShowPPC, privacyPolicySlug } = useUserPreferences()
   const cookies = useGdprMetadata()
-  const router = useRouter()
 
   const { content, privacyTitle } = siteContent.footer
 
@@ -24,48 +23,46 @@ export default function Links(): ReactElement {
                 {section.links.map((e, i) => {
                   if (e.name === 'Cookie Settings') {
                     return (
-                      <a
+                      <Link
                         key={i}
                         className={styles.link}
-                        href="#"
-                        onClick={(event) => {
-                          event.preventDefault()
+                        href="/cookie-settings"
+                        onClick={() => {
                           setShowPPC(true)
-                          router.push('/cookie-settings')
                         }}
                       >
                         {cookies.optionalCookies
                           ? 'Cookie Settings'
                           : 'Cookies'}
-                      </a>
+                      </Link>
                     )
                   }
                   if (e.name === 'Imprint' || e.name === 'Privacy') {
                     return (
-                      <a
-                        key={i}
-                        className={styles.link}
-                        href="#"
-                        onClick={(event) => {
-                          event.preventDefault()
-                          router.push(e.link)
-                        }}
-                      >
+                      <Link key={i} className={styles.link} href={e.link}>
                         {e.name}
-                      </a>
+                      </Link>
                     )
                   }
-                  return (
+                  const isInternalLink = e.link.startsWith('/')
+                  return isInternalLink ? (
+                    <Link key={i} className={styles.link} href={e.link}>
+                      {e.name === 'Log' ? (
+                        <>
+                          <span>Log</span>
+                          <span className={styles.logIcon}>&nbsp;↗</span>{' '}
+                        </>
+                      ) : (
+                        e.name
+                      )}
+                    </Link>
+                  ) : (
                     <a
                       key={i}
                       className={styles.link}
-                      href={e.link.startsWith('/') ? e.link : e.link}
-                      target={e.link.startsWith('/') ? undefined : '_blank'}
-                      rel={
-                        e.link.startsWith('/')
-                          ? undefined
-                          : 'noopener noreferrer'
-                      }
+                      href={e.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
                       {e.name === 'Log' ? (
                         <>
@@ -85,59 +82,38 @@ export default function Links(): ReactElement {
       <div className={styles.section}>
         <p className={styles.title}>{privacyTitle}</p>
         <div className={styles.links}>
-          <a
-            className={styles.link}
-            href="#"
-            onClick={(event) => {
-              event.preventDefault()
-              router.push('/imprint')
-            }}
-          >
+          <Link className={styles.link} href="/imprint">
             Imprint
-          </a>
-          <a
+          </Link>
+          <Link
             className={styles.link}
-            href="#"
-            onClick={(event) => {
-              event.preventDefault()
-              router.push(`${privacyPolicySlug}#terms-and-conditions`)
-            }}
+            href={`${privacyPolicySlug}#terms-and-conditions`}
           >
             Terms & Conditions
-          </a>
-          <a
+          </Link>
+          <Link
             className={styles.link}
-            href="#"
-            onClick={(event) => {
-              event.preventDefault()
-              router.push(`${privacyPolicySlug}#privacy-policy`)
-            }}
+            href={`${privacyPolicySlug}#privacy-policy`}
           >
             Privacy Policy
-          </a>
-          <a
+          </Link>
+          <Link
             className={styles.link}
-            href="#"
-            onClick={(event) => {
-              event.preventDefault()
-              router.push(`${privacyPolicySlug}#data-portal-usage-agreement`)
-            }}
+            href={`${privacyPolicySlug}#data-portal-usage-agreement`}
           >
             Data Portal Usage Agreement
-          </a>
+          </Link>
 
           {appConfig.privacyPreferenceCenter === 'true' && (
-            <a
+            <Link
               className={styles.link}
-              href="#"
-              onClick={(event) => {
-                event.preventDefault()
+              href="/cookie-settings"
+              onClick={() => {
                 setShowPPC(true)
-                router.push('/cookie-settings')
               }}
             >
               {cookies.optionalCookies ? 'Cookie Settings' : 'Cookies'}
-            </a>
+            </Link>
           )}
         </div>
       </div>
