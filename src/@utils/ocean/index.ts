@@ -3,6 +3,12 @@ import {
   Config,
   getOceanArtifactsAddressesByChainId
 } from '@oceanprotocol/lib'
+import { getAddress } from 'ethers'
+
+export interface ConfigEnterprise extends Config {
+  tokenAddresses: string[]
+  escrowAddress?: string
+}
 
 /**
   This function takes a Config object as an input and returns a new sanitized Config object
@@ -27,20 +33,41 @@ export function sanitizeDevelopmentConfig(config: Config): Config {
   } as Config
 }
 
-export function getOceanConfig(network: string | number): any {
+/**
+ * Helper to validate and checksum a list of addresses.
+ * Removes invalid addresses and logs a warning.
+ */
+function validateAndChecksumAddresses(addresses: string[]): string[] {
+  return addresses.reduce((acc: string[], address) => {
+    try {
+      // ethers.utils.getAddress (v5) or ethers.getAddress (v6) throws if invalid
+      // and returns the checksummed address if valid.
+      const checksummed = getAddress(address) // ethers v6
+
+      acc.push(checksummed)
+    } catch (e) {
+      console.warn(
+        `[Config] Invalid address found in env: ${address}, skipping.`
+      )
+    }
+    return acc
+  }, [])
+}
+
+export function getOceanConfig(network: string | number): ConfigEnterprise {
   // Load the RPC map from .env
   const rpcMap: Record<string, string> = process.env.NEXT_PUBLIC_NODE_URI_MAP
     ? JSON.parse(process.env.NEXT_PUBLIC_NODE_URI_MAP)
     : {}
 
-  const erc20Map: Record<string, string> = process.env
-    .NEXT_PUBLIC_ERC20_ADDRESSES
-    ? JSON.parse(process.env.NEXT_PUBLIC_ERC20_ADDRESSES)
+  const erc20Map: Record<string, string[]> = process.env
+    .NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES
+    ? JSON.parse(process.env.NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES)
     : {}
 
   if (!network) {
     console.warn('[getOceanConfig] No network provided yet.')
-    return {} as Config
+    return {} as ConfigEnterprise
   }
 
   let config = new ConfigHelper().getConfig(
@@ -60,8 +87,14 @@ export function getOceanConfig(network: string | number): any {
   // Override nodeUri with value from RPC map if it exists
   const networkKey = network.toString()
   if (rpcMap[networkKey]) config.nodeUri = rpcMap[networkKey]
-  if (erc20Map[networkKey]) config.oceanTokenAddress = erc20Map[networkKey]
-  // Get contracts for current network
+  if (erc20Map[networkKey]) {
+    const validAddresses = validateAndChecksumAddresses(erc20Map[networkKey])
+
+    config.tokenAddresses = validAddresses
+  } else {
+    // Fallback if no map entry exists: use the default config ocean token as a single-item array
+    config.tokenAddresses = [config.oceanTokenAddress]
+  } // Get contracts for current network
   const enterpriseContracts = getOceanArtifactsAddressesByChainId(
     Number(network)
   )
@@ -93,7 +126,7 @@ export function getOceanConfig(network: string | number): any {
     config.OPFCommunityFeeCollectorCompute =
       enterpriseContracts.OPFCommunityFeeCollectorCompute
   }
-  return config as Config
+  return config as ConfigEnterprise
 }
 
 export function getDevelopmentConfig(): Config {

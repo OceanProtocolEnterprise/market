@@ -242,7 +242,7 @@ function ProfileProvider({
         walletClient as any,
         chainId
       )
-
+      // TODO from where tokenaddress of escrow?
       const funds = await escrow.getUserFunds(accountId, oceanTokenAddress)
 
       const tokenDetails = await getTokenInfo(
