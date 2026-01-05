@@ -141,7 +141,7 @@ export default function AddService({
         accountId,
         values.paymentCollector,
         marketFeeAddress,
-        config.oceanTokenAddress,
+        values.baseToken || config.oceanTokenAddress,
         publisherMarketFixedSwapFee,
         defaultDatatokenCap,
         'Access Token',
@@ -191,13 +191,13 @@ export default function AddService({
         )
 
         const tokenInfo = await getTokenInfo(
-          config.oceanTokenAddress,
+          values.baseToken || config.oceanTokenAddress,
           ethersProvider
         )
 
         const freParams: FreCreationParams = {
           fixedRateAddress: config.fixedRateExchangeAddress,
-          baseTokenAddress: config.oceanTokenAddress,
+          baseTokenAddress: values.baseToken || config.oceanTokenAddress,
           owner: accountId,
           marketFeeCollector: marketFeeAddress,
           baseTokenDecimals: tokenInfo?.decimals || 18,
