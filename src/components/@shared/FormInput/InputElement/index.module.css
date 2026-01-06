@@ -436,6 +436,11 @@ body .publishSelect {
   padding: 4px 8px;
 }
 
+.publishPrefix:has(select) {
+  border: none;
+  padding: 0;
+}
+
 .publishPrefixGroup input {
   border-left: 1px solid var(--input-border-color);
   border-top-left-radius: var(--input-border-radius);
