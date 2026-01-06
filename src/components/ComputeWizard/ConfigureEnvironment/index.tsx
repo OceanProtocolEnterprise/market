@@ -200,6 +200,19 @@ export default function ConfigureEnvironment({
 
   const [symbolMap, setSymbolMap] = useState<{ [address: string]: string }>({})
 
+  const escrowAvailableFunds = useMemo(() => {
+    const env = values.computeEnv
+    if (!env) return 0
+    const currentChainId = chainId?.toString() || '11155111'
+    const fee = env.fees?.[currentChainId]?.[0]
+    const tokenAddress = fee?.feeToken
+    if (!tokenAddress) return 0
+    const tokenSymbol = symbolMap[tokenAddress] || '...'
+    if (tokenSymbol === '...') return 0
+    const escrowFunds = escrowFundsByToken[tokenSymbol]
+    return escrowFunds ? parseFloat(escrowFunds.available) : 0
+  }, [values.computeEnv, chainId, symbolMap, escrowFundsByToken])
+
   const getEnvResourceValues = useCallback(
     (isFree: boolean = true) => {
       const env = values.computeEnv
@@ -535,12 +548,6 @@ export default function ConfigureEnvironment({
   const freeAvailable = !!env.free
   const tokenAddress = fee?.feeToken
   const tokenSymbol = symbolMap[tokenAddress] || '...'
-
-  const escrowAvailableFunds = useMemo(() => {
-    if (tokenSymbol === '...') return 0
-    const escrowFunds = escrowFundsByToken[tokenSymbol]
-    return escrowFunds ? parseFloat(escrowFunds.available) : 0
-  }, [tokenSymbol, escrowFundsByToken])
 
   const updateResource = (
     type: 'cpu' | 'ram' | 'disk' | 'jobDuration',
