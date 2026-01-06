@@ -68,10 +68,6 @@ const getBaseTokenSymbol = (asset: AssetExtended): string => {
     return priceEntry.baseToken.symbol
   }
 
-  if (stats?.symbol) {
-    return stats.symbol
-  }
-
   return 'OCEAN'
 }
 
