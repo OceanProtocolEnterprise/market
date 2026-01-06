@@ -1,4 +1,4 @@
-import { ReactElement, useState, useEffect, useCallback } from 'react'
+import { ReactElement, useState, useEffect, useCallback, useMemo } from 'react'
 import { useFormikContext } from 'formik'
 import { Datatoken } from '@oceanprotocol/lib'
 import { ResourceType } from 'src/@types/ResourceType'
@@ -184,7 +184,7 @@ export default function ConfigureEnvironment({
 }): ReactElement {
   const { values, setFieldValue } = useFormikContext<FormComputeData>()
   const chainId = useChainId()
-  const { escrowAvailableFunds } = useProfile()
+  const { escrowFundsByToken } = useProfile()
   const walletClient = useEthersSigner()
 
   const [mode, setMode] = useState<'free' | 'paid'>(() => {
@@ -436,7 +436,7 @@ export default function ConfigureEnvironment({
   useEffect(() => {
     if (mode === 'paid') {
       const jobPrice = calculatePrice()
-      const availableEscrow = parseFloat(escrowAvailableFunds.toString() || '0')
+      const availableEscrow = escrowAvailableFunds
 
       const actualPaymentAmount = Math.max(0, jobPrice - availableEscrow)
 
@@ -483,9 +483,7 @@ export default function ConfigureEnvironment({
         }
         currentPrice = totalPrice * currentValues.jobDuration
 
-        const availableEscrow = parseFloat(
-          escrowAvailableFunds.toString() || '0'
-        )
+        const availableEscrow = escrowAvailableFunds
         actualPaymentAmount = Math.max(0, currentPrice - availableEscrow)
         escrowCoveredAmount = Math.min(availableEscrow, currentPrice)
       }
@@ -537,6 +535,12 @@ export default function ConfigureEnvironment({
   const freeAvailable = !!env.free
   const tokenAddress = fee?.feeToken
   const tokenSymbol = symbolMap[tokenAddress] || '...'
+
+  const escrowAvailableFunds = useMemo(() => {
+    if (tokenSymbol === '...') return 0
+    const escrowFunds = escrowFundsByToken[tokenSymbol]
+    return escrowFunds ? parseFloat(escrowFunds.available) : 0
+  }, [tokenSymbol, escrowFundsByToken])
 
   const updateResource = (
     type: 'cpu' | 'ram' | 'disk' | 'jobDuration',
