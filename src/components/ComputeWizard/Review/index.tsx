@@ -148,6 +148,8 @@ export default function Review({
   setSelectedDatasetAsset,
   tokenInfo
 }: ReviewProps): ReactElement {
+  // TODO remove and get from env
+  const consumeMarketOrderFee = 0
   const isDatasetFlow = flow === 'dataset'
   const { address: accountId } = useAccount()
   const { balance } = useBalance()
