@@ -143,7 +143,7 @@ const columns: TableOceanColumn<AssetExtended>[] = [
   },
   {
     name: 'Datatoken',
-    selector: (asset) => asset.indexedMetadata.stats[0]?.symbol
+    selector: (asset) => asset.indexedMetadata?.stats?.[0]?.symbol || '-'
   },
   {
     name: 'Time',
@@ -325,7 +325,7 @@ export default function HistoryData({
                 ...result,
                 results: enrichedResults.length
                   ? enrichedResults
-                  : result.results
+                  : result.results || []
               }
             : result
         )
@@ -358,30 +358,37 @@ export default function HistoryData({
       </div>
       <div className={styles.tableContainer}>
         {isTableLoading && <HistorySkeleton />}
-        {queryResult && queryResult?.results.length > 0 && (
-          <HistoryTable
-            columns={columns}
-            data={queryResult.results}
-            paginationPerPage={9}
-            isLoading={isTableLoading}
-            emptyMessage={chainIds.length === 0 ? 'No network selected' : null}
-            exportEnabled={true}
-            onPageChange={(newPage) => {
-              setPage(newPage)
-            }}
-            showPagination
-            page={queryResult?.page > 0 ? queryResult?.page - 1 : 1}
-            totalPages={queryResult?.totalPages}
-            revenueByToken={revenueByToken}
-            revenueTotal={revenueTotal}
-            sales={sales}
-            items={queryResult?.totalResults}
-            allResults={queryResult.results}
-          />
-        )}
-        {!isLoading && (!queryResult || queryResult?.results?.length === 0) && (
-          <div className={styles.empty}>No results found</div>
-        )}
+        {queryResult &&
+          queryResult?.results &&
+          queryResult.results.length > 0 && (
+            <HistoryTable
+              columns={columns}
+              data={queryResult.results}
+              paginationPerPage={9}
+              isLoading={isTableLoading}
+              emptyMessage={
+                chainIds.length === 0 ? 'No network selected' : null
+              }
+              exportEnabled={true}
+              onPageChange={(newPage) => {
+                setPage(newPage)
+              }}
+              showPagination
+              page={queryResult?.page > 0 ? queryResult?.page - 1 : 1}
+              totalPages={queryResult?.totalPages}
+              revenueByToken={revenueByToken}
+              revenueTotal={revenueTotal}
+              sales={sales}
+              items={queryResult?.totalResults}
+              allResults={queryResult.results}
+            />
+          )}
+        {!isLoading &&
+          (!queryResult ||
+            !queryResult?.results ||
+            queryResult.results.length === 0) && (
+            <div className={styles.empty}>No results found</div>
+          )}
       </div>
     </div>
   ) : (
