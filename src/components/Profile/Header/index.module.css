@@ -73,7 +73,7 @@
   margin-top: var(--spacer);
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: flex-end;
   align-items: flex-end;
   gap: calc(var(--spacer) / 4);
 }
@@ -97,7 +97,9 @@
 }
 
 .selectorLabel {
-  font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
-  margin-bottom: calc(var(--spacer) / 4);
+  font-size: var(--font-size-label);
+  color: var(--font-color-label);
+  line-height: 1.2;
+  font-family: var(--publish-font-family);
 }
