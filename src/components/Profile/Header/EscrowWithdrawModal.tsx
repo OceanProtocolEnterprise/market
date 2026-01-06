@@ -5,31 +5,46 @@ import { EscrowContract } from '@oceanprotocol/lib'
 import { useChainId } from 'wagmi'
 import { getOceanConfig } from '@utils/ocean'
 import { useProfile } from '@context/Profile'
-import { Signer } from 'ethers'
+import { Signer, parseUnits } from 'ethers'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+
+interface EscrowFunds {
+  available: string
+  locked: string
+  symbol: string
+  address: string
+  decimals: number
+}
 
 export default function EscrowWithdrawModal({
   escrowFunds,
   onClose
+}: {
+  escrowFunds: EscrowFunds
+  onClose: () => void
 }): ReactElement {
-  const { refreshEscrowFunds } = useProfile()
+  const { refreshEscrowFunds, escrowFundsByToken } = useProfile()
   const walletClient = useEthersSigner()
   const chainId = useChainId()
   const [amount, setAmount] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedToken, setSelectedToken] = useState(escrowFunds.symbol)
+
+  const availableTokens = Object.keys(escrowFundsByToken || {})
+  const selectedEscrowFunds = escrowFundsByToken?.[selectedToken] || escrowFunds
 
   function handleInputChange(e) {
     const val = e.target.value
     setAmount(val)
     setError('')
-    if (Number(val) > Number(escrowFunds)) {
+    if (Number(val) > Number(selectedEscrowFunds.available)) {
       setError('Amount can’t be greater than your escrow funds.')
     }
   }
 
   function handleMaxClick() {
-    setAmount(escrowFunds.toString())
+    setAmount(selectedEscrowFunds.available)
     setError('')
   }
 
@@ -38,7 +53,7 @@ export default function EscrowWithdrawModal({
       setError('Please enter a valid withdrawal amount.')
       return
     }
-    if (Number(amount) > Number(escrowFunds)) {
+    if (Number(amount) > Number(selectedEscrowFunds.available)) {
       setError('Amount can’t be greater than your escrow funds.')
       return
     }
@@ -50,10 +65,15 @@ export default function EscrowWithdrawModal({
     setIsLoading(true)
     const signer = walletClient as unknown as Signer
     try {
-      const { oceanTokenAddress, escrowAddress } = getOceanConfig(chainId)
+      const { escrowAddress } = getOceanConfig(chainId)
       const escrow = new EscrowContract(escrowAddress, signer, chainId)
 
-      await escrow.withdraw([oceanTokenAddress], [amount])
+      const amountInWei = parseUnits(
+        amount,
+        selectedEscrowFunds.decimals
+      ).toString()
+
+      await escrow.withdraw([selectedEscrowFunds.address], [amountInWei])
       if (refreshEscrowFunds) await refreshEscrowFunds()
       onClose()
     } catch (err) {
@@ -67,8 +87,36 @@ export default function EscrowWithdrawModal({
     <div className={styles.modalBackdrop}>
       <div className={styles.modalBox}>
         <h3 className={styles.modalTitle}>Withdraw Escrow Funds</h3>
+        {availableTokens.length > 1 && (
+          <div style={{ marginBottom: '10px' }}>
+            <label
+              style={{
+                fontSize: '14px',
+                marginBottom: '5px',
+                display: 'block'
+              }}
+            >
+              Token:
+            </label>
+            <select
+              value={selectedToken}
+              onChange={(e) => setSelectedToken(e.target.value)}
+              className={styles.tokenSelect}
+              disabled={isLoading}
+            >
+              {availableTokens.map((token) => (
+                <option key={token} value={token}>
+                  {token}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div style={{ marginBottom: '10px', fontSize: '14px' }}>
-          Available: <strong>{escrowFunds}</strong>
+          Available:{' '}
+          <strong>
+            {selectedEscrowFunds.available} {selectedEscrowFunds.symbol}
+          </strong>
         </div>
         <div className={styles.inputRow}>
           <input
@@ -101,7 +149,7 @@ export default function EscrowWithdrawModal({
             isLoading ||
             !amount ||
             Number(amount) <= 0 ||
-            Number(amount) > Number(escrowFunds)
+            Number(amount) > Number(selectedEscrowFunds.available)
           }
         >
           {isLoading ? 'Withdrawing...' : 'Withdraw'}

@@ -93,7 +93,6 @@ function MarketMetadataProvider({
         )
 
         const tokensDetails = await Promise.all(tokenPromises)
-
         // 2. Identify allowed tokens from OPC Data for the current chain
         const currentChainOpc = opcFees?.find((x) => x.chainId === chainId)
 
@@ -103,7 +102,6 @@ function MarketMetadataProvider({
             t.tokenAddress.toLowerCase()
           ) || []
         )
-
         // 3. Filter: Keep only valid tokens that ARE ALSO in the allowed list
         const filteredTokens = tokensDetails.filter((t) => {
           if (!t) return false // Filter out undefined fetch results
@@ -111,7 +109,6 @@ function MarketMetadataProvider({
           return allowedAddresses.has(t.address.toLowerCase())
         })
 
-        console.log('[fetchTokenInfo] Filtered allowed tokens:', filteredTokens)
         setApprovedBaseTokens(filteredTokens)
       } catch (error: any) {
         console.error(

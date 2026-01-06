@@ -724,12 +724,19 @@ export async function getTopAssetsPublishers(
 export async function getUserSalesAndRevenue(
   accountId: string,
   chainIds: number[],
-  filter?: Filters
-): Promise<{ totalOrders: number; totalRevenue: number; results: Asset[] }> {
+  filter?: Filters,
+  cancelToken?: CancelToken
+): Promise<{
+  totalOrders: number
+  totalRevenue: number
+  revenueByToken: { [symbol: string]: number }
+  results: Asset[]
+}> {
   try {
     let page = 1
     let totalOrders = 0
     let totalRevenue = 0
+    const revenueByToken: { [symbol: string]: number } = {}
     let assets: PagedAssets
     const allResults: Asset[] = []
 
@@ -737,20 +744,30 @@ export async function getUserSalesAndRevenue(
       assets = await getPublishedAssets(
         accountId,
         chainIds,
-        null,
+        cancelToken || null,
         false,
         false,
         filter,
         page
       )
-      // TODO stats is not in ddo
       if (assets && assets.results) {
         assets.results.forEach((asset) => {
           const orders = asset?.indexedMetadata?.stats[0]?.orders || 0
           const price =
             Number(asset?.indexedMetadata?.stats?.[0]?.prices?.[0]?.price) || 0
+          const tokenSymbol =
+            (asset as any)?.accessDetails?.[0]?.baseToken?.symbol ||
+            (asset.indexedMetadata?.stats?.[0] as any)?.prices?.[0]?.baseToken
+              ?.symbol ||
+            'OCEAN'
           totalOrders += orders
-          totalRevenue += orders * price
+          const revenue = orders * price
+          totalRevenue += revenue
+          if (!tokenSymbol) return
+          if (!revenueByToken[tokenSymbol]) {
+            revenueByToken[tokenSymbol] = 0
+          }
+          revenueByToken[tokenSymbol] += revenue
         })
         allResults.push(...assets.results)
       }
@@ -762,10 +779,15 @@ export async function getUserSalesAndRevenue(
       page <= assets.totalPages
     )
 
-    return { totalOrders, totalRevenue, results: allResults }
+    return { totalOrders, totalRevenue, revenueByToken, results: allResults }
   } catch (error) {
     LoggerInstance.error('Error in getUserSales', error.message)
-    return { totalOrders: 0, totalRevenue: 0, results: [] }
+    return {
+      totalOrders: 0,
+      totalRevenue: 0,
+      revenueByToken: {},
+      results: []
+    }
   }
 }
 

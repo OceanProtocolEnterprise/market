@@ -68,3 +68,36 @@
     width: 1480px;
   }
 }
+
+.selectorColumn {
+  margin-top: var(--spacer);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-end;
+  gap: calc(var(--spacer) / 4);
+}
+
+.tokenSelect {
+  width: auto;
+  min-width: 0;
+  align-self: flex-end;
+  display: inline-flex;
+}
+
+.tokenSelect select {
+  width: auto !important;
+  min-width: 8rem;
+  max-width: 12rem;
+}
+
+.tokenPlaceholder {
+  color: var(--color-secondary);
+  font-size: var(--font-size-small);
+}
+
+.selectorLabel {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: calc(var(--spacer) / 4);
+}
