@@ -14,8 +14,11 @@ import Time from '@shared/atoms/Time'
 import AssetTitle from '@shared/AssetListTitle'
 import NetworkName from '@shared/NetworkName'
 import HistoryTable from '@components/@shared/atoms/Table/HistoryTable'
+import useNetworkMetadata, {
+  getNetworkDataById,
+  getNetworkDisplayName
+} from '@hooks/useNetworkMetadata'
 import { AssetExtended } from 'src/@types/AssetExtended'
-import { Asset } from 'src/@types/Asset'
 import { getAccessDetails } from '@utils/accessDetailsAndPricing'
 
 function HistorySkeleton(): ReactElement {
@@ -130,53 +133,6 @@ export function SkeletonTable(): ReactElement {
   return <HistorySkeleton />
 }
 
-const columns: TableOceanColumn<AssetExtended>[] = [
-  {
-    name: 'Dataset',
-    selector: (asset) => <AssetTitle asset={asset} />
-  },
-  {
-    name: 'Network',
-    selector: (asset) => (
-      <NetworkName networkId={asset.credentialSubject.chainId} />
-    )
-  },
-  {
-    name: 'Datatoken',
-    selector: (asset) => asset.indexedMetadata?.stats?.[0]?.symbol || '-'
-  },
-  {
-    name: 'Time',
-    selector: (asset) => {
-      const unixTime = Math.floor(
-        new Date(asset.credentialSubject.metadata.created).getTime()
-      ).toString()
-      return <Time date={unixTime} relative isUnix />
-    }
-  },
-  {
-    name: 'Sales',
-    selector: (asset) => getOrders(asset)
-  },
-  {
-    name: 'Price',
-    selector: (asset) => {
-      const price = getPrice(asset)
-      const tokenSymbol = getBaseTokenSymbol(asset)
-      return `${price} ${tokenSymbol}`
-    }
-  },
-  {
-    name: 'Revenue',
-    selector: (asset) => {
-      const price = getPrice(asset)
-      const orders = getOrders(asset)
-      const tokenSymbol = getBaseTokenSymbol(asset)
-      return `${orders * price} ${tokenSymbol}`
-    }
-  }
-]
-
 export default function HistoryData({
   accountId
 }: {
@@ -187,6 +143,69 @@ export default function HistoryData({
   const { approvedBaseTokens } = useMarketMetadata()
   const { ownAccount } = useProfile()
   const { filters, ignorePurgatory } = useFilter()
+  const { networksList } = useNetworkMetadata()
+
+  const columns: TableOceanColumn<AssetExtended>[] = useMemo(
+    () => [
+      {
+        name: 'Dataset',
+        selector: (asset) => <AssetTitle asset={asset} />
+      },
+      {
+        name: 'Network',
+        selector: (asset) => {
+          const networkData = getNetworkDataById(
+            networksList,
+            asset.credentialSubject.chainId
+          )
+          const networkName = getNetworkDisplayName(networkData)
+          return (
+            <span className={styles.networkWrapper} title={networkName}>
+              <NetworkName networkId={asset.credentialSubject.chainId} />
+            </span>
+          )
+        }
+      },
+      {
+        name: 'Datatoken',
+        selector: (asset) => asset.indexedMetadata?.stats?.[0]?.symbol || '-'
+      },
+      {
+        name: 'Time',
+        selector: (asset) => {
+          const unixTime = Math.floor(
+            new Date(asset.credentialSubject.metadata.created).getTime()
+          ).toString()
+          return <Time date={unixTime} relative isUnix />
+        }
+      },
+      {
+        name: 'Sales',
+        selector: (asset) => getOrders(asset),
+        maxWidth: '5rem'
+      },
+      {
+        name: 'Price',
+        selector: (asset) => {
+          const price = getPrice(asset)
+          const tokenSymbol = getBaseTokenSymbol(asset)
+          return `${price} ${tokenSymbol}`
+        },
+        maxWidth: '7rem'
+      },
+      {
+        name: 'Revenue',
+        selector: (asset) => {
+          const price = getPrice(asset)
+          const orders = getOrders(asset)
+          const tokenSymbol = getBaseTokenSymbol(asset)
+          return `${orders * price} ${tokenSymbol}`
+        },
+        maxWidth: '7rem'
+      }
+    ],
+    [networksList]
+  )
   const activeChainIds = useMemo(
     () =>
       (chainIds && chainIds.length > 0

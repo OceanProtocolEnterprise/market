@@ -73,3 +73,25 @@
     background-position: -100% 0;
   }
 }
+
+.networkWrapper {
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 100%;
+}
+
+.networkWrapper > span {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.networkWrapper > span > span:last-child {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex-shrink: 1;
+}
