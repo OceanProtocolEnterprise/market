@@ -51,7 +51,6 @@ import styles from './index.module.css'
 
 import { getDownloadValidationSchema } from './_validation'
 import { getDefaultValues } from '../ConsumerParameters/FormConsumerParameters'
-import { getOceanConfig } from '@utils/ocean'
 import { getTokenInfo } from '@utils/wallet'
 import useBalance from '@hooks/useBalance'
 
@@ -95,6 +94,10 @@ export default function Download({
   const [isLoading, setIsLoading] = useState(false)
   const [isPriceLoading, setIsPriceLoading] = useState(false)
   const [tokenInfo, setTokenInfo] = useState<TokenInfo | undefined>(undefined)
+  const [tokenInfoProviderFee, setTokenInfoProviderFee] = useState<
+    TokenInfo | undefined
+  >(undefined)
+
   const [isFullPriceLoading, setIsFullPriceLoading] = useState(
     accessDetails.type !== 'free'
   )
@@ -134,18 +137,35 @@ export default function Download({
 
   useEffect(() => {
     const fetchTokenDetails = async () => {
-      if (!chainId || !signer?.provider) return
+      if (!chainId || !signer?.provider || !accessDetails?.baseToken?.address)
+        return
 
-      const { oceanTokenAddress } = getOceanConfig(chainId)
       const tokenDetails = await getTokenInfo(
-        oceanTokenAddress,
+        accessDetails?.baseToken?.address,
         signer.provider
       )
       setTokenInfo(tokenDetails)
     }
 
     fetchTokenDetails()
-  }, [chainId, signer])
+  }, [chainId, signer, accessDetails])
+
+  useEffect(() => {
+    const fetchTokenDetailsProviderFee = async () => {
+      if (!chainId || !signer?.provider) return
+      const tokenDetails = await getTokenInfo(
+        orderPriceAndFees?.providerFee?.providerFeeToken,
+        signer.provider
+      )
+      setTokenInfoProviderFee(tokenDetails)
+    }
+    if (
+      orderPriceAndFees?.providerFee?.providerFeeAmount &&
+      orderPriceAndFees?.providerFee?.providerFeeToken
+    ) {
+      fetchTokenDetailsProviderFee()
+    }
+  }, [chainId, signer, orderPriceAndFees])
 
   useEffect(() => {
     const licenseMirrors =
@@ -180,7 +200,6 @@ export default function Download({
     setIsOwned(accessDetails.isOwned || false)
     setValidOrderTx(accessDetails.validOrderTx || '')
 
-    // get full price and fees
     async function init() {
       if (accessDetails.addressOrId === ZERO_ADDRESS) return
 
@@ -201,12 +220,6 @@ export default function Download({
     }
 
     if (!orderPriceAndFees) init()
-
-    /**
-     * we listen to the assets' changes to get the most updated price
-     * based on the asset and the poolData's information.
-     * Not adding isLoading and getOpcFeeForToken because we set these here. It is a compromise
-     */
   }, [
     accessDetails,
     accountId,
@@ -229,14 +242,6 @@ export default function Download({
     )
       return
 
-    /**
-     * disabled in these cases:
-     * - if the asset is not purchasable
-     * - if the user is on the wrong network
-     * - if user balance is not sufficient
-     * - if user has no datatokens
-     * - if user is not whitelisted or blacklisted
-     */
     const isDisabled =
       !accessDetails.isPurchasable ||
       !isAssetNetwork ||
@@ -276,7 +281,6 @@ export default function Download({
           service,
           accessDetails,
           accountId,
-          // Prefer validated session; if only skip-session exists, use it
           lookupVerifierSessionId(asset.id, service.id) ||
             lookupVerifierSessionIdSkip(asset.id, service.id),
           validOrderTx,
@@ -388,53 +392,75 @@ export default function Download({
     )
   }
 
-  const AssetAction = ({ asset }: { asset: AssetExtended }) => {
-    return (
-      <div className={styles.info}>
-        {isUnsupportedPricing ? (
-          <Alert
-            state="info"
-            text={`No pricing schema available for this asset.`}
-          />
-        ) : null}
-      </div>
-    )
-  }
-
   const AssetActionBuy = () => {
     const { isValid } = useFormikContext()
 
-    const finalAmount = new Decimal(
+    const getActiveConsumeFee = () => {
+      try {
+        const envFeeConfig = consumeMarketOrderFee
+          ? JSON.parse(consumeMarketOrderFee)
+          : {}
+
+        const currentChainId = asset.credentialSubject.chainId.toString()
+        const currentTokenAddress =
+          accessDetails.baseToken.address.toLowerCase()
+
+        const chainFees = envFeeConfig[currentChainId] || []
+        const matchingFeeEntry = chainFees.find(
+          (f: { token: string; amount: string }) =>
+            f.token.toLowerCase() === currentTokenAddress
+        )
+
+        return matchingFeeEntry ? matchingFeeEntry.amount : '0'
+      } catch (e) {
+        console.error('Error parsing consumeMarketOrderFee config', e)
+        return '0'
+      }
+    }
+
+    const activeFeeWei = getActiveConsumeFee()
+    // 1. Calculate Base Token (EURC/OCEAN) requirements
+    const totalBaseTokenNeeded = new Decimal(
       new Decimal(
         Number(orderPriceAndFees?.price) || price.value || 0
       ).toDecimalPlaces(MAX_DECIMALS)
     )
       .add(new Decimal(orderPriceAndFees?.opcFee || 0))
-      .add(
-        new Decimal(
-          formatUnits(
-            orderPriceAndFees?.providerFee?.providerFeeAmount || 0,
-            tokenInfo?.decimals
-          )
-        )
-      )
-      .add(new Decimal(formatUnits(consumeMarketOrderFee, tokenInfo?.decimals)))
+      .add(new Decimal(formatUnits(activeFeeWei, tokenInfo?.decimals || 18)))
 
-    const firstKey = Object.keys(balance?.approved || {})[0]
-    const userBalance = new Decimal(balance?.approved?.[firstKey] || 0)
-    const sufficient = userBalance.greaterThanOrEqualTo(finalAmount)
+    // 2. Calculate Provider Token requirements
+    const totalProviderTokenNeeded = new Decimal(
+      formatUnits(
+        orderPriceAndFees?.providerFee?.providerFeeAmount || 0,
+        tokenInfoProviderFee?.decimals || 18
+      )
+    )
+
+    // 3. Determine if tokens are the same
+    const areTokensSame =
+      price.tokenSymbol === tokenInfoProviderFee?.symbol ||
+      accessDetails?.baseToken?.address?.toLowerCase() ===
+        orderPriceAndFees?.providerFee?.providerFeeToken?.toLowerCase()
+
+    // 4. Balance check logic
+    const userBaseBalance = new Decimal(
+      balance?.approved?.[price.tokenSymbol?.toLowerCase()] || 0
+    )
+    const userProviderBalance = new Decimal(
+      balance?.approved?.[tokenInfoProviderFee?.symbol?.toLowerCase()] || 0
+    )
+
+    const sufficient = areTokensSame
+      ? userBaseBalance.greaterThanOrEqualTo(
+          totalBaseTokenNeeded.add(totalProviderTokenNeeded)
+        )
+      : userBaseBalance.greaterThanOrEqualTo(totalBaseTokenNeeded) &&
+        userProviderBalance.greaterThanOrEqualTo(totalProviderTokenNeeded)
+
     useEffect(() => {
       if (!orderPriceAndFees) return
       setIsBalanceSufficient(sufficient)
-      console.log(
-        `Balance check: user has ${userBalance.toString()}, total needed ${finalAmount.toString()} => ${sufficient}`
-      )
-    }, [
-      dtBalance,
-      finalAmount.toString(),
-      orderPriceAndFees,
-      setIsBalanceSufficient
-    ])
+    }, [sufficient])
 
     if (!orderPriceAndFees) return null
 
@@ -467,20 +493,48 @@ export default function Download({
                 price={
                   formatUnits(
                     orderPriceAndFees?.providerFee?.providerFeeAmount,
-                    tokenInfo?.decimals
+                    tokenInfoProviderFee?.decimals
                   ) || '0'
                 }
-                symbol={price.tokenSymbol}
+                symbol={tokenInfoProviderFee?.symbol}
                 type="PROVIDER FEE"
               />
               <Row
-                price={
-                  formatUnits(consumeMarketOrderFee, tokenInfo?.decimals) || '0'
-                }
+                price={formatUnits(activeFeeWei, tokenInfo?.decimals) || '0'}
                 symbol={price.tokenSymbol}
                 type="CONSUME MARKET FEE"
               />
-              <Row price={finalAmount.toString()} symbol={price.tokenSymbol} />
+
+              <div className={styles.totalWrapper}>
+                {areTokensSame ? (
+                  <>
+                    <span className={styles.amountMain}>
+                      {totalBaseTokenNeeded
+                        .add(totalProviderTokenNeeded)
+                        .toString()}
+                    </span>
+                    <span className={styles.symbolMain}>
+                      {price.tokenSymbol}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className={styles.amountMain}>
+                      {totalBaseTokenNeeded.toString()}
+                    </span>
+                    <span className={styles.symbolMain}>
+                      {price.tokenSymbol}
+                    </span>
+                    <span className={styles.ampersand}>&</span>
+                    <span className={styles.amountMain}>
+                      {totalProviderTokenNeeded.toString()}
+                    </span>
+                    <span className={styles.symbolMain}>
+                      {tokenInfoProviderFee?.symbol}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           )}
 
@@ -604,11 +658,6 @@ export default function Download({
                 appConfig.ssiEnabled && hasSession ? styles.tighterStack : ''
               }`}
             >
-              {isUnsupportedPricing && (
-                <div className={styles.info}>
-                  <AssetAction asset={asset} />
-                </div>
-              )}
               {!isOwner &&
                 (isFullPriceLoading ? (
                   <>
@@ -677,20 +726,6 @@ export default function Download({
                     <AssetActionBuy />
                   </>
                 ))}
-              {/* {justBought && (
-                <div className={styles.confettiContainer}>
-                  <SuccessConfetti
-                    success={`You successfully bought this ${asset.credentialSubject?.metadata?.type} and are now able to download it.`}
-                  />
-                </div>
-              )} */}
-              {/* {asset.credentialSubject?.metadata?.type === 'algorithm' && (
-                <AlgorithmDatasetsListForCompute
-                  asset={asset}
-                  service={service}
-                  accessDetails={accessDetails}
-                />
-              )} */}
             </aside>
           )
         })()}
