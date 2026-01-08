@@ -99,7 +99,9 @@ export default function HistoryTable({
         baseTokenSymbol = access.baseToken.symbol
       } else {
         const credentialSubjectStats = (
-          assetWithAccess.credentialSubject as any
+          assetWithAccess.credentialSubject as {
+            stats?: { price?: { tokenSymbol?: string } }
+          }
         )?.stats
         if (credentialSubjectStats?.price?.tokenSymbol) {
           baseTokenSymbol = credentialSubjectStats.price.tokenSymbol
