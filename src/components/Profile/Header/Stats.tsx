@@ -1,43 +1,34 @@
-import { ReactElement, useEffect, useState } from 'react'
+import { ReactElement, useState } from 'react'
 import NumberUnit from './NumberUnit'
 import styles from './Stats.module.css'
 import { useProfile } from '@context/Profile'
-import EscrowWithdrawModal from './EscrowWithdrawModal' // Import the modal
-import { useChainId, usePublicClient } from 'wagmi'
-import { getOceanConfig } from '@utils/ocean'
-import { getTokenInfo } from '@utils/wallet'
-import { JsonRpcProvider } from 'ethers'
+import EscrowWithdrawModal from './EscrowWithdrawModal'
 
-export default function Stats(): ReactElement {
+export default function Stats({
+  selectedToken
+}: {
+  selectedToken?: string
+}): ReactElement {
   const {
     assetsTotal,
     sales,
     downloadsTotal,
     revenue,
-    escrowAvailableFunds,
-    escrowLockedFunds,
+    escrowFundsByToken,
     ownAccount
   } = useProfile()
   const [showModal, setShowModal] = useState(false)
-  const chainId = useChainId()
-  const [tokenSymbol, setTokenSymbol] = useState('OCEAN')
-  const publicClient = usePublicClient()
-  const rpcUrl = getOceanConfig(chainId)?.nodeUri
 
-  const ethersProvider =
-    publicClient && rpcUrl ? new JsonRpcProvider(rpcUrl) : undefined
-
-  useEffect(() => {
-    async function fetchSymbol() {
-      if (!chainId || !ethersProvider) return
-      const { oceanTokenAddress } = getOceanConfig(chainId)
-      if (!oceanTokenAddress) return
-      // Pass Ethers v6 Provider to getTokenInfo
-      const tokenDetails = await getTokenInfo(oceanTokenAddress, ethersProvider)
-      setTokenSymbol(tokenDetails.symbol || 'OCEAN')
-    }
-    fetchSymbol()
-  }, [chainId, ethersProvider])
+  const activeToken =
+    selectedToken ||
+    Object.keys(revenue || {})[0] ||
+    Object.keys(escrowFundsByToken || {})[0] ||
+    ''
+  const selectedRevenue = revenue?.[activeToken] || 0
+  const selectedEscrow = escrowFundsByToken?.[activeToken] || null
+  const selectedEscrowAvailable = selectedEscrow?.available || '0'
+  const selectedEscrowLocked = selectedEscrow?.locked || '0'
+  const hasAvailable = Number(selectedEscrowAvailable) > 0
 
   return (
     <div className={styles.stats}>
@@ -47,27 +38,39 @@ export default function Stats(): ReactElement {
       />
       <NumberUnit label="Published" value={assetsTotal} />
       <NumberUnit label="Downloads" value={downloadsTotal} />
-      <NumberUnit label="Revenue" value={`${revenue} ${tokenSymbol}`} />
-      {ownAccount && (
+      {activeToken && (
+        <NumberUnit
+          label="Revenue"
+          value={`${selectedRevenue.toFixed(2)} ${activeToken}`}
+        />
+      )}
+      {ownAccount && activeToken && (
         <>
           <NumberUnit
             label="Escrow Locked Funds"
-            value={`${parseInt(escrowLockedFunds, 10)} ${tokenSymbol}`}
+            value={`${parseInt(selectedEscrowLocked, 10)} ${activeToken}`}
           />
-          <div onClick={() => setShowModal(true)} style={{ cursor: 'pointer' }}>
+          <div
+            onClick={hasAvailable ? () => setShowModal(true) : undefined}
+            style={{ cursor: hasAvailable ? 'pointer' : 'default' }}
+          >
             <NumberUnit
-              label="Escrow Available Funds 👉 Click to Withdraw 👈"
-              value={`${Number(escrowAvailableFunds).toFixed(
+              label={
+                hasAvailable
+                  ? 'Escrow Available Funds 👉 Click to Withdraw 👈'
+                  : 'Escrow Available Funds'
+              }
+              value={`${Number(selectedEscrowAvailable).toFixed(
                 2
-              )} ${tokenSymbol}`}
+              )} ${activeToken}`}
             />
           </div>
         </>
       )}
 
-      {showModal && (
+      {showModal && selectedEscrow && (
         <EscrowWithdrawModal
-          escrowFunds={parseInt(escrowAvailableFunds, 10)}
+          escrowFunds={selectedEscrow}
           onClose={() => setShowModal(false)}
         />
       )}

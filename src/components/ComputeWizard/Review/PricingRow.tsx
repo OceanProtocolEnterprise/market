@@ -10,6 +10,7 @@ import styles from './index.module.css'
 import Alert from '@shared/atoms/Alert'
 import Tooltip from '@shared/atoms/Tooltip'
 import { getFeeTooltip } from '@utils/feeTooltips'
+import Link from 'next/link'
 
 interface PricingRowProps {
   itemName: string
@@ -130,14 +131,14 @@ export default function PricingRow({
           <span className={styles.datasetLabel}>
             {label}
             {assetId && (
-              <a
+              <Link
                 href={`/asset/${assetId}`}
                 target="_blank"
                 rel="noreferrer"
                 className={styles.assetLink}
               >
                 <External />
-              </a>
+              </Link>
             )}
           </span>
         )}

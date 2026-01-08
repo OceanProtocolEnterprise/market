@@ -461,18 +461,15 @@ function isAccountAllowed(ddo: any, accountId: string): boolean {
         service.credentials?.deny &&
         checkDenyList(service.credentials.deny)
       ) {
-        console.log('Denied by service deny list')
         return false
       }
       continue
     }
     if (hasAddressAllow && !checkAllowList(serviceAllow)) {
-      console.log('Denied by service allow list')
       return false
     }
 
     if (service.credentials?.deny && checkDenyList(service.credentials.deny)) {
-      console.log('Denied by service deny list')
       return false
     }
   }
@@ -724,12 +721,19 @@ export async function getTopAssetsPublishers(
 export async function getUserSalesAndRevenue(
   accountId: string,
   chainIds: number[],
-  filter?: Filters
-): Promise<{ totalOrders: number; totalRevenue: number; results: Asset[] }> {
+  filter?: Filters,
+  cancelToken?: CancelToken
+): Promise<{
+  totalOrders: number
+  totalRevenue: number
+  revenueByToken: { [symbol: string]: number }
+  results: Asset[]
+}> {
   try {
     let page = 1
     let totalOrders = 0
     let totalRevenue = 0
+    const revenueByToken: { [symbol: string]: number } = {}
     let assets: PagedAssets
     const allResults: Asset[] = []
 
@@ -737,20 +741,74 @@ export async function getUserSalesAndRevenue(
       assets = await getPublishedAssets(
         accountId,
         chainIds,
-        null,
+        cancelToken || null,
         false,
         false,
         filter,
         page
       )
-      // TODO stats is not in ddo
       if (assets && assets.results) {
         assets.results.forEach((asset) => {
           const orders = asset?.indexedMetadata?.stats[0]?.orders || 0
-          const price =
-            Number(asset?.indexedMetadata?.stats?.[0]?.prices?.[0]?.price) || 0
+
+          const firstAccessDetail = (asset as any)?.accessDetails?.[0]
+          let price = 0
+          if (firstAccessDetail?.price) {
+            const priceValue =
+              typeof firstAccessDetail.price === 'string'
+                ? Number(firstAccessDetail.price)
+                : firstAccessDetail.price
+            if (!isNaN(priceValue)) {
+              price = priceValue
+            }
+          }
+
+          if (price === 0) {
+            const stats = asset?.indexedMetadata?.stats?.[0] as
+              | { prices?: Array<{ price?: number | string }> }
+              | undefined
+            const priceEntry = stats?.prices?.[0]
+            if (priceEntry?.price) {
+              const priceValue =
+                typeof priceEntry.price === 'string'
+                  ? Number(priceEntry.price)
+                  : priceEntry.price
+              if (!isNaN(priceValue)) {
+                price = priceValue
+              }
+            }
+          }
+
+          let tokenSymbol: string | undefined
+          if (firstAccessDetail?.baseToken?.symbol) {
+            tokenSymbol = firstAccessDetail.baseToken.symbol
+          } else {
+            const credentialSubjectStats = (asset.credentialSubject as any)
+              ?.stats
+            const { price: credentialPrice } = credentialSubjectStats || {}
+            const { tokenSymbol: credentialTokenSymbol } = credentialPrice || {}
+            if (credentialTokenSymbol) {
+              tokenSymbol = credentialTokenSymbol
+            } else {
+              const stats = asset.indexedMetadata?.stats?.[0] as
+                | { price?: { tokenSymbol?: string } }
+                | undefined
+              const { price: indexedPrice } = stats || {}
+              const { tokenSymbol: indexedTokenSymbol } = indexedPrice || {}
+              if (indexedTokenSymbol) {
+                tokenSymbol = indexedTokenSymbol
+              }
+            }
+          }
+
           totalOrders += orders
-          totalRevenue += orders * price
+          const revenue = orders * price
+          totalRevenue += revenue
+          if (!tokenSymbol) return
+          if (!revenueByToken[tokenSymbol]) {
+            revenueByToken[tokenSymbol] = 0
+          }
+          revenueByToken[tokenSymbol] += revenue
         })
         allResults.push(...assets.results)
       }
@@ -762,10 +820,15 @@ export async function getUserSalesAndRevenue(
       page <= assets.totalPages
     )
 
-    return { totalOrders, totalRevenue, results: allResults }
+    return { totalOrders, totalRevenue, revenueByToken, results: allResults }
   } catch (error) {
     LoggerInstance.error('Error in getUserSales', error.message)
-    return { totalOrders: 0, totalRevenue: 0, results: [] }
+    return {
+      totalOrders: 0,
+      totalRevenue: 0,
+      revenueByToken: {},
+      results: []
+    }
   }
 }
 

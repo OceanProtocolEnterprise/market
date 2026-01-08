@@ -22,6 +22,7 @@ export interface AppConfig {
   publisherMarketFixedSwapFee: string
   consumeMarketOrderFee: string
   consumeMarketFixedSwapFee: string
+  customProviderUrl?: string
   allowFixedPricing: string
   allowDynamicPricing: string
   allowFreePricing: string

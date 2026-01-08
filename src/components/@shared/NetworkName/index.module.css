@@ -6,6 +6,22 @@
   font-weight: 700;
   font-size: 16px;
   color: var(--publish-text-secondary);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.network > svg,
+.network > :first-child {
+  flex-shrink: 0;
+}
+
+.network .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex-shrink: 1;
+  max-width: 100%;
 }
 
 .icon {
@@ -14,6 +30,7 @@
   height: 1.5em;
   fill: currentColor;
   margin-right: calc(var(--spacer) / 8);
+  flex-shrink: 0;
 }
 
 .minimal {
