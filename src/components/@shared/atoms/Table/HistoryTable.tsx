@@ -94,8 +94,24 @@ export default function HistoryTable({
         | undefined
       const priceEntry = statsEntry?.prices?.[0]
 
-      const baseTokenSymbol =
-        access?.baseToken?.symbol || priceEntry?.baseToken?.symbol || undefined
+      let baseTokenSymbol: string | undefined
+      if (access?.baseToken?.symbol) {
+        baseTokenSymbol = access.baseToken.symbol
+      } else {
+        const credentialSubjectStats = (
+          assetWithAccess.credentialSubject as any
+        )?.stats
+        if (credentialSubjectStats?.price?.tokenSymbol) {
+          baseTokenSymbol = credentialSubjectStats.price.tokenSymbol
+        } else {
+          const stats = assetWithAccess.indexedMetadata?.stats?.[0] as
+            | { price?: { tokenSymbol?: string } }
+            | undefined
+          if (stats?.price?.tokenSymbol) {
+            baseTokenSymbol = stats.price.tokenSymbol
+          }
+        }
+      }
 
       const accessPrice =
         access?.price && typeof access.price === 'string'
