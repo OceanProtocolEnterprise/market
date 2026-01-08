@@ -461,18 +461,15 @@ function isAccountAllowed(ddo: any, accountId: string): boolean {
         service.credentials?.deny &&
         checkDenyList(service.credentials.deny)
       ) {
-        console.log('Denied by service deny list')
         return false
       }
       continue
     }
     if (hasAddressAllow && !checkAllowList(serviceAllow)) {
-      console.log('Denied by service allow list')
       return false
     }
 
     if (service.credentials?.deny && checkDenyList(service.credentials.deny)) {
-      console.log('Denied by service deny list')
       return false
     }
   }
@@ -753,13 +750,57 @@ export async function getUserSalesAndRevenue(
       if (assets && assets.results) {
         assets.results.forEach((asset) => {
           const orders = asset?.indexedMetadata?.stats[0]?.orders || 0
-          const price =
-            Number(asset?.indexedMetadata?.stats?.[0]?.prices?.[0]?.price) || 0
-          const tokenSymbol =
-            (asset as any)?.accessDetails?.[0]?.baseToken?.symbol ||
-            (asset.indexedMetadata?.stats?.[0] as any)?.prices?.[0]?.baseToken
-              ?.symbol ||
-            'OCEAN'
+
+          const firstAccessDetail = (asset as any)?.accessDetails?.[0]
+          let price = 0
+          if (firstAccessDetail?.price) {
+            const priceValue =
+              typeof firstAccessDetail.price === 'string'
+                ? Number(firstAccessDetail.price)
+                : firstAccessDetail.price
+            if (!isNaN(priceValue)) {
+              price = priceValue
+            }
+          }
+
+          if (price === 0) {
+            const stats = asset?.indexedMetadata?.stats?.[0] as
+              | { prices?: Array<{ price?: number | string }> }
+              | undefined
+            const priceEntry = stats?.prices?.[0]
+            if (priceEntry?.price) {
+              const priceValue =
+                typeof priceEntry.price === 'string'
+                  ? Number(priceEntry.price)
+                  : priceEntry.price
+              if (!isNaN(priceValue)) {
+                price = priceValue
+              }
+            }
+          }
+
+          let tokenSymbol: string | undefined
+          if (firstAccessDetail?.baseToken?.symbol) {
+            tokenSymbol = firstAccessDetail.baseToken.symbol
+          } else {
+            const credentialSubjectStats = (asset.credentialSubject as any)
+              ?.stats
+            const { price: credentialPrice } = credentialSubjectStats || {}
+            const { tokenSymbol: credentialTokenSymbol } = credentialPrice || {}
+            if (credentialTokenSymbol) {
+              tokenSymbol = credentialTokenSymbol
+            } else {
+              const stats = asset.indexedMetadata?.stats?.[0] as
+                | { price?: { tokenSymbol?: string } }
+                | undefined
+              const { price: indexedPrice } = stats || {}
+              const { tokenSymbol: indexedTokenSymbol } = indexedPrice || {}
+              if (indexedTokenSymbol) {
+                tokenSymbol = indexedTokenSymbol
+              }
+            }
+          }
+
           totalOrders += orders
           const revenue = orders * price
           totalRevenue += revenue

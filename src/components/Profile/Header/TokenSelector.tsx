@@ -21,7 +21,13 @@ export default function TokenSelector({
     Object.keys(escrowFundsByToken || {}).forEach((symbol) =>
       tokens.add(symbol)
     )
-    return Array.from(tokens).sort()
+    const tokenArray = Array.from(tokens)
+    // Sort with OCEAN first, then alphabetically
+    return tokenArray.sort((a, b) => {
+      if (a === 'OCEAN') return -1
+      if (b === 'OCEAN') return 1
+      return a.localeCompare(b)
+    })
   }, [approvedBaseTokens, revenue, escrowFundsByToken])
 
   useEffect(() => {

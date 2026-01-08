@@ -62,9 +62,14 @@ export default function HistoryTable({
   ...props
 }: TableOceanProps<any>): ReactElement {
   const { networksList } = useNetworkMetadata()
-  const revenueEntries = Object.entries(revenueByToken || {}).filter(
-    ([symbol]) => !!symbol && symbol !== 'UNKNOWN'
-  )
+  const revenueEntries = Object.entries(revenueByToken || {})
+    .filter(([symbol]) => !!symbol && symbol !== 'UNKNOWN')
+    .sort(([symbolA], [symbolB]) => {
+      // Sort with OCEAN first, then alphabetically
+      if (symbolA === 'OCEAN') return -1
+      if (symbolB === 'OCEAN') return 1
+      return symbolA.localeCompare(symbolB)
+    })
   const totalRevenueValue =
     revenueTotal ??
     revenueEntries.reduce((acc, [_, amount]) => acc + Number(amount || 0), 0)

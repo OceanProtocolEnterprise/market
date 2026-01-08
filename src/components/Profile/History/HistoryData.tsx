@@ -1,6 +1,13 @@
 import { LoggerInstance } from '@oceanprotocol/lib'
 import axios, { CancelToken } from 'axios'
-import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  startTransition
+} from 'react'
 import { getPublishedAssets, getUserSalesAndRevenue } from '@utils/aquarius'
 import { useUserPreferences } from '@context/UserPreferences'
 import styles from './HistoryData.module.css'
@@ -59,19 +66,25 @@ interface StatsWithPrices {
   symbol?: string
 }
 
-const getBaseTokenSymbol = (asset: AssetExtended): string => {
+const getBaseTokenSymbol = (asset: AssetExtended): string | undefined => {
   const firstAccessDetail = asset.accessDetails?.[0]
   if (firstAccessDetail?.baseToken?.symbol) {
     return firstAccessDetail.baseToken.symbol
   }
 
-  const stats = asset.indexedMetadata?.stats?.[0] as StatsWithPrices | undefined
-  const priceEntry = stats?.prices?.[0]
-  if (priceEntry?.baseToken?.symbol) {
-    return priceEntry.baseToken.symbol
+  const credentialSubjectStats = (asset.credentialSubject as any)?.stats
+  if (credentialSubjectStats?.price?.tokenSymbol) {
+    return credentialSubjectStats.price.tokenSymbol
   }
 
-  return 'OCEAN'
+  const stats = asset.indexedMetadata?.stats?.[0] as
+    | { price?: { tokenSymbol?: string } }
+    | undefined
+  if (stats?.price?.tokenSymbol) {
+    return stats.price.tokenSymbol
+  }
+
+  return undefined
 }
 
 const getPrice = (asset: AssetExtended): number => {
@@ -189,7 +202,7 @@ export default function HistoryData({
         selector: (asset) => {
           const price = getPrice(asset)
           const tokenSymbol = getBaseTokenSymbol(asset)
-          return `${price} ${tokenSymbol}`
+          return tokenSymbol ? `${price} ${tokenSymbol}` : `${price}`
         },
         maxWidth: '7rem'
       },
@@ -199,7 +212,9 @@ export default function HistoryData({
           const price = getPrice(asset)
           const orders = getOrders(asset)
           const tokenSymbol = getBaseTokenSymbol(asset)
-          return `${orders * price} ${tokenSymbol}`
+          return tokenSymbol
+            ? `${orders * price} ${tokenSymbol}`
+            : `${orders * price}`
         },
         maxWidth: '7rem'
       }
@@ -226,6 +241,7 @@ export default function HistoryData({
   const [accessDetailsCache, setAccessDetailsCache] = useState<
     Record<string, AccessDetails>
   >({})
+  const [allAssets, setAllAssets] = useState<AssetExtended[]>([])
 
   const newCancelToken = useCancelToken()
 
@@ -247,6 +263,7 @@ export default function HistoryData({
           )
 
         setSales(totalOrders)
+        setAllAssets((results as AssetExtended[]) || [])
         setRevenueTotal(totalRevenue)
         setRevenueByToken(
           filterAndSeedRevenue(revenueByToken || {}, approvedBaseTokens)
@@ -265,7 +282,7 @@ export default function HistoryData({
     return () => {
       source.cancel('history-sales-cancelled')
     }
-  }, [accountId, activeChainIds, filtersKey])
+  }, [accountId, activeChainIds, filtersKey, approvedBaseTokens])
 
   const getPublished = useCallback(
     async (
@@ -322,21 +339,32 @@ export default function HistoryData({
           )
         }
 
-        const computedRevenue = buildRevenueByToken(enrichedResults)
+        const enrichedAllAssets: AssetExtended[] = allAssets.map((asset) => {
+          const cached = accessDetailsCache[asset.id]
+          const currentPageEnriched = enrichedResults.find(
+            (a) => a.id === asset.id
+          )
+
+          if (currentPageEnriched?.accessDetails?.[0]) {
+            return currentPageEnriched
+          } else if (cached) {
+            return {
+              ...asset,
+              accessDetails: [cached]
+            } as AssetExtended
+          }
+          return asset
+        })
+
+        const computedRevenue = buildRevenueByToken(enrichedAllAssets)
         const computedTotal = Object.values(computedRevenue).reduce(
           (acc, val) => acc + Number(val || 0),
           0
         )
 
-        if (Object.keys(computedRevenue).length > 0) {
-          setRevenueByToken((prev) => {
-            if (Object.keys(prev || {}).length > 0) return prev
-            return filterAndSeedRevenue(computedRevenue, approvedBaseTokens)
-          })
-          setRevenueTotal((prev) =>
-            prev && prev > 0 ? prev : computedTotal > 0 ? computedTotal : 0
-          )
-        }
+        const hasEnrichedData = enrichedAllAssets.some(
+          (asset) => asset.accessDetails?.[0]
+        )
 
         setQueryResult(
           result
@@ -348,6 +376,29 @@ export default function HistoryData({
               }
             : result
         )
+
+        if (Object.keys(computedRevenue).length > 0) {
+          startTransition(() => {
+            setRevenueByToken((prev) => {
+              if (hasEnrichedData) {
+                return filterAndSeedRevenue(computedRevenue, approvedBaseTokens)
+              }
+              return prev && Object.keys(prev).length > 0
+                ? prev
+                : filterAndSeedRevenue(computedRevenue, approvedBaseTokens)
+            })
+            setRevenueTotal((prev) => {
+              if (hasEnrichedData && computedTotal > 0) {
+                return computedTotal
+              }
+              return prev && prev > 0
+                ? prev
+                : computedTotal > 0
+                ? computedTotal
+                : 0
+            })
+          })
+        }
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : String(error)
@@ -356,7 +407,15 @@ export default function HistoryData({
         setIsTableLoading(false)
       }
     },
-    [activeChainIds, ignorePurgatory, newCancelToken, ownAccount]
+    [
+      activeChainIds,
+      ignorePurgatory,
+      newCancelToken,
+      ownAccount,
+      accessDetailsCache,
+      allAssets,
+      approvedBaseTokens
+    ]
   )
 
   useEffect(() => {
