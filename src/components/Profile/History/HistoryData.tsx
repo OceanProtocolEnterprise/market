@@ -462,6 +462,7 @@ export default function HistoryData({
             />
           )}
         {!isLoading &&
+          !isTableLoading &&
           (!queryResult ||
             !queryResult?.results ||
             queryResult.results.length === 0) && (

@@ -151,7 +151,6 @@ export default function HistoryTable({
       dataset: exportData,
       totalSales: sales,
       totalPublished: items,
-      totalRevenue: totalRevenueValue,
       revenueByToken
     }
 
