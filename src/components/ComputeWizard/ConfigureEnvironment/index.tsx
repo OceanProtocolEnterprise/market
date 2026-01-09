@@ -34,7 +34,7 @@ interface ResourceRowProps {
   ) => void
   fee?: { prices?: { id: string; price: number }[] }
 }
-
+// initilal commit for multi token support
 function ResourceRow({
   resourceId,
   label,
