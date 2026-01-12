@@ -37,8 +37,8 @@ export default function Price({
           {noApprovedTokens && (
             <div style={{ marginBottom: '1.5rem' }}>
               <Alert
-                title="No Approved Tokens Available"
-                text="There are currently no approved tokens available for pricing on this network. Please contact the administrator or switch to a supported network."
+                title="No Supported Currencies Used"
+                text="There are currently no approved currencies available for pricing on this network. Please contact the administrator or switch to a supported network. For details on accepted currencies, consult https://docs.oceanenterprise.io/developers/networks#supported-currencies."
                 state="error"
               />
             </div>

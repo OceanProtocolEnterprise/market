@@ -70,7 +70,7 @@ export default function App({
         setShowNoAllowedMessage(true)
 
         if (!toastShownRef.current) {
-          toast.error('No allowed token addresses found.')
+          toast.error('No supported token addresses found.')
           toastShownRef.current = true
         }
       } else {
@@ -140,8 +140,8 @@ export default function App({
             </button>
 
             <Alert
-              title="No Allowed Token Addresses"
-              text="No token addresses are currently approved by the Enterprise Fee Collector. Please contact the administrator."
+              title="No Supported Currencies Used"
+              text="No currencies approved by O.E.C are used in this market instance. For details on accepted currencies, consult https://docs.oceanenterprise.io/developers/networks#supported-currencies."
               state="error"
             />
           </div>
