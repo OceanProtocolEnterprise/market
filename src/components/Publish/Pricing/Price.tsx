@@ -6,6 +6,7 @@ import styles from './Price.module.css'
 import { FormPublishData } from '../_types'
 import { getFieldContent } from '@utils/form'
 import CoinSelect from './CoinSelect'
+import Alert from '@shared/atoms/Alert'
 
 export default function Price({
   approvedBaseTokens,
@@ -17,6 +18,9 @@ export default function Price({
   const [field, meta] = useField('pricing.price')
 
   const { values } = useFormikContext<FormPublishData>()
+
+  const noApprovedTokens =
+    !approvedBaseTokens || approvedBaseTokens.length === 0
 
   return (
     <div className={styles.price}>
@@ -30,27 +34,37 @@ export default function Price({
         </div>
       ) : (
         <>
-          <div className={styles.grid}>
-            <div className={styles.form}>
-              <Input
-                type="number"
-                min="1"
-                placeholder="1"
-                prefix={
-                  approvedBaseTokens?.length > 1 ? (
-                    <CoinSelect approvedBaseTokens={approvedBaseTokens} />
-                  ) : approvedBaseTokens?.length === 1 ? (
-                    approvedBaseTokens[0]?.symbol
-                  ) : (
-                    values.pricing?.baseToken?.symbol || undefined
-                  )
-                }
-                variant="publish"
-                {...field}
+          {noApprovedTokens && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <Alert
+                title="No Approved Tokens Available"
+                text="There are currently no approved tokens available for pricing on this network. Please contact the administrator or switch to a supported network."
+                state="error"
               />
-              <Error meta={meta} />
             </div>
-          </div>
+          )}
+
+          {!noApprovedTokens && (
+            <div className={styles.grid}>
+              <div className={styles.form}>
+                <Input
+                  type="number"
+                  min="1"
+                  placeholder="1"
+                  prefix={
+                    approvedBaseTokens.length > 1 ? (
+                      <CoinSelect approvedBaseTokens={approvedBaseTokens} />
+                    ) : (
+                      approvedBaseTokens[0]?.symbol
+                    )
+                  }
+                  variant="publish"
+                  {...field}
+                />
+                <Error meta={meta} />
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
