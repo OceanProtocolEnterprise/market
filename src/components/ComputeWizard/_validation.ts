@@ -109,6 +109,7 @@ export const validationSchema: Yup.SchemaOf<FormComputeData> = Yup.object()
       .nullable(),
     totalPrice: Yup.string().nullable(),
     escrowFunds: Yup.string().required(),
-    jobPrice: Yup.string().required()
+    jobPrice: Yup.string().required(),
+    baseToken: Yup.string().required()
   })
   .required()

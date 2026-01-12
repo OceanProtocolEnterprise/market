@@ -47,7 +47,8 @@ export const initialValues: FormComputeData = {
   marketFees: null,
   totalPrice: '0',
   escrowFunds: '0',
-  jobPrice: '0'
+  jobPrice: '0',
+  baseToken: null
 }
 
 export function createInitialValues(flow: ComputeFlow): FormComputeData {
