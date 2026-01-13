@@ -16,6 +16,8 @@ interface PricingRowProps {
   itemName: string
   label?: string
   value: string | number
+  displayValue?: string
+  valueParts?: Array<{ value: string; symbol: string }>
   duration?: string
   className?: string
   isService?: boolean
@@ -42,6 +44,8 @@ export default function PricingRow({
   itemName,
   label,
   value,
+  displayValue,
+  valueParts,
   duration,
   className,
   isService = false,
@@ -159,6 +163,8 @@ export default function PricingRow({
       <div className={styles.priceInfo}>
         <PriceDisplay
           value={value}
+          displayValue={displayValue}
+          valueParts={valueParts}
           duration={duration}
           valueType={valueType}
           symbol={symbol}

@@ -1333,6 +1333,30 @@ export default function Review({
     (price) => price.value !== '0' && price.symbol
   )
 
+  type FeeEntry = { name: string; value: string; symbol?: string }
+  type FeeDisplayEntry = FeeEntry & {
+    displayValue?: string
+    valueParts?: Array<{ value: string; symbol: string }>
+  }
+  const formatFeeValue = (value: string | number) => Number(value).toFixed(3)
+  const mergeFeeRows = (fees: FeeEntry[]): FeeDisplayEntry[] => {
+    const grouped = new Map<string, FeeEntry[]>()
+    fees.forEach((fee) => {
+      const existing = grouped.get(fee.name)
+      if (existing) existing.push(fee)
+      else grouped.set(fee.name, [fee])
+    })
+
+    return Array.from(grouped.entries()).map(([name, entries]) => {
+      if (entries.length === 1) return entries[0]
+      const valueParts = entries.map((entry) => ({
+        value: formatFeeValue(entry.value),
+        symbol: entry.symbol || symbol
+      }))
+      return { ...entries[0], name, valueParts, symbol: '' }
+    })
+  }
+
   const fallbackProviderSymbol = resolveSymbol(
     providerFeesSymbol || symbol,
     tokenInfoState?.address
@@ -1525,6 +1549,10 @@ export default function Review({
     !isDatasetFlow && values.withoutDataset
       ? marketFeesBase.filter((fee) => !fee.name.includes('DATASET'))
       : marketFeesBase
+
+  const mergedMarketFees = mergeFeeRows(marketFees)
+  const mergedDatasetProviderFees = mergeFeeRows(datasetProviderFeesList)
+  const mergedAlgorithmProviderFees = mergeFeeRows(algorithmProviderFeesList)
 
   if (!isBalanceSufficient) {
     if (insufficientBalances.length > 0) {
@@ -1777,31 +1805,42 @@ export default function Review({
           <div className={styles.marketFeesSection}>
             <h3 className={styles.marketFeesHeading}>Fees</h3>
             <div className={styles.marketFeesBox}>
-              {marketFees.map((fee) => (
+              {mergedMarketFees.map((fee) => (
                 <PricingRow
                   key={fee.name}
                   itemName={fee.name}
                   value={fee.value}
-                  symbol={fee.symbol || symbol}
+                  valueParts={fee.valueParts}
+                  symbol={fee.valueParts ? '' : fee.symbol || symbol}
                 />
               ))}
               {!values.withoutDataset &&
-                datasetProviderFeesList.length > 0 &&
-                datasetProviderFeesList.map((fee) => (
+                mergedDatasetProviderFees.length > 0 &&
+                mergedDatasetProviderFees.map((fee) => (
                   <PricingRow
-                    key={`${fee.name}-${fee.symbol}`}
+                    key={fee.name}
                     itemName={fee.name}
                     value={fee.value}
-                    symbol={fee.symbol || datasetSymbol || symbol}
+                    valueParts={fee.valueParts}
+                    symbol={
+                      fee.valueParts
+                        ? ''
+                        : fee.symbol || datasetSymbol || symbol
+                    }
                   />
                 ))}
-              {algorithmProviderFeesList.length > 0 &&
-                algorithmProviderFeesList.map((fee) => (
+              {mergedAlgorithmProviderFees.length > 0 &&
+                mergedAlgorithmProviderFees.map((fee) => (
                   <PricingRow
-                    key={`${fee.name}-${fee.symbol}`}
+                    key={fee.name}
                     itemName={fee.name}
                     value={fee.value}
-                    symbol={fee.symbol || algorithmSymbol || symbol}
+                    valueParts={fee.valueParts}
+                    symbol={
+                      fee.valueParts
+                        ? ''
+                        : fee.symbol || algorithmSymbol || symbol
+                    }
                   />
                 ))}
             </div>
