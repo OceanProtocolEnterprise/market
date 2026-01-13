@@ -1,16 +1,21 @@
-import { ReactElement } from 'react'
-import Alert from '@shared/atoms/Alert'
-import Footer from '../Footer/Footer'
-import Header from '../Header'
+import { ReactElement, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
-import { useAccountPurgatory } from '@hooks/useAccountPurgatory'
+import { useAccount } from 'wagmi'
+import { ToastContainer, toast } from 'react-toastify'
+
+import Alert from '@shared/atoms/Alert'
 import AnnouncementBanner from '@shared/AnnouncementBanner'
 import PrivacyPreferenceCenter from '../Privacy/PrivacyPreferenceCenter'
-import styles from './index.module.css'
-import { ToastContainer } from 'react-toastify'
-import contentPurgatory from '../../../content/purgatory.json'
+import Header from '../Header'
+import Footer from '../Footer/Footer'
+import { useAccountPurgatory } from '@hooks/useAccountPurgatory'
 import { useMarketMetadata } from '@context/MarketMetadata'
-import { useAccount } from 'wagmi'
+import useEnterpriseFeeCollector from '@hooks/useEnterpriseFeeCollector'
+import useTokenApproval from '@hooks/useTokenApproval'
+import useAllowedTokenAddresses from '@hooks/useAllowedTokenAddresses'
+
+import contentPurgatory from '../../../content/purgatory.json'
+import styles from './index.module.css'
 
 export default function App({
   children
@@ -20,24 +25,128 @@ export default function App({
   const { siteContent, appConfig } = useMarketMetadata()
   const { address } = useAccount()
   const { isInPurgatory, purgatoryData } = useAccountPurgatory(address)
+
   const router = useRouter()
   const isRoot = router.pathname === '/'
+  const isRouterReady = router.isReady
+  const chainId = isRouterReady
+    ? Number(router.query.chainId || 11155111)
+    : undefined
 
-  const devPreviewAnnouncementText =
-    siteContent?.devPreviewAnnouncement
-      ?.replaceAll('SITE-TITLE-PLACEHOLDER', siteContent.siteTitle)
-      ?.replaceAll('SITE-LINK-PLACEHOLDER', siteContent.siteUrl) || ''
+  const allowedEnvAddresses = useAllowedTokenAddresses(chainId)
+  const { enterpriseFeeCollector } = useEnterpriseFeeCollector()
+
+  const { allowedTokens = [], loading } = useTokenApproval(
+    enterpriseFeeCollector,
+    allowedEnvAddresses
+  )
+  const [showNoAllowedMessage, setShowNoAllowedMessage] = useState(false)
+  const decisionLockedRef = useRef(false)
+  const toastShownRef = useRef(false)
+
+  useEffect(() => {
+    console.log('[TokenCheck] Unified decision effect', {
+      isRouterReady,
+      loading,
+      chainId,
+      enterpriseFeeCollector,
+      allowedEnvAddresses,
+      allowedTokens,
+      allowedTokensLength: allowedTokens.length,
+      decisionLocked: decisionLockedRef.current
+    })
+
+    if (!isRouterReady) return
+    if (!enterpriseFeeCollector) return
+    if (loading) return
+    if (decisionLockedRef.current) return
+
+    const timer = setTimeout(() => {
+      decisionLockedRef.current = true
+
+      if (allowedTokens.length === 0) {
+        console.log('[TokenCheck] ❌ FINAL DECISION: NO ALLOWED TOKENS')
+
+        setShowNoAllowedMessage(true)
+
+        if (!toastShownRef.current) {
+          toast.error('No supported token addresses found.')
+          toastShownRef.current = true
+        }
+      } else {
+        console.log('[TokenCheck] ✅ FINAL DECISION: ALLOWED TOKENS FOUND')
+        setShowNoAllowedMessage(false)
+      }
+    }, 1200)
+
+    return () => clearTimeout(timer)
+  }, [
+    isRouterReady,
+    loading,
+    chainId,
+    enterpriseFeeCollector,
+    allowedEnvAddresses,
+    allowedTokens
+  ])
 
   return (
     <div className={styles.app}>
-      {siteContent?.announcement !== '' && (
-        <AnnouncementBanner text={siteContent?.announcement} />
+      {siteContent?.announcement && (
+        <AnnouncementBanner text={siteContent.announcement} />
       )}
-      {appConfig.showPreviewAlert === 'true' &&
-        devPreviewAnnouncementText !== '' && (
-          <AnnouncementBanner text={devPreviewAnnouncementText} />
-        )}
+
       {!isRoot && <Header />}
+      {showNoAllowedMessage && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999
+          }}
+          onClick={() => setShowNoAllowedMessage(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#ffffff',
+              color: '#000',
+              borderRadius: '12px',
+              padding: '2.5rem',
+              width: '100%',
+              maxWidth: '600px',
+              textAlign: 'center',
+              position: 'relative',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.25)'
+            }}
+          >
+            <button
+              onClick={() => setShowNoAllowedMessage(false)}
+              aria-label="Close"
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'transparent',
+                border: 'none',
+                fontSize: '24px',
+                cursor: 'pointer'
+              }}
+            >
+              ×
+            </button>
+
+            <Alert
+              title="No Supported Currencies Used"
+              text="No currencies approved by O.E.C are used in this market instance. For details on accepted currencies, consult https://docs.oceanenterprise.io/developers/networks#supported-currencies."
+              state="error"
+            />
+          </div>
+        </div>
+      )}
 
       {isInPurgatory && (
         <Alert
@@ -47,7 +156,9 @@ export default function App({
           state="error"
         />
       )}
+
       <main className={styles.main}>{children}</main>
+
       <Footer />
 
       {appConfig?.privacyPreferenceCenter === 'true' && (
