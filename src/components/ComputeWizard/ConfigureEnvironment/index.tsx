@@ -177,10 +177,14 @@ function ResourceRow({
 
 export default function ConfigureEnvironment({
   allResourceValues,
-  setAllResourceValues
+  setAllResourceValues,
+  baseTokenAddress,
+  setBaseTokenAddress
 }: {
   allResourceValues?: Record<string, ResourceType>
   setAllResourceValues?: (values: Record<string, any>) => void
+  baseTokenAddress: string
+  setBaseTokenAddress: React.Dispatch<React.SetStateAction<string>>
 }): ReactElement {
   const { values, setFieldValue } = useFormikContext<FormComputeData>()
   const chainId = useChainId()
@@ -585,6 +589,7 @@ export default function ConfigureEnvironment({
           )
           if (selectedToken) {
             setFieldValue('baseToken', selectedToken.address)
+            setBaseTokenAddress(selectedToken.address)
           }
         }}
       />
