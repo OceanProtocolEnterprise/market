@@ -118,7 +118,7 @@ function transformDatasets(
         0) as DatasetService['serviceDuration'],
       serviceType: ds.serviceType,
       price: priceValue,
-      tokenSymbol: ds.tokenSymbol,
+      tokenSymbol: ds.tokenSymbol || ds.symbol,
       checked: ds.checked,
       isAccountIdWhitelisted: ds.isAccountIdWhitelisted,
       datetime: ds.datetime,

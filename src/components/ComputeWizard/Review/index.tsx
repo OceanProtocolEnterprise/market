@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactElement, useEffect, useState } from 'react'
+import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react'
 import { Field, useFormikContext } from 'formik'
 import StepTitle from '@shared/StepTitle'
 import Input from '@shared/FormInput'
@@ -23,9 +23,10 @@ import { compareAsBN } from '@utils/numbers'
 import { requiresSsi } from '@utils/credentials'
 import { getFeeTooltip } from '@utils/feeTooltips'
 import { getAsset } from '@utils/aquarius'
+import { getBaseTokenSymbol } from '@utils/getBaseTokenSymbol'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { Service } from 'src/@types/ddo/Service'
-import { ComputeEnvironment } from '@oceanprotocol/lib'
+import { ComputeEnvironment, ProviderFees } from '@oceanprotocol/lib'
 import { ResourceType } from 'src/@types/ResourceType'
 import { Asset } from 'src/@types/Asset'
 import { Signer, formatUnits } from 'ethers'
@@ -54,6 +55,7 @@ interface VerificationItem {
   price: string
   duration: string
   name: string
+  symbol?: string
 }
 
 type TotalPriceEntry = { value: string; symbol: string }
@@ -80,6 +82,8 @@ type ReviewProps = {
   algoOrderPriceAndFees?: OrderPriceAndFees
   datasetProviderFeeProp?: string
   algorithmProviderFeeProp?: string
+  datasetProviderFees?: ProviderFees[]
+  algorithmProviderFees?: ProviderFees | null
   isBalanceSufficient: boolean
   setIsBalanceSufficient: React.Dispatch<React.SetStateAction<boolean>>
   allResourceValues: {
@@ -125,14 +129,18 @@ export default function Review({
   computeEnvs,
   hasPreviousOrder,
   hasDatatoken,
-  dtBalance,
+  hasPreviousOrderSelectedComputeAsset,
+  hasDatatokenSelectedComputeAsset,
   isAccountIdWhitelisted,
   datasetSymbol,
   algorithmSymbol,
   providerFeesSymbol,
   algoOrderPriceAndFees,
+  datasetOrderPriceAndFees,
   datasetProviderFeeProp,
   algorithmProviderFeeProp,
+  datasetProviderFees,
+  algorithmProviderFees,
   isBalanceSufficient,
   setIsBalanceSufficient,
   allResourceValues,
@@ -148,8 +156,6 @@ export default function Review({
   setSelectedDatasetAsset,
   tokenInfo
 }: ReviewProps): ReactElement {
-  // TODO remove and get from env
-  const consumeMarketOrderFee = 0
   const isDatasetFlow = flow === 'dataset'
   const { address: accountId } = useAccount()
   const { balance } = useBalance()
@@ -163,7 +169,9 @@ export default function Review({
     tokenInfo
   )
   const [algoOecFee, setAlgoOecFee] = useState<string>('0')
-  const [datasetOecFees, setDatasetOecFees] = useState<string>('0')
+  const [datasetOecFeesBySymbol, setDatasetOecFeesBySymbol] = useState<
+    Record<string, string>
+  >({})
   const { setFieldValue, values, validateForm } =
     useFormikContext<FormComputeData>()
   const [verificationQueue, setVerificationQueue] = useState<
@@ -182,7 +190,17 @@ export default function Review({
   )
   const [algoOrderPriceValue, setAlgoOrderPriceValue] = useState<string>()
   const [totalPrices, setTotalPrices] = useState<TotalPriceEntry[]>([])
-  const [totalPriceToDisplay, setTotalPriceToDisplay] = useState<string>('0')
+  const [totalPriceBreakdown, setTotalPriceBreakdown] = useState<
+    TotalPriceEntry[]
+  >([])
+  const [insufficientBalances, setInsufficientBalances] = useState<
+    Array<{ symbol: string; required: string; available: string }>
+  >([])
+  const [datasetProviderFeeEntries, setDatasetProviderFeeEntries] = useState<
+    TotalPriceEntry[]
+  >([])
+  const [algorithmProviderFeeEntries, setAlgorithmProviderFeeEntries] =
+    useState<TotalPriceEntry[]>([])
   const [algoLoadError, setAlgoLoadError] = useState<string>()
 
   const selectedEnvId =
@@ -196,6 +214,73 @@ export default function Review({
     currentMode === 'paid' ? paidResources?.price : freeResources?.price
   const c2dPrice =
     c2dPriceRaw != null ? Math.round(Number(c2dPriceRaw) * 100) / 100 : 0
+  const consumeMarketOrderFeeMap = useMemo(() => {
+    if (!consumeMarketOrderFee) return {}
+    try {
+      return JSON.parse(consumeMarketOrderFee) as Record<
+        string,
+        Array<{ token: string; amount: string }>
+      >
+    } catch (error) {
+      console.error('Error parsing consumeMarketOrderFee config', error)
+      return {}
+    }
+  }, [])
+  const getConsumeMarketOrderFee = useCallback(
+    (chainId?: number, baseToken?: TokenInfo) => {
+      if (!chainId || !baseToken?.address) return new Decimal(0)
+      const chainFees = consumeMarketOrderFeeMap[chainId.toString()] || []
+      const matchingFeeEntry = chainFees.find(
+        (fee) => fee.token.toLowerCase() === baseToken.address.toLowerCase()
+      )
+      const feeAmount = matchingFeeEntry?.amount || '0'
+      return new Decimal(formatUnits(feeAmount, baseToken.decimals ?? 18))
+    },
+    [consumeMarketOrderFeeMap]
+  )
+
+  const resolveSymbol = useCallback(
+    (symbol?: string, tokenAddress?: string) =>
+      symbol || (tokenAddress ? `${tokenAddress.slice(0, 6)}...` : 'UNKNOWN'),
+    []
+  )
+
+  const providerFeeEntries = useMemo(() => {
+    const entries = [
+      ...datasetProviderFeeEntries,
+      ...algorithmProviderFeeEntries
+    ]
+    const fallbackSymbol = resolveSymbol(
+      providerFeesSymbol || symbol,
+      tokenInfoState?.address
+    )
+
+    if (datasetProviderFeeEntries.length === 0 && datasetProviderFee) {
+      entries.push({
+        symbol: fallbackSymbol,
+        value: formatUnits(datasetProviderFee, tokenInfoState?.decimals)
+      })
+    }
+
+    if (algorithmProviderFeeEntries.length === 0 && algorithmProviderFee) {
+      entries.push({
+        symbol: fallbackSymbol,
+        value: formatUnits(algorithmProviderFee, tokenInfoState?.decimals)
+      })
+    }
+
+    return entries
+  }, [
+    datasetProviderFeeEntries,
+    algorithmProviderFeeEntries,
+    datasetProviderFee,
+    algorithmProviderFee,
+    providerFeesSymbol,
+    symbol,
+    tokenInfoState?.address,
+    tokenInfoState?.decimals,
+    resolveSymbol
+  ])
 
   const errorMessages: string[] = []
   const formatDuration = (seconds: number): string => {
@@ -222,96 +307,139 @@ export default function Review({
         effectiveProvider
       )
       setTokenInfoState(tokenDetails)
-      setSymbol(tokenDetails.symbol || 'OCEAN')
+      setSymbol(tokenDetails.symbol || '')
     }
     fetchTokenDetails()
   }, [signer, isDatasetFlow, asset?.credentialSubject?.chainId])
 
   useEffect(() => {
     async function fetchPricesDatasetFlow() {
+      if (!isDatasetFlow) return
+
+      const datasetOwned =
+        accessDetails?.isOwned ||
+        Boolean(accessDetails?.validOrderTx) ||
+        hasPreviousOrder ||
+        hasDatatoken
+
       if (
-        isDatasetFlow &&
-        asset &&
-        asset.credentialSubject?.chainId &&
-        accessDetails &&
-        signer &&
-        !accessDetails.isOwned
+        !asset ||
+        !asset.credentialSubject?.chainId ||
+        !accessDetails ||
+        !signer ||
+        datasetOwned
       ) {
+        setDatasetOecFeesBySymbol({})
+      } else {
         try {
           const datasetFixed = await getFixedBuyPrice(
             accessDetails,
             asset.credentialSubject.chainId,
             signer
           )
-          setDatasetOecFees(datasetFixed?.oceanFeeAmount || '0')
+          const datasetSymbolLocal = resolveSymbol(
+            accessDetails?.baseToken?.symbol || getBaseTokenSymbol(asset, 0),
+            accessDetails?.baseToken?.address
+          )
+          setDatasetOecFeesBySymbol(
+            datasetSymbolLocal
+              ? { [datasetSymbolLocal]: datasetFixed?.oceanFeeAmount || '0' }
+              : {}
+          )
         } catch (e) {
           console.error('Could not fetch dataset fixed buy price:', e)
         }
       }
-      if (
-        isDatasetFlow &&
-        selectedAlgorithmAsset &&
-        selectedAlgorithmAsset.accessDetails?.[serviceIndex] &&
-        !selectedAlgorithmAsset.accessDetails[serviceIndex].isOwned &&
-        signer
-      ) {
-        try {
-          const algoFixed = await getFixedBuyPrice(
-            selectedAlgorithmAsset.accessDetails[serviceIndex],
-            selectedAlgorithmAsset.credentialSubject?.chainId,
-            signer
-          )
-          setAlgoOecFee(algoFixed?.oceanFeeAmount || '0')
-        } catch (e) {
-          console.error('Could not fetch algo fixed buy price:', e)
-        }
+
+      const algoDetails = selectedAlgorithmAsset?.accessDetails?.[serviceIndex]
+      const algoOwned =
+        algoDetails?.isOwned ||
+        Boolean(algoDetails?.validOrderTx) ||
+        hasPreviousOrderSelectedComputeAsset ||
+        hasDatatokenSelectedComputeAsset
+
+      if (!selectedAlgorithmAsset || !algoDetails || !signer || algoOwned) {
+        setAlgoOecFee('0')
+        return
+      }
+
+      try {
+        const algoFixed = await getFixedBuyPrice(
+          algoDetails,
+          selectedAlgorithmAsset.credentialSubject?.chainId,
+          signer
+        )
+        setAlgoOecFee(algoFixed?.oceanFeeAmount || '0')
+      } catch (e) {
+        console.error('Could not fetch algo fixed buy price:', e)
       }
     }
 
     async function fetchPricesAlgorithmFlow() {
-      if (!isDatasetFlow && selectedDatasetAsset?.length) {
+      if (isDatasetFlow) return
+
+      if (values.withoutDataset || !selectedDatasetAsset?.length) {
+        setDatasetOecFeesBySymbol({})
+      } else {
         try {
-          const feeSum = (
-            await Promise.all(
-              selectedDatasetAsset.map(async (dataset) => {
-                const details =
-                  dataset.accessDetails?.[dataset.serviceIndex || 0]
-                if (details && dataset.credentialSubject?.chainId && signer) {
-                  if (details.isOwned) return 0
-                  const fixed = await getFixedBuyPrice(
-                    details,
-                    dataset.credentialSubject.chainId,
-                    signer
-                  )
-                  return Number(fixed?.oceanFeeAmount) || 0
-                }
-                return 0
-              })
-            )
-          ).reduce((acc, curr) => acc + curr, 0)
-          setDatasetOecFees(feeSum.toString())
+          const feeEntries = await Promise.all(
+            selectedDatasetAsset.map(async (dataset) => {
+              const details = dataset.accessDetails?.[dataset.serviceIndex || 0]
+              if (!details || !dataset.credentialSubject?.chainId || !signer)
+                return null
+              if (details.isOwned || details.validOrderTx) return null
+              const fixed = await getFixedBuyPrice(
+                details,
+                dataset.credentialSubject.chainId,
+                signer
+              )
+              const symbol = resolveSymbol(
+                details.baseToken?.symbol ||
+                  getBaseTokenSymbol(dataset, dataset.serviceIndex || 0),
+                details.baseToken?.address
+              )
+              const feeValue = Number(fixed?.oceanFeeAmount) || 0
+              return { symbol, feeValue }
+            })
+          )
+
+          const feeTotals: Record<string, Decimal> = {}
+          feeEntries.forEach((entry) => {
+            if (!entry) return
+            const current = feeTotals[entry.symbol] || new Decimal(0)
+            feeTotals[entry.symbol] = current.add(entry.feeValue)
+          })
+
+          const mapped: Record<string, string> = {}
+          Object.entries(feeTotals).forEach(([symbolKey, value]) => {
+            mapped[symbolKey] = value.toString()
+          })
+          setDatasetOecFeesBySymbol(mapped)
         } catch (e) {
           console.error('Could not fetch dataset fixed buy price sum:', e)
         }
       }
 
-      if (
-        !isDatasetFlow &&
-        asset &&
-        accessDetails &&
-        signer &&
-        !accessDetails.isOwned
-      ) {
-        try {
-          const algoFixed = await getFixedBuyPrice(
-            accessDetails,
-            asset.credentialSubject?.chainId,
-            signer
-          )
-          setAlgoOecFee(algoFixed?.oceanFeeAmount || '0')
-        } catch (e) {
-          console.error('Could not fetch algorithm fixed buy price:', e)
-        }
+      const algoOwned =
+        accessDetails?.isOwned ||
+        Boolean(accessDetails?.validOrderTx) ||
+        hasPreviousOrder ||
+        hasDatatoken
+
+      if (!asset || !accessDetails || !signer || algoOwned) {
+        setAlgoOecFee('0')
+        return
+      }
+
+      try {
+        const algoFixed = await getFixedBuyPrice(
+          accessDetails,
+          asset.credentialSubject?.chainId,
+          signer
+        )
+        setAlgoOecFee(algoFixed?.oceanFeeAmount || '0')
+      } catch (e) {
+        console.error('Could not fetch algorithm fixed buy price:', e)
       }
     }
 
@@ -324,16 +452,43 @@ export default function Review({
     signer,
     selectedAlgorithmAsset,
     selectedDatasetAsset,
-    serviceIndex
+    serviceIndex,
+    values.withoutDataset,
+    hasPreviousOrder,
+    hasDatatoken,
+    hasPreviousOrderSelectedComputeAsset,
+    hasDatatokenSelectedComputeAsset,
+    resolveSymbol
   ])
 
   useEffect(() => {
     if (algoOrderPriceAndFees?.price) {
       setAlgoOrderPriceValue(algoOrderPriceAndFees.price)
-    } else if (accessDetails?.price) {
+      return
+    }
+    if (isDatasetFlow) {
+      const algoAccessDetails =
+        selectedAlgorithmAsset?.accessDetails?.[serviceIndex]
+      const fallbackPrice =
+        algoAccessDetails?.price ??
+        selectedAlgorithmAsset?.credentialSubject?.services?.[serviceIndex]
+          ?.price ??
+        selectedAlgorithmAsset?.credentialSubject?.services?.[0]?.price
+      if (fallbackPrice !== undefined) {
+        setAlgoOrderPriceValue(String(fallbackPrice))
+      }
+      return
+    }
+    if (accessDetails?.price) {
       setAlgoOrderPriceValue(accessDetails.price)
     }
-  }, [algoOrderPriceAndFees?.price, accessDetails?.price])
+  }, [
+    algoOrderPriceAndFees?.price,
+    accessDetails?.price,
+    isDatasetFlow,
+    selectedAlgorithmAsset,
+    serviceIndex
+  ])
 
   useEffect(() => {
     if (computeEnvs?.length === 1 && !values.computeEnv) {
@@ -494,7 +649,14 @@ export default function Review({
           index: 0,
           price: rawPrice,
           duration: formatDuration(service.timeout || 0),
-          name: service.name
+          name: service.name,
+          symbol: resolveSymbol(
+            accessDetails?.baseToken?.symbol ||
+              getBaseTokenSymbol(asset, 0) ||
+              datasetSymbol ||
+              tokenInfoState?.symbol,
+            accessDetails?.baseToken?.address
+          )
         })
       }
 
@@ -529,7 +691,16 @@ export default function Review({
           duration: '1 day',
           name:
             selectedAlgorithmAsset.credentialSubject?.services?.[serviceIndex]
-              ?.name || 'Algorithm'
+              ?.name || 'Algorithm',
+          symbol: resolveSymbol(
+            selectedAlgorithmAsset?.accessDetails?.[serviceIndex]?.baseToken
+              ?.symbol ||
+              getBaseTokenSymbol(selectedAlgorithmAsset, serviceIndex) ||
+              algorithmSymbol ||
+              tokenInfoState?.symbol,
+            selectedAlgorithmAsset?.accessDetails?.[serviceIndex]?.baseToken
+              ?.address
+          )
         })
       }
     } else {
@@ -557,7 +728,14 @@ export default function Review({
             duration: '1 day',
             name:
               ds.credentialSubject?.services?.[ds.serviceIndex || 0]?.name ||
-              `Dataset ${queue.length + 1}`
+              `Dataset ${queue.length + 1}`,
+            symbol: resolveSymbol(
+              details?.baseToken?.symbol ||
+                getBaseTokenSymbol(ds, ds.serviceIndex || 0) ||
+                datasetSymbol ||
+                tokenInfoState?.symbol,
+              details?.baseToken?.address
+            )
           })
         })
       }
@@ -580,7 +758,14 @@ export default function Review({
           index: queue.length,
           price: rawPrice,
           duration: formatDuration(service.timeout || 0),
-          name: service.name
+          name: service.name,
+          symbol: resolveSymbol(
+            accessDetails?.baseToken?.symbol ||
+              getBaseTokenSymbol(asset, 0) ||
+              algorithmSymbol ||
+              tokenInfoState?.symbol,
+            accessDetails?.baseToken?.address
+          )
         })
       }
     }
@@ -743,6 +928,24 @@ export default function Review({
   }
 
   useEffect(() => {
+    const totalsMap = new Map<string, Decimal>()
+    const order: string[] = []
+    const addAmount = (symbol: string | undefined, value: Decimal.Value) => {
+      if (!symbol) return
+      const amount = new Decimal(value || 0)
+      if (amount.eq(0)) return
+      if (!totalsMap.has(symbol)) order.push(symbol)
+      totalsMap.set(
+        symbol,
+        (totalsMap.get(symbol) || new Decimal(0)).add(amount)
+      )
+    }
+
+    const providerFeeSymbol = resolveSymbol(
+      providerFeesSymbol || symbol,
+      tokenInfoState?.address
+    )
+
     if (isDatasetFlow) {
       if (
         !asset?.accessDetails ||
@@ -750,202 +953,112 @@ export default function Review({
       )
         return
       const details = selectedAlgorithmAsset.accessDetails[serviceIndex]
-      const datasetPrice =
-        accessDetails?.validOrderTx && accessDetails.validOrderTx !== ''
-          ? '0'
-          : accessDetails?.price || '0'
-      setDatasetProviderFee(datasetProviderFeeProp || datasetProviderFee)
-      const algoPrice =
-        details?.validOrderTx || hasPreviousOrder || hasDatatoken
-          ? '0'
-          : details?.price || '0'
-      const priceDatasetDecimal = new Decimal(
-        datasetPrice || 0
-      ).toDecimalPlaces(MAX_DECIMALS)
-      const priceAlgoDecimal = new Decimal(algoPrice || 0).toDecimalPlaces(
-        MAX_DECIMALS
+      const datasetToken = resolveSymbol(
+        accessDetails?.baseToken?.symbol ||
+          getBaseTokenSymbol(asset, 0) ||
+          datasetSymbol,
+        accessDetails?.baseToken?.address
       )
-      const priceC2D = new Decimal(c2dPrice || 0).toDecimalPlaces(MAX_DECIMALS)
-      const feeAlgo = details?.isOwned
+      const datasetOwned =
+        accessDetails?.isOwned ||
+        Boolean(accessDetails?.validOrderTx) ||
+        hasPreviousOrder ||
+        hasDatatoken
+      const datasetPriceValue =
+        datasetOrderPriceAndFees?.price || accessDetails?.price || '0'
+      const datasetPrice = datasetOwned ? '0' : datasetPriceValue
+      const datasetFee = datasetOwned
         ? new Decimal(0)
-        : new Decimal(
-            formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
+        : getConsumeMarketOrderFee(
+            asset?.credentialSubject?.chainId,
+            accessDetails?.baseToken
           )
-      const feeDataset = accessDetails?.isOwned
+      setDatasetProviderFee(datasetProviderFeeProp || datasetProviderFee)
+
+      const algoToken = resolveSymbol(
+        details?.baseToken?.symbol ||
+          getBaseTokenSymbol(selectedAlgorithmAsset, serviceIndex) ||
+          algorithmSymbol,
+        details?.baseToken?.address
+      )
+      const algoOwned =
+        details?.isOwned ||
+        Boolean(details?.validOrderTx) ||
+        hasPreviousOrderSelectedComputeAsset ||
+        hasDatatokenSelectedComputeAsset
+      const algoPriceValue = algoOrderPriceValue || details?.price || '0'
+      const algoPrice = algoOwned ? '0' : algoPriceValue
+      const algoFee = algoOwned
         ? new Decimal(0)
-        : new Decimal(
-            formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
+        : getConsumeMarketOrderFee(
+            selectedAlgorithmAsset?.credentialSubject?.chainId,
+            details?.baseToken
           )
 
-      const totalPricesLocal: TotalPriceEntry[] = []
-      if (algorithmSymbol === providerFeesSymbol) {
-        let sum = priceC2D.add(priceAlgoDecimal).add(feeAlgo)
-        totalPricesLocal.push({
-          value: sum.toDecimalPlaces(MAX_DECIMALS).toString(),
-          symbol: algorithmSymbol
-        })
-        if (algorithmSymbol === datasetSymbol) {
-          sum = sum.add(priceDatasetDecimal).add(feeDataset)
-          totalPricesLocal[0].value = sum
-            .toDecimalPlaces(MAX_DECIMALS)
-            .toString()
-        } else {
-          totalPricesLocal.push({
-            value: priceDatasetDecimal
-              .add(feeDataset)
-              .toDecimalPlaces(MAX_DECIMALS)
-              .toString(),
-            symbol: datasetSymbol
-          })
-        }
-      } else {
-        if (datasetSymbol === providerFeesSymbol) {
-          const sum = priceC2D.add(priceDatasetDecimal).add(feeDataset)
-          totalPricesLocal.push({
-            value: sum.toDecimalPlaces(MAX_DECIMALS).toString(),
-            symbol: datasetSymbol
-          })
-          totalPricesLocal.push({
-            value: priceAlgoDecimal
-              .add(feeAlgo)
-              .toDecimalPlaces(MAX_DECIMALS)
-              .toString(),
-            symbol: algorithmSymbol
-          })
-        } else if (datasetSymbol === algorithmSymbol) {
-          const sum = priceAlgoDecimal
-            .add(priceDatasetDecimal)
-            .add(feeAlgo)
-            .add(feeDataset)
-          totalPricesLocal.push({
-            value: sum.toDecimalPlaces(MAX_DECIMALS).toString(),
-            symbol: algorithmSymbol
-          })
-          totalPricesLocal.push({
-            value: priceC2D.toDecimalPlaces(MAX_DECIMALS).toString(),
-            symbol: providerFeesSymbol
-          })
-        } else {
-          totalPricesLocal.push({
-            value: priceDatasetDecimal
-              .add(feeDataset)
-              .toDecimalPlaces(MAX_DECIMALS)
-              .toString(),
-            symbol: datasetSymbol
-          })
-          totalPricesLocal.push({
-            value: priceC2D.toDecimalPlaces(MAX_DECIMALS).toString(),
-            symbol: providerFeesSymbol
-          })
-          totalPricesLocal.push({
-            value: priceAlgoDecimal
-              .add(feeAlgo)
-              .toDecimalPlaces(MAX_DECIMALS)
-              .toString(),
-            symbol: algorithmSymbol
-          })
-        }
-      }
-      setTotalPrices(totalPricesLocal)
-      return
-    }
-
-    if (!asset?.accessDetails) return
-    const rawAlgoPrice =
-      hasPreviousOrder || hasDatatoken
+      addAmount(datasetToken, new Decimal(datasetPrice).add(datasetFee))
+      addAmount(algoToken, new Decimal(algoPrice).add(algoFee))
+    } else {
+      if (!asset?.accessDetails) return
+      const algoToken = resolveSymbol(
+        accessDetails?.baseToken?.symbol ||
+          getBaseTokenSymbol(asset, 0) ||
+          algorithmSymbol,
+        accessDetails?.baseToken?.address
+      )
+      const algoOwned =
+        accessDetails?.isOwned ||
+        Boolean(accessDetails?.validOrderTx) ||
+        hasPreviousOrder ||
+        hasDatatoken
+      const rawAlgoPrice = algoOwned
         ? '0'
         : algoOrderPriceValue || accessDetails?.price || '0'
-    const priceAlgo = new Decimal(rawAlgoPrice || 0).toDecimalPlaces(
-      MAX_DECIMALS
-    )
-    const feeAlgo = accessDetails.isOwned
-      ? new Decimal(0)
-      : new Decimal(
-          formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
-        )
-    let priceDataset = new Decimal(0)
-    let feeDataset = new Decimal(0)
-    if (Array.isArray(selectedDatasetAsset)) {
-      selectedDatasetAsset.forEach((dataset) => {
-        const index = dataset.serviceIndex || 0
-        const details = dataset.accessDetails?.[index]
-        const rawPrice = details?.validOrderTx ? '0' : details?.price || '0'
-        const price = new Decimal(rawPrice).toDecimalPlaces(MAX_DECIMALS)
-        const fee = details?.isOwned
-          ? new Decimal(0)
-          : new Decimal(
-              formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
-            )
-        priceDataset = priceDataset.add(price)
-        feeDataset = feeDataset.add(fee)
-      })
-    }
-    const priceC2D = new Decimal(c2dPrice || 0).toDecimalPlaces(MAX_DECIMALS)
-    const totalPricesLocal: TotalPriceEntry[] = []
-    if (algorithmSymbol === providerFeesSymbol) {
-      let sum = priceC2D.add(priceAlgo).add(feeAlgo)
-      totalPricesLocal.push({
-        value: sum.toDecimalPlaces(MAX_DECIMALS).toString(),
-        symbol: algorithmSymbol
-      })
-      if (algorithmSymbol === datasetSymbol) {
-        sum = sum.add(priceDataset).add(feeDataset)
-        totalPricesLocal[0].value = sum.toDecimalPlaces(MAX_DECIMALS).toString()
-      } else {
-        totalPricesLocal.push({
-          value: priceDataset
-            .add(feeDataset)
-            .toDecimalPlaces(MAX_DECIMALS)
-            .toString(),
-          symbol: datasetSymbol
-        })
-      }
-    } else {
-      if (datasetSymbol === providerFeesSymbol) {
-        const sum = priceC2D.add(priceDataset).add(feeDataset)
-        totalPricesLocal.push({
-          value: sum.toDecimalPlaces(MAX_DECIMALS).toString(),
-          symbol: datasetSymbol
-        })
-        totalPricesLocal.push({
-          value: priceAlgo
-            .add(feeAlgo)
-            .toDecimalPlaces(MAX_DECIMALS)
-            .toString(),
-          symbol: algorithmSymbol
-        })
-      } else if (datasetSymbol === algorithmSymbol) {
-        const sum = priceAlgo.add(priceDataset).add(feeAlgo).add(feeDataset)
-        totalPricesLocal.push({
-          value: sum.toDecimalPlaces(MAX_DECIMALS).toString(),
-          symbol: algorithmSymbol
-        })
-        totalPricesLocal.push({
-          value: priceC2D.toDecimalPlaces(MAX_DECIMALS).toString(),
-          symbol: providerFeesSymbol
-        })
-      } else {
-        totalPricesLocal.push({
-          value: priceDataset
-            .add(feeDataset)
-            .toDecimalPlaces(MAX_DECIMALS)
-            .toString(),
-          symbol: datasetSymbol
-        })
-        totalPricesLocal.push({
-          value: priceC2D.toDecimalPlaces(MAX_DECIMALS).toString(),
-          symbol: providerFeesSymbol
-        })
-        totalPricesLocal.push({
-          value: priceAlgo
-            .add(feeAlgo)
-            .toDecimalPlaces(MAX_DECIMALS)
-            .toString(),
-          symbol: algorithmSymbol
+      const algoFee = algoOwned
+        ? new Decimal(0)
+        : getConsumeMarketOrderFee(
+            asset?.credentialSubject?.chainId,
+            accessDetails?.baseToken
+          )
+      addAmount(algoToken, new Decimal(rawAlgoPrice).add(algoFee))
+
+      if (!values.withoutDataset && Array.isArray(selectedDatasetAsset)) {
+        selectedDatasetAsset.forEach((dataset) => {
+          const index = dataset.serviceIndex || 0
+          const details = dataset.accessDetails?.[index]
+          if (!details) return
+          const datasetOwned = details.isOwned || Boolean(details.validOrderTx)
+          const token = resolveSymbol(
+            details.baseToken?.symbol ||
+              getBaseTokenSymbol(dataset, index) ||
+              datasetSymbol,
+            details.baseToken?.address
+          )
+          const rawPrice = datasetOwned ? '0' : details?.price || '0'
+          const fee = datasetOwned
+            ? new Decimal(0)
+            : getConsumeMarketOrderFee(
+                dataset.credentialSubject?.chainId,
+                details?.baseToken
+              )
+          addAmount(token, new Decimal(rawPrice).add(fee))
         })
       }
     }
-    setTotalPrices(totalPricesLocal)
+
+    if (c2dPrice) {
+      addAmount(providerFeeSymbol, c2dPrice.toString())
+    }
+
+    const totals = order.map((symbolKey) => {
+      const totalValue = totalsMap.get(symbolKey)
+      return {
+        symbol: symbolKey,
+        value: totalValue
+          ? totalValue.toDecimalPlaces(MAX_DECIMALS).toString()
+          : '0'
+      }
+    })
+    setTotalPrices(totals)
   }, [
     isDatasetFlow,
     asset,
@@ -955,15 +1068,22 @@ export default function Review({
     serviceIndex,
     hasPreviousOrder,
     hasDatatoken,
+    hasPreviousOrderSelectedComputeAsset,
+    hasDatatokenSelectedComputeAsset,
     algoOrderPriceAndFees?.price,
     algoOrderPriceValue,
+    datasetOrderPriceAndFees?.price,
     datasetProviderFeeProp,
     datasetProviderFee,
     algorithmSymbol,
     datasetSymbol,
     providerFeesSymbol,
     c2dPrice,
-    tokenInfoState?.decimals
+    symbol,
+    tokenInfoState?.address,
+    values.withoutDataset,
+    getConsumeMarketOrderFee,
+    resolveSymbol
   ])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -977,47 +1097,102 @@ export default function Review({
   }, [algorithmProviderFeeProp])
 
   useEffect(() => {
-    const priceChecks = [...totalPrices]
-    if (
-      c2dPrice &&
-      !totalPrices.some(
-        (p) =>
-          p.symbol === providerFeesSymbol && p.value === c2dPrice.toString()
+    const provider = signer?.provider
+    if (!provider) {
+      setDatasetProviderFeeEntries([])
+      setAlgorithmProviderFeeEntries([])
+      return
+    }
+
+    let cancelled = false
+
+    const buildProviderFeeEntries = async (
+      fees: ProviderFees[] | undefined
+    ): Promise<TotalPriceEntry[]> => {
+      if (!fees || fees.length === 0) return []
+      const totals = new Map<string, Decimal>()
+      fees.forEach((fee) => {
+        const token = fee?.providerFeeToken?.toLowerCase()
+        if (!token) return
+        const amount = new Decimal(fee.providerFeeAmount || 0)
+        if (amount.eq(0)) return
+        totals.set(token, (totals.get(token) || new Decimal(0)).add(amount))
+      })
+
+      const tokens = Array.from(totals.keys())
+      if (tokens.length === 0) return []
+
+      const tokenInfos = await Promise.all(
+        tokens.map((token) => getTokenInfo(token, provider))
       )
-    ) {
-      priceChecks.push({
-        value: c2dPrice.toString(),
-        symbol: providerFeesSymbol
+
+      return tokens.map((token, index) => {
+        const info = tokenInfos[index]
+        const decimals = info?.decimals ?? 18
+        const amountWei = totals.get(token)
+        const value = amountWei
+          ? formatUnits(amountWei.toFixed(0), decimals)
+          : '0'
+        return {
+          symbol: resolveSymbol(info?.symbol, token),
+          value
+        }
       })
     }
-    const filteredPriceChecks = priceChecks.filter(
-      (price) => price.value !== '0'
+
+    async function loadProviderFees() {
+      const datasetEntries = await buildProviderFeeEntries(datasetProviderFees)
+      const algorithmEntries = await buildProviderFeeEntries(
+        algorithmProviderFees ? [algorithmProviderFees] : []
+      )
+      if (cancelled) return
+      setDatasetProviderFeeEntries(datasetEntries)
+      setAlgorithmProviderFeeEntries(algorithmEntries)
+    }
+
+    loadProviderFees()
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    datasetProviderFees,
+    algorithmProviderFees,
+    signer?.provider,
+    resolveSymbol
+  ])
+
+  useEffect(() => {
+    const filteredPriceChecks = totalPriceBreakdown.filter(
+      (price) => price.value !== '0' && price.symbol
     )
     let sufficient = true
+    const missingBalances: Array<{
+      symbol: string
+      required: string
+      available: string
+    }> = []
     for (const price of filteredPriceChecks) {
-      const baseTokenBalance = getTokenBalanceFromSymbol(balance, price.symbol)
-      if (
-        !baseTokenBalance ||
-        !compareAsBN(baseTokenBalance, totalPriceToDisplay)
-      ) {
+      const baseTokenBalance =
+        getTokenBalanceFromSymbol(balance, price.symbol) || '0'
+      if (!compareAsBN(baseTokenBalance, price.value)) {
         sufficient = false
-        break
+        if (!missingBalances.some((entry) => entry.symbol === price.symbol)) {
+          missingBalances.push({
+            symbol: price.symbol,
+            required: new Decimal(price.value || 0)
+              .toDecimalPlaces(MAX_DECIMALS)
+              .toString(),
+            available: new Decimal(baseTokenBalance || 0)
+              .toDecimalPlaces(MAX_DECIMALS)
+              .toString()
+          })
+        }
       }
     }
+    setInsufficientBalances(missingBalances)
     setIsBalanceSufficient(sufficient)
-  }, [
-    balance,
-    dtBalance,
-    datasetSymbol,
-    algorithmSymbol,
-    providerFeesSymbol,
-    totalPrices,
-    allResourceValues,
-    values.computeEnv,
-    c2dPrice,
-    totalPriceToDisplay,
-    setIsBalanceSufficient
-  ])
+  }, [balance, totalPriceBreakdown, setIsBalanceSufficient])
 
   useEffect(() => {
     const allVerified =
@@ -1028,41 +1203,94 @@ export default function Review({
   }, [verificationQueue, setFieldValue, validateForm])
 
   useEffect(() => {
-    const sumTotalPrices = totalPrices.reduce((acc, item) => {
-      return acc.add(new Decimal(item.value || 0))
-    }, new Decimal(0))
+    const priceEntries = [...totalPrices]
+    const c2dSymbolResolved = resolveSymbol(
+      providerFeesSymbol || symbol,
+      tokenInfoState?.address
+    )
+    if (c2dPrice && !priceEntries.some((p) => p.symbol === c2dSymbolResolved)) {
+      priceEntries.push({
+        value: c2dPrice.toString(),
+        symbol: c2dSymbolResolved
+      })
+    }
 
-    const finalTotal = sumTotalPrices
-      .add(
-        datasetProviderFee
-          ? new Decimal(
-              formatUnits(datasetProviderFee, tokenInfoState?.decimals)
-            )
-          : new Decimal(0)
-      )
-      .add(
-        algorithmProviderFee
-          ? new Decimal(
-              formatUnits(algorithmProviderFee, tokenInfoState?.decimals)
-            )
-          : new Decimal(0)
-      )
-      .add(new Decimal(datasetOecFees || 0))
-      .add(new Decimal(algoOecFee || 0))
-      .toDecimalPlaces(MAX_DECIMALS)
+    const totalsMap = new Map<string, Decimal>()
+    const order: string[] = []
 
-    setTotalPriceToDisplay(finalTotal.toDecimalPlaces(MAX_DECIMALS).toString())
+    const addAmount = (symbol: string | undefined, value: Decimal.Value) => {
+      if (!symbol) return
+      const amount = new Decimal(value || 0)
+      if (!totalsMap.has(symbol)) {
+        if (amount.eq(0)) return
+        totalsMap.set(symbol, amount)
+        order.push(symbol)
+        return
+      }
+      totalsMap.set(symbol, totalsMap.get(symbol).add(amount))
+    }
+
+    priceEntries.forEach((entry) => addAmount(entry.symbol, entry.value || 0))
+
+    providerFeeEntries.forEach((entry) =>
+      addAmount(entry.symbol, entry.value || 0)
+    )
+
+    Object.entries(datasetOecFeesBySymbol).forEach(([symbolKey, value]) => {
+      addAmount(symbolKey, value || 0)
+    })
+
+    const algoBaseSymbol = isDatasetFlow
+      ? resolveSymbol(
+          selectedAlgorithmAsset?.accessDetails?.[serviceIndex]?.baseToken
+            ?.symbol ||
+            getBaseTokenSymbol(selectedAlgorithmAsset, serviceIndex) ||
+            algorithmSymbol,
+          selectedAlgorithmAsset?.accessDetails?.[serviceIndex]?.baseToken
+            ?.address
+        )
+      : resolveSymbol(
+          accessDetails?.baseToken?.symbol ||
+            getBaseTokenSymbol(asset, 0) ||
+            algorithmSymbol,
+          accessDetails?.baseToken?.address
+        )
+    addAmount(algoBaseSymbol, algoOecFee || 0)
+
+    const totals = order.map((symbolKey) => {
+      const totalValue = totalsMap.get(symbolKey)
+      return {
+        symbol: symbolKey,
+        value: totalValue
+          ? totalValue.toDecimalPlaces(MAX_DECIMALS).toString()
+          : '0'
+      }
+    })
+
+    setTotalPriceBreakdown(totals.filter((item) => item?.value))
   }, [
     totalPrices,
-    accessDetails?.price,
+    providerFeeEntries,
+    datasetOecFeesBySymbol,
+    algoOecFee,
+    datasetSymbol,
+    algorithmSymbol,
+    providerFeesSymbol,
+    c2dPrice,
+    symbol,
+    asset,
+    accessDetails,
     selectedAlgorithmAsset,
     serviceIndex,
-    datasetProviderFee,
-    algorithmProviderFee,
-    datasetOecFees,
-    algoOecFee,
-    tokenInfoState?.decimals
+    isDatasetFlow,
+    tokenInfoState?.address,
+    resolveSymbol
   ])
+
+  const c2dSymbol = resolveSymbol(
+    providerFeesSymbol || symbol,
+    tokenInfoState?.address
+  )
 
   const computeItems = [
     {
@@ -1090,97 +1318,206 @@ export default function Review({
     }
   ]
 
-  const datasetProviderFeesList = [
-    {
-      name: 'PROVIDER FEE DATASET',
-      value: datasetProviderFee
-        ? formatUnits(datasetProviderFee, tokenInfoState?.decimals)
-        : '0'
-    }
-  ]
-  const algorithmProviderFeesList = [
-    {
-      name: 'PROVIDER FEE ALGORITHM',
-      value: algorithmProviderFee
-        ? formatUnits(algorithmProviderFee, tokenInfoState?.decimals)
-        : '0'
-    }
-  ]
+  const displaySymbol =
+    totalPriceBreakdown.length > 0
+      ? totalPriceBreakdown
+          .map((price) => price.symbol)
+          .filter(Boolean)
+          .join(' & ')
+      : resolveSymbol(
+          providerFeesSymbol || datasetSymbol || algorithmSymbol || symbol,
+          tokenInfoState?.address
+        )
 
-  const datasetMarketFeeValue = (() => {
-    const feePerDataset = new Decimal(
-      formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
-    )
-    const chargeableDatasets =
-      selectedDatasetAsset?.filter((ds) => {
-        const idx = ds.serviceIndex || 0
-        return !ds.accessDetails?.[idx]?.isOwned
-      }).length || 0
-    return feePerDataset
-      .mul(chargeableDatasets)
-      .toDecimalPlaces(MAX_DECIMALS)
-      .toString()
+  const totalPricesToDisplay = totalPriceBreakdown.filter(
+    (price) => price.value !== '0' && price.symbol
+  )
+
+  const fallbackProviderSymbol = resolveSymbol(
+    providerFeesSymbol || symbol,
+    tokenInfoState?.address
+  )
+  const datasetProviderFeesList =
+    datasetProviderFeeEntries.length > 0
+      ? datasetProviderFeeEntries.map((fee) => ({
+          name: 'PROVIDER FEE DATASET',
+          value: fee.value,
+          symbol: fee.symbol
+        }))
+      : datasetProviderFee
+      ? [
+          {
+            name: 'PROVIDER FEE DATASET',
+            value: formatUnits(datasetProviderFee, tokenInfoState?.decimals),
+            symbol: fallbackProviderSymbol
+          }
+        ]
+      : []
+  const algorithmProviderFeesList =
+    algorithmProviderFeeEntries.length > 0
+      ? algorithmProviderFeeEntries.map((fee) => ({
+          name: 'PROVIDER FEE ALGORITHM',
+          value: fee.value,
+          symbol: fee.symbol
+        }))
+      : algorithmProviderFee
+      ? [
+          {
+            name: 'PROVIDER FEE ALGORITHM',
+            value: formatUnits(algorithmProviderFee, tokenInfoState?.decimals),
+            symbol: fallbackProviderSymbol
+          }
+        ]
+      : []
+
+  const datasetMarketFeeEntries = (() => {
+    if (isDatasetFlow) {
+      const datasetToken = resolveSymbol(
+        accessDetails?.baseToken?.symbol ||
+          getBaseTokenSymbol(asset, 0) ||
+          datasetSymbol,
+        accessDetails?.baseToken?.address
+      )
+      const datasetOwned =
+        accessDetails?.isOwned ||
+        Boolean(accessDetails?.validOrderTx) ||
+        hasPreviousOrder ||
+        hasDatatoken
+      const feeValue = datasetOwned
+        ? new Decimal(0)
+        : getConsumeMarketOrderFee(
+            asset?.credentialSubject?.chainId,
+            accessDetails?.baseToken
+          )
+      return datasetToken
+        ? [
+            {
+              name: 'MARKETPLACE ORDER FEE DATASET',
+              value: feeValue.toDecimalPlaces(MAX_DECIMALS).toString(),
+              symbol: datasetToken
+            }
+          ]
+        : []
+    }
+
+    if (values.withoutDataset) return []
+
+    const totals: Record<string, Decimal> = {}
+    selectedDatasetAsset?.forEach((ds) => {
+      const idx = ds.serviceIndex || 0
+      const details = ds.accessDetails?.[idx]
+      if (!details) return
+      const datasetOwned = details.isOwned || Boolean(details.validOrderTx)
+      if (datasetOwned) return
+      const token = resolveSymbol(
+        details.baseToken?.symbol ||
+          getBaseTokenSymbol(ds, idx) ||
+          datasetSymbol,
+        details.baseToken?.address
+      )
+      const feeValue = getConsumeMarketOrderFee(
+        ds.credentialSubject?.chainId,
+        details.baseToken
+      )
+      totals[token] = (totals[token] || new Decimal(0)).add(feeValue)
+    })
+
+    return Object.entries(totals).map(([symbolKey, value]) => ({
+      name: 'MARKETPLACE ORDER FEE DATASET',
+      value: value.toDecimalPlaces(MAX_DECIMALS).toString(),
+      symbol: symbolKey
+    }))
   })()
+
+  const datasetOecFeeEntries = Object.entries(datasetOecFeesBySymbol).map(
+    ([symbolKey, value]) => ({
+      name: 'OEC FEE DATASET',
+      value,
+      symbol: symbolKey
+    })
+  )
 
   const marketFeesBase = isDatasetFlow
     ? [
-        {
-          name: `MARKETPLACE ORDER FEE DATASET`,
-          value: accessDetails?.isOwned
-            ? '0'
-            : new Decimal(
-                formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
-              ).toString()
-        },
+        ...datasetMarketFeeEntries,
         {
           name: `MARKETPLACE ORDER FEE ALGORITHM`,
           value: (() => {
             const algoAccessDetails =
               selectedAlgorithmAsset?.accessDetails?.[serviceIndex]
-            const isOwned = algoAccessDetails?.isOwned
-            const feeValue = isOwned
-              ? '0'
-              : new Decimal(
-                  formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
-                ).toString()
-            return feeValue
-          })()
+            const algoOwned =
+              algoAccessDetails?.isOwned ||
+              Boolean(algoAccessDetails?.validOrderTx) ||
+              hasPreviousOrderSelectedComputeAsset ||
+              hasDatatokenSelectedComputeAsset
+            const feeValue = algoOwned
+              ? new Decimal(0)
+              : getConsumeMarketOrderFee(
+                  selectedAlgorithmAsset?.credentialSubject?.chainId,
+                  algoAccessDetails?.baseToken
+                )
+            return feeValue.toDecimalPlaces(MAX_DECIMALS).toString()
+          })(),
+          symbol: resolveSymbol(
+            selectedAlgorithmAsset?.accessDetails?.[serviceIndex]?.baseToken
+              ?.symbol ||
+              getBaseTokenSymbol(selectedAlgorithmAsset, serviceIndex) ||
+              algorithmSymbol,
+            selectedAlgorithmAsset?.accessDetails?.[serviceIndex]?.baseToken
+              ?.address
+          )
         },
-        {
-          name: `OEC FEE DATASET`,
-          value: accessDetails?.isOwned ? '0' : datasetOecFees.toString()
-        },
+        ...datasetOecFeeEntries,
         {
           name: `OEC FEE ALGORITHM`,
           value: selectedAlgorithmAsset?.accessDetails?.[serviceIndex]?.isOwned
             ? '0'
-            : algoOecFee.toString()
+            : algoOecFee.toString(),
+          symbol: resolveSymbol(
+            selectedAlgorithmAsset?.accessDetails?.[serviceIndex]?.baseToken
+              ?.symbol ||
+              getBaseTokenSymbol(selectedAlgorithmAsset, serviceIndex) ||
+              algorithmSymbol,
+            selectedAlgorithmAsset?.accessDetails?.[serviceIndex]?.baseToken
+              ?.address
+          )
         }
       ]
     : [
-        {
-          name: `MARKETPLACE ORDER FEE DATASET`,
-          value: datasetMarketFeeValue
-        },
+        ...datasetMarketFeeEntries,
         {
           name: `MARKETPLACE ORDER FEE ALGORITHM`,
           value: (() => {
-            const isOwned = accessDetails?.isOwned
-            const feeValue = isOwned
-              ? '0'
-              : new Decimal(
-                  formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
-                ).toString()
-            return feeValue
-          })()
+            const algoOwned =
+              accessDetails?.isOwned ||
+              Boolean(accessDetails?.validOrderTx) ||
+              hasPreviousOrder ||
+              hasDatatoken
+            const feeValue = algoOwned
+              ? new Decimal(0)
+              : getConsumeMarketOrderFee(
+                  asset?.credentialSubject?.chainId,
+                  accessDetails?.baseToken
+                )
+            return feeValue.toDecimalPlaces(MAX_DECIMALS).toString()
+          })(),
+          symbol: resolveSymbol(
+            accessDetails?.baseToken?.symbol ||
+              getBaseTokenSymbol(asset, 0) ||
+              algorithmSymbol,
+            accessDetails?.baseToken?.address
+          )
         },
-        {
-          name: `OEC FEE DATASET`,
-          value: datasetOecFees.toString()
-        },
+        ...datasetOecFeeEntries,
         {
           name: `OEC FEE ALGORITHM`,
-          value: algoOecFee.toString()
+          value: algoOecFee.toString(),
+          symbol: resolveSymbol(
+            accessDetails?.baseToken?.symbol ||
+              getBaseTokenSymbol(asset, 0) ||
+              algorithmSymbol,
+            accessDetails?.baseToken?.address
+          )
         }
       ]
 
@@ -1190,7 +1527,17 @@ export default function Review({
       : marketFeesBase
 
   if (!isBalanceSufficient) {
-    errorMessages.push(`You don't have enough ${symbol} to make this purchase.`)
+    if (insufficientBalances.length > 0) {
+      insufficientBalances.forEach(({ symbol, required, available }) => {
+        errorMessages.push(
+          `You don't have enough ${symbol} to make this purchase (required ${required}, available ${available}).`
+        )
+      })
+    } else {
+      errorMessages.push(
+        `You don't have enough ${displaySymbol} to make this purchase.`
+      )
+    }
   }
   if (!isAssetNetwork) {
     errorMessages.push('This asset is not available on the selected network.')
@@ -1384,7 +1731,7 @@ export default function Review({
                       assetId={item.asset?.id}
                       serviceId={item.service?.id}
                       onCredentialRefresh={() => startVerification(i)}
-                      symbol={symbol}
+                      symbol={item.symbol || symbol}
                       tooltip={getFeeTooltip(item.name)}
                       showStatusWithoutAction
                     />
@@ -1403,7 +1750,7 @@ export default function Review({
                   itemName={item.name}
                   value={item.value}
                   duration={item.duration}
-                  symbol={symbol}
+                  symbol={c2dSymbol}
                 />
               ))}
               {escrowFunds.map((item) => (
@@ -1412,7 +1759,7 @@ export default function Review({
                   itemName={item.name}
                   value={item.value}
                   valueType="escrow"
-                  symbol={symbol}
+                  symbol={c2dSymbol}
                 />
               ))}
               {amountDeposit.map((item) => (
@@ -1421,7 +1768,7 @@ export default function Review({
                   itemName={item.name}
                   value={item.value}
                   valueType="deposit"
-                  symbol={symbol}
+                  symbol={c2dSymbol}
                 />
               ))}
             </div>
@@ -1435,26 +1782,26 @@ export default function Review({
                   key={fee.name}
                   itemName={fee.name}
                   value={fee.value}
-                  symbol={symbol}
+                  symbol={fee.symbol || symbol}
                 />
               ))}
               {!values.withoutDataset &&
-                datasetProviderFee &&
+                datasetProviderFeesList.length > 0 &&
                 datasetProviderFeesList.map((fee) => (
                   <PricingRow
-                    key={fee.name}
+                    key={`${fee.name}-${fee.symbol}`}
                     itemName={fee.name}
                     value={fee.value}
-                    symbol={symbol}
+                    symbol={fee.symbol || datasetSymbol || symbol}
                   />
                 ))}
-              {algorithmProviderFee &&
+              {algorithmProviderFeesList.length > 0 &&
                 algorithmProviderFeesList.map((fee) => (
                   <PricingRow
-                    key={fee.name}
+                    key={`${fee.name}-${fee.symbol}`}
                     itemName={fee.name}
                     value={fee.value}
-                    symbol={symbol}
+                    symbol={fee.symbol || algorithmSymbol || symbol}
                   />
                 ))}
             </div>
@@ -1466,21 +1813,30 @@ export default function Review({
           <span className={styles.totalValue}>
             {isRequestingPrice ? (
               <span className={styles.totalValueNumber}>Calculating...</span>
-            ) : totalPriceToDisplay !== '0' ? (
-              <>
-                <span className={styles.totalValueNumber}>
-                  {totalPriceToDisplay}
-                </span>
+            ) : totalPricesToDisplay.length > 0 ? (
+              <span className={styles.totalList}>
+                {totalPricesToDisplay.map((price) => (
+                  <span className={styles.totalListItem} key={price.symbol}>
+                    <span className={styles.totalValueNumber}>
+                      {new Decimal(price.value || 0)
+                        .toDecimalPlaces(3, Decimal.ROUND_DOWN)
+                        .toString()}
+                    </span>
+                    <span className={styles.totalValueSymbol}>
+                      {' '}
+                      {price.symbol}
+                    </span>
+                  </span>
+                ))}
+              </span>
+            ) : (
+              <span className={styles.totalListItem}>
+                <span className={styles.totalValueNumber}>0</span>
                 <span className={styles.totalValueSymbol}>
                   {' '}
-                  {totalPrices[0]?.symbol || symbol}
+                  {displaySymbol}
                 </span>
-              </>
-            ) : (
-              <>
-                <span className={styles.totalValueNumber}>0</span>
-                <span className={styles.totalValueSymbol}> {symbol}</span>
-              </>
+              </span>
             )}
           </span>
         </div>

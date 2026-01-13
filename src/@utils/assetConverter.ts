@@ -6,6 +6,7 @@ import { getServiceByName, isAddressWhitelisted } from './ddo'
 import normalizeUrl from 'normalize-url'
 import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
+import { getBaseTokenSymbol } from './getBaseTokenSymbol'
 
 export async function transformAssetToAssetSelection(
   datasetProviderEndpoint: string,
@@ -63,7 +64,7 @@ export async function transformAssetToAssetSelection(
           name: asset.credentialSubject.metadata.name,
           price:
             Number(asset.indexedMetadata.stats[idx]?.prices[0]?.price) ?? 0,
-          tokenSymbol: '',
+          tokenSymbol: getBaseTokenSymbol(asset, idx) || '',
           checked: false,
           symbol: asset.indexedMetadata.stats[idx]?.symbol ?? '',
           isAccountIdWhitelisted: !allow
@@ -180,7 +181,7 @@ export async function transformAssetToAssetSelectionDataset(
           name: asset.credentialSubject.metadata.name,
           price:
             Number(asset.indexedMetadata.stats[idx]?.prices[0]?.price) ?? 0,
-          tokenSymbol: '',
+          tokenSymbol: getBaseTokenSymbol(asset, idx) || '',
           checked: false,
           symbol: asset.indexedMetadata.stats[idx]?.symbol ?? '',
           isAccountIdWhitelisted: !allow
@@ -246,7 +247,7 @@ export async function transformAssetToAssetSelectionEdit(
           name: asset.credentialSubject.metadata.name,
           price:
             Number(asset.indexedMetadata.stats[idx]?.prices[0]?.price) ?? 0,
-          tokenSymbol: '',
+          tokenSymbol: getBaseTokenSymbol(asset, idx) || '',
           checked: !!(isAllAlgorithmsAllowed || matches.has(key)),
           symbol: asset.indexedMetadata.stats[idx]?.symbol ?? '',
           isAccountIdWhitelisted: !allow
@@ -332,7 +333,7 @@ export async function transformAssetToAssetSelectionForComputeWizard(
           name: asset.credentialSubject.metadata.name,
           price:
             Number(asset.indexedMetadata.stats[idx]?.prices[0]?.price) ?? 0,
-          tokenSymbol: '',
+          tokenSymbol: getBaseTokenSymbol(asset, idx) || '',
           checked: false,
           symbol: asset.indexedMetadata.stats[idx]?.symbol ?? '',
           isAccountIdWhitelisted: !allow

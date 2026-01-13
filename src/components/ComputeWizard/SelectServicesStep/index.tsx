@@ -6,12 +6,11 @@ import ExpandIcon from '@images/expand.svg'
 import styles from './index.module.css'
 import { Asset } from 'src/@types/Asset'
 import { ComputeFlow } from '../_types'
-import { getOceanConfig } from '@utils/ocean'
-import { getDummySigner, getTokenInfo } from '@utils/wallet'
 import LoaderOverlay from '../LoaderOverlay'
 import External from '@images/external.svg'
 import { CopyToClipboard } from '@shared/CopyToClipboard'
 import Link from 'next/link'
+import { getBaseTokenSymbol } from '@utils/getBaseTokenSymbol'
 
 type DatasetService = {
   id?: string
@@ -154,7 +153,7 @@ function normalizeDatasets(raw: DatasetItem[] = []): NormalizedAsset[] {
       type: s.serviceType,
       duration: Number(s.serviceDuration ?? 0),
       price: Number(s.price ?? d.datasetPrice ?? 0),
-      symbol: s.tokenSymbol || 'OCEAN',
+      symbol: s.tokenSymbol || '',
       checked: !!s.checked
     }))
     if (onlyOneDataset && services.length === 1 && !services[0].checked) {
@@ -180,6 +179,9 @@ const extractString = (
     return value['@value']
   return ''
 }
+
+const getServiceTokenSymbol = (asset: Asset, serviceIndex: number): string =>
+  getBaseTokenSymbol(asset, serviceIndex) || ''
 
 const anyServiceSelected = (assets: NormalizedAsset[]) =>
   assets.some((a) => a.services.some((s) => s.checked))
@@ -488,16 +490,6 @@ export default function SelectServicesStep({
         const effectiveServices = assetDdo.credentialSubject?.services || []
         if (!effectiveServices.length) return
 
-        const chainId = assetDdo.credentialSubject?.chainId
-        if (!chainId) return
-
-        const { oceanTokenAddress } = getOceanConfig(chainId)
-        const signer = await getDummySigner(chainId)
-        const tokenDetails = await getTokenInfo(
-          oceanTokenAddress,
-          signer.provider
-        )
-
         const existingSelectedServiceId =
           (values.algorithms as any)?.id === algorithmId
             ? (values.algorithms as any)?.services?.find((s: any) => s.checked)
@@ -513,7 +505,7 @@ export default function SelectServicesStep({
           type: svc.type,
           duration: Number(svc.timeout ?? 0),
           price: Number(assetDdo.indexedMetadata.stats[idx]?.prices[0]?.price),
-          symbol: tokenDetails.symbol,
+          symbol: getServiceTokenSymbol(assetDdo, idx),
           checked:
             existingSelectedServiceId != null
               ? svc.id === existingSelectedServiceId

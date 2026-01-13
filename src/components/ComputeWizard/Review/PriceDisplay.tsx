@@ -10,7 +10,7 @@ interface PriceDisplayProps {
 
 export default function PriceDisplay({
   value,
-  symbol = 'OCEAN',
+  symbol = '',
   duration,
   valueType = 'default'
 }: PriceDisplayProps): ReactElement {

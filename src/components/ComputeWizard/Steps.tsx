@@ -2,7 +2,7 @@ import { ReactElement, useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { useFormikContext } from 'formik'
 import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelection'
-import { ComputeEnvironment } from '@oceanprotocol/lib'
+import { ComputeEnvironment, ProviderFees } from '@oceanprotocol/lib'
 import { Asset } from 'src/@types/Asset'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { Service } from 'src/@types/ddo/Service'
@@ -73,6 +73,8 @@ interface StepsProps {
   setFieldValue: (field: string, value: unknown) => void
   datasetProviderFeeProp?: string
   algorithmProviderFeeProp?: string
+  datasetProviderFees?: ProviderFees[]
+  algorithmProviderFees?: ProviderFees | null
   isBalanceSufficient: boolean
   setIsBalanceSufficient: SetState<boolean>
 }
@@ -137,12 +139,20 @@ export default function Steps({
   setFieldValue,
   datasetProviderFeeProp,
   algorithmProviderFeeProp,
+  datasetProviderFees,
+  algorithmProviderFees,
   isBalanceSufficient,
   setIsBalanceSufficient
 }: StepsProps): ReactElement {
   const { address: accountId } = useAccount()
   const { values } = useFormikContext<FormComputeData>()
   const [tokenInfo, setTokenInfo] = useState<TokenInfo | undefined>(undefined)
+  const datasetSymbolResolved =
+    selectedDatasetAsset?.[0]?.accessDetails?.[
+      selectedDatasetAsset?.[0]?.serviceIndex || 0
+    ]?.baseToken?.symbol ||
+    accessDetails.baseToken?.symbol ||
+    ''
 
   useEffect(() => {
     const chainId = asset?.credentialSubject?.chainId
@@ -297,10 +307,7 @@ export default function Steps({
             }
             hasDatatokenSelectedComputeAsset={hasDatatokenSelectedComputeAsset}
             isAccountIdWhitelisted={isAccountIdWhitelisted}
-            datasetSymbol={
-              accessDetails.baseToken?.symbol ||
-              (asset.credentialSubject?.chainId === 137 ? 'mOCEAN' : 'OCEAN')
-            }
+            datasetSymbol={datasetSymbolResolved}
             algorithmSymbol={algorithmSymbol}
             providerFeesSymbol={providerFeesSymbol}
             dtSymbolSelectedComputeAsset={dtSymbolSelectedComputeAsset}
@@ -318,6 +325,8 @@ export default function Steps({
             computeEnvs={computeEnvs}
             datasetProviderFeeProp={datasetProviderFeeProp}
             algorithmProviderFeeProp={algorithmProviderFeeProp}
+            datasetProviderFees={datasetProviderFees}
+            algorithmProviderFees={algorithmProviderFees}
             isBalanceSufficient={isBalanceSufficient}
             setIsBalanceSufficient={setIsBalanceSufficient}
           />
@@ -345,10 +354,7 @@ export default function Steps({
             }
             hasDatatokenSelectedComputeAsset={hasDatatokenSelectedComputeAsset}
             isAccountIdWhitelisted={isAccountIdWhitelisted}
-            datasetSymbol={
-              accessDetails.baseToken?.symbol ||
-              (asset.credentialSubject?.chainId === 137 ? 'mOCEAN' : 'OCEAN')
-            }
+            datasetSymbol={datasetSymbolResolved}
             algorithmSymbol={algorithmSymbol}
             providerFeesSymbol={providerFeesSymbol}
             dtSymbolSelectedComputeAsset={dtSymbolSelectedComputeAsset}
@@ -366,6 +372,8 @@ export default function Steps({
             computeEnvs={computeEnvs}
             datasetProviderFeeProp={datasetProviderFeeProp}
             algorithmProviderFeeProp={algorithmProviderFeeProp}
+            datasetProviderFees={datasetProviderFees}
+            algorithmProviderFees={algorithmProviderFees}
             isBalanceSufficient={isBalanceSufficient}
             setIsBalanceSufficient={setIsBalanceSufficient}
           />
@@ -437,10 +445,7 @@ export default function Steps({
                 hasDatatokenSelectedComputeAsset
               }
               isAccountIdWhitelisted={isAccountIdWhitelisted}
-              datasetSymbol={
-                accessDetails.baseToken?.symbol ||
-                (asset.credentialSubject?.chainId === 137 ? 'mOCEAN' : 'OCEAN')
-              }
+              datasetSymbol={datasetSymbolResolved}
               algorithmSymbol={algorithmSymbol}
               providerFeesSymbol={providerFeesSymbol}
               dtSymbolSelectedComputeAsset={dtSymbolSelectedComputeAsset}
@@ -458,6 +463,8 @@ export default function Steps({
               computeEnvs={computeEnvs}
               datasetProviderFeeProp={datasetProviderFeeProp}
               algorithmProviderFeeProp={algorithmProviderFeeProp}
+              datasetProviderFees={datasetProviderFees}
+              algorithmProviderFees={algorithmProviderFees}
               isBalanceSufficient={isBalanceSufficient}
               setIsBalanceSufficient={setIsBalanceSufficient}
             />
@@ -489,10 +496,7 @@ export default function Steps({
                 hasDatatokenSelectedComputeAsset
               }
               isAccountIdWhitelisted={isAccountIdWhitelisted}
-              datasetSymbol={
-                accessDetails.baseToken?.symbol ||
-                (asset.credentialSubject?.chainId === 137 ? 'mOCEAN' : 'OCEAN')
-              }
+              datasetSymbol={datasetSymbolResolved}
               algorithmSymbol={algorithmSymbol}
               providerFeesSymbol={providerFeesSymbol}
               dtSymbolSelectedComputeAsset={dtSymbolSelectedComputeAsset}
@@ -510,6 +514,8 @@ export default function Steps({
               computeEnvs={computeEnvs}
               datasetProviderFeeProp={datasetProviderFeeProp}
               algorithmProviderFeeProp={algorithmProviderFeeProp}
+              datasetProviderFees={datasetProviderFees}
+              algorithmProviderFees={algorithmProviderFees}
               isBalanceSufficient={isBalanceSufficient}
               setIsBalanceSufficient={setIsBalanceSufficient}
             />
@@ -575,10 +581,7 @@ export default function Steps({
             hasDatatoken={hasDatatoken}
             dtBalance={dtBalance}
             isAccountIdWhitelisted={isAccountIdWhitelisted}
-            datasetSymbol={
-              accessDetails.baseToken?.symbol ||
-              (asset.credentialSubject?.chainId === 137 ? 'mOCEAN' : 'OCEAN')
-            }
+            datasetSymbol={datasetSymbolResolved}
             algorithmSymbol={algorithmSymbol}
             providerFeesSymbol={providerFeesSymbol}
             allResourceValues={allResourceValues}
@@ -588,6 +591,8 @@ export default function Steps({
             computeEnvs={computeEnvs}
             datasetProviderFeeProp={datasetProviderFeeProp}
             algorithmProviderFeeProp={algorithmProviderFeeProp}
+            datasetProviderFees={datasetProviderFees}
+            algorithmProviderFees={algorithmProviderFees}
             isBalanceSufficient={isBalanceSufficient}
             setIsBalanceSufficient={setIsBalanceSufficient}
             tokenInfo={tokenInfo}
@@ -612,10 +617,7 @@ export default function Steps({
             hasDatatoken={hasDatatoken}
             dtBalance={dtBalance}
             isAccountIdWhitelisted={isAccountIdWhitelisted}
-            datasetSymbol={
-              accessDetails.baseToken?.symbol ||
-              (asset.credentialSubject?.chainId === 137 ? 'mOCEAN' : 'OCEAN')
-            }
+            datasetSymbol={datasetSymbolResolved}
             algorithmSymbol={algorithmSymbol}
             providerFeesSymbol={providerFeesSymbol}
             allResourceValues={allResourceValues}
@@ -625,6 +627,8 @@ export default function Steps({
             computeEnvs={computeEnvs}
             datasetProviderFeeProp={datasetProviderFeeProp}
             algorithmProviderFeeProp={algorithmProviderFeeProp}
+            datasetProviderFees={datasetProviderFees}
+            algorithmProviderFees={algorithmProviderFees}
             isBalanceSufficient={isBalanceSufficient}
             setIsBalanceSufficient={setIsBalanceSufficient}
             tokenInfo={tokenInfo}

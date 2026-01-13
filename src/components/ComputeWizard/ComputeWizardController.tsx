@@ -133,7 +133,7 @@ export default function ComputeWizardController({
   const [isBalanceSufficient, setIsBalanceSufficient] = useState<boolean>(true)
 
   const [isConsumablePrice, setIsConsumablePrice] = useState(true)
-  const [providerFeesSymbol, setProviderFeesSymbol] = useState('OCEAN')
+  const [providerFeesSymbol, setProviderFeesSymbol] = useState('')
   const { computeEnvs, computeEnvsError } = useComputeEnvironments({
     serviceEndpoint: service?.serviceEndpoint,
     chainId: asset.credentialSubject?.chainId
@@ -142,6 +142,8 @@ export default function ComputeWizardController({
     initializePricingAndProvider,
     datasetProviderFee,
     algorithmProviderFee,
+    datasetProviderFees,
+    algorithmProviderFees,
     extraFeesLoaded,
     isInitLoading,
     initError,
@@ -832,7 +834,7 @@ export default function ComputeWizardController({
           selectedAlgoAssetForDisplay?.credentialSubject?.chainId
         const algorithmSymbol =
           selectedAlgoAssetForDisplay?.accessDetails?.[svcIndex]?.baseToken
-            ?.symbol || (algorithmAssetChainId === 137 ? 'mOCEAN' : 'OCEAN')
+            ?.symbol || ''
         const dtSymbolSelectedComputeAsset =
           selectedAlgoAssetForDisplay?.accessDetails?.[svcIndex]?.datatoken
             ?.symbol
@@ -842,7 +844,7 @@ export default function ComputeWizardController({
         )
         const providerSymbolForDisplay = isAlgorithmFlow
           ? providerFeesSymbol
-          : 'OCEAN'
+          : ''
 
         return (
           <div className={styles.containerOuter}>
@@ -924,6 +926,8 @@ export default function ComputeWizardController({
                       setFieldValue={setFieldValue}
                       datasetProviderFeeProp={datasetProviderFee}
                       algorithmProviderFeeProp={algorithmProviderFee}
+                      datasetProviderFees={datasetProviderFees}
+                      algorithmProviderFees={algorithmProviderFees}
                       isBalanceSufficient={isBalanceSufficient}
                       setIsBalanceSufficient={setIsBalanceSufficient}
                     />

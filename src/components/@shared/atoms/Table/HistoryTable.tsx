@@ -13,6 +13,7 @@ import Button from '../Button'
 import styles from './index.module.css'
 import NumberUnit from '@components/Profile/Header/NumberUnit'
 import { AssetExtended } from 'src/@types/AssetExtended'
+import { getBaseTokenSymbol } from '@utils/getBaseTokenSymbol'
 
 // Hack in support for returning components for each row, as this works,
 // but is not supported by the typings.
@@ -94,24 +95,7 @@ export default function HistoryTable({
         | undefined
       const priceEntry = statsEntry?.prices?.[0]
 
-      let baseTokenSymbol: string | undefined
-      if (access?.baseToken?.symbol) {
-        baseTokenSymbol = access.baseToken.symbol
-      } else {
-        const credentialSubjectStats = (
-          assetWithAccess.credentialSubject as any
-        )?.stats
-        if (credentialSubjectStats?.price?.tokenSymbol) {
-          baseTokenSymbol = credentialSubjectStats.price.tokenSymbol
-        } else {
-          const stats = assetWithAccess.indexedMetadata?.stats?.[0] as
-            | { price?: { tokenSymbol?: string } }
-            | undefined
-          if (stats?.price?.tokenSymbol) {
-            baseTokenSymbol = stats.price.tokenSymbol
-          }
-        }
-      }
+      const baseTokenSymbol = getBaseTokenSymbol(assetWithAccess)
 
       const accessPrice =
         access?.price && typeof access.price === 'string'
