@@ -3,9 +3,11 @@ import { Asset } from 'src/@types/Asset'
 type AssetWithAccess = Asset & { accessDetails?: AccessDetails[] }
 
 export const getBaseTokenSymbol = (
-  asset: AssetWithAccess,
+  asset: AssetWithAccess | undefined,
   serviceIndex = 0
 ): string | undefined => {
+  if (!asset) return undefined
+
   const accessDetail = asset.accessDetails?.[serviceIndex]
   if (accessDetail?.baseToken?.symbol) {
     return accessDetail.baseToken.symbol
