@@ -189,11 +189,11 @@ export default function ConfigureEnvironment({
   const { approvedBaseTokens } = useMarketMetadata()
 
   const baseTokenOptions = useMemo(
-    () => approvedBaseTokens.map((token) => token.symbol),
+    () => (approvedBaseTokens || []).map((token) => token.symbol),
     [approvedBaseTokens]
   )
   const selectedToken = useMemo(
-    () => approvedBaseTokens.find((t) => t.address === values.baseToken),
+    () => approvedBaseTokens?.find((t) => t.address === values.baseToken),
     [approvedBaseTokens, values.baseToken]
   )
   const displaySymbol = selectedToken?.symbol ?? 'OCEAN'
@@ -211,6 +211,36 @@ export default function ConfigureEnvironment({
   useEffect(() => {
     setFieldValue('mode', mode)
   }, [mode, setFieldValue])
+
+  useEffect(() => {
+    if (values.baseToken || !values.computeEnv) return
+    if (!approvedBaseTokens || approvedBaseTokens.length === 0) return
+    if (typeof values.computeEnv === 'string') return
+
+    const currentChainId =
+      chainId?.toString() || values.user?.chainId?.toString()
+    if (!currentChainId) return
+
+    const feeTokenAddress =
+      values.computeEnv.fees?.[currentChainId]?.[0]?.feeToken
+    const feeToken = feeTokenAddress
+      ? approvedBaseTokens.find(
+          (token) =>
+            token.address.toLowerCase() === feeTokenAddress.toLowerCase()
+        )
+      : undefined
+    const tokenToUse = feeToken || approvedBaseTokens[0]
+    if (tokenToUse?.address) {
+      setFieldValue('baseToken', tokenToUse.address)
+    }
+  }, [
+    values.baseToken,
+    values.computeEnv,
+    values.user?.chainId,
+    approvedBaseTokens,
+    chainId,
+    setFieldValue
+  ])
 
   const [symbolMap, setSymbolMap] = useState<Record<string, string>>({})
 
@@ -576,11 +606,12 @@ export default function ConfigureEnvironment({
         type="select"
         options={baseTokenOptions}
         value={
-          approvedBaseTokens.find((token) => token.address === values.baseToken)
-            ?.symbol ?? ''
+          approvedBaseTokens?.find(
+            (token) => token.address === values.baseToken
+          )?.symbol ?? ''
         }
         onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-          const selectedToken = approvedBaseTokens.find(
+          const selectedToken = approvedBaseTokens?.find(
             (token) => token.symbol === e.target.value
           )
           if (selectedToken) {

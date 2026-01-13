@@ -15,6 +15,7 @@ import { useSsiWallet } from '@context/SsiWallet'
 import { useCancelToken } from '@hooks/useCancelToken'
 import { useAsset } from '@context/Asset'
 import { useUserPreferences } from '@context/UserPreferences'
+import { useMarketMetadata } from '@context/MarketMetadata'
 import { getAccessDetails } from '@utils/accessDetailsAndPricing'
 import { getFixedBuyPrice } from '@utils/ocean/fixedRateExchange'
 import { getOceanConfig } from '@utils/ocean'
@@ -163,6 +164,7 @@ export default function Review({
   const newCancelToken = useCancelToken()
   const { isAssetNetwork } = useAsset()
   const { privacyPolicySlug } = useUserPreferences()
+  const { approvedBaseTokens } = useMarketMetadata()
 
   const [symbol, setSymbol] = useState('')
   const [tokenInfoState, setTokenInfoState] = useState<TokenInfo | undefined>(
@@ -214,6 +216,17 @@ export default function Review({
     currentMode === 'paid' ? paidResources?.price : freeResources?.price
   const c2dPrice =
     c2dPriceRaw != null ? Math.round(Number(c2dPriceRaw) * 100) / 100 : 0
+  const c2dFeeTokenAddress = useMemo(() => {
+    if (!values.computeEnv || typeof values.computeEnv === 'string') return
+    const currentChainId =
+      asset?.credentialSubject?.chainId || values.user?.chainId
+    if (!currentChainId) return
+    return values.computeEnv.fees?.[currentChainId.toString()]?.[0]?.feeToken
+  }, [
+    values.computeEnv,
+    values.user?.chainId,
+    asset?.credentialSubject?.chainId
+  ])
   const consumeMarketOrderFeeMap = useMemo(() => {
     if (!consumeMarketOrderFee) return {}
     try {
@@ -243,6 +256,33 @@ export default function Review({
     (symbol?: string, tokenAddress?: string) =>
       symbol || (tokenAddress ? `${tokenAddress.slice(0, 6)}...` : 'UNKNOWN'),
     []
+  )
+  const c2dTokenInfo = useMemo(() => {
+    const address = values.baseToken || c2dFeeTokenAddress
+    if (!address || !approvedBaseTokens) return
+    return approvedBaseTokens.find(
+      (token) => token.address.toLowerCase() === address.toLowerCase()
+    )
+  }, [approvedBaseTokens, values.baseToken, c2dFeeTokenAddress])
+  const c2dSymbolResolved = useMemo(
+    () =>
+      resolveSymbol(
+        c2dTokenInfo?.symbol || providerFeesSymbol || symbol,
+        c2dTokenInfo?.address ||
+          values.baseToken ||
+          c2dFeeTokenAddress ||
+          tokenInfoState?.address
+      ),
+    [
+      resolveSymbol,
+      c2dTokenInfo?.symbol,
+      c2dTokenInfo?.address,
+      providerFeesSymbol,
+      symbol,
+      values.baseToken,
+      c2dFeeTokenAddress,
+      tokenInfoState?.address
+    ]
   )
 
   const providerFeeEntries = useMemo(() => {
@@ -941,10 +981,7 @@ export default function Review({
       )
     }
 
-    const providerFeeSymbol = resolveSymbol(
-      providerFeesSymbol || symbol,
-      tokenInfoState?.address
-    )
+    const providerFeeSymbol = c2dSymbolResolved
 
     if (isDatasetFlow) {
       if (
@@ -1077,10 +1114,8 @@ export default function Review({
     datasetProviderFee,
     algorithmSymbol,
     datasetSymbol,
-    providerFeesSymbol,
+    c2dSymbolResolved,
     c2dPrice,
-    symbol,
-    tokenInfoState?.address,
     values.withoutDataset,
     getConsumeMarketOrderFee,
     resolveSymbol
@@ -1204,10 +1239,6 @@ export default function Review({
 
   useEffect(() => {
     const priceEntries = [...totalPrices]
-    const c2dSymbolResolved = resolveSymbol(
-      providerFeesSymbol || symbol,
-      tokenInfoState?.address
-    )
     if (c2dPrice && !priceEntries.some((p) => p.symbol === c2dSymbolResolved)) {
       priceEntries.push({
         value: c2dPrice.toString(),
@@ -1275,22 +1306,17 @@ export default function Review({
     algoOecFee,
     datasetSymbol,
     algorithmSymbol,
-    providerFeesSymbol,
+    c2dSymbolResolved,
     c2dPrice,
-    symbol,
     asset,
     accessDetails,
     selectedAlgorithmAsset,
     serviceIndex,
     isDatasetFlow,
-    tokenInfoState?.address,
     resolveSymbol
   ])
 
-  const c2dSymbol = resolveSymbol(
-    providerFeesSymbol || symbol,
-    tokenInfoState?.address
-  )
+  const c2dSymbol = c2dSymbolResolved
 
   const computeItems = [
     {
@@ -1325,8 +1351,12 @@ export default function Review({
           .filter(Boolean)
           .join(' & ')
       : resolveSymbol(
-          providerFeesSymbol || datasetSymbol || algorithmSymbol || symbol,
-          tokenInfoState?.address
+          c2dTokenInfo?.symbol ||
+            providerFeesSymbol ||
+            datasetSymbol ||
+            algorithmSymbol ||
+            symbol,
+          c2dTokenInfo?.address || c2dFeeTokenAddress || tokenInfoState?.address
         )
 
   const totalPricesToDisplay = totalPriceBreakdown.filter(
