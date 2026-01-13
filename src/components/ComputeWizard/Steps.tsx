@@ -77,6 +77,8 @@ interface StepsProps {
   algorithmProviderFees?: ProviderFees | null
   isBalanceSufficient: boolean
   setIsBalanceSufficient: SetState<boolean>
+  baseTokenAddress: string
+  setBaseTokenAddress: SetState<string>
 }
 
 type WizardUserParameter = {
@@ -142,7 +144,9 @@ export default function Steps({
   datasetProviderFees,
   algorithmProviderFees,
   isBalanceSufficient,
-  setIsBalanceSufficient
+  setIsBalanceSufficient,
+  baseTokenAddress,
+  setBaseTokenAddress
 }: StepsProps): ReactElement {
   const { address: accountId } = useAccount()
   const { values } = useFormikContext<FormComputeData>()
@@ -277,6 +281,8 @@ export default function Steps({
           <ConfigureEnvironment
             allResourceValues={allResourceValues}
             setAllResourceValues={setAllResourceValues}
+            baseTokenAddress={baseTokenAddress}
+            setBaseTokenAddress={setBaseTokenAddress}
           />
         )
       case 6:
@@ -284,6 +290,8 @@ export default function Steps({
           <ConfigureEnvironment
             allResourceValues={allResourceValues}
             setAllResourceValues={setAllResourceValues}
+            baseTokenAddress={baseTokenAddress}
+            setBaseTokenAddress={setBaseTokenAddress}
           />
         ) : (
           <Review
@@ -411,6 +419,8 @@ export default function Steps({
             <ConfigureEnvironment
               allResourceValues={allResourceValues}
               setAllResourceValues={setAllResourceValues}
+              baseTokenAddress={baseTokenAddress}
+              setBaseTokenAddress={setBaseTokenAddress}
             />
           )
         case 4:
@@ -418,6 +428,8 @@ export default function Steps({
             <ConfigureEnvironment
               allResourceValues={allResourceValues}
               setAllResourceValues={setAllResourceValues}
+              baseTokenAddress={baseTokenAddress}
+              setBaseTokenAddress={setBaseTokenAddress}
             />
           ) : (
             <Review
@@ -555,6 +567,8 @@ export default function Steps({
           <ConfigureEnvironment
             allResourceValues={allResourceValues}
             setAllResourceValues={setAllResourceValues}
+            baseTokenAddress={baseTokenAddress}
+            setBaseTokenAddress={setBaseTokenAddress}
           />
         )
       case 6:
@@ -562,6 +576,8 @@ export default function Steps({
           <ConfigureEnvironment
             allResourceValues={allResourceValues}
             setAllResourceValues={setAllResourceValues}
+            baseTokenAddress={baseTokenAddress}
+            setBaseTokenAddress={setBaseTokenAddress}
           />
         ) : (
           <Review

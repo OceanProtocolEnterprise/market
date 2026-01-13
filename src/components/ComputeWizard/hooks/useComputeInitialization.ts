@@ -111,6 +111,7 @@ export function useComputeInitialization({
   oceanTokenAddress?: string
   web3Provider?: any
 }) {
+  console.log('useComputeInitialization called with token:', oceanTokenAddress)
   const [initializedProviderResponse, setInitializedProviderResponse] =
     useState<ProviderComputeInitializeResults>()
   const [datasetProviderFee, setDatasetProviderFee] = useState<string | null>(

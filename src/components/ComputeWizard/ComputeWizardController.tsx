@@ -131,6 +131,7 @@ export default function ComputeWizardController({
   const [algoOrderPriceAndFees, setAlgoOrderPriceAndFees] =
     useState<OrderPriceAndFees>()
   const [isBalanceSufficient, setIsBalanceSufficient] = useState<boolean>(true)
+  const [baseTokenAddress, setBaseTokenAddress] = useState<string>()
 
   const [isConsumablePrice, setIsConsumablePrice] = useState(true)
   const [providerFeesSymbol, setProviderFeesSymbol] = useState('')
@@ -149,7 +150,7 @@ export default function ComputeWizardController({
     initError,
     setInitError
   } = useComputeInitialization({
-    oceanTokenAddress,
+    oceanTokenAddress: baseTokenAddress,
     web3Provider
   })
   const {
@@ -930,6 +931,8 @@ export default function ComputeWizardController({
                       algorithmProviderFees={algorithmProviderFees}
                       isBalanceSufficient={isBalanceSufficient}
                       setIsBalanceSufficient={setIsBalanceSufficient}
+                      baseTokenAddress={baseTokenAddress}
+                      setBaseTokenAddress={setBaseTokenAddress}
                     />
                   </CredentialDialogProvider>
                 )}

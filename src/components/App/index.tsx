@@ -45,17 +45,6 @@ export default function App({
   const toastShownRef = useRef(false)
 
   useEffect(() => {
-    console.log('[TokenCheck] Unified decision effect', {
-      isRouterReady,
-      loading,
-      chainId,
-      enterpriseFeeCollector,
-      allowedEnvAddresses,
-      allowedTokens,
-      allowedTokensLength: allowedTokens.length,
-      decisionLocked: decisionLockedRef.current
-    })
-
     if (!isRouterReady) return
     if (!enterpriseFeeCollector) return
     if (loading) return
@@ -65,7 +54,7 @@ export default function App({
       decisionLockedRef.current = true
 
       if (allowedTokens.length === 0) {
-        console.log('[TokenCheck] ❌ FINAL DECISION: NO ALLOWED TOKENS')
+        console.log('[TokenCheck] FINAL DECISION: NO ALLOWED TOKENS')
 
         setShowNoAllowedMessage(true)
 
@@ -74,7 +63,7 @@ export default function App({
           toastShownRef.current = true
         }
       } else {
-        console.log('[TokenCheck] ✅ FINAL DECISION: ALLOWED TOKENS FOUND')
+        console.log('[TokenCheck] FINAL DECISION: ALLOWED TOKENS FOUND')
         setShowNoAllowedMessage(false)
       }
     }, 1200)
@@ -98,43 +87,14 @@ export default function App({
       {!isRoot && <Header />}
       {showNoAllowedMessage && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999
-          }}
+          className={styles.modalOverlay}
           onClick={() => setShowNoAllowedMessage(false)}
         >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: '#ffffff',
-              color: '#000',
-              borderRadius: '12px',
-              padding: '2.5rem',
-              width: '100%',
-              maxWidth: '600px',
-              textAlign: 'center',
-              position: 'relative',
-              boxShadow: '0 10px 40px rgba(0,0,0,0.25)'
-            }}
-          >
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <button
+              className={styles.modalClose}
               onClick={() => setShowNoAllowedMessage(false)}
               aria-label="Close"
-              style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                background: 'transparent',
-                border: 'none',
-                fontSize: '24px',
-                cursor: 'pointer'
-              }}
             >
               ×
             </button>
