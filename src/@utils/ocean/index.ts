@@ -56,7 +56,7 @@ function validateAndChecksumAddresses(addresses: string[]): string[] {
   }, [])
 }
 
-export function getOceanConfig(network: string | number): any {
+export function getOceanConfig(network: string | number): ConfigEnterprise {
   const runtimeConfig = getRuntimeConfig()
   // Load the RPC map from .env
   const rpcMap: Record<string, string> = runtimeConfig.NEXT_PUBLIC_NODE_URI_MAP
