@@ -6,7 +6,6 @@ import { useChainId } from 'wagmi'
 import StepTitle from '@shared/StepTitle'
 import { FormComputeData } from '../_types'
 import { useProfile } from '@context/Profile'
-import { useMarketMetadata } from '@context/MarketMetadata'
 import styles from './index.module.css'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 import Input from '@components/@shared/FormInput'
@@ -190,22 +189,51 @@ export default function ConfigureEnvironment({
   const chainId = useChainId()
   const { escrowFundsByToken } = useProfile()
   const walletClient = useEthersSigner()
-  const { approvedBaseTokens } = useMarketMetadata()
+  const [symbolMap, setSymbolMap] = useState<Record<string, string>>({})
+  const fetchSymbol = useCallback(
+    async (address: string) => {
+      if (symbolMap[address]) return symbolMap[address]
+      if (!walletClient || !chainId) return address
+
+      try {
+        const datatoken = new Datatoken(walletClient as any, chainId)
+        const sym = await datatoken.getSymbol(address)
+        setSymbolMap((prev) => ({ ...prev, [address]: sym }))
+        return sym
+      } catch (e) {
+        return address
+      }
+    },
+    [walletClient, chainId, symbolMap]
+  )
+
+  const supportedTokensFromEnv = useMemo(() => {
+    const currentChainId =
+      chainId?.toString() || values.user?.chainId?.toString()
+    if (!values.computeEnv || !currentChainId) return []
+    const fees = values.computeEnv.fees?.[currentChainId] || []
+    return fees.map((f) => f.feeToken)
+  }, [values.computeEnv, chainId, values.user?.chainId])
+
+  useEffect(() => {
+    supportedTokensFromEnv.forEach((tokenAddr) => {
+      if (!symbolMap[tokenAddr]) fetchSymbol(tokenAddr)
+    })
+  }, [supportedTokensFromEnv, fetchSymbol, symbolMap])
 
   const baseTokenOptions = useMemo(
-    () => (approvedBaseTokens || []).map((token) => token.symbol),
-    [approvedBaseTokens]
+    () => supportedTokensFromEnv.map((addr) => symbolMap[addr] || addr),
+    [supportedTokensFromEnv, symbolMap]
   )
-  const selectedToken = useMemo(
-    () => approvedBaseTokens?.find((t) => t.address === values.baseToken),
-    [approvedBaseTokens, values.baseToken]
-  )
-  const displaySymbol = selectedToken?.symbol ?? 'OCEAN'
+
+  const displaySymbol = symbolMap[values.baseToken] ?? 'OCEAN'
+
   const escrowAvailableFunds = useMemo(() => {
-    if (!selectedToken?.symbol) return 0
-    const funds = escrowFundsByToken[selectedToken.symbol]
+    if (!displaySymbol) return 0
+    const funds = escrowFundsByToken[displaySymbol]
     return funds ? parseFloat(funds.available ?? '0') : 0
-  }, [escrowFundsByToken, selectedToken])
+  }, [escrowFundsByToken, displaySymbol])
+
   const [mode, setMode] = useState<'free' | 'paid'>(
     () =>
       (values.mode as 'free' | 'paid') ||
@@ -217,33 +245,13 @@ export default function ConfigureEnvironment({
   }, [mode, setFieldValue])
 
   useEffect(() => {
-    if (values.baseToken || !values.computeEnv) return
-    if (!approvedBaseTokens || approvedBaseTokens.length === 0) return
-    if (typeof values.computeEnv === 'string') return
-
-    const currentChainId =
-      chainId?.toString() || values.user?.chainId?.toString()
-    if (!currentChainId) return
-
-    const feeTokenAddress =
-      values.computeEnv.fees?.[currentChainId]?.[0]?.feeToken
-    const feeToken = feeTokenAddress
-      ? approvedBaseTokens.find(
-          (token) =>
-            token.address.toLowerCase() === feeTokenAddress.toLowerCase()
-        )
-      : undefined
-    const tokenToUse = feeToken || approvedBaseTokens[0]
-    if (tokenToUse?.address) {
-      setFieldValue('baseToken', tokenToUse.address)
-      setBaseTokenAddress(tokenToUse.address)
-    }
+    if (values.baseToken || supportedTokensFromEnv.length === 0) return
+    const defaultToken = supportedTokensFromEnv[0]
+    setFieldValue('baseToken', defaultToken)
+    setBaseTokenAddress(defaultToken)
   }, [
+    supportedTokensFromEnv,
     values.baseToken,
-    values.computeEnv,
-    values.user?.chainId,
-    approvedBaseTokens,
-    chainId,
     setFieldValue,
     setBaseTokenAddress
   ])
@@ -252,9 +260,6 @@ export default function ConfigureEnvironment({
     if (!values.baseToken || values.baseToken === baseTokenAddress) return
     setBaseTokenAddress(values.baseToken)
   }, [values.baseToken, baseTokenAddress, setBaseTokenAddress])
-
-  const [symbolMap, setSymbolMap] = useState<Record<string, string>>({})
-
   const getEnvResourceValues = useCallback(
     (isFree = true): ResourceValues => {
       const env = values.computeEnv
@@ -329,7 +334,10 @@ export default function ConfigureEnvironment({
 
     const env = values.computeEnv
     const currentChainId = chainId?.toString() ?? '11155111'
-    const fee = env.fees?.[currentChainId]?.[0]
+    const fee =
+      env.fees?.[currentChainId]?.find(
+        (f) => f.feeToken.toLowerCase() === values.baseToken?.toLowerCase()
+      ) || env.fees?.[currentChainId]?.[0]
 
     if (!fee?.prices) return 0
 
@@ -348,29 +356,10 @@ export default function ConfigureEnvironment({
 
     const rawPrice = totalPrice * paidValues.jobDuration
     return Math.round(rawPrice * 100) / 100
-  }, [mode, values.computeEnv, chainId, paidValues])
+  }, [mode, values.computeEnv, chainId, paidValues, values.baseToken])
 
   const clamp = (val: number, min: number, max: number) =>
     Math.max(min, Math.min(max, val))
-
-  const fetchSymbol = async (address: string) => {
-    if (symbolMap[address]) return symbolMap[address]
-    if (!walletClient || !chainId) return '...'
-
-    const datatoken = new Datatoken(walletClient as any, chainId)
-    const sym = await datatoken.getSymbol(address)
-    setSymbolMap((prev) => ({ ...prev, [address]: sym }))
-    return sym
-  }
-
-  useEffect(() => {
-    const env = values.computeEnv
-    if (env) {
-      const currentChainId = chainId?.toString() ?? '11155111'
-      const fee = env.fees?.[currentChainId]?.[0]
-      if (fee?.feeToken) fetchSymbol(fee.feeToken)
-    }
-  }, [values.computeEnv, chainId, fetchSymbol])
 
   useEffect(() => {
     const currentValues = mode === 'free' ? freeValues : paidValues
@@ -423,7 +412,10 @@ export default function ConfigureEnvironment({
 
     if (mode === 'paid') {
       const currentChainId = chainId?.toString() ?? '11155111'
-      const fee = env.fees?.[currentChainId]?.[0]
+      const fee =
+        env.fees?.[currentChainId]?.find(
+          (f) => f.feeToken.toLowerCase() === values.baseToken?.toLowerCase()
+        ) || env.fees?.[currentChainId]?.[0]
       if (fee?.prices) {
         let totalPrice = 0
         for (const p of fee.prices) {
@@ -472,7 +464,8 @@ export default function ConfigureEnvironment({
     paidValues.disk,
     paidValues.jobDuration,
     setAllResourceValues,
-    escrowAvailableFunds
+    escrowAvailableFunds,
+    values.baseToken
   ])
 
   useEffect(() => {
@@ -580,7 +573,10 @@ export default function ConfigureEnvironment({
 
   const env = values.computeEnv
   const currentChainId = chainId?.toString() ?? '11155111'
-  const fee = env.fees?.[currentChainId]?.[0]
+  const fee =
+    env.fees?.[currentChainId]?.find(
+      (f) => f.feeToken.toLowerCase() === values.baseToken?.toLowerCase()
+    ) || env.fees?.[currentChainId]?.[0]
   const freeAvailable = !!env.free
 
   const updateResource = (
@@ -616,18 +612,14 @@ export default function ConfigureEnvironment({
         name="baseToken"
         type="select"
         options={baseTokenOptions}
-        value={
-          approvedBaseTokens?.find(
-            (token) => token.address === values.baseToken
-          )?.symbol ?? ''
-        }
+        value={symbolMap[values.baseToken] || values.baseToken || ''}
         onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-          const selectedToken = approvedBaseTokens?.find(
-            (token) => token.symbol === e.target.value
+          const selectedAddr = supportedTokensFromEnv.find(
+            (addr) => (symbolMap[addr] || addr) === e.target.value
           )
-          if (selectedToken) {
-            setFieldValue('baseToken', selectedToken.address)
-            setBaseTokenAddress(selectedToken.address)
+          if (selectedAddr) {
+            setFieldValue('baseToken', selectedAddr)
+            setBaseTokenAddress(selectedAddr)
           }
         }}
       />

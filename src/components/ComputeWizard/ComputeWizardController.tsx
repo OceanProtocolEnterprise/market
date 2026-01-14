@@ -576,6 +576,7 @@ export default function ComputeWizardController({
         datasetOrderPriceAndFees,
         paymentTokenAddress: accessDetails?.baseToken?.address,
         computeServiceEndpoint: service.serviceEndpoint
+        // oceanTokenAddress --- IGNORE ---
       })
 
       await refetchComputeJobs('init')
