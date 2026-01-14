@@ -575,7 +575,6 @@ export default function ComputeWizardController({
         algoOrderPriceAndFees,
         datasetOrderPriceAndFees,
         paymentTokenAddress: accessDetails?.baseToken?.address,
-        oceanTokenAddress,
         computeServiceEndpoint: service.serviceEndpoint
       })
 
