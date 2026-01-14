@@ -236,6 +236,7 @@ export default function ConfigureEnvironment({
     const tokenToUse = feeToken || approvedBaseTokens[0]
     if (tokenToUse?.address) {
       setFieldValue('baseToken', tokenToUse.address)
+      setBaseTokenAddress(tokenToUse.address)
     }
   }, [
     values.baseToken,
