@@ -20,6 +20,7 @@ interface PricingRowProps {
   valueParts?: Array<{ value: string; symbol: string }>
   duration?: string
   className?: string
+  showLeader?: boolean
   isService?: boolean
   actionLabel?: string
   onAction?: () => void
@@ -48,6 +49,7 @@ export default function PricingRow({
   valueParts,
   duration,
   className,
+  showLeader = false,
   isService = false,
   actionLabel,
   onAction,
@@ -129,7 +131,11 @@ export default function PricingRow({
         (credentialStatus === 'verified' && expirationStatus.isValid)))
 
   return (
-    <div className={`${styles.pricingRow} ${className || ''}`}>
+    <div
+      className={`${styles.pricingRow} ${
+        showLeader ? styles.pricingRowLeader : ''
+      } ${className || ''}`}
+    >
       <div className={styles.itemInfo}>
         {label && (
           <span className={styles.datasetLabel}>
@@ -160,6 +166,7 @@ export default function PricingRow({
           ) : null}
         </div>
       </div>
+      {showLeader && <span className={styles.dotLeader} aria-hidden="true" />}
       <div className={styles.priceInfo}>
         <PriceDisplay
           value={value}

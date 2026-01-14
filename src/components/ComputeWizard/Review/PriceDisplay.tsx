@@ -34,27 +34,44 @@ export default function PriceDisplay({
       <span className={styles.price}>
         {hasValueParts ? (
           valueParts.map((part, index) => (
-            <span key={`${part.symbol}-${index}`}>
-              {index > 0 && <span> & </span>}
-              <span
-                className={`${styles.priceNumber} ${styles[colorClass] || ''}`}
-              >
-                {part.value}
+            <span
+              key={`${part.symbol}-${index}`}
+              className={styles.pricePairWrap}
+            >
+              {index > 0 && <span className={styles.priceSeparator}> & </span>}
+              <span className={styles.pricePair}>
+                <span
+                  className={`${styles.priceNumber} ${
+                    styles[colorClass] || ''
+                  } ${styles.pricePairNumber}`}
+                >
+                  {part.value}
+                </span>
+                <span
+                  className={`${styles.priceSymbol} ${styles.pricePairSymbol}`}
+                >
+                  {part.symbol}
+                </span>
               </span>
-              <span className={styles.priceSymbol}> {part.symbol}</span>
             </span>
           ))
         ) : (
-          <>
+          <span className={styles.pricePair}>
             <span
-              className={`${styles.priceNumber} ${styles[colorClass] || ''}`}
+              className={`${styles.priceNumber} ${styles[colorClass] || ''} ${
+                styles.pricePairNumber
+              }`}
             >
               {formattedValue}
             </span>
             {!displayValue && (
-              <span className={styles.priceSymbol}> {symbol}</span>
+              <span
+                className={`${styles.priceSymbol} ${styles.pricePairSymbol}`}
+              >
+                {symbol}
+              </span>
             )}
-          </>
+          </span>
         )}
       </span>
       {duration && (

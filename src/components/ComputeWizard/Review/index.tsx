@@ -38,6 +38,9 @@ import PricingRow from './PricingRow'
 import styles from './index.module.css'
 import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelection'
 import { ComputeFlow, FormComputeData } from '../_types'
+import Accordion from '@components/@shared/Accordion'
+import RowItem from './RowItem'
+import CurrencySplitRow from './CurrencySplitRow'
 
 type VerificationStatus =
   | 'verified'
@@ -60,6 +63,38 @@ interface VerificationItem {
 }
 
 type TotalPriceEntry = { value: string; symbol: string }
+
+type RowEntry = {
+  rowKey: string
+  itemName: string
+  value: string | number
+  valueParts?: Array<{ value: string; symbol: string }>
+  symbol?: string
+  duration?: string
+  valueType?: 'escrow' | 'deposit' | 'default'
+}
+
+const groupRowsByCurrency = (rows: RowEntry[]) => {
+  const groups = new Map<string, RowEntry[]>()
+  rows.forEach((row) => {
+    const symbols = row.valueParts?.length
+      ? Array.from(new Set(row.valueParts.map((part) => part.symbol)))
+      : row.symbol
+      ? [row.symbol]
+      : []
+    const groupKey = symbols.length <= 1 ? symbols[0] || 'UNKNOWN' : 'MULTI'
+
+    if (!groups.has(groupKey)) {
+      groups.set(groupKey, [])
+    }
+    groups.get(groupKey)?.push(row)
+  })
+
+  return Array.from(groups.entries()).map(([group, rows]) => ({
+    group,
+    rows
+  }))
+}
 
 type ReviewProps = {
   flow: ComputeFlow
@@ -1575,6 +1610,33 @@ export default function Review({
         }
       ]
 
+  const renderSectionSummary = (
+    parts: Array<{ value: string; symbol: string }>
+  ) => {
+    if (parts.length === 0) {
+      return <span className={styles.sectionSummaryEmpty}>0</span>
+    }
+
+    return (
+      <span className={styles.sectionSummary}>
+        {parts.map((part, index) => (
+          <span
+            key={`${part.symbol}-${index}`}
+            className={styles.sectionSummaryItem}
+          >
+            {index > 0 && (
+              <span className={styles.sectionSummarySeparator}> & </span>
+            )}
+            <span className={styles.sectionSummaryValue}>
+              {formatFeeValue(part.value)}
+            </span>
+            <span className={styles.sectionSummarySymbol}>{part.symbol}</span>
+          </span>
+        ))}
+      </span>
+    )
+  }
+
   const marketFees =
     !isDatasetFlow && values.withoutDataset
       ? marketFeesBase.filter((fee) => !fee.name.includes('DATASET'))
@@ -1583,6 +1645,104 @@ export default function Review({
   const mergedMarketFees = mergeFeeRows(marketFees)
   const mergedDatasetProviderFees = mergeFeeRows(datasetProviderFeesList)
   const mergedAlgorithmProviderFees = mergeFeeRows(algorithmProviderFeesList)
+  const c2dSummaryParts = c2dSymbol
+    ? [
+        {
+          value: values.jobPrice || '0',
+          symbol: c2dSymbol
+        }
+      ]
+    : []
+  const feesSummaryParts = (() => {
+    const totals = new Map<string, Decimal>()
+    const addTotal = (
+      symbolKey: string | undefined,
+      value: string | number
+    ) => {
+      if (!symbolKey) return
+      const amount = new Decimal(value || 0)
+      if (amount.eq(0)) return
+      totals.set(
+        symbolKey,
+        (totals.get(symbolKey) || new Decimal(0)).add(amount)
+      )
+    }
+    const addEntry = (entry: FeeDisplayEntry, fallbackSymbol?: string) => {
+      if (entry.valueParts && entry.valueParts.length > 0) {
+        entry.valueParts.forEach((part) => addTotal(part.symbol, part.value))
+        return
+      }
+      addTotal(entry.symbol || fallbackSymbol, entry.value)
+    }
+
+    mergedMarketFees.forEach((entry) => addEntry(entry, symbol))
+    if (!values.withoutDataset) {
+      mergedDatasetProviderFees.forEach((entry) =>
+        addEntry(entry, datasetSymbol || symbol)
+      )
+    }
+    mergedAlgorithmProviderFees.forEach((entry) =>
+      addEntry(entry, algorithmSymbol || symbol)
+    )
+
+    return Array.from(totals.entries()).map(([symbolKey, value]) => ({
+      symbol: symbolKey,
+      value: value.toString()
+    }))
+  })()
+
+  const c2dRows: RowEntry[] = [
+    ...computeItems.map((item, index) => ({
+      rowKey: `c2d-item-${index}`,
+      itemName: item.name,
+      value: item.value,
+      duration: item.duration,
+      symbol: c2dSymbol
+    })),
+    ...escrowFunds.map((item, index) => ({
+      rowKey: `c2d-escrow-${index}`,
+      itemName: item.name,
+      value: item.value,
+      valueType: 'escrow' as const,
+      symbol: c2dSymbol
+    })),
+    ...amountDeposit.map((item, index) => ({
+      rowKey: `c2d-deposit-${index}`,
+      itemName: item.name,
+      value: item.value,
+      valueType: 'deposit' as const,
+      symbol: c2dSymbol
+    }))
+  ]
+
+  const feeRows: RowEntry[] = [
+    ...mergedMarketFees.map((fee, index) => ({
+      rowKey: `fee-market-${index}`,
+      itemName: fee.name,
+      value: fee.value,
+      valueParts: fee.valueParts,
+      symbol: fee.valueParts ? '' : fee.symbol || symbol
+    })),
+    ...(!values.withoutDataset
+      ? mergedDatasetProviderFees.map((fee, index) => ({
+          rowKey: `fee-dataset-${index}`,
+          itemName: fee.name,
+          value: fee.value,
+          valueParts: fee.valueParts,
+          symbol: fee.valueParts ? '' : fee.symbol || datasetSymbol || symbol
+        }))
+      : []),
+    ...mergedAlgorithmProviderFees.map((fee, index) => ({
+      rowKey: `fee-algo-${index}`,
+      itemName: fee.name,
+      value: fee.value,
+      valueParts: fee.valueParts,
+      symbol: fee.valueParts ? '' : fee.symbol || algorithmSymbol || symbol
+    }))
+  ]
+
+  const c2dGroups = groupRowsByCurrency(c2dRows)
+  const feeGroups = groupRowsByCurrency(feeRows)
 
   if (!isBalanceSufficient) {
     if (insufficientBalances.length > 0) {
@@ -1764,6 +1924,7 @@ export default function Review({
                       itemName={item.name}
                       value={item.price}
                       duration={item.duration}
+                      className={styles.listRow}
                       actionLabel={
                         item.status === 'unverified'
                           ? 'Check Credentials'
@@ -1800,114 +1961,90 @@ export default function Review({
           </div>
 
           <div className={styles.c2dSection}>
-            <h3 className={styles.c2dHeading}>C2D Resources</h3>
-            <div className={styles.c2dBox}>
-              {computeItems.map((item) => (
-                <PricingRow
-                  key={item.name}
-                  itemName={item.name}
-                  value={item.value}
-                  duration={item.duration}
-                  symbol={c2dSymbol}
-                />
-              ))}
-              {escrowFunds.map((item) => (
-                <PricingRow
-                  key={item.name}
-                  itemName={item.name}
-                  value={item.value}
-                  valueType="escrow"
-                  symbol={c2dSymbol}
-                />
-              ))}
-              {amountDeposit.map((item) => (
-                <PricingRow
-                  key={item.name}
-                  itemName={item.name}
-                  value={item.value}
-                  valueType="deposit"
-                  symbol={c2dSymbol}
-                />
-              ))}
-            </div>
+            <Accordion
+              title="C2D Resources"
+              defaultExpanded={true}
+              titleClassName={styles.sectionHeading}
+              rightContent={renderSectionSummary(c2dSummaryParts)}
+            >
+              <div className={styles.c2dBox}>
+                {c2dGroups.map((group) => (
+                  <div key={group.group}>
+                    {c2dGroups.length > 1 && (
+                      <div className={styles.currencyGroup}>
+                        <span className={styles.currencyGroupDot} />
+                        <span>{group.group}</span>
+                      </div>
+                    )}
+                    {group.rows.map((row) => (
+                      <RowItem
+                        key={row.rowKey}
+                        itemName={row.itemName}
+                        value={row.value}
+                        duration={row.duration}
+                        valueType={row.valueType}
+                        symbol={row.symbol}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </Accordion>
           </div>
 
           <div className={styles.marketFeesSection}>
-            <h3 className={styles.marketFeesHeading}>Fees</h3>
-            <div className={styles.marketFeesBox}>
-              {mergedMarketFees.map((fee) => (
-                <PricingRow
-                  key={fee.name}
-                  itemName={fee.name}
-                  value={fee.value}
-                  valueParts={fee.valueParts}
-                  symbol={fee.valueParts ? '' : fee.symbol || symbol}
-                />
-              ))}
-              {!values.withoutDataset &&
-                mergedDatasetProviderFees.length > 0 &&
-                mergedDatasetProviderFees.map((fee) => (
-                  <PricingRow
-                    key={fee.name}
-                    itemName={fee.name}
-                    value={fee.value}
-                    valueParts={fee.valueParts}
-                    symbol={
-                      fee.valueParts
-                        ? ''
-                        : fee.symbol || datasetSymbol || symbol
-                    }
-                  />
+            <Accordion
+              title="Fees"
+              defaultExpanded={true}
+              titleClassName={styles.sectionHeading}
+              rightContent={renderSectionSummary(feesSummaryParts)}
+            >
+              <div className={styles.marketFeesBox}>
+                {feeGroups.map((group) => (
+                  <div key={group.group}>
+                    {feeGroups.length > 1 && (
+                      <div className={styles.currencyGroup}>
+                        <span className={styles.currencyGroupDot} />
+                        <span>
+                          {group.group === 'MULTI'
+                            ? 'MULTI TOKEN'
+                            : group.group}
+                        </span>
+                      </div>
+                    )}
+                    {group.rows.map((row) => (
+                      <RowItem
+                        key={row.rowKey}
+                        itemName={row.itemName}
+                        value={row.value}
+                        valueParts={row.valueParts}
+                        symbol={row.symbol}
+                      />
+                    ))}
+                  </div>
                 ))}
-              {mergedAlgorithmProviderFees.length > 0 &&
-                mergedAlgorithmProviderFees.map((fee) => (
-                  <PricingRow
-                    key={fee.name}
-                    itemName={fee.name}
-                    value={fee.value}
-                    valueParts={fee.valueParts}
-                    symbol={
-                      fee.valueParts
-                        ? ''
-                        : fee.symbol || algorithmSymbol || symbol
-                    }
-                  />
-                ))}
-            </div>
+              </div>
+            </Accordion>
           </div>
         </div>
 
         <div className={styles.totalSection}>
           <span className={styles.totalLabel}>YOU WILL PAY</span>
-          <span className={styles.totalValue}>
+          <div className={styles.totalRows}>
             {isRequestingPrice ? (
-              <span className={styles.totalValueNumber}>Calculating...</span>
+              <CurrencySplitRow value="Calculating..." symbol="" />
             ) : totalPricesToDisplay.length > 0 ? (
-              <span className={styles.totalList}>
-                {totalPricesToDisplay.map((price) => (
-                  <span className={styles.totalListItem} key={price.symbol}>
-                    <span className={styles.totalValueNumber}>
-                      {new Decimal(price.value || 0)
-                        .toDecimalPlaces(3, Decimal.ROUND_DOWN)
-                        .toString()}
-                    </span>
-                    <span className={styles.totalValueSymbol}>
-                      {' '}
-                      {price.symbol}
-                    </span>
-                  </span>
-                ))}
-              </span>
+              totalPricesToDisplay.map((price) => (
+                <CurrencySplitRow
+                  key={price.symbol}
+                  value={price.value}
+                  symbol={price.symbol}
+                />
+              ))
             ) : (
-              <span className={styles.totalListItem}>
-                <span className={styles.totalValueNumber}>0</span>
-                <span className={styles.totalValueSymbol}>
-                  {' '}
-                  {displaySymbol}
-                </span>
-              </span>
+              <CurrencySplitRow value="0" symbol={displaySymbol} />
             )}
-          </span>
+          </div>
         </div>
 
         <div className={styles.termsSection}>

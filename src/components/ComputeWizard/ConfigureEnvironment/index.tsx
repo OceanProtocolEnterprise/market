@@ -244,8 +244,14 @@ export default function ConfigureEnvironment({
     values.user?.chainId,
     approvedBaseTokens,
     chainId,
-    setFieldValue
+    setFieldValue,
+    setBaseTokenAddress
   ])
+
+  useEffect(() => {
+    if (!values.baseToken || values.baseToken === baseTokenAddress) return
+    setBaseTokenAddress(values.baseToken)
+  }, [values.baseToken, baseTokenAddress, setBaseTokenAddress])
 
   const [symbolMap, setSymbolMap] = useState<Record<string, string>>({})
 
