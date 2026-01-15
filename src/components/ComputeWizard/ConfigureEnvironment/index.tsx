@@ -301,6 +301,7 @@ export default function ConfigureEnvironment({
   const [paidValues, setPaidValues] = useState<ResourceValues>(() =>
     getEnvResourceValues(false)
   )
+  const round3 = (v: number) => Math.round((v + Number.EPSILON) * 1000) / 1000
 
   const getLimits = (id: string, isFree: boolean) => {
     const env = values.computeEnv
@@ -429,10 +430,12 @@ export default function ConfigureEnvironment({
               : 0
           totalPrice += units * p.price
         }
-        currentPrice = totalPrice * currentValues.jobDuration
+        currentPrice = round3(totalPrice * currentValues.jobDuration)
         const availableEscrow = escrowAvailableFunds
-        actualPaymentAmount = Math.max(0, currentPrice - availableEscrow)
-        escrowCoveredAmount = Math.min(availableEscrow, currentPrice)
+        actualPaymentAmount = round3(
+          Math.max(0, currentPrice - availableEscrow)
+        )
+        escrowCoveredAmount = round3(Math.min(availableEscrow, currentPrice))
       }
     }
 
