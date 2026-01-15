@@ -89,13 +89,15 @@
 
 /* Resource Rows */
 .resourceRow {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns:
+    minmax(90px, 106px) minmax(259px, 1fr)
+    minmax(140px, auto) 193px;
   align-items: center;
   padding: 0;
-  gap: 40px;
+  column-gap: 40px;
   width: 100%;
-  height: 24px;
+  min-height: 24px;
 }
 
 .resourceLabel {
@@ -566,6 +568,7 @@ body .inputSmall {
   }
 
   .resourceRow {
+    display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: flex-start;
@@ -653,6 +656,7 @@ body .inputSmall {
   }
 
   .resourceRow {
+    display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;

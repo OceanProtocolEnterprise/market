@@ -158,7 +158,7 @@ function ResourceRow({
           </div>
         </div>
       )}
-      {!isFree && (
+      {!isFree && resourceId !== 'jobDuration' && (
         <div className={styles.resourcePriceSection}>
           <span className={styles.priceLabel}>price per time unit</span>
           <input
