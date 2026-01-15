@@ -533,8 +533,6 @@ body .inputSmall {
   flex-direction: row;
 }
 .escrowValidation {
-  /* margin-top: 20px; */
-  padding: 15px;
   border-radius: 8px;
   align-self: center;
 }
