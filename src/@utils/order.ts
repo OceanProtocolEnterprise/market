@@ -15,6 +15,7 @@ import {
   allowance
 } from '@oceanprotocol/lib'
 import { Signer, TransactionResponse, formatUnits, parseUnits } from 'ethers'
+import Decimal from 'decimal.js'
 import { getOceanConfig } from './ocean'
 import appConfig, {
   marketFeeAddress,
@@ -125,7 +126,6 @@ export async function order(
     baseTokenDecimals: accessDetails.baseToken?.decimals || 18,
     price: priceForFee
   }).totalFeeWei
-
   // 2. Setup Order Parameters
   const orderParams = {
     consumer: computeConsumerAddress || accountId,
@@ -205,18 +205,18 @@ export async function order(
           activeConsumeMarketOrderFeeWei,
           accessDetails.baseToken.decimals
         )
-
-        let totalBaseTokenApprove =
-          Number(orderPriceAndFees?.price) +
-          Number(orderPriceAndFees?.opcFee) +
-          Number(consumeMarketFeeHuman)
+        let totalBaseTokenApprove = new Decimal(orderPriceAndFees?.price || 0)
+          .add(new Decimal(orderPriceAndFees?.opcFee || 0))
+          .add(new Decimal(consumeMarketFeeHuman || 0))
 
         if (isProviderTokenSameAsBase && providerFeeWei !== '0') {
           const providerFeeHuman = formatUnits(
             providerFeeWei,
             accessDetails.baseToken.decimals
           )
-          totalBaseTokenApprove += Number(providerFeeHuman)
+          totalBaseTokenApprove = totalBaseTokenApprove.add(
+            new Decimal(providerFeeHuman || 0)
+          )
         }
 
         if (!isProviderTokenSameAsBase && providerFeeWei !== '0') {
@@ -231,7 +231,6 @@ export async function order(
             providerFeeWei,
             providerTokenInfo?.decimals || 18
           )
-
           const txProv: any = await approve(
             signer as any,
             config,
@@ -241,7 +240,9 @@ export async function order(
             providerFeeHuman,
             false
           )
-          await txProv.wait()
+          if (txProv && typeof txProv.wait === 'function') {
+            await txProv.wait()
+          }
         }
 
         console.log(
@@ -257,7 +258,9 @@ export async function order(
           totalBaseTokenApprove.toString(),
           false
         )
-        await txBase.wait()
+        if (txBase && typeof txBase.wait === 'function') {
+          await txBase.wait()
+        }
 
         // Wait for allowance to propagate
         const decimals = accessDetails.baseToken?.decimals || 18
@@ -278,9 +281,11 @@ export async function order(
         }
 
         // Adjust freParams to only include cost items paid via the exchange
-        freParams.maxBaseTokenAmount = (
-          Number(orderPriceAndFees?.price) + Number(orderPriceAndFees?.opcFee)
-        ).toString()
+        freParams.maxBaseTokenAmount = new Decimal(
+          orderPriceAndFees?.price || 0
+        )
+          .add(new Decimal(orderPriceAndFees?.opcFee || 0))
+          .toString()
 
         const buyTx = await datatoken.buyFromFreAndOrder(
           accessDetails.datatoken.address,
