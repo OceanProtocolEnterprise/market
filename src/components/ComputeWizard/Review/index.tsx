@@ -1447,6 +1447,10 @@ export default function Review({
   const totalPricesToDisplay = totalPriceBreakdown.filter(
     (price) => price.value !== '0' && price.symbol
   )
+  const formatTotalValue = (value: string) => {
+    const numeric = Number(value)
+    return Number.isFinite(numeric) ? numeric.toFixed(3) : value
+  }
 
   type FeeEntry = { name: string; value: string; symbol?: string }
   type FeeDisplayEntry = FeeEntry & {
@@ -2087,12 +2091,15 @@ export default function Review({
               totalPricesToDisplay.map((price) => (
                 <CurrencySplitRow
                   key={price.symbol}
-                  value={price.value}
+                  value={formatTotalValue(price.value)}
                   symbol={price.symbol}
                 />
               ))
             ) : (
-              <CurrencySplitRow value="0" symbol={displaySymbol} />
+              <CurrencySplitRow
+                value={formatTotalValue('0')}
+                symbol={displaySymbol}
+              />
             )}
           </div>
         </div>
