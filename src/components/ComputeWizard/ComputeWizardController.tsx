@@ -49,6 +49,7 @@ import { useComputeJobs } from './hooks/useComputeJobs'
 import { useComputeSubmission } from './hooks/useComputeSubmission'
 import { getSelectedComputeEnvAndResources } from './hooks/computeEnvSelection'
 import { resetCredentialCache } from './hooks/resetCredentialCache'
+import { useMarketMetadata } from '@context/MarketMetadata'
 import appConfig from 'app.config.cjs'
 
 type ParamValue = string | number | boolean | undefined
@@ -95,6 +96,7 @@ export default function ComputeWizardController({
   const { oceanTokenAddress } = config
   const newCancelToken = useCancelToken()
   const { isSupportedOceanNetwork } = useNetworkMetadata()
+  const { approvedBaseTokens } = useMarketMetadata()
   const web3Provider = signer?.provider
 
   const [isLoading, setIsLoading] = useState(true)
@@ -105,6 +107,14 @@ export default function ComputeWizardController({
       : 'dataset')
   const isAlgorithmFlow = flow === 'algorithm'
   const initialFormValues = useMemo(() => createInitialValues(flow), [flow])
+  const tokenSymbolMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    approvedBaseTokens?.forEach((token) => {
+      if (!token?.address || !token?.symbol) return
+      map[token.address.toLowerCase()] = token.symbol
+    })
+    return map
+  }, [approvedBaseTokens])
 
   // copied from compute
   const { address } = useAccount()
@@ -437,7 +447,8 @@ export default function ComputeWizardController({
             service.serviceEndpoint,
             accountId,
             asset.credentialSubject?.chainId,
-            newCancelToken()
+            newCancelToken(),
+            tokenSymbolMap
           )
           if (!cancelled) setDatasetList(datasetLists || [])
         } else {
@@ -451,7 +462,8 @@ export default function ComputeWizardController({
             await getAlgorithmAssetSelectionListForComputeWizard(
               service,
               algorithmsAssets,
-              accountId
+              accountId,
+              tokenSymbolMap
             )
           if (!cancelled) setAlgorithmList(algorithmSelectionList)
         }

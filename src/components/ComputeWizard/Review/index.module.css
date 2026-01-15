@@ -259,7 +259,7 @@
 }
 
 .currencySplitValue {
-  text-align: right;
+  text-align: left;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;

@@ -205,6 +205,9 @@ export default function Review({
   const [tokenInfoState, setTokenInfoState] = useState<TokenInfo | undefined>(
     tokenInfo
   )
+  const [c2dTokenInfoByAddress, setC2dTokenInfoByAddress] = useState<
+    Record<string, TokenInfo>
+  >({})
   const [algoOecFee, setAlgoOecFee] = useState<string>('0')
   const [datasetOecFeesBySymbol, setDatasetOecFeesBySymbol] = useState<
     Record<string, string>
@@ -289,16 +292,24 @@ export default function Review({
 
   const resolveSymbol = useCallback(
     (symbol?: string, tokenAddress?: string) =>
-      symbol || (tokenAddress ? `${tokenAddress.slice(0, 6)}...` : 'UNKNOWN'),
+      symbol || (tokenAddress ? `${tokenAddress.slice(0, 6)}...` : ''),
     []
   )
   const c2dTokenInfo = useMemo(() => {
     const address = values.baseToken || c2dFeeTokenAddress
     if (!address || !approvedBaseTokens) return
-    return approvedBaseTokens.find(
-      (token) => token.address.toLowerCase() === address.toLowerCase()
+    const lower = address.toLowerCase()
+    return (
+      approvedBaseTokens.find(
+        (token) => token.address.toLowerCase() === lower
+      ) || c2dTokenInfoByAddress[lower]
     )
-  }, [approvedBaseTokens, values.baseToken, c2dFeeTokenAddress])
+  }, [
+    approvedBaseTokens,
+    values.baseToken,
+    c2dFeeTokenAddress,
+    c2dTokenInfoByAddress
+  ])
   const c2dSymbolResolved = useMemo(
     () =>
       resolveSymbol(
@@ -386,6 +397,45 @@ export default function Review({
     }
     fetchTokenDetails()
   }, [signer, isDatasetFlow, asset?.credentialSubject?.chainId])
+
+  useEffect(() => {
+    const provider = signer?.provider
+    const currentChainId =
+      asset?.credentialSubject?.chainId || values.user?.chainId
+    if (!provider || !currentChainId) return
+    if (!values.computeEnv || typeof values.computeEnv === 'string') return
+
+    const feeTokens =
+      values.computeEnv.fees?.[currentChainId.toString()]?.map(
+        (f) => f.feeToken
+      ) || []
+    if (feeTokens.length === 0) return
+
+    let cancelled = false
+
+    const fetchTokenSymbols = async () => {
+      const infos = await Promise.all(
+        feeTokens.map((addr) => getTokenInfo(addr, provider))
+      )
+      if (cancelled) return
+      const map: Record<string, TokenInfo> = {}
+      infos.forEach((info) => {
+        if (info?.address) map[info.address.toLowerCase()] = info
+      })
+      setC2dTokenInfoByAddress(map)
+    }
+
+    fetchTokenSymbols()
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    signer,
+    asset?.credentialSubject?.chainId,
+    values.user?.chainId,
+    values.computeEnv
+  ])
 
   useEffect(() => {
     async function fetchPricesDatasetFlow() {
