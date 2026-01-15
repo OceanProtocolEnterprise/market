@@ -72,6 +72,7 @@ type RowEntry = {
   symbol?: string
   duration?: string
   valueType?: 'escrow' | 'deposit' | 'default'
+  isValueLoading?: boolean
 }
 
 const groupRowsByCurrency = (rows: RowEntry[]) => {
@@ -212,6 +213,7 @@ export default function Review({
   const [datasetOecFeesBySymbol, setDatasetOecFeesBySymbol] = useState<
     Record<string, string>
   >({})
+  const [isOecFeesLoading, setIsOecFeesLoading] = useState(false)
   const { setFieldValue, values, validateForm } =
     useFormikContext<FormComputeData>()
   const [verificationQueue, setVerificationQueue] = useState<
@@ -438,6 +440,7 @@ export default function Review({
   ])
 
   useEffect(() => {
+    let cancelled = false
     async function fetchPricesDatasetFlow() {
       if (!isDatasetFlow) return
 
@@ -568,8 +571,25 @@ export default function Review({
       }
     }
 
-    fetchPricesDatasetFlow()
-    fetchPricesAlgorithmFlow()
+    const loadOecFees = async () => {
+      setIsOecFeesLoading(true)
+      try {
+        await Promise.all([
+          fetchPricesDatasetFlow(),
+          fetchPricesAlgorithmFlow()
+        ])
+      } finally {
+        if (!cancelled) {
+          setIsOecFeesLoading(false)
+        }
+      }
+    }
+
+    loadOecFees()
+
+    return () => {
+      cancelled = true
+    }
   }, [
     isDatasetFlow,
     asset,
@@ -1452,7 +1472,12 @@ export default function Review({
     return Number.isFinite(numeric) ? numeric.toFixed(3) : value
   }
 
-  type FeeEntry = { name: string; value: string; symbol?: string }
+  type FeeEntry = {
+    name: string
+    value: string
+    symbol?: string
+    isValueLoading?: boolean
+  }
   type FeeDisplayEntry = FeeEntry & {
     displayValue?: string
     valueParts?: Array<{ value: string; symbol: string }>
@@ -1468,11 +1493,12 @@ export default function Review({
 
     return Array.from(grouped.entries()).map(([name, entries]) => {
       if (entries.length === 1) return entries[0]
+      const isValueLoading = entries.some((entry) => entry.isValueLoading)
       const valueParts = entries.map((entry) => ({
         value: formatFeeValue(entry.value),
         symbol: entry.symbol || symbol
       }))
-      return { ...entries[0], name, valueParts, symbol: '' }
+      return { ...entries[0], name, valueParts, symbol: '', isValueLoading }
     })
   }
 
@@ -1572,13 +1598,36 @@ export default function Review({
     }))
   })()
 
+  const isLoadingAssets = isDatasetFlow
+    ? !selectedAlgorithmAsset
+    : !values.withoutDataset &&
+      (!selectedDatasetAsset || selectedDatasetAsset.length === 0)
+
   const datasetOecFeeEntries = Object.entries(datasetOecFeesBySymbol).map(
     ([symbolKey, value]) => ({
       name: 'OEC FEE DATASET',
       value,
-      symbol: symbolKey
+      symbol: symbolKey,
+      isValueLoading: isOecFeesLoading || isLoadingAssets
     })
   )
+
+  const datasetOecFeeEntriesWithLoading = (() => {
+    if (datasetOecFeeEntries.length > 0) return datasetOecFeeEntries
+    if (isDatasetFlow && (isOecFeesLoading || isLoadingAssets)) {
+      const datasetToken =
+        accessDetails?.baseToken?.symbol || datasetSymbol || ''
+      return [
+        {
+          name: 'OEC FEE DATASET',
+          value: '0',
+          symbol: datasetToken,
+          isValueLoading: true
+        }
+      ]
+    }
+    return []
+  })()
 
   const marketFeesBase = isDatasetFlow
     ? [
@@ -1610,12 +1659,13 @@ export default function Review({
               ?.address
           )
         },
-        ...datasetOecFeeEntries,
+        ...datasetOecFeeEntriesWithLoading,
         {
           name: `OEC FEE ALGORITHM`,
           value: selectedAlgorithmAsset?.accessDetails?.[serviceIndex]?.isOwned
             ? '0'
             : algoOecFee.toString(),
+          isValueLoading: isOecFeesLoading || isLoadingAssets,
           symbol: resolveSymbol(
             selectedAlgorithmAsset?.accessDetails?.[serviceIndex]?.baseToken
               ?.symbol ||
@@ -1651,10 +1701,11 @@ export default function Review({
             accessDetails?.baseToken?.address
           )
         },
-        ...datasetOecFeeEntries,
+        ...datasetOecFeeEntriesWithLoading,
         {
           name: `OEC FEE ALGORITHM`,
           value: algoOecFee.toString(),
+          isValueLoading: isOecFeesLoading || isLoadingAssets,
           symbol: resolveSymbol(
             accessDetails?.baseToken?.symbol ||
               getBaseTokenSymbol(asset, 0) ||
@@ -1775,7 +1826,8 @@ export default function Review({
       itemName: fee.name,
       value: fee.value,
       valueParts: fee.valueParts,
-      symbol: fee.valueParts ? '' : fee.symbol || symbol
+      symbol: fee.valueParts ? '' : fee.symbol || symbol,
+      isValueLoading: fee.isValueLoading
     })),
     ...(!values.withoutDataset
       ? mergedDatasetProviderFees.map((fee, index) => ({
@@ -1783,7 +1835,8 @@ export default function Review({
           itemName: fee.name,
           value: fee.value,
           valueParts: fee.valueParts,
-          symbol: fee.valueParts ? '' : fee.symbol || datasetSymbol || symbol
+          symbol: fee.valueParts ? '' : fee.symbol || datasetSymbol || symbol,
+          isValueLoading: fee.isValueLoading
         }))
       : []),
     ...mergedAlgorithmProviderFees.map((fee, index) => ({
@@ -1791,7 +1844,8 @@ export default function Review({
       itemName: fee.name,
       value: fee.value,
       valueParts: fee.valueParts,
-      symbol: fee.valueParts ? '' : fee.symbol || algorithmSymbol || symbol
+      symbol: fee.valueParts ? '' : fee.symbol || algorithmSymbol || symbol,
+      isValueLoading: fee.isValueLoading
     }))
   ]
 
@@ -1841,10 +1895,6 @@ export default function Review({
 
   const currentVerificationItem = verificationQueue[currentVerificationIndex]
   const assetRows = verificationQueue
-  const isLoadingAssets = isDatasetFlow
-    ? !selectedAlgorithmAsset
-    : !values.withoutDataset &&
-      (!selectedDatasetAsset || selectedDatasetAsset.length === 0)
 
   function getAlgorithmAsset(algo: string): {
     algorithmAsset: AssetExtended | null
@@ -2073,6 +2123,7 @@ export default function Review({
                         value={row.value}
                         valueParts={row.valueParts}
                         symbol={row.symbol}
+                        isValueLoading={row.isValueLoading}
                       />
                     ))}
                   </div>

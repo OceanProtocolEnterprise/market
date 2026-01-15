@@ -221,9 +221,19 @@ export default function ConfigureEnvironment({
     })
   }, [supportedTokensFromEnv, fetchSymbol, symbolMap])
 
-  const baseTokenOptions = useMemo(
-    () => supportedTokensFromEnv.map((addr) => symbolMap[addr] || addr),
+  const isTokenListLoading = useMemo(
+    () =>
+      supportedTokensFromEnv.length > 0 &&
+      supportedTokensFromEnv.some((addr) => !symbolMap[addr]),
     [supportedTokensFromEnv, symbolMap]
+  )
+
+  const baseTokenOptions = useMemo(
+    () =>
+      isTokenListLoading
+        ? ['Loading tokens...']
+        : supportedTokensFromEnv.map((addr) => symbolMap[addr] || addr),
+    [supportedTokensFromEnv, symbolMap, isTokenListLoading]
   )
 
   const displaySymbol = symbolMap[values.baseToken] ?? 'OCEAN'
@@ -615,7 +625,11 @@ export default function ConfigureEnvironment({
         name="baseToken"
         type="select"
         options={baseTokenOptions}
-        value={symbolMap[values.baseToken] || values.baseToken || ''}
+        value={
+          isTokenListLoading
+            ? 'Loading tokens...'
+            : symbolMap[values.baseToken] || values.baseToken || ''
+        }
         onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
           const selectedAddr = supportedTokensFromEnv.find(
             (addr) => (symbolMap[addr] || addr) === e.target.value
@@ -625,6 +639,7 @@ export default function ConfigureEnvironment({
             setBaseTokenAddress(selectedAddr)
           }
         }}
+        disabled={isTokenListLoading}
       />
 
       {freeAvailable && (

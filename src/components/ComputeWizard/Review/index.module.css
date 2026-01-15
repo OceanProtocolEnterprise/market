@@ -213,6 +213,46 @@
   color: var(--publish-text);
 }
 
+.priceSkeleton {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: clamp(7.5rem, 28vw, 9.5rem);
+  column-gap: 6px;
+  align-items: center;
+}
+
+.skeletonBox {
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.08) 25%,
+    rgba(0, 0, 0, 0.15) 37%,
+    rgba(0, 0, 0, 0.08) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.skeletonValue {
+  width: 4.5rem;
+  justify-self: end;
+}
+
+.skeletonSymbol {
+  width: 2.5rem;
+  justify-self: start;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
 .dotLeader {
   flex: 1;
   align-self: center;

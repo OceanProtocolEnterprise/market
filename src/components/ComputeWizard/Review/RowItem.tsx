@@ -9,6 +9,7 @@ interface RowItemProps {
   duration?: string
   valueType?: 'escrow' | 'deposit' | 'default'
   symbol?: string
+  isValueLoading?: boolean
 }
 
 export default function RowItem({
@@ -17,7 +18,8 @@ export default function RowItem({
   valueParts,
   duration,
   valueType,
-  symbol
+  symbol,
+  isValueLoading
 }: RowItemProps): ReactElement {
   return (
     <PricingRow
@@ -27,6 +29,7 @@ export default function RowItem({
       duration={duration}
       valueType={valueType}
       symbol={symbol}
+      isValueLoading={isValueLoading}
       showLeader={true}
       className={styles.listRow}
     />

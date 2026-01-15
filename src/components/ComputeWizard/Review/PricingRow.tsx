@@ -39,6 +39,7 @@ interface PricingRowProps {
   symbol?: string
   tooltip?: string
   showStatusWithoutAction?: boolean
+  isValueLoading?: boolean
 }
 
 export default function PricingRow({
@@ -62,7 +63,8 @@ export default function PricingRow({
   valueType,
   symbol,
   tooltip,
-  showStatusWithoutAction = false
+  showStatusWithoutAction = false,
+  isValueLoading = false
 }: PricingRowProps): ReactElement {
   const {
     credentialStatus: expirationStatus,
@@ -168,14 +170,23 @@ export default function PricingRow({
       </div>
       {showLeader && <span className={styles.dotLeader} aria-hidden="true" />}
       <div className={styles.priceInfo}>
-        <PriceDisplay
-          value={value}
-          displayValue={displayValue}
-          valueParts={valueParts}
-          duration={duration}
-          valueType={valueType}
-          symbol={symbol}
-        />
+        {isValueLoading ? (
+          <div className={styles.priceSkeleton} aria-hidden="true">
+            <span className={`${styles.skeletonBox} ${styles.skeletonValue}`} />
+            <span
+              className={`${styles.skeletonBox} ${styles.skeletonSymbol}`}
+            />
+          </div>
+        ) : (
+          <PriceDisplay
+            value={value}
+            displayValue={displayValue}
+            valueParts={valueParts}
+            duration={duration}
+            valueType={valueType}
+            symbol={symbol}
+          />
+        )}
         {infoMessage && !actionLabel && (
           <div style={{ marginTop: '4px' }}>
             <Alert state="info">{infoMessage}</Alert>
