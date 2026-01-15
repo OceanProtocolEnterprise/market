@@ -18,7 +18,6 @@ import { Signer, TransactionResponse, formatUnits, parseUnits } from 'ethers'
 import { getOceanConfig } from './ocean'
 import appConfig, {
   marketFeeAddress,
-  consumeMarketOrderFee,
   consumeMarketFixedSwapFee,
   customProviderUrl
 } from '../../app.config.cjs'
@@ -26,6 +25,7 @@ import { toast } from 'react-toastify'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { getTokenInfo } from './wallet'
+import { getConsumeMarketFeeWei } from './consumeMarketFee'
 
 export async function initializeProvider(
   asset: AssetExtended,
@@ -117,20 +117,14 @@ export async function order(
   }
 
   // 1. Resolve the specific Consume Market Fee from the ENV configuration
-  const envFeeConfig = consumeMarketOrderFee
-    ? JSON.parse(consumeMarketOrderFee)
-    : {}
-  const chainId = asset.credentialSubject.chainId.toString()
   const baseTokenAddress = accessDetails.baseToken.address.toLowerCase()
-  const chainFees = envFeeConfig[chainId] || []
-
-  const matchingFeeEntry = chainFees.find(
-    (f: { token: string; amount: string }) =>
-      f.token.toLowerCase() === baseTokenAddress
-  )
-  const activeConsumeMarketOrderFeeWei = matchingFeeEntry
-    ? matchingFeeEntry.amount
-    : '0'
+  const priceForFee = orderPriceAndFees?.price || accessDetails.price || '0'
+  const activeConsumeMarketOrderFeeWei = getConsumeMarketFeeWei({
+    chainId: asset.credentialSubject.chainId,
+    baseTokenAddress,
+    baseTokenDecimals: accessDetails.baseToken?.decimals || 18,
+    price: priceForFee
+  }).totalFeeWei
 
   // 2. Setup Order Parameters
   const orderParams = {
