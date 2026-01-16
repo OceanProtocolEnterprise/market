@@ -1502,6 +1502,36 @@ export default function Review({
     })
   }
 
+  const buildFeeRows = (
+    fees: FeeDisplayEntry[],
+    rowKeyPrefix: string,
+    fallbackSymbol?: string
+  ): RowEntry[] => {
+    const rows: RowEntry[] = []
+    fees.forEach((fee, index) => {
+      if (fee.valueParts && fee.valueParts.length > 0) {
+        fee.valueParts.forEach((part, partIndex) => {
+          rows.push({
+            rowKey: `${rowKeyPrefix}-${index}-${part.symbol}-${partIndex}`,
+            itemName: fee.name,
+            value: part.value,
+            symbol: part.symbol,
+            isValueLoading: fee.isValueLoading
+          })
+        })
+        return
+      }
+      rows.push({
+        rowKey: `${rowKeyPrefix}-${index}`,
+        itemName: fee.name,
+        value: fee.value,
+        symbol: fee.symbol || fallbackSymbol,
+        isValueLoading: fee.isValueLoading
+      })
+    })
+    return rows
+  }
+
   const fallbackProviderSymbol = resolveSymbol(
     providerFeesSymbol || symbol,
     tokenInfoState?.address
@@ -1821,32 +1851,19 @@ export default function Review({
   ]
 
   const feeRows: RowEntry[] = [
-    ...mergedMarketFees.map((fee, index) => ({
-      rowKey: `fee-market-${index}`,
-      itemName: fee.name,
-      value: fee.value,
-      valueParts: fee.valueParts,
-      symbol: fee.valueParts ? '' : fee.symbol || symbol,
-      isValueLoading: fee.isValueLoading
-    })),
+    ...buildFeeRows(mergedMarketFees, 'fee-market', symbol),
     ...(!values.withoutDataset
-      ? mergedDatasetProviderFees.map((fee, index) => ({
-          rowKey: `fee-dataset-${index}`,
-          itemName: fee.name,
-          value: fee.value,
-          valueParts: fee.valueParts,
-          symbol: fee.valueParts ? '' : fee.symbol || datasetSymbol || symbol,
-          isValueLoading: fee.isValueLoading
-        }))
+      ? buildFeeRows(
+          mergedDatasetProviderFees,
+          'fee-dataset',
+          datasetSymbol || symbol
+        )
       : []),
-    ...mergedAlgorithmProviderFees.map((fee, index) => ({
-      rowKey: `fee-algo-${index}`,
-      itemName: fee.name,
-      value: fee.value,
-      valueParts: fee.valueParts,
-      symbol: fee.valueParts ? '' : fee.symbol || algorithmSymbol || symbol,
-      isValueLoading: fee.isValueLoading
-    }))
+    ...buildFeeRows(
+      mergedAlgorithmProviderFees,
+      'fee-algo',
+      algorithmSymbol || symbol
+    )
   ]
 
   const c2dGroups = groupRowsByCurrency(c2dRows)
