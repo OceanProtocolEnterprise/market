@@ -5,7 +5,7 @@ import { EscrowContract } from '@oceanprotocol/lib'
 import { useChainId } from 'wagmi'
 import { getOceanConfig } from '@utils/ocean'
 import { useProfile } from '@context/Profile'
-import { Signer, parseUnits } from 'ethers'
+import { Signer } from 'ethers'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 
 interface EscrowFunds {
@@ -33,18 +33,23 @@ export default function EscrowWithdrawModal({
 
   const availableTokens = Object.keys(escrowFundsByToken || {})
   const selectedEscrowFunds = escrowFundsByToken?.[selectedToken] || escrowFunds
+  const availableTruncated = Number.isFinite(
+    parseInt(selectedEscrowFunds.available, 10)
+  )
+    ? parseInt(selectedEscrowFunds.available, 10)
+    : 0
 
   function handleInputChange(e) {
     const val = e.target.value
     setAmount(val)
     setError('')
-    if (Number(val) > Number(selectedEscrowFunds.available)) {
+    if (Number(val) > Number(availableTruncated)) {
       setError('Amount can’t be greater than your escrow funds.')
     }
   }
 
   function handleMaxClick() {
-    setAmount(selectedEscrowFunds.available)
+    setAmount(availableTruncated.toString())
     setError('')
   }
 
@@ -53,7 +58,7 @@ export default function EscrowWithdrawModal({
       setError('Please enter a valid withdrawal amount.')
       return
     }
-    if (Number(amount) > Number(selectedEscrowFunds.available)) {
+    if (Number(amount) > Number(availableTruncated)) {
       setError('Amount can’t be greater than your escrow funds.')
       return
     }
@@ -68,12 +73,7 @@ export default function EscrowWithdrawModal({
       const { escrowAddress } = getOceanConfig(chainId)
       const escrow = new EscrowContract(escrowAddress, signer, chainId)
 
-      const amountInWei = parseUnits(
-        amount,
-        selectedEscrowFunds.decimals
-      ).toString()
-
-      await escrow.withdraw([selectedEscrowFunds.address], [amountInWei])
+      await escrow.withdraw([selectedEscrowFunds.address], [amount])
       if (refreshEscrowFunds) await refreshEscrowFunds()
       onClose()
     } catch (err) {
@@ -115,7 +115,7 @@ export default function EscrowWithdrawModal({
         <div style={{ marginBottom: '10px', fontSize: '14px' }}>
           Available:{' '}
           <strong>
-            {selectedEscrowFunds.available} {selectedEscrowFunds.symbol}
+            {availableTruncated} {selectedEscrowFunds.symbol}
           </strong>
         </div>
         <div className={styles.inputRow}>
@@ -149,7 +149,7 @@ export default function EscrowWithdrawModal({
             isLoading ||
             !amount ||
             Number(amount) <= 0 ||
-            Number(amount) > Number(selectedEscrowFunds.available)
+            Number(amount) > Number(availableTruncated)
           }
         >
           {isLoading ? 'Withdrawing...' : 'Withdraw'}

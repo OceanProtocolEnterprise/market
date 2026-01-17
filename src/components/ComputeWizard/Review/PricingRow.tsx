@@ -16,8 +16,11 @@ interface PricingRowProps {
   itemName: string
   label?: string
   value: string | number
+  displayValue?: string
+  valueParts?: Array<{ value: string; symbol: string }>
   duration?: string
   className?: string
+  showLeader?: boolean
   isService?: boolean
   actionLabel?: string
   onAction?: () => void
@@ -36,14 +39,18 @@ interface PricingRowProps {
   symbol?: string
   tooltip?: string
   showStatusWithoutAction?: boolean
+  isValueLoading?: boolean
 }
 
 export default function PricingRow({
   itemName,
   label,
   value,
+  displayValue,
+  valueParts,
   duration,
   className,
+  showLeader = false,
   isService = false,
   actionLabel,
   onAction,
@@ -56,7 +63,8 @@ export default function PricingRow({
   valueType,
   symbol,
   tooltip,
-  showStatusWithoutAction = false
+  showStatusWithoutAction = false,
+  isValueLoading = false
 }: PricingRowProps): ReactElement {
   const {
     credentialStatus: expirationStatus,
@@ -125,7 +133,11 @@ export default function PricingRow({
         (credentialStatus === 'verified' && expirationStatus.isValid)))
 
   return (
-    <div className={`${styles.pricingRow} ${className || ''}`}>
+    <div
+      className={`${styles.pricingRow} ${
+        showLeader ? styles.pricingRowLeader : ''
+      } ${className || ''}`}
+    >
       <div className={styles.itemInfo}>
         {label && (
           <span className={styles.datasetLabel}>
@@ -156,13 +168,25 @@ export default function PricingRow({
           ) : null}
         </div>
       </div>
+      {showLeader && <span className={styles.dotLeader} aria-hidden="true" />}
       <div className={styles.priceInfo}>
-        <PriceDisplay
-          value={value}
-          duration={duration}
-          valueType={valueType}
-          symbol={symbol}
-        />
+        {isValueLoading ? (
+          <div className={styles.priceSkeleton} aria-hidden="true">
+            <span className={`${styles.skeletonBox} ${styles.skeletonValue}`} />
+            <span
+              className={`${styles.skeletonBox} ${styles.skeletonSymbol}`}
+            />
+          </div>
+        ) : (
+          <PriceDisplay
+            value={value}
+            displayValue={displayValue}
+            valueParts={valueParts}
+            duration={duration}
+            valueType={valueType}
+            symbol={symbol}
+          />
+        )}
         {infoMessage && !actionLabel && (
           <div style={{ marginTop: '4px' }}>
             <Alert state="info">{infoMessage}</Alert>

@@ -98,14 +98,7 @@
         "label": "Asset State",
         "help": "Specifies whether the asset is consumable. An Active state indicates it can be consumed, while any other state means it cannot.",
         "type": "select",
-        "options": [
-          "Active",
-          "EndOfLife",
-          "Deprecated",
-          "RevokedByPublisher",
-          "OrderingIsTemporaryDisabled",
-          "Unlisted"
-        ],
+        "options": ["Active", "OrderingIsTemporaryDisabled", "Unlisted"],
         "sortOptions": false,
         "required": false
       },

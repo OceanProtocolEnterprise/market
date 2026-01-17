@@ -247,7 +247,9 @@ export async function order(
             providerFeeHuman,
             false
           )
-          await txProv.wait()
+          if (txProv?.wait) {
+            await txProv.wait()
+          }
         }
 
         console.log(
@@ -392,8 +394,8 @@ async function approveProviderFee(
   const config = getOceanConfig(asset.credentialSubject?.chainId)
   const baseToken =
     accessDetails.type === 'free'
-      ? getOceanConfig(asset.credentialSubject?.chainId).oceanTokenAddress
-      : accessDetails.baseToken?.address
+      ? accessDetails.baseToken?.address
+      : getOceanConfig(asset.credentialSubject?.chainId).oceanTokenAddress
   const txApproveWei = await approveWei(
     signer as any,
     config,

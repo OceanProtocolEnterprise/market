@@ -41,7 +41,7 @@ export default function Stats({
       {activeToken && (
         <NumberUnit
           label="Revenue"
-          value={`${selectedRevenue.toFixed(2)} ${activeToken}`}
+          value={`${selectedRevenue} ${activeToken}`}
         />
       )}
       {ownAccount && activeToken && (
