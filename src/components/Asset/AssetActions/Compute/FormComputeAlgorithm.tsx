@@ -106,6 +106,8 @@ export default function FormStartComputeAlgo({
     }>
   >
 }): ReactElement {
+  // TODO remove this, get from env
+  const consumeMarketOrderFee = 0
   const { address: accountId, isConnected } = useAccount()
   const { balance } = useBalance()
   const { lookupVerifierSessionId } = useSsiWallet()
@@ -324,6 +326,7 @@ export default function FormStartComputeAlgo({
 
       const rawPrice = details?.validOrderTx ? '0' : details?.price || '0'
       const price = new Decimal(rawPrice).toDecimalPlaces(MAX_DECIMALS)
+      // TODO here do like in normal order buy, so get from env the correct amount
       const fee = new Decimal(
         formatUnits(consumeMarketOrderFee, tokenInfo?.decimals)
       )

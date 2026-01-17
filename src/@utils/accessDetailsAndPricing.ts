@@ -1,5 +1,4 @@
 import {
-  ComputeAsset,
   Datatoken,
   FixedRateExchange,
   getErrorMessage,
@@ -36,11 +35,23 @@ export async function getOrderPriceAndFees(
   signer?: Signer,
   providerFees?: ProviderFees
 ): Promise<OrderPriceAndFees> {
+  const envFeeConfig = consumeMarketOrderFee
+    ? JSON.parse(consumeMarketOrderFee)
+    : {}
+  const chainId = asset.credentialSubject.chainId.toString()
+  const tokenAddress = accessDetails.baseToken.address.toLowerCase()
+
+  const chainFees = envFeeConfig[chainId] || []
+  const matchingFeeEntry = chainFees.find(
+    (f: { token: string; amount: string }) =>
+      f.token.toLowerCase() === tokenAddress
+  )
+  const orderFee = matchingFeeEntry ? matchingFeeEntry.amount : '0'
   const orderPriceAndFee = {
     price: accessDetails.price || '0',
     publisherMarketOrderFee: publisherMarketOrderFee || '0',
     publisherMarketFixedSwapFee: '0',
-    consumeMarketOrderFee: consumeMarketOrderFee || '0',
+    consumeMarketOrderFee: orderFee,
     consumeMarketFixedSwapFee: '0',
     providerFee: {
       providerFeeAmount: '0'

@@ -25,3 +25,8 @@
   font-weight: var(--font-weight-base);
   font-size: var(--font-size-small);
 }
+
+.tokenSelect {
+  width: 100%;
+  margin-bottom: var(--spacer);
+}

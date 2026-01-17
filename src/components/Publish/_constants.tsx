@@ -120,7 +120,7 @@ export const initialValues: FormPublishData = {
   ],
   pricing: {
     baseToken: { address: '', name: '', symbol: 'OCEAN', decimals: 18 },
-    price: 0,
+    price: 1,
     type: allowFixedPricing === 'true' ? 'fixed' : 'free',
     freeAgreement: false
   },

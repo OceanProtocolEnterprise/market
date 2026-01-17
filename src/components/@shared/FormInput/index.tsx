@@ -1,5 +1,6 @@
 import {
   ChangeEvent,
+  CSSProperties,
   FormEvent,
   KeyboardEvent,
   ReactElement,
@@ -81,6 +82,7 @@ export interface InputProps {
   size?: 'mini' | 'small' | 'large' | 'default' | 'medium'
   selectStyle?: 'default' | 'publish' | 'custom' | 'serviceLanguage'
   className?: string
+  style?: CSSProperties
   checked?: boolean
   disclaimer?: string
   disclaimerValues?: string[]

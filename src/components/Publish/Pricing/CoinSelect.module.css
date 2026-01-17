@@ -2,7 +2,8 @@
   composes: select from '../../@shared/FormInput/InputElement/index.module.css';
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-base);
-  border: none;
+  border: 1px solid var(--publish-primary);
+  border-right: none;
   margin-right: -0.5rem;
   background-color: var(--background-highlight);
   width: auto;
@@ -10,6 +11,10 @@
   height: 41px;
   text-align: center;
   font-weight: var(--font-weight-bold);
+  border-top-left-radius: var(--publish-border-radius);
+  border-bottom-left-radius: var(--publish-border-radius);
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 
   /* custom arrow, without the divider line */
   background-image: linear-gradient(

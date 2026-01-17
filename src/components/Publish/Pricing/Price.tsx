@@ -35,7 +35,7 @@ export default function Price({
               <Input
                 type="number"
                 min="1"
-                placeholder="0"
+                placeholder="1"
                 prefix={
                   approvedBaseTokens?.length > 1 ? (
                     <CoinSelect approvedBaseTokens={approvedBaseTokens} />

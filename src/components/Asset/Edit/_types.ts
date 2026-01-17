@@ -31,6 +31,7 @@ export interface ServiceEditForm {
   access?: 'access' | 'compute'
   providerUrl?: { url: string; valid: boolean; custom: boolean }
   price?: number
+  baseToken?: string
   paymentCollector?: string
   files?: FileInfo[]
   timeout?: string

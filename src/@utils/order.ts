@@ -14,14 +14,7 @@ import {
   getErrorMessage,
   allowance
 } from '@oceanprotocol/lib'
-import {
-  Signer,
-  ethers,
-  TransactionResponse,
-  formatUnits,
-  parseUnits,
-  BigNumberish
-} from 'ethers'
+import { Signer, TransactionResponse, formatUnits, parseUnits } from 'ethers'
 import { getOceanConfig } from './ocean'
 import appConfig, {
   marketFeeAddress,
@@ -32,6 +25,7 @@ import appConfig, {
 import { toast } from 'react-toastify'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
+import { getTokenInfo } from './wallet'
 
 export async function initializeProvider(
   asset: AssetExtended,
@@ -117,16 +111,35 @@ export async function order(
   const serviceIndex = asset.credentialSubject?.services.findIndex(
     (s: Service) => s.id === service.id
   )
+
   if (serviceIndex === -1) {
     throw new Error(`Service with id ${service.id} not found in the DDO.`)
   }
+
+  // 1. Resolve the specific Consume Market Fee from the ENV configuration
+  const envFeeConfig = consumeMarketOrderFee
+    ? JSON.parse(consumeMarketOrderFee)
+    : {}
+  const chainId = asset.credentialSubject.chainId.toString()
+  const baseTokenAddress = accessDetails.baseToken.address.toLowerCase()
+  const chainFees = envFeeConfig[chainId] || []
+
+  const matchingFeeEntry = chainFees.find(
+    (f: { token: string; amount: string }) =>
+      f.token.toLowerCase() === baseTokenAddress
+  )
+  const activeConsumeMarketOrderFeeWei = matchingFeeEntry
+    ? matchingFeeEntry.amount
+    : '0'
+
+  // 2. Setup Order Parameters
   const orderParams = {
     consumer: computeConsumerAddress || accountId,
     serviceIndex,
     _providerFee: providerFees || orderPriceAndFees?.providerFee,
     _consumeMarketFee: {
       consumeMarketFeeAddress: marketFeeAddress,
-      consumeMarketFeeAmount: consumeMarketOrderFee,
+      consumeMarketFeeAmount: activeConsumeMarketOrderFeeWei,
       consumeMarketFeeToken:
         accessDetails.baseToken?.address ||
         '0x0000000000000000000000000000000000000000'
@@ -146,30 +159,25 @@ export async function order(
         swapMarketFee: consumeMarketFixedSwapFee,
         marketFeeAddress
       } as FreOrderParams
-      if (accessDetails.templateId === 1) {
-        if (!hasDatatoken) {
-          const approveAmount = orderPriceAndFees?.price
 
-          const tx: any = await approve(
+      if (accessDetails.templateId === 1) {
+        // Template 1 logic: Buy DT from FRE first, then startOrder
+        if (!hasDatatoken) {
+          const txApprove: any = await approve(
             signer as any,
             config,
-            await signer.getAddress(),
+            accountId,
             accessDetails.baseToken.address,
             config.fixedRateExchangeAddress,
-            approveAmount,
+            orderPriceAndFees?.price,
             false
           )
-
-          const txApprove =
-            typeof tx !== 'number' ? await (tx as any).wait() : tx
-
-          if (!txApprove) return
+          await txApprove.wait()
 
           const fre = new FixedRateExchange(
             config.fixedRateExchangeAddress,
             signer as any
           )
-
           const freTx = await fre.buyDatatokens(
             accessDetails.addressOrId,
             '1',
@@ -189,71 +197,97 @@ export async function order(
         )
         txResponse = startOrderTx as unknown as TransactionResponse
       }
+
       if (accessDetails.templateId === 2) {
+        // Template 2 Logic: Atomic buy and order
+        const providerFeeToken =
+          orderParams._providerFee?.providerFeeToken?.toLowerCase()
         const providerFeeWei =
-          providerFees?.providerFeeAmount ||
-          orderPriceAndFees.providerFee?.providerFeeAmount ||
-          '0'
-        const baseTokenDecimals = accessDetails.baseToken?.decimals || 18
-        const providerFeeHuman = formatUnits(
-          providerFeeWei as BigNumberish,
-          baseTokenDecimals
+          orderParams._providerFee?.providerFeeAmount || '0'
+        const isProviderTokenSameAsBase = providerFeeToken === baseTokenAddress
+
+        // Calculate how much Base Token (e.g. EURC) to approve
+        const consumeMarketFeeHuman = formatUnits(
+          activeConsumeMarketOrderFeeWei,
+          accessDetails.baseToken.decimals
         )
-        const approveAmount = (
+
+        let totalBaseTokenApprove =
           Number(orderPriceAndFees?.price) +
           Number(orderPriceAndFees?.opcFee) +
-          Number(providerFeeHuman) +
-          Number(Number(consumeMarketOrderFee) / 10 ** baseTokenDecimals)
-        ) // just added more amount to test
-          .toString()
-        console.log('[order] TEMPLATE 2 total approve amount:', approveAmount)
-        freParams.maxBaseTokenAmount = (
-          Number(freParams.maxBaseTokenAmount) +
-          Number(orderPriceAndFees?.opcFee) +
-          Number(providerFeeHuman)
-        ).toString()
+          Number(consumeMarketFeeHuman)
 
-        const tx: any = await approve(
+        if (isProviderTokenSameAsBase && providerFeeWei !== '0') {
+          const providerFeeHuman = formatUnits(
+            providerFeeWei,
+            accessDetails.baseToken.decimals
+          )
+          totalBaseTokenApprove += Number(providerFeeHuman)
+        }
+
+        if (!isProviderTokenSameAsBase && providerFeeWei !== '0') {
+          console.log(
+            `[order] Approving Provider Fee separately in: ${providerFeeToken}`
+          )
+          const providerTokenInfo = await getTokenInfo(
+            providerFeeToken,
+            signer?.provider
+          )
+          const providerFeeHuman = formatUnits(
+            providerFeeWei,
+            providerTokenInfo?.decimals || 18
+          )
+
+          const txProv: any = await approve(
+            signer as any,
+            config,
+            accountId,
+            providerFeeToken,
+            accessDetails.datatoken.address,
+            providerFeeHuman,
+            false
+          )
+          await txProv.wait()
+        }
+
+        console.log(
+          '[order] Template 2 base token approve amount:',
+          totalBaseTokenApprove
+        )
+        const txBase: any = await approve(
           signer as any,
           config,
           accountId,
           accessDetails.baseToken.address,
           accessDetails.datatoken.address,
-          approveAmount,
+          totalBaseTokenApprove.toString(),
           false
         )
-        const txApprove = typeof tx !== 'number' ? await (tx as any).wait() : tx
-        console.log('[order] TEMPLATE 2 approve tx confirmed:', txApprove)
-        // --- wait until allowance is actually reflected ---
+        await txBase.wait()
+
+        // Wait for allowance to propagate
         const decimals = accessDetails.baseToken?.decimals || 18
-
-        const parsedApproveAmount = BigInt(parseUnits(approveAmount, decimals))
-
-        let currentAllowance: bigint = BigInt(0)
-
+        const parsedApproveAmount = BigInt(
+          parseUnits(totalBaseTokenApprove.toString(), decimals)
+        )
+        let currentAllowance = BigInt(0)
         while (currentAllowance < parsedApproveAmount) {
-          const allowanceValue = await allowance(
+          const val = await allowance(
             signer as any,
             accessDetails.baseToken.address,
             accountId,
             accessDetails.datatoken.address
           )
-          try {
-            currentAllowance = BigInt(parseUnits(allowanceValue, decimals))
-          } catch (err) {
+          currentAllowance = BigInt(parseUnits(val, decimals))
+          if (currentAllowance < parsedApproveAmount)
             await new Promise((resolve) => setTimeout(resolve, 1000))
-            continue
-          }
-
-          if (currentAllowance < parsedApproveAmount) {
-            await new Promise((resolve) => setTimeout(resolve, 1000))
-          }
         }
-        console.log('buyFromFreAndOrder params:', {
-          datatokenAddress: accessDetails.datatoken.address,
-          orderParams,
-          freParams
-        })
+
+        // Adjust freParams to only include cost items paid via the exchange
+        freParams.maxBaseTokenAmount = (
+          Number(orderPriceAndFees?.price) + Number(orderPriceAndFees?.opcFee)
+        ).toString()
+
         const buyTx = await datatoken.buyFromFreAndOrder(
           accessDetails.datatoken.address,
           orderParams,
@@ -264,6 +298,7 @@ export async function order(
       break
     }
     case 'free': {
+      // Template 1 Free logic
       if (accessDetails.templateId === 1) {
         const dispenser = new Dispenser(config.dispenserAddress, signer as any)
         await dispenser.dispense(
@@ -280,31 +315,32 @@ export async function order(
         )
         txResponse = startOrderTx as unknown as TransactionResponse
       }
+      // Template 2 Free logic
       if (accessDetails.templateId === 2) {
         const providerFeeWei =
-          providerFees?.providerFeeAmount ||
-          orderPriceAndFees.providerFee?.providerFeeAmount ||
-          '0'
-        const baseTokenDecimals = accessDetails.baseToken?.decimals || 18
+          orderParams._providerFee?.providerFeeAmount || '0'
+        const providerToken = orderParams._providerFee?.providerFeeToken
+        const providerTokenInfo = await getTokenInfo(
+          providerToken,
+          signer?.provider
+        )
         const providerFeeHuman = formatUnits(
-          providerFeeWei as BigNumberish,
-          baseTokenDecimals
+          providerFeeWei,
+          providerTokenInfo?.decimals || 18
         )
-        const { oceanTokenAddress } = getOceanConfig(
-          asset.credentialSubject?.chainId
-        )
+
+        // For free assets, we only need to approve the Provider Fee
         const tx: any = await approve(
           signer as any,
           config,
           accountId,
-          oceanTokenAddress,
+          providerToken,
           accessDetails.datatoken.address,
           providerFeeHuman,
           false
         )
+        await tx.wait()
 
-        const txApprove = typeof tx !== 'number' ? await (tx as any).wait() : tx
-        console.log('[order] TEMPLATE 2 free approve tx confirmed:', txApprove)
         const buyTx = await datatoken.buyFromDispenserAndOrder(
           service.datatokenAddress,
           orderParams,
@@ -312,12 +348,11 @@ export async function order(
         )
         txResponse = buyTx as unknown as TransactionResponse
       }
+      break
     }
   }
 
-  if (txResponse) {
-    return txResponse
-  }
+  if (txResponse) return txResponse
   throw new Error('Order function failed to return a transaction.')
 }
 

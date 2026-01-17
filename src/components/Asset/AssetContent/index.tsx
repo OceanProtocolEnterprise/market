@@ -23,6 +23,7 @@ import { LanguageValueObject } from 'src/@types/ddo/LanguageValueObject'
 import MetaInfo from './MetaMain/MetaInfo'
 import EditIcon from '@images/edit.svg'
 import ComputeJobs from '@components/@shared/ComputeJobs'
+import Link from 'next/link'
 
 export default function AssetContent({
   asset
@@ -303,10 +304,13 @@ export default function AssetContent({
           )}
           {isOwner && isAssetNetwork && isConnected && (
             <div className={styles.ownerButtonsContainer}>
-              <a href={`/asset/${asset.id}/edit`} className={styles.editButton}>
+              <Link
+                href={`/asset/${asset.id}/edit`}
+                className={styles.editButton}
+              >
                 <EditIcon className={styles.editIcon} />
                 Edit Asset
-              </a>
+              </Link>
 
               {/* <div
                 className={`${styles.invoiceDropdown} ${

@@ -83,3 +83,31 @@
 .marginBottom {
   margin-bottom: var(--sp-8);
 }
+
+.totalWrapper {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  margin-top: 0.5rem;
+}
+
+.amountMain {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--brand-primary);
+}
+
+.symbolMain {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--brand-primary);
+  margin-left: 0.2rem;
+  margin-right: 0;
+}
+
+.ampersand {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--brand-primary);
+  margin: 0 0.1rem;
+}

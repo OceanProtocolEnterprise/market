@@ -120,6 +120,8 @@ export default function FormStartCompute({
   isLoadingJobs?: boolean
   refetchJobs?: () => void
 }): ReactElement {
+  // TODO remove and get from env
+  const consumeMarketOrderFee = 0
   const { address: accountId, isConnected } = useAccount()
   const { balance } = useBalance()
   const { verifierSessionCache, lookupVerifierSessionId } = useSsiWallet()

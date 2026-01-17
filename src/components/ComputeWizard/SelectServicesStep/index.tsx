@@ -11,6 +11,7 @@ import { getDummySigner, getTokenInfo } from '@utils/wallet'
 import LoaderOverlay from '../LoaderOverlay'
 import External from '@images/external.svg'
 import { CopyToClipboard } from '@shared/CopyToClipboard'
+import Link from 'next/link'
 
 type DatasetService = {
   id?: string
@@ -271,7 +272,7 @@ function Row({
         onClick={() => (isDatasetFlow ? undefined : onToggleExpand(asset.id))}
       >
         {asset.name}
-        <a
+        <Link
           className={styles.externalLink}
           href={`/asset/${encodeURIComponent(asset.id)}`}
           target="_blank"
@@ -279,7 +280,7 @@ function Row({
           onClick={(e) => e.stopPropagation()}
         >
           <External />
-        </a>
+        </Link>
       </div>
 
       <div className={styles.titleColumn} />
