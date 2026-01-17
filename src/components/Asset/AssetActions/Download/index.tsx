@@ -46,13 +46,14 @@ import { AssetPrice } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 
-import appConfig, { consumeMarketOrderFee, ipfsGateway } from 'app.config.cjs'
+import appConfig, { ipfsGateway } from 'app.config.cjs'
 import styles from './index.module.css'
 
 import { getDownloadValidationSchema } from './_validation'
 import { getDefaultValues } from '../ConsumerParameters/FormConsumerParameters'
 import { getTokenInfo } from '@utils/wallet'
 import useBalance from '@hooks/useBalance'
+import { getConsumeMarketFeeWei } from '@utils/consumeMarketFee'
 
 export default function Download({
   accountId,
@@ -395,30 +396,14 @@ export default function Download({
   const AssetActionBuy = () => {
     const { isValid } = useFormikContext()
 
-    const getActiveConsumeFee = () => {
-      try {
-        const envFeeConfig = consumeMarketOrderFee
-          ? JSON.parse(consumeMarketOrderFee)
-          : {}
-
-        const currentChainId = asset.credentialSubject.chainId.toString()
-        const currentTokenAddress =
-          accessDetails.baseToken.address.toLowerCase()
-
-        const chainFees = envFeeConfig[currentChainId] || []
-        const matchingFeeEntry = chainFees.find(
-          (f: { token: string; amount: string }) =>
-            f.token.toLowerCase() === currentTokenAddress
-        )
-
-        return matchingFeeEntry ? matchingFeeEntry.amount : '0'
-      } catch (e) {
-        console.error('Error parsing consumeMarketOrderFee config', e)
-        return '0'
-      }
-    }
-
-    const activeFeeWei = getActiveConsumeFee()
+    const baseTokenDecimals =
+      accessDetails.baseToken?.decimals || tokenInfo?.decimals || 18
+    const activeFeeWei = getConsumeMarketFeeWei({
+      chainId: asset.credentialSubject.chainId,
+      baseTokenAddress: accessDetails.baseToken.address,
+      baseTokenDecimals,
+      price: orderPriceAndFees?.price || price.value || 0
+    }).totalFeeWei
     // 1. Calculate Base Token (EURC/OCEAN) requirements
     const totalBaseTokenNeeded = new Decimal(
       new Decimal(
@@ -426,7 +411,7 @@ export default function Download({
       ).toDecimalPlaces(MAX_DECIMALS)
     )
       .add(new Decimal(orderPriceAndFees?.opcFee || 0))
-      .add(new Decimal(formatUnits(activeFeeWei, tokenInfo?.decimals || 18)))
+      .add(new Decimal(formatUnits(activeFeeWei, baseTokenDecimals)))
 
     // 2. Calculate Provider Token requirements
     const totalProviderTokenNeeded = new Decimal(
