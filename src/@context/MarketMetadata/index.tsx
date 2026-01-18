@@ -15,6 +15,7 @@ import { getOceanConfig } from '@utils/ocean'
 import { getTokenInfo } from '@utils/wallet'
 import useEnterpriseFeeColletor from '@hooks/useEnterpriseFeeCollector'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import useAllowedTokenAddresses from '@hooks/useAllowedTokenAddresses'
 
 const MarketMetadataContext = createContext({} as MarketMetadataProviderValue)
 
@@ -31,6 +32,7 @@ function MarketMetadataProvider({
   const { getOpcData, enterpriseFeeCollector } = useEnterpriseFeeColletor()
   const [opcFees, setOpcFees] = useState<OpcFee[]>()
   const [approvedBaseTokens, setApprovedBaseTokens] = useState<TokenInfo[]>()
+  const envAllowedAddresses = useAllowedTokenAddresses(chainId)
 
   const config = getOceanConfig(chainId)
 
@@ -75,52 +77,53 @@ function MarketMetadataProvider({
 
   useEffect(() => {
     async function fetchTokenInfoSafe() {
-      const addresses = JSON.parse(tokenAddressesString)
-
       try {
         if (isLoading) return
+        if (!chainId || !signer) return
+        if (!enterpriseFeeCollector) return
 
-        if (!addresses || addresses.length === 0) {
+        if (!envAllowedAddresses || envAllowedAddresses.length === 0) {
+          setApprovedBaseTokens([])
           return
         }
 
-        if (!chainId) return
-        if (!signer) return
-
-        // 1. Fetch metadata for all configured tokens
-        const tokenPromises = addresses.map((address: string) =>
-          getTokenInfo(address, signer.provider)
+        const allowanceChecks = await Promise.all(
+          envAllowedAddresses.map(async (address) => {
+            try {
+              const isAllowed =
+                await enterpriseFeeCollector.contract.isTokenAllowed(address)
+              return isAllowed ? address : null
+            } catch {
+              return null
+            }
+          })
+        )
+        const contractAllowedAddresses = allowanceChecks.filter(
+          (a): a is string => Boolean(a)
         )
 
-        const tokensDetails = await Promise.all(tokenPromises)
-        // 2. Identify allowed tokens from OPC Data for the current chain
-        const currentChainOpc = opcFees?.find((x) => x.chainId === chainId)
-
-        // Create a Set of allowed addresses (normalized to lowercase) for fast lookup
-        const allowedAddresses = new Set(
-          currentChainOpc?.tokensData.map((t) =>
-            t.tokenAddress.toLowerCase()
-          ) || []
+        if (contractAllowedAddresses.length === 0) {
+          setApprovedBaseTokens([])
+          return
+        }
+        const tokenDetails = await Promise.all(
+          contractAllowedAddresses.map((address) =>
+            getTokenInfo(address, signer.provider)
+          )
         )
-        // 3. Filter: Keep only valid tokens that ARE ALSO in the allowed list
-        const filteredTokens = tokensDetails.filter((t) => {
-          if (!t) return false // Filter out undefined fetch results
+        const validTokens = tokenDetails.filter(Boolean)
 
-          return allowedAddresses.has(t.address.toLowerCase())
-        })
-
-        setApprovedBaseTokens(filteredTokens)
+        setApprovedBaseTokens(validTokens)
       } catch (error: any) {
         console.error(
-          '[fetchTokenInfo] Error fetching token info:',
+          '[fetchTokenInfoSafe] Error fetching approved token info:',
           error.message
         )
       }
     }
 
-    // added opcFees to dependency so it refilters when fee data arrives
     fetchTokenInfoSafe()
-  }, [isLoading, chainId, signer, tokenAddressesString, opcFees])
+  }, [isLoading, chainId, signer, enterpriseFeeCollector, envAllowedAddresses])
 
   return (
     <MarketMetadataContext.Provider

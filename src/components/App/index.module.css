@@ -25,3 +25,41 @@
 .main > div[class*='Alert'] {
   margin-bottom: calc(var(--spacer) / 1.5);
 }
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  padding: 2.5rem;
+
+  background: #ffffff;
+  color: #000;
+  border-radius: 12px;
+
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+}
+
+.modalClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+
+  background: transparent;
+  border: none;
+
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+}
