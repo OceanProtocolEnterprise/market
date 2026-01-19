@@ -18,7 +18,7 @@ import useBalance from '@hooks/useBalance'
 import useNetworkMetadata from '@hooks/useNetworkMetadata'
 import ConsumerParameters from '../ConsumerParameters'
 import { ComputeDatasetForm } from './_constants'
-import appConfig, { consumeMarketOrderFee } from 'app.config.cjs'
+import appConfig from 'app.config.cjs'
 import { Row } from '../Row'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
@@ -30,6 +30,7 @@ import AlgorithmDatasetsListForComputeSelection from './AlgorithmDatasetsListFor
 import { getAsset } from '@utils/aquarius'
 import { formatUnits, JsonRpcProvider } from 'ethers'
 import { getOceanConfig } from '@utils/ocean'
+import { getConsumeMarketFeeWei } from '@utils/consumeMarketFee'
 
 export default function FormStartComputeAlgo({
   asset,
@@ -107,7 +108,6 @@ export default function FormStartComputeAlgo({
   >
 }): ReactElement {
   // TODO remove this, get from env
-  const consumeMarketOrderFee = 0
   const { address: accountId, isConnected } = useAccount()
   const { balance } = useBalance()
   const { lookupVerifierSessionId } = useSsiWallet()
@@ -128,6 +128,7 @@ export default function FormStartComputeAlgo({
   const publicClient = usePublicClient()
   const rpcUrl = getOceanConfig(chainId)?.nodeUri
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const ethersProvider =
     publicClient && rpcUrl ? new JsonRpcProvider(rpcUrl) : undefined
 
@@ -139,6 +140,41 @@ export default function FormStartComputeAlgo({
   const [isBalanceSufficient, setIsBalanceSufficient] = useState<boolean>(true)
   const selectedResources = allResourceValues?.[values.computeEnv]
   const c2dPrice = selectedResources?.price
+  const baseTokenDecimals =
+    accessDetails.baseToken?.decimals || tokenInfo?.decimals || 18
+  const baseTokenAddress = accessDetails.baseToken?.address
+  const datasetMarketFeeTotal = (selectedDatasetAsset || []).reduce(
+    (acc, dataset) => {
+      const index = dataset.serviceIndex || 0
+      const details = dataset.accessDetails?.[index]
+      if (!details || details.isOwned) return acc
+      const rawPrice = details.validOrderTx ? '0' : details.price || '0'
+      const feeWei = getConsumeMarketFeeWei({
+        chainId: dataset.credentialSubject.chainId,
+        baseTokenAddress: details.baseToken?.address || baseTokenAddress,
+        baseTokenDecimals: details.baseToken?.decimals || baseTokenDecimals,
+        price: rawPrice
+      }).totalFeeWei
+      const feeHuman = formatUnits(
+        feeWei,
+        details.baseToken?.decimals || baseTokenDecimals
+      )
+      return acc.add(new Decimal(feeHuman))
+    },
+    new Decimal(0)
+  )
+  const algoMarketFeeWei = getConsumeMarketFeeWei({
+    chainId: asset.credentialSubject.chainId,
+    baseTokenAddress,
+    baseTokenDecimals,
+    price: algoOrderPrice || accessDetails.price || '0'
+  }).totalFeeWei
+  const c2dMarketFeeWei = getConsumeMarketFeeWei({
+    chainId: asset.credentialSubject.chainId,
+    baseTokenAddress,
+    baseTokenDecimals,
+    price: c2dPrice?.toString() || '0'
+  }).totalFeeWei
   const [allDatasetServices, setAllDatasetServices] = useState<Service[]>([])
   const [datasetVerificationIndex, setDatasetVerificationIndex] = useState(0)
   const verifiedCount = selectedDatasetAsset.filter((asset) => {
@@ -327,8 +363,14 @@ export default function FormStartComputeAlgo({
       const rawPrice = details?.validOrderTx ? '0' : details?.price || '0'
       const price = new Decimal(rawPrice).toDecimalPlaces(MAX_DECIMALS)
       // TODO here do like in normal order buy, so get from env the correct amount
+      const feeWei = getConsumeMarketFeeWei({
+        chainId: dataset.credentialSubject.chainId,
+        baseTokenAddress: details?.baseToken?.address || baseTokenAddress,
+        baseTokenDecimals: details?.baseToken?.decimals || baseTokenDecimals,
+        price: rawPrice || '0'
+      }).totalFeeWei
       const fee = new Decimal(
-        formatUnits(consumeMarketOrderFee, tokenInfo?.decimals)
+        formatUnits(feeWei, details?.baseToken?.decimals || baseTokenDecimals)
       )
 
       datasetPrice = datasetPrice.add(price)
@@ -349,9 +391,13 @@ export default function FormStartComputeAlgo({
         ? new Decimal(0)
         : new Decimal(algoOrderPrice).toDecimalPlaces(MAX_DECIMALS)
 
-    const feeAlgo = new Decimal(
-      formatUnits(consumeMarketOrderFee, tokenInfo?.decimals)
-    )
+    const algoFeeWei = getConsumeMarketFeeWei({
+      chainId: asset.credentialSubject.chainId,
+      baseTokenAddress,
+      baseTokenDecimals,
+      price: algoOrderPrice || accessDetails.price || '0'
+    }).totalFeeWei
+    const feeAlgo = new Decimal(formatUnits(algoFeeWei, baseTokenDecimals))
 
     const priceC2D =
       c2dPrice !== undefined
@@ -602,15 +648,13 @@ export default function FormStartComputeAlgo({
               )}
 
               <Row
-                price={new Decimal(
-                  formatUnits(consumeMarketOrderFee, tokenInfo?.decimals)
-                ).toString()}
+                price={datasetMarketFeeTotal.toString()}
                 symbol={datasetSymbol}
                 type={`CONSUME MARKET ORDER FEE DATASETS`}
               />
               <Row
                 price={new Decimal(
-                  formatUnits(consumeMarketOrderFee, tokenInfo?.decimals)
+                  formatUnits(algoMarketFeeWei, baseTokenDecimals)
                 ).toString()} // consume market order fee fee amount
                 symbol={algorithmSymbol}
                 type={`CONSUME MARKET ORDER FEE ALGORITHM`}
@@ -619,7 +663,7 @@ export default function FormStartComputeAlgo({
               {computeEnvs?.length > 0 && (
                 <Row
                   price={new Decimal(
-                    formatUnits(consumeMarketOrderFee, tokenInfo?.decimals)
+                    formatUnits(c2dMarketFeeWei, baseTokenDecimals)
                   ).toString()}
                   symbol={providerFeesSymbol}
                   type={`CONSUME MARKET ORDER FEE C2D`}

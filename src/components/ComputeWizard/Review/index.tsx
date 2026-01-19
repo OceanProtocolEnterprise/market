@@ -30,7 +30,7 @@ import { ResourceType } from 'src/@types/ResourceType'
 import { Asset } from 'src/@types/Asset'
 import { Signer, formatUnits } from 'ethers'
 import Decimal from 'decimal.js'
-import { consumeMarketOrderFee } from 'app.config.cjs'
+import { getConsumeMarketFeeWei } from '@utils/consumeMarketFee'
 import { MAX_DECIMALS } from '@utils/constants'
 import PricingRow from './PricingRow'
 import styles from './index.module.css'
@@ -148,8 +148,6 @@ export default function Review({
   setSelectedDatasetAsset,
   tokenInfo
 }: ReviewProps): ReactElement {
-  // TODO remove and get from env
-  const consumeMarketOrderFee = 0
   const isDatasetFlow = flow === 'dataset'
   const { address: accountId } = useAccount()
   const { balance } = useBalance()
@@ -196,6 +194,34 @@ export default function Review({
     currentMode === 'paid' ? paidResources?.price : freeResources?.price
   const c2dPrice =
     c2dPriceRaw != null ? Math.round(Number(c2dPriceRaw) * 100) / 100 : 0
+  const baseTokenDecimals =
+    accessDetails.baseToken?.decimals || tokenInfoState?.decimals || 18
+  const getMarketFeeWei = (
+    details?: AccessDetails,
+    chainId?: number,
+    priceOverride?: string
+  ) => {
+    if (!details || !details.baseToken?.address || !chainId) return '0'
+    return getConsumeMarketFeeWei({
+      chainId,
+      baseTokenAddress: details.baseToken.address,
+      baseTokenDecimals: details.baseToken.decimals || baseTokenDecimals,
+      price: priceOverride || details.price || '0'
+    }).totalFeeWei
+  }
+  const datasetMarketFeeWei = getMarketFeeWei(
+    accessDetails,
+    asset.credentialSubject.chainId,
+    accessDetails.price || '0'
+  )
+  const algoAccessDetails =
+    selectedAlgorithmAsset?.accessDetails?.[serviceIndex]
+  const algoMarketFeeWei = getMarketFeeWei(
+    algoAccessDetails,
+    selectedAlgorithmAsset?.credentialSubject.chainId ||
+      asset.credentialSubject.chainId,
+    algoAccessDetails?.price || '0'
+  )
 
   const errorMessages: string[] = []
   const formatDuration = (seconds: number): string => {
@@ -766,16 +792,13 @@ export default function Review({
         MAX_DECIMALS
       )
       const priceC2D = new Decimal(c2dPrice || 0).toDecimalPlaces(MAX_DECIMALS)
+      const algoFeeDecimals = details?.baseToken?.decimals || baseTokenDecimals
       const feeAlgo = details?.isOwned
         ? new Decimal(0)
-        : new Decimal(
-            formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
-          )
+        : new Decimal(formatUnits(algoMarketFeeWei, algoFeeDecimals))
       const feeDataset = accessDetails?.isOwned
         ? new Decimal(0)
-        : new Decimal(
-            formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
-          )
+        : new Decimal(formatUnits(datasetMarketFeeWei, baseTokenDecimals))
 
       const totalPricesLocal: TotalPriceEntry[] = []
       if (algorithmSymbol === providerFeesSymbol) {
@@ -860,9 +883,7 @@ export default function Review({
     )
     const feeAlgo = accessDetails.isOwned
       ? new Decimal(0)
-      : new Decimal(
-          formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
-        )
+      : new Decimal(formatUnits(datasetMarketFeeWei, baseTokenDecimals))
     let priceDataset = new Decimal(0)
     let feeDataset = new Decimal(0)
     if (Array.isArray(selectedDatasetAsset)) {
@@ -874,7 +895,14 @@ export default function Review({
         const fee = details?.isOwned
           ? new Decimal(0)
           : new Decimal(
-              formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
+              formatUnits(
+                getMarketFeeWei(
+                  details,
+                  dataset.credentialSubject.chainId,
+                  rawPrice
+                ),
+                details?.baseToken?.decimals || baseTokenDecimals
+              )
             )
         priceDataset = priceDataset.add(price)
         feeDataset = feeDataset.add(fee)
@@ -1108,18 +1136,19 @@ export default function Review({
   ]
 
   const datasetMarketFeeValue = (() => {
-    const feePerDataset = new Decimal(
-      formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
-    )
-    const chargeableDatasets =
-      selectedDatasetAsset?.filter((ds) => {
-        const idx = ds.serviceIndex || 0
-        return !ds.accessDetails?.[idx]?.isOwned
-      }).length || 0
-    return feePerDataset
-      .mul(chargeableDatasets)
-      .toDecimalPlaces(MAX_DECIMALS)
-      .toString()
+    const feeTotal = (selectedDatasetAsset || []).reduce((acc, ds) => {
+      const idx = ds.serviceIndex || 0
+      const details = ds.accessDetails?.[idx]
+      if (!details || details.isOwned) return acc
+      const feeWei = getMarketFeeWei(
+        details,
+        ds.credentialSubject.chainId,
+        details.price || '0'
+      )
+      const feeDecimals = details.baseToken?.decimals || baseTokenDecimals
+      return acc.add(new Decimal(formatUnits(feeWei, feeDecimals)))
+    }, new Decimal(0))
+    return feeTotal.toDecimalPlaces(MAX_DECIMALS).toString()
   })()
 
   const marketFeesBase = isDatasetFlow
@@ -1129,7 +1158,7 @@ export default function Review({
           value: accessDetails?.isOwned
             ? '0'
             : new Decimal(
-                formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
+                formatUnits(datasetMarketFeeWei, baseTokenDecimals)
               ).toString()
         },
         {
@@ -1141,7 +1170,10 @@ export default function Review({
             const feeValue = isOwned
               ? '0'
               : new Decimal(
-                  formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
+                  formatUnits(
+                    algoMarketFeeWei,
+                    algoAccessDetails?.baseToken?.decimals || baseTokenDecimals
+                  )
                 ).toString()
             return feeValue
           })()
@@ -1169,7 +1201,7 @@ export default function Review({
             const feeValue = isOwned
               ? '0'
               : new Decimal(
-                  formatUnits(consumeMarketOrderFee, tokenInfoState?.decimals)
+                  formatUnits(datasetMarketFeeWei, baseTokenDecimals)
                 ).toString()
             return feeValue
           })()
