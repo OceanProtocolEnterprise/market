@@ -9,7 +9,6 @@ import {
 } from '@oceanprotocol/lib'
 import { getFixedBuyPrice } from './ocean/fixedRateExchange'
 import {
-  consumeMarketOrderFee,
   publisherMarketOrderFee,
   customProviderUrl
 } from '../../app.config.cjs'
@@ -21,6 +20,7 @@ import { AssetExtended } from '../@types/AssetExtended'
 import { CancelToken } from 'axios'
 import { getUserOrders } from './aquarius'
 import { AssetPrice } from '../@types/AssetPrice'
+import { getConsumeMarketFeeWei } from './consumeMarketFee'
 
 /**
  * This will be used to get price including fees before ordering
@@ -35,18 +35,14 @@ export async function getOrderPriceAndFees(
   signer?: Signer,
   providerFees?: ProviderFees
 ): Promise<OrderPriceAndFees> {
-  const envFeeConfig = consumeMarketOrderFee
-    ? JSON.parse(consumeMarketOrderFee)
-    : {}
   const chainId = asset.credentialSubject.chainId.toString()
   const tokenAddress = accessDetails.baseToken.address.toLowerCase()
-
-  const chainFees = envFeeConfig[chainId] || []
-  const matchingFeeEntry = chainFees.find(
-    (f: { token: string; amount: string }) =>
-      f.token.toLowerCase() === tokenAddress
-  )
-  const orderFee = matchingFeeEntry ? matchingFeeEntry.amount : '0'
+  const orderFee = getConsumeMarketFeeWei({
+    chainId,
+    baseTokenAddress: tokenAddress,
+    baseTokenDecimals: accessDetails.baseToken?.decimals || 18,
+    price: accessDetails.price || '0'
+  }).totalFeeWei
   const orderPriceAndFee = {
     price: accessDetails.price || '0',
     publisherMarketOrderFee: publisherMarketOrderFee || '0',

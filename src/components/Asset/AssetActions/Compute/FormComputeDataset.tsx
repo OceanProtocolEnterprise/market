@@ -18,7 +18,7 @@ import useBalance from '@hooks/useBalance'
 import useNetworkMetadata from '@hooks/useNetworkMetadata'
 import ConsumerParameters from '../ConsumerParameters'
 import { ComputeDatasetForm } from './_constants'
-import appConfig, { consumeMarketOrderFee } from 'app.config.cjs'
+import appConfig from 'app.config.cjs'
 import { Row } from '../Row'
 import { Service } from 'src/@types/ddo/Service'
 import { Asset } from 'src/@types/Asset'
@@ -32,6 +32,7 @@ import ComputeJobs from '../../../Profile/History/ComputeJobs'
 import FormErrorGroup from '@shared/FormInput/CheckboxGroupWithErrors'
 import { formatUnits, JsonRpcProvider } from 'ethers'
 import { getOceanConfig } from '@utils/ocean'
+import { getConsumeMarketFeeWei } from '@utils/consumeMarketFee'
 
 export default function FormStartCompute({
   asset,
@@ -120,8 +121,6 @@ export default function FormStartCompute({
   isLoadingJobs?: boolean
   refetchJobs?: () => void
 }): ReactElement {
-  // TODO remove and get from env
-  const consumeMarketOrderFee = 0
   const { address: accountId, isConnected } = useAccount()
   const { balance } = useBalance()
   const { verifierSessionCache, lookupVerifierSessionId } = useSsiWallet()
@@ -142,6 +141,7 @@ export default function FormStartCompute({
   const publicClient = usePublicClient()
   const rpcUrl = getOceanConfig(chainId)?.nodeUri
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const ethersProvider =
     publicClient && rpcUrl ? new JsonRpcProvider(rpcUrl) : undefined
 
@@ -155,6 +155,35 @@ export default function FormStartCompute({
   const [isBalanceSufficient, setIsBalanceSufficient] = useState<boolean>(true)
   const selectedResources = allResourceValues?.[values.computeEnv]
   const c2dPrice = selectedResources?.price
+  const baseTokenDecimals =
+    accessDetails.baseToken?.decimals || tokenInfo?.decimals || 18
+  const baseTokenAddress = accessDetails.baseToken?.address
+  const algoAccessDetails =
+    selectedAlgorithmAsset?.accessDetails?.[serviceIndex]
+  const algoBaseTokenDecimals =
+    algoAccessDetails?.baseToken?.decimals || baseTokenDecimals
+  const algoBaseTokenAddress =
+    algoAccessDetails?.baseToken?.address || baseTokenAddress
+  const datasetMarketFeeWei = getConsumeMarketFeeWei({
+    chainId: asset.credentialSubject.chainId,
+    baseTokenAddress,
+    baseTokenDecimals,
+    price: datasetOrderPrice || accessDetails.price || '0'
+  }).totalFeeWei
+  const algoMarketFeeWei = getConsumeMarketFeeWei({
+    chainId:
+      selectedAlgorithmAsset?.credentialSubject.chainId ||
+      asset.credentialSubject.chainId,
+    baseTokenAddress: algoBaseTokenAddress,
+    baseTokenDecimals: algoBaseTokenDecimals,
+    price: algoOrderPrice || algoAccessDetails?.price || '0'
+  }).totalFeeWei
+  const c2dMarketFeeWei = getConsumeMarketFeeWei({
+    chainId: asset.credentialSubject.chainId,
+    baseTokenAddress,
+    baseTokenDecimals,
+    price: c2dPrice?.toString() || '0'
+  }).totalFeeWei
   function getAlgorithmAsset(algo: string): {
     algorithmAsset: AssetExtended | null
     serviceIndexAlgo: number | null
@@ -320,12 +349,25 @@ export default function FormStartCompute({
         ? new Decimal(c2dPrice).toDecimalPlaces(MAX_DECIMALS)
         : new Decimal(0)
 
+    const datasetFeeWei = getConsumeMarketFeeWei({
+      chainId: asset.credentialSubject.chainId,
+      baseTokenAddress,
+      baseTokenDecimals,
+      price: datasetOrderPrice || accessDetails.price || '0'
+    }).totalFeeWei
+    const algoFeeWei = getConsumeMarketFeeWei({
+      chainId:
+        selectedAlgorithmAsset?.credentialSubject.chainId ||
+        asset.credentialSubject.chainId,
+      baseTokenAddress: algoBaseTokenAddress,
+      baseTokenDecimals: algoBaseTokenDecimals,
+      price: algoOrderPrice || algoAccessDetails?.price || '0'
+    }).totalFeeWei
+
     // Now use priceC2D everywhere you'd use providerFees
-    const feeAlgo = new Decimal(
-      formatUnits(consumeMarketOrderFee, tokenInfo?.decimals)
-    )
+    const feeAlgo = new Decimal(formatUnits(algoFeeWei, algoBaseTokenDecimals))
     const feeDataset = new Decimal(
-      formatUnits(consumeMarketOrderFee, tokenInfo?.decimals)
+      formatUnits(datasetFeeWei, baseTokenDecimals)
     )
 
     // This part determines how you aggregate, but **always use priceC2D instead of providerFeeAmount/providerFees**
@@ -586,7 +628,7 @@ export default function FormStartCompute({
 
               <Row
                 price={new Decimal(
-                  formatUnits(consumeMarketOrderFee, tokenInfo?.decimals)
+                  formatUnits(datasetMarketFeeWei, baseTokenDecimals)
                 ).toString()} // consume market order fee fee amount
                 symbol={datasetSymbol}
                 type={`CONSUME MARKET ORDER FEE DATASET)`}
@@ -594,7 +636,7 @@ export default function FormStartCompute({
 
               <Row
                 price={new Decimal(
-                  formatUnits(consumeMarketOrderFee, tokenInfo?.decimals)
+                  formatUnits(algoMarketFeeWei, algoBaseTokenDecimals)
                 ).toString()} // consume market order fee fee amount
                 symbol={algorithmSymbol}
                 type={`CONSUME MARKET ORDER FEE ALGORITHM`}
@@ -603,7 +645,7 @@ export default function FormStartCompute({
               {computeEnvs?.length > 0 && (
                 <Row
                   price={new Decimal(
-                    formatUnits(consumeMarketOrderFee, tokenInfo?.decimals)
+                    formatUnits(c2dMarketFeeWei, baseTokenDecimals)
                   ).toString()}
                   symbol={providerFeesSymbol}
                   type={`CONSUME MARKET ORDER FEE C2D)`}

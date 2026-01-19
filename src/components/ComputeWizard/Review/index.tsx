@@ -32,7 +32,7 @@ import { ResourceType } from 'src/@types/ResourceType'
 import { Asset } from 'src/@types/Asset'
 import { Signer, formatUnits } from 'ethers'
 import Decimal from 'decimal.js'
-import { consumeMarketOrderFee } from 'app.config.cjs'
+import { getConsumeMarketFeeWei } from '@utils/consumeMarketFee'
 import { MAX_DECIMALS } from '@utils/constants'
 import PricingRow from './PricingRow'
 import styles from './index.module.css'
@@ -267,29 +267,19 @@ export default function Review({
     values.user?.chainId,
     asset?.credentialSubject?.chainId
   ])
-  const consumeMarketOrderFeeMap = useMemo(() => {
-    if (!consumeMarketOrderFee) return {}
-    try {
-      return JSON.parse(consumeMarketOrderFee) as Record<
-        string,
-        Array<{ token: string; amount: string }>
-      >
-    } catch (error) {
-      console.error('Error parsing consumeMarketOrderFee config', error)
-      return {}
-    }
-  }, [])
-  const getConsumeMarketOrderFee = useCallback(
-    (chainId?: number, baseToken?: TokenInfo) => {
-      if (!chainId || !baseToken?.address) return new Decimal(0)
-      const chainFees = consumeMarketOrderFeeMap[chainId.toString()] || []
-      const matchingFeeEntry = chainFees.find(
-        (fee) => fee.token.toLowerCase() === baseToken.address.toLowerCase()
-      )
-      const feeAmount = matchingFeeEntry?.amount || '0'
-      return new Decimal(formatUnits(feeAmount, baseToken.decimals ?? 18))
+  const baseTokenDecimals =
+    accessDetails.baseToken?.decimals || tokenInfoState?.decimals || 18
+  const getMarketFeeWei = useCallback(
+    (details?: AccessDetails, chainId?: number, priceOverride?: string) => {
+      if (!details || !details.baseToken?.address || !chainId) return '0'
+      return getConsumeMarketFeeWei({
+        chainId,
+        baseTokenAddress: details.baseToken.address,
+        baseTokenDecimals: details.baseToken.decimals || baseTokenDecimals,
+        price: priceOverride || details.price || '0'
+      }).totalFeeWei
     },
-    [consumeMarketOrderFeeMap]
+    [baseTokenDecimals]
   )
 
   const resolveSymbol = useCallback(
@@ -1109,11 +1099,19 @@ export default function Review({
       const datasetPriceValue =
         datasetOrderPriceAndFees?.price || accessDetails?.price || '0'
       const datasetPrice = datasetOwned ? '0' : datasetPriceValue
+      const datasetFeeDecimals =
+        accessDetails?.baseToken?.decimals || baseTokenDecimals
       const datasetFee = datasetOwned
         ? new Decimal(0)
-        : getConsumeMarketOrderFee(
-            asset?.credentialSubject?.chainId,
-            accessDetails?.baseToken
+        : new Decimal(
+            formatUnits(
+              getMarketFeeWei(
+                accessDetails,
+                asset?.credentialSubject?.chainId,
+                datasetPriceValue
+              ),
+              datasetFeeDecimals
+            )
           )
       setDatasetProviderFee(datasetProviderFeeProp || datasetProviderFee)
 
@@ -1130,11 +1128,18 @@ export default function Review({
         hasDatatokenSelectedComputeAsset
       const algoPriceValue = algoOrderPriceValue || details?.price || '0'
       const algoPrice = algoOwned ? '0' : algoPriceValue
+      const algoFeeDecimals = details?.baseToken?.decimals || baseTokenDecimals
       const algoFee = algoOwned
         ? new Decimal(0)
-        : getConsumeMarketOrderFee(
-            selectedAlgorithmAsset?.credentialSubject?.chainId,
-            details?.baseToken
+        : new Decimal(
+            formatUnits(
+              getMarketFeeWei(
+                details,
+                selectedAlgorithmAsset?.credentialSubject?.chainId,
+                algoPriceValue
+              ),
+              algoFeeDecimals
+            )
           )
 
       addAmount(datasetToken, new Decimal(datasetPrice).add(datasetFee))
@@ -1155,11 +1160,19 @@ export default function Review({
       const rawAlgoPrice = algoOwned
         ? '0'
         : algoOrderPriceValue || accessDetails?.price || '0'
+      const algoFeeDecimals =
+        accessDetails?.baseToken?.decimals || baseTokenDecimals
       const algoFee = algoOwned
         ? new Decimal(0)
-        : getConsumeMarketOrderFee(
-            asset?.credentialSubject?.chainId,
-            accessDetails?.baseToken
+        : new Decimal(
+            formatUnits(
+              getMarketFeeWei(
+                accessDetails,
+                asset?.credentialSubject?.chainId,
+                rawAlgoPrice
+              ),
+              algoFeeDecimals
+            )
           )
       addAmount(algoToken, new Decimal(rawAlgoPrice).add(algoFee))
 
@@ -1176,11 +1189,18 @@ export default function Review({
             details.baseToken?.address
           )
           const rawPrice = datasetOwned ? '0' : details?.price || '0'
+          const feeDecimals = details?.baseToken?.decimals || baseTokenDecimals
           const fee = datasetOwned
             ? new Decimal(0)
-            : getConsumeMarketOrderFee(
-                dataset.credentialSubject?.chainId,
-                details?.baseToken
+            : new Decimal(
+                formatUnits(
+                  getMarketFeeWei(
+                    details,
+                    dataset.credentialSubject.chainId,
+                    rawPrice
+                  ),
+                  feeDecimals
+                )
               )
           addAmount(token, new Decimal(rawPrice).add(fee))
         })
@@ -1222,7 +1242,8 @@ export default function Review({
     c2dSymbolResolved,
     c2dPrice,
     values.withoutDataset,
-    getConsumeMarketOrderFee,
+    baseTokenDecimals,
+    getMarketFeeWei,
     resolveSymbol
   ])
 
@@ -1582,11 +1603,21 @@ export default function Review({
         Boolean(accessDetails?.validOrderTx) ||
         hasPreviousOrder ||
         hasDatatoken
+      const priceValue =
+        datasetOrderPriceAndFees?.price || accessDetails?.price || '0'
+      const feeDecimals =
+        accessDetails?.baseToken?.decimals || baseTokenDecimals
       const feeValue = datasetOwned
         ? new Decimal(0)
-        : getConsumeMarketOrderFee(
-            asset?.credentialSubject?.chainId,
-            accessDetails?.baseToken
+        : new Decimal(
+            formatUnits(
+              getMarketFeeWei(
+                accessDetails,
+                asset?.credentialSubject?.chainId,
+                priceValue
+              ),
+              feeDecimals
+            )
           )
       return datasetToken
         ? [
@@ -1614,9 +1645,13 @@ export default function Review({
           datasetSymbol,
         details.baseToken?.address
       )
-      const feeValue = getConsumeMarketOrderFee(
-        ds.credentialSubject?.chainId,
-        details.baseToken
+      const rawPrice = details?.price || '0'
+      const feeDecimals = details.baseToken?.decimals || baseTokenDecimals
+      const feeValue = new Decimal(
+        formatUnits(
+          getMarketFeeWei(details, ds.credentialSubject?.chainId, rawPrice),
+          feeDecimals
+        )
       )
       totals[token] = (totals[token] || new Decimal(0)).add(feeValue)
     })
@@ -1672,11 +1707,20 @@ export default function Review({
               Boolean(algoAccessDetails?.validOrderTx) ||
               hasPreviousOrderSelectedComputeAsset ||
               hasDatatokenSelectedComputeAsset
+            const feeDecimals =
+              algoAccessDetails?.baseToken?.decimals || baseTokenDecimals
             const feeValue = algoOwned
               ? new Decimal(0)
-              : getConsumeMarketOrderFee(
-                  selectedAlgorithmAsset?.credentialSubject?.chainId,
-                  algoAccessDetails?.baseToken
+              : new Decimal(
+                  formatUnits(
+                    getMarketFeeWei(
+                      algoAccessDetails,
+                      selectedAlgorithmAsset?.credentialSubject?.chainId ||
+                        asset.credentialSubject.chainId,
+                      algoAccessDetails?.price || '0'
+                    ),
+                    feeDecimals
+                  )
                 )
             return feeValue.toDecimalPlaces(MAX_DECIMALS).toString()
           })(),
@@ -1716,11 +1760,19 @@ export default function Review({
               Boolean(accessDetails?.validOrderTx) ||
               hasPreviousOrder ||
               hasDatatoken
+            const feeDecimals =
+              accessDetails?.baseToken?.decimals || baseTokenDecimals
             const feeValue = algoOwned
               ? new Decimal(0)
-              : getConsumeMarketOrderFee(
-                  asset?.credentialSubject?.chainId,
-                  accessDetails?.baseToken
+              : new Decimal(
+                  formatUnits(
+                    getMarketFeeWei(
+                      accessDetails,
+                      asset?.credentialSubject?.chainId,
+                      accessDetails?.price || '0'
+                    ),
+                    feeDecimals
+                  )
                 )
             return feeValue.toDecimalPlaces(MAX_DECIMALS).toString()
           })(),
