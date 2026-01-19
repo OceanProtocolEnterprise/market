@@ -1,6 +1,13 @@
 'use client'
 
-import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  ChangeEvent,
+  ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState
+} from 'react'
 import { Field, useFormikContext } from 'formik'
 import StepTitle from '@shared/StepTitle'
 import Input from '@shared/FormInput'
@@ -244,6 +251,20 @@ export default function Review({
   const [algorithmProviderFeeEntries, setAlgorithmProviderFeeEntries] =
     useState<TotalPriceEntry[]>([])
   const [algoLoadError, setAlgoLoadError] = useState<string>()
+
+  const handleTermsChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setFieldValue('termsAndConditions', event.target.checked, true)
+    },
+    [setFieldValue]
+  )
+
+  const handleLicenseChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setFieldValue('acceptPublishingLicense', event.target.checked, true)
+    },
+    [setFieldValue]
+  )
 
   const selectedEnvId =
     typeof values?.computeEnv === 'string'
@@ -1470,13 +1491,27 @@ export default function Review({
     }
   ]
 
+  const nonZeroTotals = totalPriceBreakdown.filter(
+    (price) => price.symbol && new Decimal(price.value || 0).gt(0)
+  )
+  const displaySymbols = Array.from(
+    new Set(nonZeroTotals.map((price) => price.symbol))
+  )
+  const fallbackSymbols = Array.from(
+    new Set(
+      [
+        c2dTokenInfo?.symbol || providerFeesSymbol,
+        datasetSymbol,
+        algorithmSymbol,
+        symbol
+      ].filter(Boolean)
+    )
+  )
   const displaySymbol =
-    totalPriceBreakdown.length > 0
-      ? totalPriceBreakdown
-          .map((price) => price.symbol)
-          .filter(Boolean)
-          .join(' & ')
-      : resolveSymbol(
+    displaySymbols.length > 0
+      ? displaySymbols.join(' & ')
+      : fallbackSymbols.join(' & ') ||
+        resolveSymbol(
           c2dTokenInfo?.symbol ||
             providerFeesSymbol ||
             datasetSymbol ||
@@ -1485,9 +1520,13 @@ export default function Review({
           c2dTokenInfo?.address || c2dFeeTokenAddress || tokenInfoState?.address
         )
 
-  const totalPricesToDisplay = totalPriceBreakdown.filter(
-    (price) => price.value !== '0' && price.symbol
-  )
+  const totalPricesToDisplay =
+    nonZeroTotals.length > 0
+      ? nonZeroTotals
+      : fallbackSymbols.map((symbol) => ({
+          symbol,
+          value: '0'
+        }))
   const formatTotalValue = (value: string) => {
     const numeric = Number(value)
     return Number.isFinite(numeric) ? numeric.toFixed(3) : value
@@ -2235,6 +2274,7 @@ export default function Review({
               options={['Terms and Conditions']}
               prefixes={['I agree to the']}
               actions={[`${privacyPolicySlug}#terms-and-conditions`]}
+              onChange={handleTermsChange}
               disabled={false}
               hideLabel={true}
             />
@@ -2246,6 +2286,7 @@ export default function Review({
                 'license terms under which each of the selected assets was made available'
               ]}
               prefixes={['I agree to the']}
+              onChange={handleLicenseChange}
               disabled={false}
               hideLabel={true}
             />
