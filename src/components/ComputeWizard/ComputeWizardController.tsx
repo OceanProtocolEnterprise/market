@@ -586,7 +586,8 @@ export default function ComputeWizardController({
         lookupVerifierSessionId,
         algoOrderPriceAndFees,
         datasetOrderPriceAndFees,
-        paymentTokenAddress: accessDetails?.baseToken?.address,
+        paymentTokenAddress:
+          baseTokenAddress ?? accessDetails?.baseToken?.address,
         computeServiceEndpoint: service.serviceEndpoint
         // oceanTokenAddress --- IGNORE ---
       })
