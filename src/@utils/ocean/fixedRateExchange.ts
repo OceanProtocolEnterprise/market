@@ -33,6 +33,6 @@ export async function getFixedBuyPrice(
     )
     return estimatedPrice
   } catch (error) {
-    console.log('Error:', error)
+    console.error('Error:', error)
   }
 }

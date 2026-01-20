@@ -1,5 +1,5 @@
 import { ReactElement, useState, useEffect, useCallback, useMemo } from 'react'
-import { useFormikContext } from 'formik'
+import { Field, useFormikContext } from 'formik'
 import { Datatoken } from '@oceanprotocol/lib'
 import { ResourceType } from 'src/@types/ResourceType'
 import { useChainId } from 'wagmi'
@@ -8,6 +8,7 @@ import { FormComputeData } from '../_types'
 import { useProfile } from '@context/Profile'
 import styles from './index.module.css'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import Input from '@components/@shared/FormInput'
 
 interface ResourceValues {
   cpu: number
@@ -34,7 +35,7 @@ interface ResourceRowProps {
   ) => void
   fee?: { prices?: { id: string; price: number }[] }
 }
-
+// initilal commit for multi token support
 function ResourceRow({
   resourceId,
   label,
@@ -157,7 +158,7 @@ function ResourceRow({
           </div>
         </div>
       )}
-      {!isFree && (
+      {!isFree && resourceId !== 'jobDuration' && (
         <div className={styles.resourcePriceSection}>
           <span className={styles.priceLabel}>price per time unit</span>
           <input
@@ -165,7 +166,7 @@ function ResourceRow({
             className={`${styles.input} ${styles.inputSmall}`}
             placeholder="value..."
             readOnly
-            value={fee?.prices?.find((p) => p.id === resourceId)?.price || 0}
+            value={fee?.prices?.find((p) => p.id === resourceId)?.price ?? 0}
           />
         </div>
       )}
@@ -175,46 +176,102 @@ function ResourceRow({
 
 export default function ConfigureEnvironment({
   allResourceValues,
-  setAllResourceValues
+  setAllResourceValues,
+  baseTokenAddress,
+  setBaseTokenAddress
 }: {
-  allResourceValues?: {
-    [envId: string]: ResourceType
-  }
+  allResourceValues?: Record<string, ResourceType>
   setAllResourceValues?: (values: Record<string, any>) => void
+  baseTokenAddress: string
+  setBaseTokenAddress: React.Dispatch<React.SetStateAction<string>>
 }): ReactElement {
   const { values, setFieldValue } = useFormikContext<FormComputeData>()
   const chainId = useChainId()
   const { escrowFundsByToken } = useProfile()
   const walletClient = useEthersSigner()
+  const [symbolMap, setSymbolMap] = useState<Record<string, string>>({})
+  const fetchSymbol = useCallback(
+    async (address: string) => {
+      if (symbolMap[address]) return symbolMap[address]
+      if (!walletClient || !chainId) return address
 
-  const [mode, setMode] = useState<'free' | 'paid'>(() => {
-    return (
+      try {
+        const datatoken = new Datatoken(walletClient as any, chainId)
+        const sym = await datatoken.getSymbol(address)
+        setSymbolMap((prev) => ({ ...prev, [address]: sym }))
+        return sym
+      } catch (e) {
+        return address
+      }
+    },
+    [walletClient, chainId, symbolMap]
+  )
+
+  const supportedTokensFromEnv = useMemo(() => {
+    const currentChainId =
+      chainId?.toString() || values.user?.chainId?.toString()
+    if (!values.computeEnv || !currentChainId) return []
+    const fees = values.computeEnv.fees?.[currentChainId] || []
+    return fees.map((f) => f.feeToken)
+  }, [values.computeEnv, chainId, values.user?.chainId])
+
+  useEffect(() => {
+    supportedTokensFromEnv.forEach((tokenAddr) => {
+      if (!symbolMap[tokenAddr]) fetchSymbol(tokenAddr)
+    })
+  }, [supportedTokensFromEnv, fetchSymbol, symbolMap])
+
+  const isTokenListLoading = useMemo(
+    () =>
+      supportedTokensFromEnv.length > 0 &&
+      supportedTokensFromEnv.some((addr) => !symbolMap[addr]),
+    [supportedTokensFromEnv, symbolMap]
+  )
+
+  const baseTokenOptions = useMemo(
+    () =>
+      isTokenListLoading
+        ? ['Loading tokens...']
+        : supportedTokensFromEnv.map((addr) => symbolMap[addr] || addr),
+    [supportedTokensFromEnv, symbolMap, isTokenListLoading]
+  )
+
+  const displaySymbol = symbolMap[values.baseToken] ?? 'OCEAN'
+
+  const escrowAvailableFunds = useMemo(() => {
+    if (!displaySymbol) return 0
+    const funds = escrowFundsByToken[displaySymbol]
+    return funds ? parseFloat(funds.available ?? '0') : 0
+  }, [escrowFundsByToken, displaySymbol])
+
+  const [mode, setMode] = useState<'free' | 'paid'>(
+    () =>
       (values.mode as 'free' | 'paid') ||
       (values.computeEnv?.free ? 'free' : 'paid')
-    )
-  })
+  )
 
   useEffect(() => {
     setFieldValue('mode', mode)
   }, [mode, setFieldValue])
 
-  const [symbolMap, setSymbolMap] = useState<{ [address: string]: string }>({})
+  useEffect(() => {
+    if (values.baseToken || supportedTokensFromEnv.length === 0) return
+    const defaultToken = supportedTokensFromEnv[0]
+    setFieldValue('baseToken', defaultToken)
+    setBaseTokenAddress(defaultToken)
+  }, [
+    supportedTokensFromEnv,
+    values.baseToken,
+    setFieldValue,
+    setBaseTokenAddress
+  ])
 
-  const escrowAvailableFunds = useMemo(() => {
-    const env = values.computeEnv
-    if (!env) return 0
-    const currentChainId = chainId?.toString() || '11155111'
-    const fee = env.fees?.[currentChainId]?.[0]
-    const tokenAddress = fee?.feeToken
-    if (!tokenAddress) return 0
-    const tokenSymbol = symbolMap[tokenAddress] || '...'
-    if (tokenSymbol === '...') return 0
-    const escrowFunds = escrowFundsByToken[tokenSymbol]
-    return escrowFunds ? parseFloat(escrowFunds.available) : 0
-  }, [values.computeEnv, chainId, symbolMap, escrowFundsByToken])
-
+  useEffect(() => {
+    if (!values.baseToken || values.baseToken === baseTokenAddress) return
+    setBaseTokenAddress(values.baseToken)
+  }, [values.baseToken, baseTokenAddress, setBaseTokenAddress])
   const getEnvResourceValues = useCallback(
-    (isFree: boolean = true) => {
+    (isFree = true): ResourceValues => {
       const env = values.computeEnv
       if (!env) return { cpu: 0, ram: 0, disk: 0, jobDuration: 0 }
 
@@ -224,22 +281,22 @@ export default function ConfigureEnvironment({
 
       return {
         cpu: isFree
-          ? envResourceValues?.cpu || 0
+          ? envResourceValues?.cpu ?? 0
           : envResourceValues?.cpu && envResourceValues.cpu > 0
           ? envResourceValues.cpu
-          : env.resources?.find((r) => r.id === 'cpu')?.min || 1,
+          : env.resources?.find((r) => r.id === 'cpu')?.min ?? 1,
         ram: isFree
-          ? envResourceValues?.ram || 0
+          ? envResourceValues?.ram ?? 0
           : envResourceValues?.ram && envResourceValues.ram > 0
           ? envResourceValues.ram
-          : env.resources?.find((r) => r.id === 'ram')?.min || 1,
+          : env.resources?.find((r) => r.id === 'ram')?.min ?? 1,
         disk: isFree
-          ? envResourceValues?.disk || 0
+          ? envResourceValues?.disk ?? 0
           : envResourceValues?.disk && envResourceValues.disk > 0
           ? envResourceValues.disk
-          : env.resources?.find((r) => r.id === 'disk')?.min || 0,
+          : env.resources?.find((r) => r.id === 'disk')?.min ?? 0,
         jobDuration: isFree
-          ? envResourceValues?.jobDuration || 0
+          ? envResourceValues?.jobDuration ?? 0
           : envResourceValues?.jobDuration && envResourceValues.jobDuration > 0
           ? envResourceValues.jobDuration
           : 1
@@ -254,6 +311,7 @@ export default function ConfigureEnvironment({
   const [paidValues, setPaidValues] = useState<ResourceValues>(() =>
     getEnvResourceValues(false)
   )
+  const round3 = (v: number) => Math.round((v + Number.EPSILON) * 1000) / 1000
 
   const getLimits = (id: string, isFree: boolean) => {
     const env = values.computeEnv
@@ -263,7 +321,7 @@ export default function ConfigureEnvironment({
       const maxDuration = isFree ? env.free?.maxJobDuration : env.maxJobDuration
       return {
         minValue: 1,
-        maxValue: Math.floor((maxDuration || 3600) / 60),
+        maxValue: Math.floor((maxDuration ?? 3600) / 60),
         step: 1
       }
     }
@@ -272,7 +330,7 @@ export default function ConfigureEnvironment({
     const resource = resourceLimits?.find((r) => r.id === id)
     if (!resource) return { minValue: 0, maxValue: 0 }
 
-    const available = Math.max(0, (resource.max || 0) - (resource.inUse || 0))
+    const available = Math.max(0, (resource.max ?? 0) - (resource.inUse ?? 0))
 
     return {
       minValue: resource.min ?? 0,
@@ -286,8 +344,11 @@ export default function ConfigureEnvironment({
     if (!values.computeEnv) return 0
 
     const env = values.computeEnv
-    const currentChainId = chainId?.toString() || '11155111'
-    const fee = env.fees?.[currentChainId]?.[0]
+    const currentChainId = chainId?.toString() ?? '11155111'
+    const fee =
+      env.fees?.[currentChainId]?.find(
+        (f) => f.feeToken.toLowerCase() === values.baseToken?.toLowerCase()
+      ) || env.fees?.[currentChainId]?.[0]
 
     if (!fee?.prices) return 0
 
@@ -303,12 +364,122 @@ export default function ConfigureEnvironment({
           : 0
       totalPrice += units * p.price
     }
+
     const rawPrice = totalPrice * paidValues.jobDuration
     return Math.round(rawPrice * 100) / 100
-  }, [mode, values.computeEnv, chainId, paidValues])
+  }, [mode, values.computeEnv, chainId, paidValues, values.baseToken])
 
   const clamp = (val: number, min: number, max: number) =>
     Math.max(min, Math.min(max, val))
+
+  useEffect(() => {
+    const currentValues = mode === 'free' ? freeValues : paidValues
+    if (!currentValues) return
+    setFieldValue('cpu', currentValues.cpu)
+    setFieldValue('ram', currentValues.ram)
+    setFieldValue('disk', currentValues.disk)
+    setFieldValue('jobDuration', currentValues.jobDuration)
+  }, [
+    mode,
+    freeValues.cpu,
+    freeValues.ram,
+    freeValues.disk,
+    freeValues.jobDuration,
+    paidValues.cpu,
+    paidValues.ram,
+    paidValues.disk,
+    paidValues.jobDuration,
+    setFieldValue
+  ])
+
+  useEffect(() => {
+    if (mode === 'paid') {
+      const jobPrice = calculatePrice()
+      const availableEscrow = escrowAvailableFunds
+      const actualPaymentAmount = Math.max(0, jobPrice - availableEscrow)
+      setFieldValue('jobPrice', jobPrice)
+      setFieldValue('escrowFunds', escrowAvailableFunds)
+      setFieldValue('actualPaymentAmount', actualPaymentAmount)
+      setFieldValue('escrowCoveredAmount', Math.min(availableEscrow, jobPrice))
+    } else {
+      setFieldValue('jobPrice', 0)
+      setFieldValue('escrowFunds', 0)
+      setFieldValue('actualPaymentAmount', 0)
+      setFieldValue('escrowCoveredAmount', 0)
+    }
+  }, [mode, calculatePrice, escrowAvailableFunds, setFieldValue])
+
+  useEffect(() => {
+    if (!setAllResourceValues || !values.computeEnv) return
+
+    const env = values.computeEnv
+    const envId = typeof env === 'string' ? env : env.id
+    const modeKey = mode === 'free' ? 'free' : 'paid'
+    const currentValues = mode === 'free' ? freeValues : paidValues
+
+    let currentPrice = 0
+    let actualPaymentAmount = 0
+    let escrowCoveredAmount = 0
+
+    if (mode === 'paid') {
+      const currentChainId = chainId?.toString() ?? '11155111'
+      const fee =
+        env.fees?.[currentChainId]?.find(
+          (f) => f.feeToken.toLowerCase() === values.baseToken?.toLowerCase()
+        ) || env.fees?.[currentChainId]?.[0]
+      if (fee?.prices) {
+        let totalPrice = 0
+        for (const p of fee.prices) {
+          const units =
+            p.id === 'cpu'
+              ? currentValues.cpu
+              : p.id === 'ram'
+              ? currentValues.ram
+              : p.id === 'disk'
+              ? currentValues.disk
+              : 0
+          totalPrice += units * p.price
+        }
+        currentPrice = round3(totalPrice * currentValues.jobDuration)
+        const availableEscrow = escrowAvailableFunds
+        actualPaymentAmount = round3(
+          Math.max(0, currentPrice - availableEscrow)
+        )
+        escrowCoveredAmount = round3(Math.min(availableEscrow, currentPrice))
+      }
+    }
+
+    setAllResourceValues((prev) => ({
+      ...prev,
+      [`${envId}_${modeKey}`]: {
+        ...prev[`${envId}_${modeKey}`],
+        cpu: currentValues.cpu,
+        ram: currentValues.ram,
+        disk: currentValues.disk,
+        jobDuration: currentValues.jobDuration,
+        mode,
+        price: actualPaymentAmount.toString(),
+        fullJobPrice: currentPrice.toString(),
+        actualPaymentAmount: actualPaymentAmount.toString(),
+        escrowCoveredAmount: escrowCoveredAmount.toString()
+      }
+    }))
+  }, [
+    mode,
+    values.computeEnv,
+    chainId,
+    freeValues.cpu,
+    freeValues.ram,
+    freeValues.disk,
+    freeValues.jobDuration,
+    paidValues.cpu,
+    paidValues.ram,
+    paidValues.disk,
+    paidValues.jobDuration,
+    setAllResourceValues,
+    escrowAvailableFunds,
+    values.baseToken
+  ])
 
   useEffect(() => {
     const env = values.computeEnv
@@ -404,135 +575,6 @@ export default function ConfigureEnvironment({
     })
   }, [values.computeEnv, allResourceValues, getEnvResourceValues])
 
-  const fetchSymbol = async (address: string) => {
-    if (symbolMap[address]) return symbolMap[address]
-    if (!walletClient || !chainId) return '...'
-    const datatoken = new Datatoken(walletClient as any, chainId)
-    const sym = await datatoken.getSymbol(address)
-    setSymbolMap((prev) => ({ ...prev, [address]: sym }))
-    return sym
-  }
-
-  useEffect(() => {
-    const env = values.computeEnv
-    if (env) {
-      const currentChainId = chainId?.toString() || '11155111'
-      const fee = env.fees?.[currentChainId]?.[0]
-      const tokenAddress = fee?.feeToken
-      if (tokenAddress) {
-        fetchSymbol(tokenAddress)
-      }
-    }
-  }, [values.computeEnv, chainId])
-
-  useEffect(() => {
-    const currentValues = mode === 'free' ? freeValues : paidValues
-    if (!currentValues) return
-
-    setFieldValue('cpu', currentValues.cpu)
-    setFieldValue('ram', currentValues.ram)
-    setFieldValue('disk', currentValues.disk)
-    setFieldValue('jobDuration', currentValues.jobDuration)
-  }, [
-    mode,
-    freeValues.cpu,
-    freeValues.ram,
-    freeValues.disk,
-    freeValues.jobDuration,
-    paidValues.cpu,
-    paidValues.ram,
-    paidValues.disk,
-    paidValues.jobDuration,
-    setFieldValue
-  ])
-
-  useEffect(() => {
-    if (mode === 'paid') {
-      const jobPrice = calculatePrice()
-      const availableEscrow = escrowAvailableFunds
-
-      const actualPaymentAmount = Math.max(0, jobPrice - availableEscrow)
-
-      setFieldValue('jobPrice', jobPrice)
-      setFieldValue('escrowFunds', escrowAvailableFunds)
-      setFieldValue('actualPaymentAmount', actualPaymentAmount)
-      setFieldValue('escrowCoveredAmount', Math.min(availableEscrow, jobPrice))
-    } else {
-      setFieldValue('jobPrice', 0)
-      setFieldValue('escrowFunds', 0)
-      setFieldValue('actualPaymentAmount', 0)
-      setFieldValue('escrowCoveredAmount', 0)
-    }
-  }, [mode, calculatePrice, escrowAvailableFunds, setFieldValue])
-
-  useEffect(() => {
-    if (!setAllResourceValues || !values.computeEnv) return
-
-    const env = values.computeEnv
-    const envId = typeof env === 'string' ? env : env.id
-    const modeKey = mode === 'free' ? 'free' : 'paid'
-    const currentValues = mode === 'free' ? freeValues : paidValues
-
-    let currentPrice = 0
-    let actualPaymentAmount = 0
-    let escrowCoveredAmount = 0
-
-    if (mode === 'paid') {
-      const currentChainId = chainId?.toString() || '11155111'
-      const fee = env.fees?.[currentChainId]?.[0]
-
-      if (fee?.prices) {
-        let totalPrice = 0
-        for (const p of fee.prices) {
-          const units =
-            p.id === 'cpu'
-              ? currentValues.cpu
-              : p.id === 'ram'
-              ? currentValues.ram
-              : p.id === 'disk'
-              ? currentValues.disk
-              : 0
-          totalPrice += units * p.price
-        }
-        currentPrice = totalPrice * currentValues.jobDuration
-
-        const availableEscrow = escrowAvailableFunds
-        actualPaymentAmount = Math.max(0, currentPrice - availableEscrow)
-        escrowCoveredAmount = Math.min(availableEscrow, currentPrice)
-      }
-    }
-
-    setAllResourceValues((prev) => ({
-      ...prev,
-      [`${envId}_${modeKey}`]: {
-        ...prev[`${envId}_${modeKey}`],
-        cpu: currentValues.cpu,
-        ram: currentValues.ram,
-        disk: currentValues.disk,
-        jobDuration: currentValues.jobDuration,
-        mode,
-        price: actualPaymentAmount.toString(),
-        fullJobPrice: currentPrice.toString(),
-        actualPaymentAmount: actualPaymentAmount.toString(),
-        escrowCoveredAmount: escrowCoveredAmount.toString()
-      }
-    }))
-  }, [
-    mode,
-    values.computeEnv,
-    chainId,
-    freeValues.cpu,
-    freeValues.ram,
-    freeValues.disk,
-    freeValues.jobDuration,
-    paidValues.cpu,
-    paidValues.ram,
-    paidValues.disk,
-    paidValues.jobDuration,
-    setAllResourceValues,
-    escrowAvailableFunds
-  ])
-
   if (!values.computeEnv) {
     return (
       <div className={styles.container}>
@@ -543,11 +585,12 @@ export default function ConfigureEnvironment({
   }
 
   const env = values.computeEnv
-  const currentChainId = chainId?.toString() || '11155111'
-  const fee = env.fees?.[currentChainId]?.[0]
+  const currentChainId = chainId?.toString() ?? '11155111'
+  const fee =
+    env.fees?.[currentChainId]?.find(
+      (f) => f.feeToken.toLowerCase() === values.baseToken?.toLowerCase()
+    ) || env.fees?.[currentChainId]?.[0]
   const freeAvailable = !!env.free
-  const tokenAddress = fee?.feeToken
-  const tokenSymbol = symbolMap[tokenAddress] || '...'
 
   const updateResource = (
     type: 'cpu' | 'ram' | 'disk' | 'jobDuration',
@@ -575,6 +618,29 @@ export default function ConfigureEnvironment({
   return (
     <div className={styles.container}>
       <StepTitle title="C2D Environment Configuration" />
+
+      <Field
+        label="Price Token"
+        component={Input}
+        name="baseToken"
+        type="select"
+        options={baseTokenOptions}
+        value={
+          isTokenListLoading
+            ? 'Loading tokens...'
+            : symbolMap[values.baseToken] || values.baseToken || ''
+        }
+        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+          const selectedAddr = supportedTokensFromEnv.find(
+            (addr) => (symbolMap[addr] || addr) === e.target.value
+          )
+          if (selectedAddr) {
+            setFieldValue('baseToken', selectedAddr)
+            setBaseTokenAddress(selectedAddr)
+          }
+        }}
+        disabled={isTokenListLoading || true}
+      />
 
       {freeAvailable && (
         <div className={styles.resourceSection}>
@@ -725,9 +791,7 @@ export default function ConfigureEnvironment({
         <div className={styles.escrowValidation}>
           {(() => {
             const jobPrice = calculatePrice()
-            const availableEscrow = parseFloat(
-              escrowAvailableFunds.toString() || '0'
-            )
+            const availableEscrow = escrowAvailableFunds
 
             if (jobPrice > availableEscrow) {
               const deltaAmount = jobPrice - availableEscrow
@@ -736,28 +800,28 @@ export default function ConfigureEnvironment({
                   <p>
                     Insufficient escrow balance. An additional{' '}
                     <strong>
-                      {deltaAmount.toFixed(2)} {tokenSymbol}{' '}
+                      {deltaAmount.toFixed(2)} {displaySymbol}
                     </strong>{' '}
                     will be added to your escrow account to cover this job.
                   </p>
                   <p className={styles.escrowBreakdown}>
-                    Job cost: {jobPrice.toFixed(2)} {tokenSymbol} | Available
-                    escrow: {availableEscrow.toFixed(2)} {tokenSymbol} |
-                    Additional needed: {deltaAmount.toFixed(2)} {tokenSymbol}
-                  </p>
-                </div>
-              )
-            } else {
-              return (
-                <div className={styles.sufficientEscrow}>
-                  <p>Sufficient escrow balance available for this job.</p>
-                  <p className={styles.escrowBreakdown}>
-                    Job cost: {jobPrice.toFixed(2)} {tokenSymbol} | Available
-                    escrow: {availableEscrow.toFixed(2)} {tokenSymbol}
+                    Job cost: {jobPrice.toFixed(2)} {displaySymbol} | Available
+                    escrow: {availableEscrow.toFixed(2)} {displaySymbol} |
+                    Additional needed: {deltaAmount.toFixed(2)} {displaySymbol}
                   </p>
                 </div>
               )
             }
+
+            return (
+              <div className={styles.sufficientEscrow}>
+                <p>Sufficient escrow balance available for this job.</p>
+                <p className={styles.escrowBreakdown}>
+                  Job cost: {jobPrice.toFixed(2)} {displaySymbol} | Available
+                  escrow: {availableEscrow.toFixed(2)} {displaySymbol}
+                </p>
+              </div>
+            )
           })()}
         </div>
       )}

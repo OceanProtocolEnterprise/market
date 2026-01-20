@@ -220,9 +220,6 @@ export async function order(
         }
 
         if (!isProviderTokenSameAsBase && providerFeeWei !== '0') {
-          console.log(
-            `[order] Approving Provider Fee separately in: ${providerFeeToken}`
-          )
           const providerTokenInfo = await getTokenInfo(
             providerFeeToken,
             signer?.provider
@@ -245,10 +242,6 @@ export async function order(
           }
         }
 
-        console.log(
-          '[order] Template 2 base token approve amount:',
-          totalBaseTokenApprove
-        )
         const txBase: any = await approve(
           signer as any,
           config,
@@ -391,8 +384,8 @@ async function approveProviderFee(
   const config = getOceanConfig(asset.credentialSubject?.chainId)
   const baseToken =
     accessDetails.type === 'free'
-      ? getOceanConfig(asset.credentialSubject?.chainId).oceanTokenAddress
-      : accessDetails.baseToken?.address
+      ? accessDetails.baseToken?.address
+      : getOceanConfig(asset.credentialSubject?.chainId).oceanTokenAddress
   const txApproveWei = await approveWei(
     signer as any,
     config,
@@ -473,7 +466,7 @@ export async function handleComputeOrder(
         throw approveErr
       }
     } else {
-      console.log('No provider fee approval required.')
+      console.warn('No provider fee approval required.')
     }
 
     // Reuse order flow

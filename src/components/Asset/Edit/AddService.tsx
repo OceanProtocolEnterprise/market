@@ -167,11 +167,11 @@ export default function AddService({
             break
           }
         } catch (err) {
-          console.log(
+          console.error(
             `[AddService] isERC20Deployer call reverted (retry ${retries})...`
           )
         }
-        await new Promise((resolve) => setTimeout(resolve, 1500)) // wait 1.5s
+        await new Promise((resolve) => setTimeout(resolve, 1500))
       }
 
       if (!deployerReady) {

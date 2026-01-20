@@ -1,4 +1,5 @@
-import { ReactElement, useCallback, useEffect, useState } from 'react'
+import { ReactElement, useCallback, useEffect, useRef, useState } from 'react'
+import { copyTextToClipboard } from '@utils/clipboard'
 import styles from './index.module.css'
 
 type CopyToClipboardProps = {
@@ -24,24 +25,20 @@ export function CopyToClipboard({
   copyButtonLabel = 'Copy'
 }: CopyToClipboardProps): ReactElement {
   const [copied, setCopied] = useState(false)
-  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null)
+  const timerRef = useRef<number | null>(null)
 
   useEffect(() => {
     return () => {
-      if (timer) clearTimeout(timer)
+      if (timerRef.current) window.clearTimeout(timerRef.current)
     }
-  }, [timer])
+  }, [])
 
   const handleCopy = useCallback(async () => {
-    if (!navigator?.clipboard?.writeText) return
-    try {
-      await navigator.clipboard.writeText(value)
-      setCopied(true)
-      const timeout = setTimeout(() => setCopied(false), 1500)
-      setTimer(timeout)
-    } catch (error) {
-      console.warn('Copy to clipboard failed', error)
-    }
+    const didCopy = await copyTextToClipboard(value)
+    if (!didCopy) return
+    setCopied(true)
+    if (timerRef.current) window.clearTimeout(timerRef.current)
+    timerRef.current = window.setTimeout(() => setCopied(false), 1500)
   }, [value])
 
   const displayText = truncateMiddle(value, truncate)

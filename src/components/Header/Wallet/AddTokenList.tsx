@@ -3,6 +3,7 @@ import AddToken from '@components/@shared/AddToken'
 import EUROeLogo from '@images/EUROe_Symbol_Black.svg'
 import OceanLogo from '@images/ocean-token-logo.svg'
 import { useMarketMetadata } from '@context/MarketMetadata'
+import style from './AddTokenList.module.css'
 
 const tokenLogos = {
   EUROe: {
@@ -19,7 +20,7 @@ export default function AddTokenList(): ReactElement {
   const { approvedBaseTokens } = useMarketMetadata()
 
   return (
-    <div>
+    <div className={style.root}>
       {approvedBaseTokens?.map((token) => (
         <AddToken
           key={token.address}

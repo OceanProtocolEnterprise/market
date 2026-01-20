@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState } from 'react'
+import { ReactElement, useContext, useEffect, useState } from 'react'
 import Download from './Download'
 import { FileInfo, LoggerInstance, Datatoken } from '@oceanprotocol/lib'
 import { compareAsBN } from '@utils/numbers'
@@ -8,7 +8,7 @@ import { getOceanConfig } from '@utils/ocean'
 import { useCancelToken } from '@hooks/useCancelToken'
 import { useIsMounted } from '@hooks/useIsMounted'
 import styles from './index.module.css'
-import { useFormikContext } from 'formik'
+import { FormikContext, FormikContextType } from 'formik'
 import { FormPublishData } from '@components/Publish/_types'
 import { getTokenBalanceFromSymbol } from '@utils/wallet'
 import { isAddressWhitelisted } from '@utils/ddo'
@@ -70,7 +70,9 @@ export default function AssetActions({
   // on asset details page as there is no formik context there:
   // Warning: Formik context is undefined, please verify you are calling useFormikContext()
   // as child of a <Formik> component.
-  const formikState = useFormikContext<FormPublishData>()
+  const formikState = useContext(FormikContext) as
+    | FormikContextType<FormPublishData>
+    | undefined
 
   const [isBalanceSufficient, setIsBalanceSufficient] = useState<boolean>()
   const [dtBalance, setDtBalance] = useState<string>()

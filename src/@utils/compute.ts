@@ -223,7 +223,8 @@ export async function getAlgorithmsForAsset(
 export async function getAlgorithmAssetSelectionList(
   service: Service,
   algorithms: Asset[],
-  accountId: string
+  accountId: string,
+  tokenSymbolMap?: Record<string, string>
 ): Promise<AssetSelectionAsset[]> {
   if (!algorithms || algorithms?.length === 0) return []
 
@@ -235,7 +236,9 @@ export async function getAlgorithmAssetSelectionList(
       service?.serviceEndpoint,
       algorithms,
       accountId,
-      service.compute.publisherTrustedAlgorithms
+      service.compute.publisherTrustedAlgorithms,
+      undefined,
+      tokenSymbolMap
     )
   }
   return algorithmSelectionList
@@ -244,7 +247,8 @@ export async function getAlgorithmAssetSelectionList(
 export async function getAlgorithmAssetSelectionListForComputeWizard(
   service: Service,
   algorithms: Asset[],
-  accountId: string
+  accountId: string,
+  tokenSymbolMap?: Record<string, string>
 ): Promise<AssetSelectionAsset[]> {
   if (!algorithms || algorithms?.length === 0) return []
 
@@ -257,7 +261,9 @@ export async function getAlgorithmAssetSelectionListForComputeWizard(
         service?.serviceEndpoint,
         algorithms,
         accountId,
-        service.compute.publisherTrustedAlgorithms
+        service.compute.publisherTrustedAlgorithms,
+        undefined,
+        tokenSymbolMap
       )
   }
   return algorithmSelectionList

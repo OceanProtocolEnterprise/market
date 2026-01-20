@@ -308,7 +308,8 @@ export async function getAlgorithmDatasetsForCompute(
   datasetProviderUri: string,
   accountId: string,
   datasetChainId?: number,
-  cancelToken?: CancelToken
+  cancelToken?: CancelToken,
+  tokenSymbolMap?: Record<string, string>
 ): Promise<AssetSelectionAsset[]> {
   const baseQueryParams = {
     chainIds: [datasetChainId],
@@ -401,7 +402,9 @@ export async function getAlgorithmDatasetsForCompute(
     datasetProviderUri,
     uniqueAssets,
     accountId,
-    []
+    [],
+    undefined,
+    tokenSymbolMap
   )
   return datasets
 }
@@ -483,7 +486,8 @@ export async function getAlgorithmDatasetsForComputeSelection(
   datasetProviderUri: string,
   accountId: string,
   datasetChainId?: number,
-  cancelToken?: CancelToken
+  cancelToken?: CancelToken,
+  tokenSymbolMap?: Record<string, string>
 ): Promise<AssetSelectionAsset[]> {
   const baseQueryParams = {
     chainIds: [datasetChainId],
@@ -580,7 +584,8 @@ export async function getAlgorithmDatasetsForComputeSelection(
     accountId,
     [],
     false,
-    { algorithmDid: algorithmId, algorithmServiceId: serviceId }
+    { algorithmDid: algorithmId, algorithmServiceId: serviceId },
+    tokenSymbolMap
   )
   return datasets
 }

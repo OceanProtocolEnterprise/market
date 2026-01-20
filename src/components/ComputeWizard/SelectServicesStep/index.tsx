@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, ReactElement } from 'react'
+import { useEffect, useMemo, useRef, useState, ReactElement } from 'react'
 import { useFormikContext } from 'formik'
 import StepTitle from '@shared/StepTitle'
 import MinimizeIcon from '@images/minimize.svg'
@@ -6,12 +6,12 @@ import ExpandIcon from '@images/expand.svg'
 import styles from './index.module.css'
 import { Asset } from 'src/@types/Asset'
 import { ComputeFlow } from '../_types'
-import { getOceanConfig } from '@utils/ocean'
-import { getDummySigner, getTokenInfo } from '@utils/wallet'
 import LoaderOverlay from '../LoaderOverlay'
 import External from '@images/external.svg'
 import { CopyToClipboard } from '@shared/CopyToClipboard'
 import Link from 'next/link'
+import { getBaseTokenSymbol } from '@utils/getBaseTokenSymbol'
+import { useMarketMetadata } from '@context/MarketMetadata'
 
 type DatasetService = {
   id?: string
@@ -154,7 +154,7 @@ function normalizeDatasets(raw: DatasetItem[] = []): NormalizedAsset[] {
       type: s.serviceType,
       duration: Number(s.serviceDuration ?? 0),
       price: Number(s.price ?? d.datasetPrice ?? 0),
-      symbol: s.tokenSymbol || 'OCEAN',
+      symbol: s.tokenSymbol || '',
       checked: !!s.checked
     }))
     if (onlyOneDataset && services.length === 1 && !services[0].checked) {
@@ -180,6 +180,53 @@ const extractString = (
     return value['@value']
   return ''
 }
+
+type StatsEntry = {
+  serviceId?: string
+  prices?: Array<{
+    token?: string | { symbol?: string; address?: string }
+  }>
+}
+
+const resolveTokenSymbolFromStats = (
+  asset: Asset,
+  serviceIndex: number,
+  serviceId?: string,
+  tokenSymbolMap?: Record<string, string>
+): string | undefined => {
+  const stats = (asset.indexedMetadata?.stats || []) as StatsEntry[]
+  const matched =
+    serviceId != null
+      ? stats.find((stat) => stat?.serviceId === serviceId)
+      : undefined
+  const stat = matched || stats[serviceIndex]
+  const priceToken = stat?.prices?.[0]?.token
+  if (!priceToken) return undefined
+
+  if (typeof priceToken === 'string') {
+    return tokenSymbolMap?.[priceToken.toLowerCase()]
+  }
+
+  if (typeof priceToken === 'object') {
+    const tokenInfo = priceToken as { symbol?: string; address?: string }
+    if (tokenInfo.symbol) return tokenInfo.symbol
+    if (tokenInfo.address) {
+      return tokenSymbolMap?.[tokenInfo.address.toLowerCase()]
+    }
+  }
+
+  return undefined
+}
+
+const getServiceTokenSymbol = (
+  asset: Asset,
+  serviceIndex: number,
+  serviceId?: string,
+  tokenSymbolMap?: Record<string, string>
+): string =>
+  resolveTokenSymbolFromStats(asset, serviceIndex, serviceId, tokenSymbolMap) ||
+  getBaseTokenSymbol(asset, serviceIndex) ||
+  ''
 
 const anyServiceSelected = (assets: NormalizedAsset[]) =>
   assets.some((a) => a.services.some((s) => s.checked))
@@ -447,11 +494,20 @@ export default function SelectServicesStep({
   const isDatasetFlow = flow === 'dataset'
   const singleSelection = isDatasetFlow
   const { values, setFieldValue } = useFormikContext<FormValues>()
+  const { approvedBaseTokens } = useMarketMetadata()
   const [assets, setAssets] = useState<NormalizedAsset[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const loadingStartRef = useRef<number>(0)
   const loadingTimerRef = useRef<NodeJS.Timeout | null>(null)
   const MIN_LOADING_DURATION_MS = 1000
+  const tokenSymbolMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    approvedBaseTokens?.forEach((token) => {
+      if (!token?.address || !token?.symbol) return
+      map[token.address.toLowerCase()] = token.symbol
+    })
+    return map
+  }, [approvedBaseTokens])
 
   useEffect(
     () => () => {
@@ -488,16 +544,6 @@ export default function SelectServicesStep({
         const effectiveServices = assetDdo.credentialSubject?.services || []
         if (!effectiveServices.length) return
 
-        const chainId = assetDdo.credentialSubject?.chainId
-        if (!chainId) return
-
-        const { oceanTokenAddress } = getOceanConfig(chainId)
-        const signer = await getDummySigner(chainId)
-        const tokenDetails = await getTokenInfo(
-          oceanTokenAddress,
-          signer.provider
-        )
-
         const existingSelectedServiceId =
           (values.algorithms as any)?.id === algorithmId
             ? (values.algorithms as any)?.services?.find((s: any) => s.checked)
@@ -513,7 +559,7 @@ export default function SelectServicesStep({
           type: svc.type,
           duration: Number(svc.timeout ?? 0),
           price: Number(assetDdo.indexedMetadata.stats[idx]?.prices[0]?.price),
-          symbol: tokenDetails.symbol,
+          symbol: getServiceTokenSymbol(assetDdo, idx, svc.id, tokenSymbolMap),
           checked:
             existingSelectedServiceId != null
               ? svc.id === existingSelectedServiceId
@@ -574,7 +620,13 @@ export default function SelectServicesStep({
 
     fetchAlgorithm()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDatasetFlow, values.algorithm, ddoListAlgorithms, setFieldValue])
+  }, [
+    isDatasetFlow,
+    values.algorithm,
+    ddoListAlgorithms,
+    setFieldValue,
+    tokenSymbolMap
+  ])
 
   // algorithm flow: normalize datasets
   useEffect(() => {

@@ -27,6 +27,7 @@ import useNetworkMetadata, {
 } from '@hooks/useNetworkMetadata'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { getAccessDetails } from '@utils/accessDetailsAndPricing'
+import { getBaseTokenSymbol } from '@utils/getBaseTokenSymbol'
 
 function HistorySkeleton(): ReactElement {
   const rows = Array.from({ length: 9 })
@@ -64,27 +65,6 @@ interface StatsWithPrices {
   prices?: PriceEntry[]
   orders?: number
   symbol?: string
-}
-
-const getBaseTokenSymbol = (asset: AssetExtended): string | undefined => {
-  const firstAccessDetail = asset.accessDetails?.[0]
-  if (firstAccessDetail?.baseToken?.symbol) {
-    return firstAccessDetail.baseToken.symbol
-  }
-
-  const credentialSubjectStats = (asset.credentialSubject as any)?.stats
-  if (credentialSubjectStats?.price?.tokenSymbol) {
-    return credentialSubjectStats.price.tokenSymbol
-  }
-
-  const stats = asset.indexedMetadata?.stats?.[0] as
-    | { price?: { tokenSymbol?: string } }
-    | undefined
-  if (stats?.price?.tokenSymbol) {
-    return stats.price.tokenSymbol
-  }
-
-  return undefined
 }
 
 const getPrice = (asset: AssetExtended): number => {

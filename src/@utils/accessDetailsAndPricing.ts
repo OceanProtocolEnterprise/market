@@ -59,7 +59,7 @@ export async function getOrderPriceAndFees(
   try {
     let initialize = null
     if (service.type === 'compute') {
-      console.log('service type is compute')
+      console.warn('service type is compute')
     } else {
       initialize = await ProviderInstance.initialize(
         asset.id,
@@ -242,7 +242,7 @@ export async function getAccessDetails(
         }
       }
     } catch (error) {
-      console.log('Error fetching fixed rate exchange', error)
+      console.error('Error fetching fixed rate exchange', error)
       return accessDetails
     }
   }
