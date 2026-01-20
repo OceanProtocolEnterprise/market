@@ -54,8 +54,6 @@ export default function App({
       decisionLockedRef.current = true
 
       if (allowedTokens.length === 0) {
-        console.log('[TokenCheck] FINAL DECISION: NO ALLOWED TOKENS')
-
         setShowNoAllowedMessage(true)
 
         if (!toastShownRef.current) {
@@ -63,7 +61,6 @@ export default function App({
           toastShownRef.current = true
         }
       } else {
-        console.log('[TokenCheck] FINAL DECISION: ALLOWED TOKENS FOUND')
         setShowNoAllowedMessage(false)
       }
     }, 1200)
