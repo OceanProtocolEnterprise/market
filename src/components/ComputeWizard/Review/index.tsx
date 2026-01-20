@@ -221,8 +221,7 @@ export default function Review({
     Record<string, string>
   >({})
   const [isOecFeesLoading, setIsOecFeesLoading] = useState(false)
-  const { setFieldValue, values, validateForm } =
-    useFormikContext<FormComputeData>()
+  const { setFieldValue, values } = useFormikContext<FormComputeData>()
   const [verificationQueue, setVerificationQueue] = useState<
     VerificationItem[]
   >([])
@@ -1380,9 +1379,10 @@ export default function Review({
     const allVerified =
       verificationQueue.length > 0 &&
       verificationQueue.every((item) => item.status === 'verified')
-    setFieldValue('credentialsVerified', allVerified, false)
-    validateForm()
-  }, [verificationQueue, setFieldValue, validateForm])
+    if (values.credentialsVerified !== allVerified) {
+      setFieldValue('credentialsVerified', allVerified, true)
+    }
+  }, [verificationQueue, setFieldValue, values.credentialsVerified])
 
   useEffect(() => {
     const priceEntries = [...totalPrices]

@@ -126,7 +126,7 @@ export default function WizardActions({
   const PurchaseButton = () => (
     <ButtonBuy
       action={action}
-      disabled={disabled || !isValid}
+      disabled={disabled || !isValid || isBalanceSufficient === false}
       hasPreviousOrder={hasPreviousOrder}
       hasDatatoken={hasDatatoken}
       btSymbol={btSymbol}
@@ -164,9 +164,7 @@ export default function WizardActions({
         <Button
           style="gradient"
           onClick={onInitCompute}
-          disabled={
-            isInitLoading || disabled || !isValid || !isBalanceSufficient
-          }
+          disabled={isInitLoading || disabled || !isValid}
         >
           {isInitLoading ? 'Calculating...' : 'Calculate Extra Fees'}
         </Button>

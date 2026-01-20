@@ -960,8 +960,7 @@ export default function ComputeWizardController({
                     disabled={
                       isComputeButtonDisabled ||
                       !isAssetNetwork ||
-                      !isAccountIdWhitelisted ||
-                      !isBalanceSufficient
+                      !isAccountIdWhitelisted
                     }
                     hasPreviousOrder={!!validOrderTx}
                     hasDatatoken={hasDatatoken}
