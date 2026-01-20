@@ -36,6 +36,7 @@ export default function AssetContent({
   const [receipts] = useState([])
   const [nftPublisher, setNftPublisher] = useState<string>()
   const [selectedService, setSelectedService] = useState<number | undefined>()
+  const isPublished = Boolean(asset?.indexedMetadata?.nft?.created)
 
   // const [loadingInvoice, setLoadingInvoice] = useState(false)
   // const [pdfUrl, setPdfUrl] = useState(null)
@@ -215,12 +216,14 @@ export default function AssetContent({
             <MetaFull ddo={asset} />
             {debug === true && <DebugOutput title="DDO" output={asset} />}
           </div>
-          {computeServiceIndex !== undefined && computeServiceIndex >= 0 && (
-            <ComputeJobs
-              asset={asset}
-              refetchTrigger={computeJobsRefetchTrigger}
-            />
-          )}
+          {isPublished &&
+            computeServiceIndex !== undefined &&
+            computeServiceIndex >= 0 && (
+              <ComputeJobs
+                asset={asset}
+                refetchTrigger={computeJobsRefetchTrigger}
+              />
+            )}
         </div>
 
         <div className={styles.actions}>
