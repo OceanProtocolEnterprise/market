@@ -186,14 +186,8 @@ export function useComputeInitialization({
             }
           )
         )
-        console.log('Dataset responses after setting prices:', datasetResponses)
 
         if (shouldDepositEscrow && selectedResources.mode === 'paid') {
-          console.log('Proceeding with escrow payment...')
-          console.log('oceanTokenAddress:', oceanTokenAddress)
-          console.log('web3Provider:', web3Provider)
-          console.log('selectedResources.price:', selectedResources.price)
-          console.log('initializedProvider:', initializedProvider)
           if (!oceanTokenAddress || !web3Provider) {
             throw new Error('Missing token or provider for escrow payment')
           }
@@ -209,16 +203,10 @@ export function useComputeInitialization({
             oceanTokenAddress,
             web3Provider
           )
-          console.log('Token details:', tokenDetails)
           const amountWei = ethers.parseUnits(
             amountHuman,
             tokenDetails.decimals
           )
-          console.log('Depositing to escrow:', {
-            escrowAddress: escrow.contract.address,
-            amountHuman,
-            amountWei: amountWei.toString()
-          })
 
           const erc20 = new ethers.Contract(
             oceanTokenAddress,
@@ -235,20 +223,10 @@ export function useComputeInitialization({
           ).toString()
 
           if (amountWei !== BigInt(0)) {
-            console.log('[Escrow Debug]', {
-              token: oceanTokenAddress,
-              owner,
-              escrowAddress,
-              paymentAddress: initializedProvider.payment.token,
-              chainId: algorithmAsset.credentialSubject.chainId
-            })
-
-            console.log('Approving tokens for escrow...')
             const approveTx = await erc20.approve(escrowAddress, amountWei)
             await approveTx.wait()
             while (true) {
               const allowanceNow = await erc20.allowance(owner, escrowAddress)
-              console.log('Current allowance:', allowanceNow.toString())
               if (allowanceNow >= amountWei) {
                 break
               }
@@ -259,7 +237,6 @@ export function useComputeInitialization({
               oceanTokenAddress,
               amountHuman
             )
-            console.log('Deposited to escrow, tx hash:', depositTx)
             await depositTx.wait()
             await escrow.authorize(
               oceanTokenAddress,
