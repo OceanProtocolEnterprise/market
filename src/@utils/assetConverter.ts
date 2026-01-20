@@ -6,13 +6,54 @@ import { getServiceByName, isAddressWhitelisted } from './ddo'
 import normalizeUrl from 'normalize-url'
 import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
+import { getBaseTokenSymbol } from './getBaseTokenSymbol'
+
+type TokenSymbolMap = Record<string, string>
+
+type StatsEntry = {
+  serviceId?: string
+  prices?: Array<{
+    token?: string | { symbol?: string; address?: string }
+  }>
+}
+
+const resolveBaseTokenSymbolFromStats = (
+  asset: Asset,
+  serviceIndex: number,
+  serviceId?: string,
+  tokenSymbolMap?: TokenSymbolMap
+): string | undefined => {
+  const stats = (asset.indexedMetadata?.stats || []) as StatsEntry[]
+  const matched =
+    serviceId != null
+      ? stats.find((stat) => stat?.serviceId === serviceId)
+      : undefined
+  const stat = matched || stats[serviceIndex]
+  const priceToken = stat?.prices?.[0]?.token
+  if (!priceToken) return undefined
+
+  if (typeof priceToken === 'string') {
+    return tokenSymbolMap?.[priceToken.toLowerCase()]
+  }
+
+  if (typeof priceToken === 'object') {
+    const tokenInfo = priceToken as { symbol?: string; address?: string }
+    if (tokenInfo.symbol) return tokenInfo.symbol
+    if (tokenInfo.address) {
+      return tokenSymbolMap?.[tokenInfo.address.toLowerCase()]
+    }
+  }
+
+  return undefined
+}
 
 export async function transformAssetToAssetSelection(
   datasetProviderEndpoint: string,
   assets: Asset[],
   accountId: string,
   selectedAlgorithms?: PublisherTrustedAlgorithmService[],
-  allow?: boolean
+  allow?: boolean,
+  tokenSymbolMap?: TokenSymbolMap
 ): Promise<AssetSelectionAsset[]> {
   if (!assets) return []
   const algorithmList: AssetSelectionAsset[] = []
@@ -56,6 +97,16 @@ export async function transformAssetToAssetSelection(
         )
           return // <-- skip any service that wasn't in selectedAlgorithms
 
+        const baseTokenSymbol =
+          resolveBaseTokenSymbolFromStats(
+            asset,
+            idx,
+            service.id,
+            tokenSymbolMap
+          ) ||
+          getBaseTokenSymbol(asset, idx) ||
+          ''
+
         const assetEntry: AssetSelectionAsset = {
           did: asset.id,
           serviceId: service.id,
@@ -63,7 +114,7 @@ export async function transformAssetToAssetSelection(
           name: asset.credentialSubject.metadata.name,
           price:
             Number(asset.indexedMetadata.stats[idx]?.prices[0]?.price) ?? 0,
-          tokenSymbol: '',
+          tokenSymbol: baseTokenSymbol,
           checked: false,
           symbol: asset.indexedMetadata.stats[idx]?.symbol ?? '',
           isAccountIdWhitelisted: !allow
@@ -88,7 +139,8 @@ export async function transformAssetToAssetSelectionDataset(
   accountId: string,
   selectedAlgorithms?: PublisherTrustedAlgorithmService[],
   allow?: boolean,
-  allowedAlgorithm?: { algorithmDid: string; algorithmServiceId: string }
+  allowedAlgorithm?: { algorithmDid: string; algorithmServiceId: string },
+  tokenSymbolMap?: TokenSymbolMap
 ): Promise<any[]> {
   if (!assets) return []
   const algorithmList: any[] = []
@@ -168,6 +220,16 @@ export async function transformAssetToAssetSelectionDataset(
           !matches.has(key)
         )
           return // <-- skip any service that wasn't in selectedAlgorithms
+
+        const baseTokenSymbol =
+          resolveBaseTokenSymbolFromStats(
+            asset,
+            idx,
+            service.id,
+            tokenSymbolMap
+          ) ||
+          getBaseTokenSymbol(asset, idx) ||
+          ''
         const assetEntry: any = {
           did: asset.id,
           description:
@@ -180,7 +242,7 @@ export async function transformAssetToAssetSelectionDataset(
           name: asset.credentialSubject.metadata.name,
           price:
             Number(asset.indexedMetadata.stats[idx]?.prices[0]?.price) ?? 0,
-          tokenSymbol: '',
+          tokenSymbol: baseTokenSymbol,
           checked: false,
           symbol: asset.indexedMetadata.stats[idx]?.symbol ?? '',
           isAccountIdWhitelisted: !allow
@@ -246,7 +308,7 @@ export async function transformAssetToAssetSelectionEdit(
           name: asset.credentialSubject.metadata.name,
           price:
             Number(asset.indexedMetadata.stats[idx]?.prices[0]?.price) ?? 0,
-          tokenSymbol: '',
+          tokenSymbol: getBaseTokenSymbol(asset, idx) || '',
           checked: !!(isAllAlgorithmsAllowed || matches.has(key)),
           symbol: asset.indexedMetadata.stats[idx]?.symbol ?? '',
           isAccountIdWhitelisted: !allow
@@ -275,7 +337,8 @@ export async function transformAssetToAssetSelectionForComputeWizard(
   assets: Asset[],
   accountId: string,
   selectedAlgorithms?: PublisherTrustedAlgorithmService[],
-  allow?: boolean
+  allow?: boolean,
+  tokenSymbolMap?: TokenSymbolMap
 ): Promise<AssetSelectionAsset[]> {
   if (!assets) return []
   const algorithmList: AssetSelectionAsset[] = []
@@ -306,6 +369,7 @@ export async function transformAssetToAssetSelectionForComputeWizard(
       if (seen.has(asset.id)) continue
 
       let preferred: { service: Service; idx: number } | null = null
+      const tokenSymbols = new Set<string>()
       services.forEach((service, idx) => {
         const key = `${asset.id}|${service.id}`
         if (
@@ -315,6 +379,18 @@ export async function transformAssetToAssetSelectionForComputeWizard(
           !matches.has(key)
         )
           return
+        if (service.type === 'compute') {
+          const symbol =
+            resolveBaseTokenSymbolFromStats(
+              asset,
+              idx,
+              service.id,
+              tokenSymbolMap
+            ) ||
+            getBaseTokenSymbol(asset, idx) ||
+            ''
+          if (symbol) tokenSymbols.add(symbol)
+        }
         if (!preferred) {
           preferred = { service, idx }
         }
@@ -325,6 +401,19 @@ export async function transformAssetToAssetSelectionForComputeWizard(
 
       if (preferred) {
         const { service, idx } = preferred
+        const baseTokenSymbol =
+          resolveBaseTokenSymbolFromStats(
+            asset,
+            idx,
+            service.id,
+            tokenSymbolMap
+          ) ||
+          getBaseTokenSymbol(asset, idx) ||
+          ''
+        const aggregatedTokenSymbol =
+          tokenSymbols.size > 0
+            ? Array.from(tokenSymbols).join(' & ')
+            : baseTokenSymbol
         const assetEntry: AssetSelectionAsset = {
           did: asset.id,
           serviceId: service.id,
@@ -332,7 +421,7 @@ export async function transformAssetToAssetSelectionForComputeWizard(
           name: asset.credentialSubject.metadata.name,
           price:
             Number(asset.indexedMetadata.stats[idx]?.prices[0]?.price) ?? 0,
-          tokenSymbol: '',
+          tokenSymbol: aggregatedTokenSymbol,
           checked: false,
           symbol: asset.indexedMetadata.stats[idx]?.symbol ?? '',
           isAccountIdWhitelisted: !allow

@@ -15,10 +15,10 @@ import {
   allowance
 } from '@oceanprotocol/lib'
 import { Signer, TransactionResponse, formatUnits, parseUnits } from 'ethers'
+import Decimal from 'decimal.js'
 import { getOceanConfig } from './ocean'
 import appConfig, {
   marketFeeAddress,
-  consumeMarketOrderFee,
   consumeMarketFixedSwapFee,
   customProviderUrl
 } from '../../app.config.cjs'
@@ -26,6 +26,7 @@ import { toast } from 'react-toastify'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { getTokenInfo } from './wallet'
+import { getConsumeMarketFeeWei } from './consumeMarketFee'
 
 export async function initializeProvider(
   asset: AssetExtended,
@@ -117,21 +118,14 @@ export async function order(
   }
 
   // 1. Resolve the specific Consume Market Fee from the ENV configuration
-  const envFeeConfig = consumeMarketOrderFee
-    ? JSON.parse(consumeMarketOrderFee)
-    : {}
-  const chainId = asset.credentialSubject.chainId.toString()
   const baseTokenAddress = accessDetails.baseToken.address.toLowerCase()
-  const chainFees = envFeeConfig[chainId] || []
-
-  const matchingFeeEntry = chainFees.find(
-    (f: { token: string; amount: string }) =>
-      f.token.toLowerCase() === baseTokenAddress
-  )
-  const activeConsumeMarketOrderFeeWei = matchingFeeEntry
-    ? matchingFeeEntry.amount
-    : '0'
-
+  const priceForFee = orderPriceAndFees?.price || accessDetails.price || '0'
+  const activeConsumeMarketOrderFeeWei = getConsumeMarketFeeWei({
+    chainId: asset.credentialSubject.chainId,
+    baseTokenAddress,
+    baseTokenDecimals: accessDetails.baseToken?.decimals || 18,
+    price: priceForFee
+  }).totalFeeWei
   // 2. Setup Order Parameters
   const orderParams = {
     consumer: computeConsumerAddress || accountId,
@@ -211,24 +205,21 @@ export async function order(
           activeConsumeMarketOrderFeeWei,
           accessDetails.baseToken.decimals
         )
-
-        let totalBaseTokenApprove =
-          Number(orderPriceAndFees?.price) +
-          Number(orderPriceAndFees?.opcFee) +
-          Number(consumeMarketFeeHuman)
+        let totalBaseTokenApprove = new Decimal(orderPriceAndFees?.price || 0)
+          .add(new Decimal(orderPriceAndFees?.opcFee || 0))
+          .add(new Decimal(consumeMarketFeeHuman || 0))
 
         if (isProviderTokenSameAsBase && providerFeeWei !== '0') {
           const providerFeeHuman = formatUnits(
             providerFeeWei,
             accessDetails.baseToken.decimals
           )
-          totalBaseTokenApprove += Number(providerFeeHuman)
+          totalBaseTokenApprove = totalBaseTokenApprove.add(
+            new Decimal(providerFeeHuman || 0)
+          )
         }
 
         if (!isProviderTokenSameAsBase && providerFeeWei !== '0') {
-          console.log(
-            `[order] Approving Provider Fee separately in: ${providerFeeToken}`
-          )
           const providerTokenInfo = await getTokenInfo(
             providerFeeToken,
             signer?.provider
@@ -237,7 +228,6 @@ export async function order(
             providerFeeWei,
             providerTokenInfo?.decimals || 18
           )
-
           const txProv: any = await approve(
             signer as any,
             config,
@@ -247,13 +237,11 @@ export async function order(
             providerFeeHuman,
             false
           )
-          await txProv.wait()
+          if (txProv && typeof txProv.wait === 'function') {
+            await txProv.wait()
+          }
         }
 
-        console.log(
-          '[order] Template 2 base token approve amount:',
-          totalBaseTokenApprove
-        )
         const txBase: any = await approve(
           signer as any,
           config,
@@ -263,7 +251,9 @@ export async function order(
           totalBaseTokenApprove.toString(),
           false
         )
-        await txBase.wait()
+        if (txBase && typeof txBase.wait === 'function') {
+          await txBase.wait()
+        }
 
         // Wait for allowance to propagate
         const decimals = accessDetails.baseToken?.decimals || 18
@@ -284,9 +274,11 @@ export async function order(
         }
 
         // Adjust freParams to only include cost items paid via the exchange
-        freParams.maxBaseTokenAmount = (
-          Number(orderPriceAndFees?.price) + Number(orderPriceAndFees?.opcFee)
-        ).toString()
+        freParams.maxBaseTokenAmount = new Decimal(
+          orderPriceAndFees?.price || 0
+        )
+          .add(new Decimal(orderPriceAndFees?.opcFee || 0))
+          .toString()
 
         const buyTx = await datatoken.buyFromFreAndOrder(
           accessDetails.datatoken.address,
@@ -392,8 +384,8 @@ async function approveProviderFee(
   const config = getOceanConfig(asset.credentialSubject?.chainId)
   const baseToken =
     accessDetails.type === 'free'
-      ? getOceanConfig(asset.credentialSubject?.chainId).oceanTokenAddress
-      : accessDetails.baseToken?.address
+      ? accessDetails.baseToken?.address
+      : getOceanConfig(asset.credentialSubject?.chainId).oceanTokenAddress
   const txApproveWei = await approveWei(
     signer as any,
     config,
@@ -474,7 +466,7 @@ export async function handleComputeOrder(
         throw approveErr
       }
     } else {
-      console.log('No provider fee approval required.')
+      console.warn('No provider fee approval required.')
     }
 
     // Reuse order flow
