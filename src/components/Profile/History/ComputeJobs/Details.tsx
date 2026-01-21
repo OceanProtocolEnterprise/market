@@ -24,6 +24,23 @@ const extractString = (
   return ''
 }
 
+const formatJobCost = (value: number | string): string => {
+  const numeric = Number(value)
+  return Number.isFinite(numeric) ? numeric.toFixed(3) : String(value)
+}
+
+const getPaymentTokenSymbol = (
+  payment: { token?: string } | null | undefined,
+  approvedBaseTokens?: TokenInfo[]
+): string | undefined => {
+  const tokenAddress = payment?.token
+  if (!tokenAddress || !approvedBaseTokens?.length) return undefined
+
+  return approvedBaseTokens.find(
+    (token) => token.address?.toLowerCase() === tokenAddress.toLowerCase()
+  )?.symbol
+}
+
 function Asset({
   title,
   symbol,
@@ -180,7 +197,16 @@ export default function Details({
   job: ComputeJobMetaData
 }): ReactElement {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const { approvedBaseTokens } = useMarketMetadata()
   const isMobile = useIsMobile()
+  const paymentSymbol = getPaymentTokenSymbol(job?.payment, approvedBaseTokens)
+
+  useEffect(() => {
+    if (!isDialogOpen || !job) return
+    console.log('[ComputeJob Details] payment payload', job.payment)
+    console.log('[ComputeJob Details] job payload', job)
+  }, [isDialogOpen, job])
+
   function formatDuration(seconds: number): string {
     if (isNaN(seconds) || seconds < 0) return '—'
 
@@ -279,7 +305,9 @@ export default function Details({
                   title="Job Cost"
                   content={
                     job?.payment?.cost
-                      ? `${job.payment.cost.toString()}`
+                      ? `${formatJobCost(job.payment.cost)}${
+                          paymentSymbol ? ` ${paymentSymbol}` : ''
+                        }`
                       : 'FREE'
                   }
                 />
