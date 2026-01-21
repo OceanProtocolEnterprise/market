@@ -1837,10 +1837,11 @@ export default function Review({
       ]
 
   const renderSectionSummary = (
-    parts: Array<{ value: string; symbol: string }>
+    parts: Array<{ value: string; symbol: string }>,
+    emptyLabel = '0'
   ) => {
     if (parts.length === 0) {
-      return <span className={styles.sectionSummaryEmpty}>0</span>
+      return <span className={styles.sectionSummaryEmpty}>{emptyLabel}</span>
     }
 
     return (
@@ -1871,14 +1872,29 @@ export default function Review({
   const mergedMarketFees = mergeFeeRows(marketFees)
   const mergedDatasetProviderFees = mergeFeeRows(datasetProviderFeesList)
   const mergedAlgorithmProviderFees = mergeFeeRows(algorithmProviderFeesList)
-  const c2dSummaryParts = c2dSymbol
-    ? [
-        {
-          value: values.jobPrice || '0',
-          symbol: c2dSymbol
-        }
-      ]
-    : []
+  const renderC2dSummary = () => {
+    const total = Number(values.jobPrice || 0)
+    if (!Number.isFinite(total) || total <= 0) {
+      return <span className={styles.sectionSummaryEmpty}>Free</span>
+    }
+
+    const netDue = Number(c2dPrice || 0)
+    if (!Number.isFinite(netDue) || netDue <= 0) {
+      return <span className={styles.sectionSummary}>Covered by escrow</span>
+    }
+
+    return (
+      <span className={styles.sectionSummary}>
+        <span>To deposit:</span>
+        <span className={styles.sectionSummaryValue}>
+          {formatFeeValue(netDue)}
+        </span>
+        {c2dSymbol && (
+          <span className={styles.sectionSummarySymbol}>{c2dSymbol}</span>
+        )}
+      </span>
+    )
+  }
   const feesSummaryParts = (() => {
     const totals = new Map<string, Decimal>()
     const addTotal = (
@@ -2177,7 +2193,7 @@ export default function Review({
               title="C2D Resources"
               defaultExpanded={true}
               titleClassName={styles.sectionHeading}
-              rightContent={renderSectionSummary(c2dSummaryParts)}
+              rightContent={renderC2dSummary()}
             >
               <div className={styles.c2dBox}>
                 {c2dGroups.map((group) => (
@@ -2209,7 +2225,7 @@ export default function Review({
               title="Fees"
               defaultExpanded={true}
               titleClassName={styles.sectionHeading}
-              rightContent={renderSectionSummary(feesSummaryParts)}
+              rightContent={renderSectionSummary(feesSummaryParts, 'No fees')}
             >
               <div className={styles.marketFeesBox}>
                 {feeGroups.map((group) => (
