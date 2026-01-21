@@ -10,7 +10,7 @@ export interface CredentialStatus {
 const runtimeConfig = getRuntimeConfig()
 const CREDENTIAL_VALIDITY_DURATION =
   Number(runtimeConfig.NEXT_PUBLIC_CREDENTIAL_VALIDITY_DURATION) ||
-  5 * 60 * 1000
+  10 * 60 * 1000
 
 export function createCredentialStatus(
   isValid: boolean,
