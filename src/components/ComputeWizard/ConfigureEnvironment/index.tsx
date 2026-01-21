@@ -639,7 +639,7 @@ export default function ConfigureEnvironment({
             setBaseTokenAddress(selectedAddr)
           }
         }}
-        disabled={isTokenListLoading || true}
+        disabled={isTokenListLoading}
       />
 
       {freeAvailable && (
