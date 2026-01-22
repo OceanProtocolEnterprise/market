@@ -11,9 +11,9 @@ import { getServiceById } from '@utils/ddo'
 import { CopyToClipboard } from '@shared/CopyToClipboard'
 import { Asset as AssetType } from 'src/@types/Asset'
 import External from '@images/external.svg'
-import CloseIcon from '@images/closeIcon.svg'
 import useIsMobile from '@hooks/useIsMobile'
 import Link from 'next/link'
+import Modal from '@shared/atoms/Modal'
 
 const extractString = (
   value: string | { '@value': string } | undefined
@@ -242,17 +242,13 @@ export default function Details({
       </Button>
 
       {isDialogOpen && (
-        <dialog open className={styles.dialog}>
-          <div className={styles.dialogContent}>
-            <div className={styles.dialogHeader}>
-              <h2>{job.statusText}</h2>
-              <CloseIcon
-                className={styles.closeIconAbsolute}
-                onClick={() => setIsDialogOpen(false)}
-                aria-label="Close"
-              />
-            </div>
-
+        <Modal
+          title={job.statusText}
+          isOpen
+          onToggleModal={() => setIsDialogOpen(false)}
+          shouldCloseOnOverlayClick
+        >
+          <div className={styles.content}>
             <DetailsAssets job={job} />
             <Results job={job} />
 
@@ -343,15 +339,18 @@ export default function Details({
                 </span>
               )}
             </div>
-            <button
-              className={styles.mobileCloseButton}
-              onClick={() => setIsDialogOpen(false)}
-              aria-label="Close Dialog"
-            >
-              Close
-            </button>
+
+            <div className={styles.actions}>
+              <Button
+                style="primary"
+                type="button"
+                onClick={() => setIsDialogOpen(false)}
+              >
+                Close
+              </Button>
+            </div>
           </div>
-        </dialog>
+        </Modal>
       )}
     </>
   )
