@@ -1,5 +1,4 @@
 import { ReactElement, useState } from 'react'
-import ReactDOM from 'react-dom'
 import styles from './EscrowWithdrawModal.module.css'
 import { EscrowContract } from '@oceanprotocol/lib'
 import { useChainId } from 'wagmi'
@@ -7,6 +6,8 @@ import { getOceanConfig } from '@utils/ocean'
 import { useProfile } from '@context/Profile'
 import { Signer, formatUnits, parseUnits } from 'ethers'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import Modal from '@shared/atoms/Modal'
+import Button from '@shared/atoms/Button'
 
 interface EscrowFunds {
   available: string
@@ -104,25 +105,24 @@ export default function EscrowWithdrawModal({
     }
   }
 
-  const modalContent = (
-    <div className={styles.modalBackdrop}>
-      <div className={styles.modalBox}>
-        <h3 className={styles.modalTitle}>Withdraw Escrow Funds</h3>
+  return (
+    <Modal
+      title="Withdraw Escrow Funds"
+      isOpen
+      onToggleModal={onClose}
+      shouldCloseOnOverlayClick={!isLoading}
+    >
+      <div className={styles.content}>
         {availableTokens.length > 1 && (
-          <div style={{ marginBottom: '10px' }}>
-            <label
-              style={{
-                fontSize: '14px',
-                marginBottom: '5px',
-                display: 'block'
-              }}
-            >
-              Token:
+          <div className={styles.fieldGroup}>
+            <label className={styles.label} htmlFor="escrow-token">
+              Token
             </label>
             <select
+              id="escrow-token"
               value={selectedToken}
               onChange={(e) => setSelectedToken(e.target.value)}
-              className={styles.tokenSelect}
+              className={styles.select}
               disabled={isLoading}
             >
               {availableTokens.map((token) => (
@@ -133,55 +133,64 @@ export default function EscrowWithdrawModal({
             </select>
           </div>
         )}
-        <div style={{ marginBottom: '10px', fontSize: '14px' }}>
-          Available:{' '}
-          <strong>
+
+        <div className={styles.availableRow}>
+          <span className={styles.label}>Available</span>
+          <span className={styles.value}>
             {availableDisplay} {selectedEscrowFunds.symbol}
-          </strong>
+          </span>
         </div>
-        <div className={styles.inputRow}>
-          <input
-            type="number"
-            placeholder="Amount"
-            value={amount}
-            onChange={handleInputChange}
-            className={styles.input}
-            disabled={isLoading}
-            style={{ flex: 1 }}
-          />
-          <button
+
+        <div className={styles.fieldGroup}>
+          <label className={styles.label} htmlFor="escrow-amount">
+            Amount
+          </label>
+          <div className={styles.inputRow}>
+            <input
+              id="escrow-amount"
+              type="number"
+              placeholder="0.0"
+              value={amount}
+              onChange={handleInputChange}
+              disabled={isLoading}
+              className={styles.input}
+              min="0"
+              inputMode="decimal"
+            />
+            <Button
+              type="button"
+              style="outlined"
+              size="small"
+              onClick={handleMaxClick}
+              disabled={isLoading}
+              className={styles.maxButton}
+            >
+              Max
+            </Button>
+          </div>
+        </div>
+
+        {error && <div className={styles.error}>{error}</div>}
+
+        <div className={styles.actions}>
+          <Button
+            style="ghost"
             type="button"
-            className={`${styles.button} ${styles.maxButton}`}
-            onClick={handleMaxClick}
+            onClick={onClose}
             disabled={isLoading}
           >
-            Max
-          </button>
+            Close
+          </Button>
+          <Button
+            style="primary"
+            type="button"
+            onClick={handleWithdraw}
+            disabled={isWithdrawDisabled}
+          >
+            {isLoading ? 'Withdrawing...' : 'Withdraw'}
+          </Button>
         </div>
-        {error && (
-          <div style={{ color: 'red', fontSize: '13px', marginBottom: 8 }}>
-            {error}
-          </div>
-        )}
-        <button
-          onClick={handleWithdraw}
-          className={styles.button}
-          disabled={isWithdrawDisabled}
-        >
-          {isLoading ? 'Withdrawing...' : 'Withdraw'}
-        </button>
-        <button
-          onClick={onClose}
-          className={styles.closeButton}
-          disabled={isLoading}
-        >
-          Close
-        </button>
       </div>
-    </div>
+    </Modal>
   )
-
-  return typeof window !== 'undefined'
-    ? ReactDOM.createPortal(modalContent, document.body)
-    : null
 }
