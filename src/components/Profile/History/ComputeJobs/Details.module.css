@@ -142,8 +142,16 @@
 /* Modal content */
 
 .content {
+  display: flex;
+  flex-direction: column;
+  max-height: min(70vh, 680px);
+}
+
+.scrollArea {
   display: grid;
-  gap: var(--spacer);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: calc(var(--spacer) / 4);
 }
 
 /* Meta info section */
@@ -158,9 +166,23 @@
 .jobDID {
 }
 
+.jobIdCopy {
+  display: inline-flex;
+  align-items: center;
+}
+
+.jobIdText {
+  font-family: var(--font-family-monospace);
+  font-size: var(--font-size-small);
+  color: var(--font-color-text);
+  padding: 0 0.3rem;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
 }
 
 @media (max-width: 768px) {

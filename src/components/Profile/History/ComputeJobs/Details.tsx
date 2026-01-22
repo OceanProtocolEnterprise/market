@@ -45,13 +45,15 @@ function Asset({
   title,
   symbol,
   did,
-  serviceName
+  serviceName,
+  isMobile
 }: {
   title: string
   symbol: string
   did: string
   serviceId?: string
   serviceName?: string
+  isMobile: boolean
 }) {
   return (
     <div className={styles.assetBox}>
@@ -84,7 +86,7 @@ function Asset({
         <div className={styles.didContainer}>
           <CopyToClipboard
             value={did}
-            truncate={10}
+            truncate={isMobile ? 6 : 10}
             textClassName={styles.did}
             className={styles.didCopy}
           />
@@ -94,7 +96,13 @@ function Asset({
   )
 }
 
-function DetailsAssets({ job }: { job: ComputeJobMetaData }) {
+function DetailsAssets({
+  job,
+  isMobile
+}: {
+  job: ComputeJobMetaData
+  isMobile: boolean
+}) {
   const { appConfig } = useMarketMetadata()
   const newCancelToken = useCancelToken()
 
@@ -163,6 +171,7 @@ function DetailsAssets({ job }: { job: ComputeJobMetaData }) {
                 did={ddo.id}
                 serviceId={serviceId}
                 serviceName={serviceName}
+                isMobile={isMobile}
               />
             ) : (
               <div className={styles.assetNotAvailable}>
@@ -180,6 +189,7 @@ function DetailsAssets({ job }: { job: ComputeJobMetaData }) {
             symbol={algoDtSymbol}
             did={job.algorithm.documentId}
             serviceName={algoServiceName}
+            isMobile={isMobile}
           />
         ) : (
           <div className={styles.assetNotAvailable}>
@@ -249,95 +259,101 @@ export default function Details({
           shouldCloseOnOverlayClick
         >
           <div className={styles.content}>
-            <DetailsAssets job={job} />
-            <Results job={job} />
+            <div className={styles.scrollArea}>
+              <DetailsAssets job={job} isMobile={isMobile} />
+              <Results job={job} />
 
-            <div className={styles.meta}>
-              <MetaItem
-                title="Created"
-                content={
-                  <Time
-                    date={
-                      Number((job as any).algoStartTimestamp) > 0
-                        ? (
-                            Number((job as any).algoStartTimestamp) * 1000
-                          ).toString()
-                        : (Number(job.dateCreated) * 1000).toString()
-                    }
-                    isUnix
-                    relative
-                  />
-                }
-              />
-
-              {job.dateFinished && (
+              <div className={styles.meta}>
                 <MetaItem
-                  title="Finished"
+                  title="Created"
                   content={
                     <Time
                       date={
-                        Number((job as any).algoStopTimestamp) > 0
+                        Number((job as any).algoStartTimestamp) > 0
                           ? (
-                              Number((job as any).algoStopTimestamp) * 1000
+                              Number((job as any).algoStartTimestamp) * 1000
                             ).toString()
-                          : (Number(job.dateFinished) * 1000).toString()
+                          : (Number(job.dateCreated) * 1000).toString()
                       }
                       isUnix
                       relative
                     />
                   }
                 />
-              )}
-              {job.dateFinished && job.dateCreated && (
-                <MetaItem
-                  title="Duration"
-                  content={formatDuration(
-                    Number(job.dateFinished) - Number(job.dateCreated)
-                  )}
-                />
-              )}
-              {job.dateFinished && (
-                <MetaItem
-                  title="Job Cost"
-                  content={
-                    job?.payment?.cost
-                      ? `${formatJobCost(job.payment.cost)}${
-                          paymentSymbol ? ` ${paymentSymbol}` : ''
-                        }`
-                      : 'FREE'
-                  }
-                />
-              )}
 
-              {job.dateFinished ? (
-                // When finished date exists, show JobDID on new line
-                <div style={{ flexBasis: '100%' }}>
+                {job.dateFinished && (
+                  <MetaItem
+                    title="Finished"
+                    content={
+                      <Time
+                        date={
+                          Number((job as any).algoStopTimestamp) > 0
+                            ? (
+                                Number((job as any).algoStopTimestamp) * 1000
+                              ).toString()
+                            : (Number(job.dateFinished) * 1000).toString()
+                        }
+                        isUnix
+                        relative
+                      />
+                    }
+                  />
+                )}
+                {job.dateFinished && job.dateCreated && (
+                  <MetaItem
+                    title="Duration"
+                    content={formatDuration(
+                      Number(job.dateFinished) - Number(job.dateCreated)
+                    )}
+                  />
+                )}
+                {job.dateFinished && (
+                  <MetaItem
+                    title="Job Cost"
+                    content={
+                      job?.payment?.cost
+                        ? `${formatJobCost(job.payment.cost)}${
+                            paymentSymbol ? ` ${paymentSymbol}` : ''
+                          }`
+                        : 'FREE'
+                    }
+                  />
+                )}
+
+                {job.dateFinished ? (
+                  // When finished date exists, show JobDID on new line
+                  <div style={{ flexBasis: '100%' }}>
+                    <span className={styles.jobDID}>
+                      <MetaItem
+                        title="Job ID"
+                        content={
+                          <CopyToClipboard
+                            value={job.jobId}
+                            truncate={isMobile ? 6 : 10}
+                            className={styles.jobIdCopy}
+                            textClassName={styles.jobIdText}
+                          />
+                        }
+                      />
+                    </span>
+                  </div>
+                ) : (
+                  // Else show it in same row
                   <span className={styles.jobDID}>
                     <MetaItem
                       title="Job ID"
                       content={
-                        <code>
-                          {isMobile
-                            ? `${job.jobId.slice(0, 20)}...`
-                            : job.jobId}
-                        </code>
+                        <CopyToClipboard
+                          value={job.jobId}
+                          truncate={isMobile ? 6 : 10}
+                          className={styles.jobIdCopy}
+                          textClassName={styles.jobIdText}
+                        />
                       }
                     />
                   </span>
-                </div>
-              ) : (
-                // Else show it in same row
-                <span className={styles.jobDID}>
-                  <MetaItem
-                    title="Job ID"
-                    content={
-                      <code>
-                        {isMobile ? `${job.jobId.slice(0, 20)}...` : job.jobId}
-                      </code>
-                    }
-                  />
-                </span>
-              )}
+                )}
+              </div>
             </div>
 
             <div className={styles.actions}>
