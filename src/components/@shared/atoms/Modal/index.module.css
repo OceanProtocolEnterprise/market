@@ -39,7 +39,7 @@
 
 @media (min-width: 40rem) {
   .modal {
-    padding: calc(var(--spacer) * 2);
+    padding: calc(var(--spacer) * 1);
   }
 }
 

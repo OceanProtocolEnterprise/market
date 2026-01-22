@@ -94,7 +94,10 @@ export default function EscrowWithdrawModal({
       const { escrowAddress } = getOceanConfig(chainId)
       const escrow = new EscrowContract(escrowAddress, signer, chainId)
 
-      const escrowAmount = formatUnits(amountUnits, 18)
+      const escrowAmount = formatUnits(
+        amountUnits,
+        selectedEscrowFunds.decimals
+      )
       await escrow.withdraw([selectedEscrowFunds.address], [escrowAmount])
       if (refreshEscrowFunds) await refreshEscrowFunds()
       onClose()
