@@ -773,7 +773,7 @@ export default function ConfigureEnvironment({
         <div className={styles.priceDisplay}>
           <input
             type="text"
-            value={calculatePrice()}
+            value={calculatePrice().toFixed(3)}
             readOnly
             className={`${styles.input} ${styles.inputLarge}`}
             placeholder="0"
@@ -800,14 +800,14 @@ export default function ConfigureEnvironment({
                   <p>
                     Insufficient escrow balance. An additional{' '}
                     <strong>
-                      {deltaAmount.toFixed(2)} {displaySymbol}
+                      {deltaAmount.toFixed(3)} {displaySymbol}
                     </strong>{' '}
                     will be added to your escrow account to cover this job.
                   </p>
                   <p className={styles.escrowBreakdown}>
-                    Job cost: {jobPrice.toFixed(2)} {displaySymbol} | Available
-                    escrow: {availableEscrow.toFixed(2)} {displaySymbol} |
-                    Additional needed: {deltaAmount.toFixed(2)} {displaySymbol}
+                    Job cost: {jobPrice.toFixed(3)} {displaySymbol} | Available
+                    escrow: {availableEscrow.toFixed(3)} {displaySymbol} |
+                    Additional needed: {deltaAmount.toFixed(3)} {displaySymbol}
                   </p>
                 </div>
               )
