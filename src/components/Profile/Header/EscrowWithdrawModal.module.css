@@ -69,6 +69,16 @@
   background: #1854b8;
 }
 
+.button:disabled {
+  background: #a8b6d9;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.button:disabled:hover {
+  background: #a8b6d9;
+}
+
 .closeButton {
   background: transparent;
   color: #4a4a4a;

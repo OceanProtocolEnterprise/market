@@ -5,7 +5,7 @@ import { EscrowContract } from '@oceanprotocol/lib'
 import { useChainId } from 'wagmi'
 import { getOceanConfig } from '@utils/ocean'
 import { useProfile } from '@context/Profile'
-import { Signer } from 'ethers'
+import { Signer, formatUnits, parseUnits } from 'ethers'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 
 interface EscrowFunds {
@@ -30,35 +30,55 @@ export default function EscrowWithdrawModal({
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [selectedToken, setSelectedToken] = useState(escrowFunds.symbol)
+  const trimmedAmount = amount.trim()
 
   const availableTokens = Object.keys(escrowFundsByToken || {})
   const selectedEscrowFunds = escrowFundsByToken?.[selectedToken] || escrowFunds
-  const availableTruncated = Number.isFinite(
-    parseInt(selectedEscrowFunds.available, 10)
-  )
-    ? parseInt(selectedEscrowFunds.available, 10)
-    : 0
+  const availableAmount = Number(selectedEscrowFunds.available)
+  const availableDisplay = Number.isFinite(availableAmount)
+    ? availableAmount.toFixed(3)
+    : '0'
+  const availableUnits = (() => {
+    try {
+      return parseUnits(
+        selectedEscrowFunds.available || '0',
+        selectedEscrowFunds.decimals
+      )
+    } catch {
+      return BigInt(0)
+    }
+  })()
+  const isWithdrawDisabled =
+    isLoading || trimmedAmount === '' || Number(trimmedAmount) <= 0
 
   function handleInputChange(e) {
     const val = e.target.value
     setAmount(val)
     setError('')
-    if (Number(val) > Number(availableTruncated)) {
-      setError('Amount can’t be greater than your escrow funds.')
-    }
   }
 
   function handleMaxClick() {
-    setAmount(availableTruncated.toString())
+    setAmount(selectedEscrowFunds.available || '0')
     setError('')
   }
 
   async function handleWithdraw() {
-    if (!amount || Number(amount) <= 0) {
+    if (!trimmedAmount || Number(trimmedAmount) <= 0) {
       setError('Please enter a valid withdrawal amount.')
       return
     }
-    if (Number(amount) > Number(availableTruncated)) {
+    let amountUnits: bigint
+    try {
+      amountUnits = parseUnits(trimmedAmount, selectedEscrowFunds.decimals)
+    } catch {
+      setError('Please enter a valid withdrawal amount.')
+      return
+    }
+    if (amountUnits <= BigInt(0)) {
+      setError('Please enter a valid withdrawal amount.')
+      return
+    }
+    if (amountUnits > availableUnits) {
       setError('Amount can’t be greater than your escrow funds.')
       return
     }
@@ -73,7 +93,8 @@ export default function EscrowWithdrawModal({
       const { escrowAddress } = getOceanConfig(chainId)
       const escrow = new EscrowContract(escrowAddress, signer, chainId)
 
-      await escrow.withdraw([selectedEscrowFunds.address], [amount])
+      const escrowAmount = formatUnits(amountUnits, 18)
+      await escrow.withdraw([selectedEscrowFunds.address], [escrowAmount])
       if (refreshEscrowFunds) await refreshEscrowFunds()
       onClose()
     } catch (err) {
@@ -115,7 +136,7 @@ export default function EscrowWithdrawModal({
         <div style={{ marginBottom: '10px', fontSize: '14px' }}>
           Available:{' '}
           <strong>
-            {availableTruncated} {selectedEscrowFunds.symbol}
+            {availableDisplay} {selectedEscrowFunds.symbol}
           </strong>
         </div>
         <div className={styles.inputRow}>
@@ -145,12 +166,7 @@ export default function EscrowWithdrawModal({
         <button
           onClick={handleWithdraw}
           className={styles.button}
-          disabled={
-            isLoading ||
-            !amount ||
-            Number(amount) <= 0 ||
-            Number(amount) > Number(availableTruncated)
-          }
+          disabled={isWithdrawDisabled}
         >
           {isLoading ? 'Withdrawing...' : 'Withdraw'}
         </button>
