@@ -1,12 +1,20 @@
 import { ReactElement, useState } from 'react'
-import ReactDOM from 'react-dom'
 import styles from './EscrowWithdrawModal.module.css'
 import { EscrowContract } from '@oceanprotocol/lib'
 import { useChainId } from 'wagmi'
 import { getOceanConfig } from '@utils/ocean'
 import { useProfile } from '@context/Profile'
-import { Signer } from 'ethers'
+import { Signer, formatUnits, parseUnits } from 'ethers'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import Modal from '@shared/atoms/Modal'
+import Button from '@shared/atoms/Button'
+
+const ESCROW_WITHDRAW_TEXT = {
+  invalidAmount: 'Please enter a valid withdrawal amount.',
+  exceedsBalance: 'Amount can’t be greater than your escrow funds.',
+  walletMissing: 'Wallet or network not detected.',
+  withdrawFailed: 'Withdrawal failed. Please try again.'
+} as const
 
 interface EscrowFunds {
   available: string
@@ -30,40 +38,91 @@ export default function EscrowWithdrawModal({
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [selectedToken, setSelectedToken] = useState(escrowFunds.symbol)
+  const trimmedAmount = amount.trim()
 
   const availableTokens = Object.keys(escrowFundsByToken || {})
   const selectedEscrowFunds = escrowFundsByToken?.[selectedToken] || escrowFunds
-  const availableTruncated = Number.isFinite(
-    parseInt(selectedEscrowFunds.available, 10)
-  )
-    ? parseInt(selectedEscrowFunds.available, 10)
-    : 0
+  const availableAmount = Number(selectedEscrowFunds.available)
+  const availableDisplay = Number.isFinite(availableAmount)
+    ? availableAmount.toFixed(3)
+    : '0'
+  const availableUnits = (() => {
+    try {
+      return parseUnits(
+        selectedEscrowFunds.available || '0',
+        selectedEscrowFunds.decimals
+      )
+    } catch {
+      return BigInt(0)
+    }
+  })()
+
+  function getValidationError(value: string) {
+    const trimmed = value.trim()
+    if (!trimmed) return ''
+    if (Number(trimmed) <= 0) return ESCROW_WITHDRAW_TEXT.invalidAmount
+
+    try {
+      const amountUnits = parseUnits(trimmed, selectedEscrowFunds.decimals)
+      if (amountUnits > availableUnits) {
+        return ESCROW_WITHDRAW_TEXT.exceedsBalance
+      }
+    } catch (err) {
+      if (err?.message?.toLowerCase?.().includes('too many decimals')) {
+        return `Too many decimals (max ${selectedEscrowFunds.decimals}).`
+      }
+      return ESCROW_WITHDRAW_TEXT.invalidAmount
+    }
+
+    return ''
+  }
 
   function handleInputChange(e) {
     const val = e.target.value
     setAmount(val)
+    setError(getValidationError(val))
+  }
+
+  const validationError = getValidationError(trimmedAmount)
+  const isWithdrawDisabled =
+    isLoading ||
+    trimmedAmount === '' ||
+    Number(trimmedAmount) <= 0 ||
+    !!validationError
+
+  function handleTokenChange(e) {
+    setSelectedToken(e.target.value)
+    setAmount('')
     setError('')
-    if (Number(val) > Number(availableTruncated)) {
-      setError('Amount can’t be greater than your escrow funds.')
-    }
   }
 
   function handleMaxClick() {
-    setAmount(availableTruncated.toString())
+    setAmount(selectedEscrowFunds.available || '0')
     setError('')
   }
 
   async function handleWithdraw() {
-    if (!amount || Number(amount) <= 0) {
-      setError('Please enter a valid withdrawal amount.')
+    if (!trimmedAmount || Number(trimmedAmount) <= 0) {
+      setError(ESCROW_WITHDRAW_TEXT.invalidAmount)
       return
     }
-    if (Number(amount) > Number(availableTruncated)) {
-      setError('Amount can’t be greater than your escrow funds.')
+    let amountUnits: bigint
+    try {
+      amountUnits = parseUnits(trimmedAmount, selectedEscrowFunds.decimals)
+    } catch {
+      setError(ESCROW_WITHDRAW_TEXT.invalidAmount)
+      return
+    }
+    if (amountUnits <= BigInt(0)) {
+      setError(ESCROW_WITHDRAW_TEXT.invalidAmount)
+      return
+    }
+    if (amountUnits > availableUnits) {
+      setError(ESCROW_WITHDRAW_TEXT.exceedsBalance)
       return
     }
     if (!walletClient || !chainId) {
-      setError('Wallet or network not detected.')
+      setError(ESCROW_WITHDRAW_TEXT.walletMissing)
       return
     }
     setError('')
@@ -73,35 +132,38 @@ export default function EscrowWithdrawModal({
       const { escrowAddress } = getOceanConfig(chainId)
       const escrow = new EscrowContract(escrowAddress, signer, chainId)
 
-      await escrow.withdraw([selectedEscrowFunds.address], [amount])
+      const escrowAmount = formatUnits(
+        amountUnits,
+        selectedEscrowFunds.decimals
+      )
+      await escrow.withdraw([selectedEscrowFunds.address], [escrowAmount])
       if (refreshEscrowFunds) await refreshEscrowFunds()
       onClose()
     } catch (err) {
-      setError(err.message || 'Withdrawal failed. Please try again.')
+      setError(err.message || ESCROW_WITHDRAW_TEXT.withdrawFailed)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const modalContent = (
-    <div className={styles.modalBackdrop}>
-      <div className={styles.modalBox}>
-        <h3 className={styles.modalTitle}>Withdraw Escrow Funds</h3>
+  return (
+    <Modal
+      title="Withdraw Escrow Funds"
+      isOpen
+      onToggleModal={onClose}
+      shouldCloseOnOverlayClick={!isLoading}
+    >
+      <div className={styles.content}>
         {availableTokens.length > 1 && (
-          <div style={{ marginBottom: '10px' }}>
-            <label
-              style={{
-                fontSize: '14px',
-                marginBottom: '5px',
-                display: 'block'
-              }}
-            >
-              Token:
+          <div className={styles.fieldGroup}>
+            <label className={styles.label} htmlFor="escrow-token">
+              Token
             </label>
             <select
+              id="escrow-token"
               value={selectedToken}
-              onChange={(e) => setSelectedToken(e.target.value)}
-              className={styles.tokenSelect}
+              onChange={handleTokenChange}
+              className={styles.select}
               disabled={isLoading}
             >
               {availableTokens.map((token) => (
@@ -112,60 +174,64 @@ export default function EscrowWithdrawModal({
             </select>
           </div>
         )}
-        <div style={{ marginBottom: '10px', fontSize: '14px' }}>
-          Available:{' '}
-          <strong>
-            {availableTruncated} {selectedEscrowFunds.symbol}
-          </strong>
+
+        <div className={styles.availableRow}>
+          <span className={styles.label}>Available</span>
+          <span className={styles.value}>
+            {availableDisplay} {selectedEscrowFunds.symbol}
+          </span>
         </div>
-        <div className={styles.inputRow}>
-          <input
-            type="number"
-            placeholder="Amount"
-            value={amount}
-            onChange={handleInputChange}
-            className={styles.input}
-            disabled={isLoading}
-            style={{ flex: 1 }}
-          />
-          <button
+
+        <div className={styles.fieldGroup}>
+          <label className={styles.label} htmlFor="escrow-amount">
+            Amount
+          </label>
+          <div className={styles.inputRow}>
+            <input
+              id="escrow-amount"
+              type="number"
+              placeholder="0.0"
+              value={amount}
+              onChange={handleInputChange}
+              disabled={isLoading}
+              className={styles.input}
+              min="0"
+              inputMode="decimal"
+            />
+            <Button
+              type="button"
+              style="outlined"
+              size="small"
+              onClick={handleMaxClick}
+              disabled={isLoading}
+              className={styles.maxButton}
+            >
+              Max
+            </Button>
+          </div>
+        </div>
+
+        {error && <div className={styles.error}>{error}</div>}
+
+        <div className={styles.actions}>
+          <Button
+            style="ghost"
             type="button"
-            className={`${styles.button} ${styles.maxButton}`}
-            onClick={handleMaxClick}
+            onClick={onClose}
             disabled={isLoading}
           >
-            Max
-          </button>
+            Close
+          </Button>
+          <Button
+            style="primary"
+            type="button"
+            onClick={handleWithdraw}
+            disabled={isWithdrawDisabled}
+          >
+            {isLoading ? 'Withdrawing...' : 'Withdraw'}
+          </Button>
         </div>
-        {error && (
-          <div style={{ color: 'red', fontSize: '13px', marginBottom: 8 }}>
-            {error}
-          </div>
-        )}
-        <button
-          onClick={handleWithdraw}
-          className={styles.button}
-          disabled={
-            isLoading ||
-            !amount ||
-            Number(amount) <= 0 ||
-            Number(amount) > Number(availableTruncated)
-          }
-        >
-          {isLoading ? 'Withdrawing...' : 'Withdraw'}
-        </button>
-        <button
-          onClick={onClose}
-          className={styles.closeButton}
-          disabled={isLoading}
-        >
-          Close
-        </button>
       </div>
-    </div>
+    </Modal>
   )
-
-  return typeof window !== 'undefined'
-    ? ReactDOM.createPortal(modalContent, document.body)
-    : null
 }

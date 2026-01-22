@@ -11,9 +11,9 @@ import { getServiceById } from '@utils/ddo'
 import { CopyToClipboard } from '@shared/CopyToClipboard'
 import { Asset as AssetType } from 'src/@types/Asset'
 import External from '@images/external.svg'
-import CloseIcon from '@images/closeIcon.svg'
 import useIsMobile from '@hooks/useIsMobile'
 import Link from 'next/link'
+import Modal from '@shared/atoms/Modal'
 
 const extractString = (
   value: string | { '@value': string } | undefined
@@ -24,17 +24,36 @@ const extractString = (
   return ''
 }
 
+const formatJobCost = (value: number | string): string => {
+  const numeric = Number(value)
+  return Number.isFinite(numeric) ? numeric.toFixed(3) : String(value)
+}
+
+const getPaymentTokenSymbol = (
+  payment: { token?: string } | null | undefined,
+  approvedBaseTokens?: TokenInfo[]
+): string | undefined => {
+  const tokenAddress = payment?.token
+  if (!tokenAddress || !approvedBaseTokens?.length) return undefined
+
+  return approvedBaseTokens.find(
+    (token) => token.address?.toLowerCase() === tokenAddress.toLowerCase()
+  )?.symbol
+}
+
 function Asset({
   title,
   symbol,
   did,
-  serviceName
+  serviceName,
+  isMobile
 }: {
   title: string
   symbol: string
   did: string
   serviceId?: string
   serviceName?: string
+  isMobile: boolean
 }) {
   return (
     <div className={styles.assetBox}>
@@ -67,7 +86,7 @@ function Asset({
         <div className={styles.didContainer}>
           <CopyToClipboard
             value={did}
-            truncate={10}
+            truncate={isMobile ? 6 : 10}
             textClassName={styles.did}
             className={styles.didCopy}
           />
@@ -77,7 +96,13 @@ function Asset({
   )
 }
 
-function DetailsAssets({ job }: { job: ComputeJobMetaData }) {
+function DetailsAssets({
+  job,
+  isMobile
+}: {
+  job: ComputeJobMetaData
+  isMobile: boolean
+}) {
   const { appConfig } = useMarketMetadata()
   const newCancelToken = useCancelToken()
 
@@ -146,6 +171,7 @@ function DetailsAssets({ job }: { job: ComputeJobMetaData }) {
                 did={ddo.id}
                 serviceId={serviceId}
                 serviceName={serviceName}
+                isMobile={isMobile}
               />
             ) : (
               <div className={styles.assetNotAvailable}>
@@ -163,6 +189,7 @@ function DetailsAssets({ job }: { job: ComputeJobMetaData }) {
             symbol={algoDtSymbol}
             did={job.algorithm.documentId}
             serviceName={algoServiceName}
+            isMobile={isMobile}
           />
         ) : (
           <div className={styles.assetNotAvailable}>
@@ -180,7 +207,16 @@ export default function Details({
   job: ComputeJobMetaData
 }): ReactElement {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const { approvedBaseTokens } = useMarketMetadata()
   const isMobile = useIsMobile()
+  const paymentSymbol = getPaymentTokenSymbol(job?.payment, approvedBaseTokens)
+
+  useEffect(() => {
+    if (!isDialogOpen || !job) return
+    console.log('[ComputeJob Details] payment payload', job.payment)
+    console.log('[ComputeJob Details] job payload', job)
+  }, [isDialogOpen, job])
+
   function formatDuration(seconds: number): string {
     if (isNaN(seconds) || seconds < 0) return '—'
 
@@ -216,114 +252,121 @@ export default function Details({
       </Button>
 
       {isDialogOpen && (
-        <dialog open className={styles.dialog}>
-          <div className={styles.dialogContent}>
-            <div className={styles.dialogHeader}>
-              <h2>{job.statusText}</h2>
-              <CloseIcon
-                className={styles.closeIconAbsolute}
-                onClick={() => setIsDialogOpen(false)}
-                aria-label="Close"
-              />
-            </div>
+        <Modal
+          title={job.statusText}
+          isOpen
+          onToggleModal={() => setIsDialogOpen(false)}
+          shouldCloseOnOverlayClick
+        >
+          <div className={styles.content}>
+            <div className={styles.scrollArea}>
+              <DetailsAssets job={job} isMobile={isMobile} />
+              <Results job={job} />
 
-            <DetailsAssets job={job} />
-            <Results job={job} />
-
-            <div className={styles.meta}>
-              <MetaItem
-                title="Created"
-                content={
-                  <Time
-                    date={
-                      Number((job as any).algoStartTimestamp) > 0
-                        ? (
-                            Number((job as any).algoStartTimestamp) * 1000
-                          ).toString()
-                        : (Number(job.dateCreated) * 1000).toString()
-                    }
-                    isUnix
-                    relative
-                  />
-                }
-              />
-
-              {job.dateFinished && (
+              <div className={styles.meta}>
                 <MetaItem
-                  title="Finished"
+                  title="Created"
                   content={
                     <Time
                       date={
-                        Number((job as any).algoStopTimestamp) > 0
+                        Number((job as any).algoStartTimestamp) > 0
                           ? (
-                              Number((job as any).algoStopTimestamp) * 1000
+                              Number((job as any).algoStartTimestamp) * 1000
                             ).toString()
-                          : (Number(job.dateFinished) * 1000).toString()
+                          : (Number(job.dateCreated) * 1000).toString()
                       }
                       isUnix
                       relative
                     />
                   }
                 />
-              )}
-              {job.dateFinished && job.dateCreated && (
-                <MetaItem
-                  title="Duration"
-                  content={formatDuration(
-                    Number(job.dateFinished) - Number(job.dateCreated)
-                  )}
-                />
-              )}
-              {job.dateFinished && (
-                <MetaItem
-                  title="Job Cost"
-                  content={
-                    job?.payment?.cost
-                      ? `${job.payment.cost.toString()}`
-                      : 'FREE'
-                  }
-                />
-              )}
 
-              {job.dateFinished ? (
-                // When finished date exists, show JobDID on new line
-                <div style={{ flexBasis: '100%' }}>
+                {job.dateFinished && (
+                  <MetaItem
+                    title="Finished"
+                    content={
+                      <Time
+                        date={
+                          Number((job as any).algoStopTimestamp) > 0
+                            ? (
+                                Number((job as any).algoStopTimestamp) * 1000
+                              ).toString()
+                            : (Number(job.dateFinished) * 1000).toString()
+                        }
+                        isUnix
+                        relative
+                      />
+                    }
+                  />
+                )}
+                {job.dateFinished && job.dateCreated && (
+                  <MetaItem
+                    title="Duration"
+                    content={formatDuration(
+                      Number(job.dateFinished) - Number(job.dateCreated)
+                    )}
+                  />
+                )}
+                {job.dateFinished && (
+                  <MetaItem
+                    title="Job Cost"
+                    content={
+                      job?.payment?.cost
+                        ? `${formatJobCost(job.payment.cost)}${
+                            paymentSymbol ? ` ${paymentSymbol}` : ''
+                          }`
+                        : 'FREE'
+                    }
+                  />
+                )}
+
+                {job.dateFinished ? (
+                  // When finished date exists, show JobDID on new line
+                  <div style={{ flexBasis: '100%' }}>
+                    <span className={styles.jobDID}>
+                      <MetaItem
+                        title="Job ID"
+                        content={
+                          <CopyToClipboard
+                            value={job.jobId}
+                            truncate={isMobile ? 6 : 10}
+                            className={styles.jobIdCopy}
+                            textClassName={styles.jobIdText}
+                          />
+                        }
+                      />
+                    </span>
+                  </div>
+                ) : (
+                  // Else show it in same row
                   <span className={styles.jobDID}>
                     <MetaItem
                       title="Job ID"
                       content={
-                        <code>
-                          {isMobile
-                            ? `${job.jobId.slice(0, 20)}...`
-                            : job.jobId}
-                        </code>
+                        <CopyToClipboard
+                          value={job.jobId}
+                          truncate={isMobile ? 6 : 10}
+                          className={styles.jobIdCopy}
+                          textClassName={styles.jobIdText}
+                        />
                       }
                     />
                   </span>
-                </div>
-              ) : (
-                // Else show it in same row
-                <span className={styles.jobDID}>
-                  <MetaItem
-                    title="Job ID"
-                    content={
-                      <code>
-                        {isMobile ? `${job.jobId.slice(0, 20)}...` : job.jobId}
-                      </code>
-                    }
-                  />
-                </span>
-              )}
+                )}
+              </div>
             </div>
-            <button
-              className={styles.mobileCloseButton}
-              onClick={() => setIsDialogOpen(false)}
-              aria-label="Close Dialog"
-            >
-              Close
-            </button>
+
+            <div className={styles.actions}>
+              <Button
+                style="primary"
+                type="button"
+                onClick={() => setIsDialogOpen(false)}
+              >
+                Close
+              </Button>
+            </div>
           </div>
-        </dialog>
+        </Modal>
       )}
     </>
   )

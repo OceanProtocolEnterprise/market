@@ -5,7 +5,8 @@ import {
   createContext,
   ReactElement,
   useCallback,
-  ReactNode
+  ReactNode,
+  useRef
 } from 'react'
 import { useUserPreferences } from '../UserPreferences'
 import { EscrowContract, LoggerInstance } from '@oceanprotocol/lib'
@@ -66,11 +67,12 @@ function ProfileProvider({
   const walletClient = useEthersSigner() // FIX: Replaced useSigner
   const chainId = useChainId() // FIX: Replaced useNetwork
   const { chainIds } = useUserPreferences()
-  const { appConfig } = useMarketMetadata()
+  const { appConfig, approvedBaseTokens } = useMarketMetadata()
   const [revenue, setRevenue] = useState<{ [symbol: string]: number }>({})
   const [escrowFundsByToken, setEscrowFundsByToken] = useState<{
     [symbol: string]: EscrowFunds
   }>({})
+  const tokenInfoCache = useRef<Map<string, TokenInfo>>(new Map())
   const newCancelToken = useCancelToken()
 
   const [isEthAddress, setIsEthAddress] = useState<boolean>()
@@ -311,59 +313,100 @@ function ProfileProvider({
         chainId
       )
 
+      const feeTokenAddresses = new Set<string>()
+      const approvedTokenMap = new Map<string, TokenInfo>()
+      approvedBaseTokens?.forEach((token) => {
+        if (token?.address) {
+          const normalizedAddress = token.address.toLowerCase()
+          feeTokenAddresses.add(token.address)
+          approvedTokenMap.set(normalizedAddress, token)
+          tokenInfoCache.current.set(normalizedAddress, token)
+        }
+      })
+
       const providerUrl = appConfig?.customProviderUrl
       if (!providerUrl) {
         LoggerInstance.warn(
           '[Profile] No provider URL for compute environments'
         )
-        return
-      }
-
-      const computeEnvs = await getComputeEnvironments(providerUrl, chainId)
-      if (!computeEnvs || computeEnvs.length === 0) {
-        LoggerInstance.warn('[Profile] No compute environments found')
-        return
-      }
-
-      const feeTokenAddresses = new Set<string>()
-      computeEnvs.forEach((env) => {
-        const chainIdString = chainId.toString()
-        const envWithFees = env as unknown as {
-          fees?: Record<string, Array<{ feeToken?: string }>>
-        }
-        const fee = envWithFees.fees?.[chainIdString]?.[0]
-        if (fee?.feeToken) {
-          feeTokenAddresses.add(fee.feeToken)
-        }
-      })
-
-      const escrowFundsMap: { [symbol: string]: EscrowFunds } = {}
-
-      for (const tokenAddress of feeTokenAddresses) {
+      } else {
         try {
-          const funds = await escrow.getUserFunds(accountId, tokenAddress)
-          const tokenDetails = await getTokenInfo(
-            tokenAddress,
-            walletClient.provider
-          )
-
-          const available = formatUnits(funds.available, tokenDetails.decimals)
-          const locked = formatUnits(funds.locked, tokenDetails.decimals)
-
-          escrowFundsMap[tokenDetails.symbol] = {
-            available,
-            locked,
-            symbol: tokenDetails.symbol,
-            address: tokenAddress,
-            decimals: tokenDetails.decimals
+          const computeEnvs = await getComputeEnvironments(providerUrl, chainId)
+          if (!computeEnvs || computeEnvs.length === 0) {
+            LoggerInstance.warn('[Profile] No compute environments found')
+          } else {
+            computeEnvs.forEach((env) => {
+              const chainIdString = chainId.toString()
+              const envWithFees = env as unknown as {
+                fees?: Record<string, Array<{ feeToken?: string }>>
+              }
+              const fee = envWithFees.fees?.[chainIdString]?.[0]
+              if (fee?.feeToken) {
+                feeTokenAddresses.add(fee.feeToken)
+              }
+            })
           }
         } catch (err) {
           LoggerInstance.warn(
-            `[Profile] Failed to get escrow funds for token ${tokenAddress}`,
+            '[Profile] Failed to fetch compute environments',
             err.message
           )
         }
       }
+
+      if (feeTokenAddresses.size === 0) {
+        setEscrowFundsByToken({})
+        return
+      }
+
+      const escrowFundsMap: { [symbol: string]: EscrowFunds } = {}
+      const tokenAddresses = Array.from(feeTokenAddresses)
+      const results = await Promise.allSettled(
+        tokenAddresses.map(async (tokenAddress) => {
+          const normalizedAddress = tokenAddress.toLowerCase()
+          const cachedToken =
+            approvedTokenMap.get(normalizedAddress) ||
+            tokenInfoCache.current.get(normalizedAddress)
+          const tokenDetailsPromise = cachedToken
+            ? Promise.resolve(cachedToken)
+            : getTokenInfo(tokenAddress, walletClient.provider)
+          const fundsPromise = escrow.getUserFunds(accountId, tokenAddress)
+          const [funds, tokenDetails] = await Promise.all([
+            fundsPromise,
+            tokenDetailsPromise
+          ])
+
+          if (!cachedToken) {
+            tokenInfoCache.current.set(normalizedAddress, tokenDetails)
+          }
+
+          const tokenDecimals = tokenDetails.decimals ?? 18
+          const available = formatUnits(funds.available, tokenDecimals)
+          const locked = formatUnits(funds.locked, tokenDecimals)
+
+          return {
+            symbol: tokenDetails.symbol,
+            data: {
+              available,
+              locked,
+              symbol: tokenDetails.symbol,
+              address: tokenAddress,
+              decimals: tokenDecimals
+            }
+          }
+        })
+      )
+
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          escrowFundsMap[result.value.symbol] = result.value.data
+          return
+        }
+        LoggerInstance.warn(
+          `[Profile] Failed to get escrow funds for token ${tokenAddresses[index]}`,
+          result.reason?.message || result.reason
+        )
+      })
 
       setEscrowFundsByToken(escrowFundsMap)
     } catch (error) {
@@ -375,7 +418,14 @@ function ProfileProvider({
 
   useEffect(() => {
     getEscrowFunds()
-  }, [accountId, walletClient, isEthAddress, chainId, appConfig])
+  }, [
+    accountId,
+    walletClient,
+    isEthAddress,
+    chainId,
+    appConfig?.customProviderUrl,
+    approvedBaseTokens
+  ])
 
   return (
     <ProfileContext.Provider
