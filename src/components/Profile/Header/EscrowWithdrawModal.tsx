@@ -9,6 +9,13 @@ import { useEthersSigner } from '@hooks/useEthersSigner'
 import Modal from '@shared/atoms/Modal'
 import Button from '@shared/atoms/Button'
 
+const ESCROW_WITHDRAW_TEXT = {
+  invalidAmount: 'Please enter a valid withdrawal amount.',
+  exceedsBalance: 'Amount can’t be greater than your escrow funds.',
+  walletMissing: 'Wallet or network not detected.',
+  withdrawFailed: 'Withdrawal failed. Please try again.'
+} as const
+
 interface EscrowFunds {
   available: string
   locked: string
@@ -49,12 +56,43 @@ export default function EscrowWithdrawModal({
       return BigInt(0)
     }
   })()
-  const isWithdrawDisabled =
-    isLoading || trimmedAmount === '' || Number(trimmedAmount) <= 0
+
+  function getValidationError(value: string) {
+    const trimmed = value.trim()
+    if (!trimmed) return ''
+    if (Number(trimmed) <= 0) return ESCROW_WITHDRAW_TEXT.invalidAmount
+
+    try {
+      const amountUnits = parseUnits(trimmed, selectedEscrowFunds.decimals)
+      if (amountUnits > availableUnits) {
+        return ESCROW_WITHDRAW_TEXT.exceedsBalance
+      }
+    } catch (err) {
+      if (err?.message?.toLowerCase?.().includes('too many decimals')) {
+        return `Too many decimals (max ${selectedEscrowFunds.decimals}).`
+      }
+      return ESCROW_WITHDRAW_TEXT.invalidAmount
+    }
+
+    return ''
+  }
 
   function handleInputChange(e) {
     const val = e.target.value
     setAmount(val)
+    setError(getValidationError(val))
+  }
+
+  const validationError = getValidationError(trimmedAmount)
+  const isWithdrawDisabled =
+    isLoading ||
+    trimmedAmount === '' ||
+    Number(trimmedAmount) <= 0 ||
+    !!validationError
+
+  function handleTokenChange(e) {
+    setSelectedToken(e.target.value)
+    setAmount('')
     setError('')
   }
 
@@ -65,26 +103,26 @@ export default function EscrowWithdrawModal({
 
   async function handleWithdraw() {
     if (!trimmedAmount || Number(trimmedAmount) <= 0) {
-      setError('Please enter a valid withdrawal amount.')
+      setError(ESCROW_WITHDRAW_TEXT.invalidAmount)
       return
     }
     let amountUnits: bigint
     try {
       amountUnits = parseUnits(trimmedAmount, selectedEscrowFunds.decimals)
     } catch {
-      setError('Please enter a valid withdrawal amount.')
+      setError(ESCROW_WITHDRAW_TEXT.invalidAmount)
       return
     }
     if (amountUnits <= BigInt(0)) {
-      setError('Please enter a valid withdrawal amount.')
+      setError(ESCROW_WITHDRAW_TEXT.invalidAmount)
       return
     }
     if (amountUnits > availableUnits) {
-      setError('Amount can’t be greater than your escrow funds.')
+      setError(ESCROW_WITHDRAW_TEXT.exceedsBalance)
       return
     }
     if (!walletClient || !chainId) {
-      setError('Wallet or network not detected.')
+      setError(ESCROW_WITHDRAW_TEXT.walletMissing)
       return
     }
     setError('')
@@ -102,7 +140,7 @@ export default function EscrowWithdrawModal({
       if (refreshEscrowFunds) await refreshEscrowFunds()
       onClose()
     } catch (err) {
-      setError(err.message || 'Withdrawal failed. Please try again.')
+      setError(err.message || ESCROW_WITHDRAW_TEXT.withdrawFailed)
     } finally {
       setIsLoading(false)
     }
@@ -124,7 +162,7 @@ export default function EscrowWithdrawModal({
             <select
               id="escrow-token"
               value={selectedToken}
-              onChange={(e) => setSelectedToken(e.target.value)}
+              onChange={handleTokenChange}
               className={styles.select}
               disabled={isLoading}
             >
