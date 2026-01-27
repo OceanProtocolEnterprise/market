@@ -5,7 +5,7 @@ import styles from './index.module.css'
 import EthIcon from '@images/eth.svg'
 import AddTokenStyles from '../AddToken/index.module.css'
 
-export interface AddNetworkProps {
+interface AddNetworkProps {
   chainId: number
   networkName: string
   logo?: ReactNode

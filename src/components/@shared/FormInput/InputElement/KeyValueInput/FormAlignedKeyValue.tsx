@@ -17,12 +17,12 @@ import classNames from 'classnames/bind'
 
 const cx = classNames.bind(styles)
 
-export interface KeyValuePair {
+interface KeyValuePair {
   key: string
   value: string
 }
 
-export interface FormAlignedKeyValueProps extends Omit<InputProps, 'value'> {
+interface FormAlignedKeyValueProps extends Omit<InputProps, 'value'> {
   value: KeyValuePair[]
   uniqueKeys?: boolean
   keyPlaceholder?: string

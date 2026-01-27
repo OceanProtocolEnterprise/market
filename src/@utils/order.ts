@@ -357,7 +357,7 @@ export async function order(
  * @param providerFees
  * @returns {TransactionReceipt} receipt of the order
  */
-export async function reuseOrder(
+async function reuseOrder(
   signer: Signer,
   accessDetails: AccessDetails,
   validOrderTx: string,

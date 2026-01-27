@@ -12,7 +12,6 @@ import InputElement from '@shared/FormInput/InputElement'
 import styles from './SearchBar.module.css'
 import { addExistingParamsToUrl } from '../Search/utils'
 import { useRouter } from 'next/router'
-import { useSpring } from 'react-spring'
 import { useSearchBarStatus } from '@context/SearchBarStatus'
 // import SearchLogo from '@images/search.svg'
 
@@ -28,7 +27,7 @@ async function emptySearch() {
 export default function SearchBar({
   placeholder,
   initialValue,
-  isSearchPage
+  isSearchPage: _isSearchPage
 }: {
   placeholder?: string
   initialValue?: string

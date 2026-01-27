@@ -2,7 +2,7 @@ import { toDataUrl } from 'myetherwallet-blockies'
 import { ReactElement } from 'react'
 import styles from './index.module.css'
 
-export interface AvatarProps {
+interface AvatarProps {
   accountId: string
   src?: string
   className?: string

@@ -16,14 +16,8 @@ import SsiApiModal from '../../Header/Wallet/SsiApiModal'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 
-export declare type Web3Error = {
-  status: 'error' | 'warning' | 'success'
-  title: string
-  message?: string
-}
-
 export default function Web3Feedback({
-  networkId,
+  networkId: _networkId,
   accountId,
   isAssetNetwork
 }: {
@@ -36,7 +30,7 @@ export default function Web3Feedback({
   const [message, setMessage] = useState<string>()
   const [showFeedback, setShowFeedback] = useState<boolean>(false)
 
-  const { address, isConnected } = useAccount()
+  const { address: _address, isConnected } = useAccount()
   const walletClient = useEthersSigner()
   const { setOpen } = useModal()
   const { sessionToken, setSessionToken } = useSsiWallet()

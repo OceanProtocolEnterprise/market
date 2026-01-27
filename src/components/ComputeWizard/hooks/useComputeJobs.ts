@@ -18,7 +18,7 @@ interface UseComputeJobsParams {
 export function useComputeJobs({
   asset,
   service,
-  accountId,
+  accountId: _accountId,
   ownerAddress,
   chainIds,
   refreshIntervalMs = 10000,

@@ -25,7 +25,7 @@ export default function InputRadio({
   variant = 'default',
   ...props
 }: InputRadioProps): ReactElement {
-  const { hideLabel, ...inputProps } = props
+  const { hideLabel: _hideLabel, ...inputProps } = props
 
   return (
     <div className={styles.radioGroup}>

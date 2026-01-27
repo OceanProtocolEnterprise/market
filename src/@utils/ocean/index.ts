@@ -131,15 +131,3 @@ export function getOceanConfig(network: string | number): ConfigEnterprise {
   }
   return config as ConfigEnterprise
 }
-
-export function getDevelopmentConfig(): Config {
-  return {
-    // factoryAddress: contractAddresses.development?.DTFactory,
-    // poolFactoryAddress: contractAddresses.development?.BFactory,
-    // fixedRateExchangeAddress: contractAddresses.development?.FixedRateExchange,
-    // metadataContractAddress: contractAddresses.development?.Metadata,
-    // oceanTokenAddress: contractAddresses.development?.Ocean,
-    // There is no subgraph in barge so we hardcode the Sepolia one for now
-    nodeUri: 'https://v4.subgraph.sepolia.oceanprotocol.com'
-  } as Config
-}

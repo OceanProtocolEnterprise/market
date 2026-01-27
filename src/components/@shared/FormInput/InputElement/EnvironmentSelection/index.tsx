@@ -11,52 +11,7 @@ export interface EnvironmentSelectionEnvironment extends ComputeEnvironment {
   checked?: boolean
 }
 
-// Mock data for testing
-const mockEnvironments: EnvironmentSelectionEnvironment[] = [
-  {
-    id: '0x1234567890abcdef1234567890abcdef12345678',
-    description:
-      'High-performance GPU environment for machine learning workloads',
-    free: { resources: [] },
-    fees: {},
-    consumerAddress: '0x0000000000000000000000000000000000000000',
-    runningJobs: 0
-  },
-  {
-    id: '0xabcdef1234567890abcdef1234567890abcdef12',
-    description: 'CPU-optimized environment for data processing tasks',
-    free: null,
-    fees: {},
-    consumerAddress: '0x0000000000000000000000000000000000000000',
-    runningJobs: 0
-  },
-  {
-    id: '0x9876543210fedcba9876543210fedcba98765432',
-    description: 'Memory-intensive environment for large dataset operations',
-    free: { resources: [] },
-    fees: {},
-    consumerAddress: '0x0000000000000000000000000000000000000000',
-    runningJobs: 0
-  },
-  {
-    id: '0xfedcba0987654321fedcba0987654321fedcba09',
-    description: 'Multi-GPU cluster for distributed computing',
-    free: null,
-    fees: {},
-    consumerAddress: '0x0000000000000000000000000000000000000000',
-    runningJobs: 0
-  },
-  {
-    id: '0x5555555555555555555555555555555555555555',
-    description: 'Development environment for testing and debugging',
-    free: { resources: [] },
-    fees: {},
-    consumerAddress: '0x0000000000000000000000000000000000000000',
-    runningJobs: 0
-  }
-]
-
-export function Empty({ message }: { message: string }) {
+function Empty({ message }: { message: string }) {
   return <div className={styles.empty}>{message}</div>
 }
 

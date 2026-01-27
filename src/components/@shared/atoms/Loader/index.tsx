@@ -1,7 +1,7 @@
 import { ReactElement } from 'react'
 import styles from './index.module.css'
 
-export interface LoaderProps {
+interface LoaderProps {
   message?: string
   variant?: 'white' | 'primary' | 'default'
   className?: string

@@ -34,7 +34,7 @@ async function emptySearch() {
 function HeroSection({
   placeholder,
   initialValue,
-  isSearchPage
+  isSearchPage: _isSearchPage
 }: {
   placeholder?: string
   initialValue?: string

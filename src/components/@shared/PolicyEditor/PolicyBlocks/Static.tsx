@@ -1,6 +1,5 @@
 import { ReactElement } from 'react'
 import { Field } from 'formik'
-import Button from '../../atoms/Button'
 import Input from '../../FormInput'
 import { getFieldContent } from '@utils/form'
 import styles from './Block.module.css'
@@ -21,7 +20,7 @@ export default function StaticPolicyBlock({
   name,
   index,
   innerIndex,
-  policy,
+  policy: _policy,
   onDelete,
   readOnly = false
 }: StaticPolicyBlockProps): ReactElement {

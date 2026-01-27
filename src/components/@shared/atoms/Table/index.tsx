@@ -12,7 +12,7 @@ export interface TableOceanColumn<T> extends TableColumn<T> {
   selector?: (row: T) => any
 }
 
-export interface TableOceanProps<T> extends TableProps<T> {
+interface TableOceanProps<T> extends TableProps<T> {
   columns: TableOceanColumn<T>[]
   isLoading?: boolean
   emptyMessage?: string

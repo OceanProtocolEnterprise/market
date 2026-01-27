@@ -16,7 +16,7 @@ export default function TypeInput({
   inputName: string
 }): ReactElement {
   const { setFieldTouched } = useFormikContext<FormPublishData>()
-  const [field, meta, helpers] = useField<FormConsumerParameter[]>(inputName)
+  const [field, , helpers] = useField<FormConsumerParameter[]>(inputName)
 
   const resetDefaultValue = (
     parameterName: string,

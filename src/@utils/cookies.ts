@@ -1,17 +1,17 @@
 import Cookies from 'js-cookie'
 
-export enum SAME_SITE_OPTIONS {
+enum SAME_SITE_OPTIONS {
   STRICT = 'strict',
   LAX = 'lax',
   NONE = 'none'
 }
 
-export const DEFAULT_COOKIE_OPTIONS = {
+const DEFAULT_COOKIE_OPTIONS = {
   expires: 365,
   sameSite: SAME_SITE_OPTIONS.STRICT
 }
 
-export function getLegacyCookieName(cookieName: string): string {
+function getLegacyCookieName(cookieName: string): string {
   return `${cookieName}-legacy`
 }
 

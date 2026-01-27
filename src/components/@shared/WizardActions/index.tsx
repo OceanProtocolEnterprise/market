@@ -1,4 +1,4 @@
-import React, { FormEvent, ReactElement, RefObject } from 'react'
+import { FormEvent, ReactElement, RefObject } from 'react'
 import Button from '@shared/atoms/Button'
 import styles from './index.module.css'
 import { FormikContextType, useFormikContext } from 'formik'
@@ -48,12 +48,12 @@ interface WizardActionsProps {
 }
 
 export default function WizardActions({
-  submitButtonText,
+  submitButtonText: _submitButtonText,
   continueButtonText = 'Continue',
   scrollToRef,
   isContinueDisabled,
   rightAlignFirstStep = true,
-  isSubmitDisabled = false,
+  isSubmitDisabled: _isSubmitDisabled = false,
   action,
   disabled,
   hasPreviousOrder,
@@ -73,7 +73,7 @@ export default function WizardActions({
   selectedComputeAssetType,
   stepText,
   isLoading,
-  type,
+  type: _type,
   priceType,
   algorithmPriceType,
   isAlgorithmConsumable,

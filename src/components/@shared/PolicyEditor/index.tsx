@@ -85,12 +85,12 @@ export function PolicyEditor(props): ReactElement {
     credentials,
     setCredentials,
     name,
-    label,
-    help,
+    label: _label,
+    help: _help,
     defaultPolicies = [],
     enabledView = false,
     isAsset = false,
-    buttonStyle = 'primary',
+    buttonStyle: _buttonStyle = 'primary',
     hideDefaultPolicies = false
   }: PolicyEditorProps = props
   const [vpRequiredCredentials, setVpRequiredCredentials] = useState<
@@ -466,7 +466,8 @@ export function PolicyEditor(props): ReactElement {
         Array.isArray(credentials.vpPolicies) &&
         credentials.vpPolicies.length === 0
       ) {
-        const { vpPolicies, ...credentialsWithoutVpPolicies } = credentials
+        const { vpPolicies: _vpPolicies, ...credentialsWithoutVpPolicies } =
+          credentials
         setCredentials(credentialsWithoutVpPolicies)
       }
       return
@@ -642,8 +643,8 @@ export function PolicyEditor(props): ReactElement {
     if (!enabled) return
 
     const selectedPolicies = Object.entries(defaultPolicyStates)
-      .filter(([_, isSelected]) => isSelected)
-      .map(([policyName, _]) => policyName)
+      .filter(([, isSelected]) => isSelected)
+      .map(([policyName]) => policyName)
 
     const currentVcPolicies = credentials.vcPolicies || []
 
@@ -664,7 +665,7 @@ export function PolicyEditor(props): ReactElement {
             Policies applied to all credentials
           </h3>
           <div className={styles.defaultPoliciesList}>
-            {allPolicies.map((policy, index) => (
+            {allPolicies.map((policy) => (
               <div key={policy} className={styles.defaultPolicyItem}>
                 <label className={styles.policyLabel}>
                   <input

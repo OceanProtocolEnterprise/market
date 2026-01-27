@@ -33,7 +33,6 @@ import { useUserPreferences } from '@context/UserPreferences'
 import { useSsiWallet } from '@context/SsiWallet'
 import { secondsToString } from '@utils/ddo'
 import {
-  getAlgorithmAssetSelectionList,
   getAlgorithmAssetSelectionListForComputeWizard,
   getAlgorithmsForAsset
 } from '@utils/compute'
@@ -844,7 +843,7 @@ export default function ComputeWizardController({
         const selectedAlgoAssetForDisplay = isAlgorithmFlow
           ? asset
           : selectedAlgorithmAsset
-        const algorithmAssetChainId =
+        const _algorithmAssetChainId =
           selectedAlgoAssetForDisplay?.credentialSubject?.chainId
         const algorithmSymbol =
           selectedAlgoAssetForDisplay?.accessDetails?.[svcIndex]?.baseToken

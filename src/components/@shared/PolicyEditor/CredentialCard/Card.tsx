@@ -17,7 +17,7 @@ interface CredentialCardProps {
 export default function CredentialCard({
   index,
   name,
-  credential,
+  credential: _credential,
   onDelete,
   children
 }: CredentialCardProps): ReactElement {
