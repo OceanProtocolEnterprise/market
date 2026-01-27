@@ -9,12 +9,10 @@ import { getDatasetSteps } from '@components/ComputeWizard/_steps'
 interface WizardActionsProps {
   disabled?: boolean
   action?: 'compute'
-  submitButtonText?: string
   continueButtonText?: string
   scrollToRef?: RefObject<any>
   isContinueDisabled?: boolean
   rightAlignFirstStep?: boolean
-  isSubmitDisabled?: boolean
   hasPreviousOrder?: boolean
   hasDatatoken?: boolean
   btSymbol?: string
@@ -33,7 +31,6 @@ interface WizardActionsProps {
   isLoading?: boolean
   onClick?: (e: FormEvent<HTMLButtonElement>) => void
   stepText?: string
-  type?: 'submit' | 'button'
   priceType?: string
   algorithmPriceType?: string
   isAlgorithmConsumable?: boolean
@@ -48,12 +45,10 @@ interface WizardActionsProps {
 }
 
 export default function WizardActions({
-  submitButtonText: _submitButtonText,
   continueButtonText = 'Continue',
   scrollToRef,
   isContinueDisabled,
   rightAlignFirstStep = true,
-  isSubmitDisabled: _isSubmitDisabled = false,
   action,
   disabled,
   hasPreviousOrder,
@@ -73,7 +68,6 @@ export default function WizardActions({
   selectedComputeAssetType,
   stepText,
   isLoading,
-  type: _type,
   priceType,
   algorithmPriceType,
   isAlgorithmConsumable,

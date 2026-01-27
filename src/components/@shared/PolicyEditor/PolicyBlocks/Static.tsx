@@ -11,7 +11,6 @@ interface StaticPolicyBlockProps {
   name: string
   index: number
   innerIndex?: number
-  policy: any
   onDelete: () => void
   readOnly?: boolean
 }
@@ -20,7 +19,6 @@ export default function StaticPolicyBlock({
   name,
   index,
   innerIndex,
-  policy: _policy,
   onDelete,
   readOnly = false
 }: StaticPolicyBlockProps): ReactElement {

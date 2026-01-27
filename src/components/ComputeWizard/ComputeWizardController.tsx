@@ -170,7 +170,6 @@ export default function ComputeWizardController({
   } = useComputeJobs({
     asset,
     service,
-    accountId,
     ownerAddress: address,
     chainIds,
     cancelTokenFactory: newCancelToken
@@ -951,10 +950,8 @@ export default function ComputeWizardController({
 
                 {!showSuccess && (
                   <WizardActions
-                    submitButtonText="Buy Compute Job"
                     rightAlignFirstStep={false}
                     isContinueDisabled={isContinueDisabled}
-                    isSubmitDisabled={isComputeButtonDisabled}
                     action="compute"
                     disabled={
                       isComputeButtonDisabled ||
@@ -977,7 +974,6 @@ export default function ComputeWizardController({
                     selectedComputeAssetType="algorithm"
                     stepText={computeStatusText}
                     isLoading={isOrdering || isSubmittingJob}
-                    type="submit"
                     priceType={accessDetails.type}
                     algorithmPriceType={asset?.accessDetails?.[0]?.type}
                     isBalanceSufficient={isBalanceSufficient}

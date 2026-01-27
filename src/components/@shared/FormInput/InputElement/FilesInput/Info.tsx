@@ -6,11 +6,9 @@ import { FileInfo as FileInfoData } from '@oceanprotocol/lib'
 import CircleCheckIcon from '@images/circle_check.svg'
 
 export default function FileInfo({
-  file,
-  handleClose: _handleClose
+  file
 }: {
   file: FileInfoData
-  handleClose(): void
 }): ReactElement {
   const contentTypeCleaned = file.contentType
     ? cleanupContentType(file.contentType)

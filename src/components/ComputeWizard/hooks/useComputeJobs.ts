@@ -8,7 +8,6 @@ import { CancelToken } from 'axios'
 interface UseComputeJobsParams {
   asset: AssetExtended
   service: Service
-  accountId?: string
   ownerAddress?: string
   chainIds?: number[]
   refreshIntervalMs?: number
@@ -18,7 +17,6 @@ interface UseComputeJobsParams {
 export function useComputeJobs({
   asset,
   service,
-  accountId: _accountId,
   ownerAddress,
   chainIds,
   refreshIntervalMs = 10000,

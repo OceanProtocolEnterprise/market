@@ -9,7 +9,6 @@ import DeleteButton from '../../DeleteButton/DeleteButton'
 interface CredentialCardProps {
   index: number
   name: string
-  credential: any
   onDelete: () => void
   children?: React.ReactNode
 }
@@ -17,7 +16,6 @@ interface CredentialCardProps {
 export default function CredentialCard({
   index,
   name,
-  credential: _credential,
   onDelete,
   children
 }: CredentialCardProps): ReactElement {

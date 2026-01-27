@@ -371,7 +371,6 @@ export default function AddService({
             />
 
             <Web3Feedback
-              networkId={asset?.credentialSubject?.chainId}
               accountId={accountId}
               isAssetNetwork={isAssetNetwork}
             />

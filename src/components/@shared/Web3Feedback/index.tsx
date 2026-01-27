@@ -17,11 +17,9 @@ import { LoggerInstance } from '@oceanprotocol/lib'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 
 export default function Web3Feedback({
-  networkId: _networkId,
   accountId,
   isAssetNetwork
 }: {
-  networkId: number
   accountId: string
   isAssetNetwork?: boolean
 }): ReactElement {
@@ -30,7 +28,7 @@ export default function Web3Feedback({
   const [message, setMessage] = useState<string>()
   const [showFeedback, setShowFeedback] = useState<boolean>(false)
 
-  const { address: _address, isConnected } = useAccount()
+  const { isConnected } = useAccount()
   const walletClient = useEthersSigner()
   const { setOpen } = useModal()
   const { sessionToken, setSessionToken } = useSsiWallet()

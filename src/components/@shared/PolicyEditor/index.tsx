@@ -41,13 +41,7 @@ function PolicyView(props: PolicyViewProps): ReactElement {
   const { policy, onDeletePolicy, ...rest }: PolicyViewProps = props
   switch (policy?.type) {
     case 'staticPolicy':
-      return (
-        <StaticPolicyBlock
-          {...rest}
-          policy={policy}
-          onDelete={onDeletePolicy}
-        />
-      )
+      return <StaticPolicyBlock {...rest} onDelete={onDeletePolicy} />
     case 'parameterizedPolicy':
       return (
         <AllowedIssuerPolicyBlock
@@ -85,12 +79,9 @@ export function PolicyEditor(props): ReactElement {
     credentials,
     setCredentials,
     name,
-    label: _label,
-    help: _help,
     defaultPolicies = [],
     enabledView = false,
     isAsset = false,
-    buttonStyle: _buttonStyle = 'primary',
     hideDefaultPolicies = false
   }: PolicyEditorProps = props
   const [vpRequiredCredentials, setVpRequiredCredentials] = useState<
@@ -697,7 +688,6 @@ export function PolicyEditor(props): ReactElement {
               <CredentialCard
                 index={index}
                 name={name}
-                credential={credential}
                 onDelete={() => handleDeleteRequestCredential(index)}
               >
                 <div className={styles.policiesRow}>

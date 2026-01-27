@@ -26,12 +26,10 @@ async function emptySearch() {
 
 export default function SearchBar({
   placeholder,
-  initialValue,
-  isSearchPage: _isSearchPage
+  initialValue
 }: {
   placeholder?: string
   initialValue?: string
-  isSearchPage?: boolean
 }): ReactElement {
   const router = useRouter()
   const [value, setValue] = useState(initialValue || '')

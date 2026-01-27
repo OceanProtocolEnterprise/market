@@ -7,11 +7,9 @@ import { AssetExtended } from 'src/@types/AssetExtended'
 const blockscoutNetworks = [1287, 2021000, 2021001, 44787, 246, 1285]
 
 export default function MetaMain({
-  asset,
-  nftPublisher: _nftPublisher
+  asset
 }: {
   asset: AssetExtended
-  nftPublisher: string
 }): ReactElement {
   const isBlockscoutExplorer = blockscoutNetworks.includes(
     asset?.credentialSubject?.chainId

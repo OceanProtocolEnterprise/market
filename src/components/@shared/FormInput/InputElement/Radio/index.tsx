@@ -13,7 +13,6 @@ interface InputRadioProps extends InputHTMLAttributes<HTMLInputElement> {
   postfixes?: string[]
   actions?: string[]
   variant?: 'default' | 'publish'
-  hideLabel?: boolean
 }
 
 export default function InputRadio({
@@ -25,16 +24,14 @@ export default function InputRadio({
   variant = 'default',
   ...props
 }: InputRadioProps): ReactElement {
-  const { hideLabel: _hideLabel, ...inputProps } = props
-
   return (
     <div className={styles.radioGroup}>
       {options &&
         (options as string[]).map((option: string, index: number) => (
           <div className={styles.radioWrap} key={index}>
             <input
-              {...inputProps}
-              className={`${styles[inputProps.type]} ${
+              {...props}
+              className={`${styles[props.type as string]} ${
                 variant === 'publish' ? styles.publishRadio : ''
               }`}
               id={slugify(option)}
