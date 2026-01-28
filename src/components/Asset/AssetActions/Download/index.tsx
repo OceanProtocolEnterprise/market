@@ -98,6 +98,9 @@ export default function Download({
   const [tokenInfoProviderFee, setTokenInfoProviderFee] = useState<
     TokenInfo | undefined
   >(undefined)
+  const [insufficientSymbol, setInsufficientSymbol] = useState<string | null>(
+    null
+  )
 
   const [isFullPriceLoading, setIsFullPriceLoading] = useState(
     accessDetails.type !== 'free'
@@ -371,7 +374,9 @@ export default function Download({
     return (
       <ButtonBuy
         action="download"
-        disabled={!isValid || (isOwned ? !isValid : false)}
+        disabled={
+          !isValid || !isBalanceSufficient || (isOwned ? !isValid : false)
+        }
         hasPreviousOrder={isOwned}
         hasDatatoken={hasDatatoken}
         btSymbol={accessDetails.baseToken?.symbol}
@@ -385,6 +390,7 @@ export default function Download({
         priceType={accessDetails.type}
         isConsumable={accessDetails.isPurchasable}
         isBalanceSufficient={isBalanceSufficient}
+        insufficientSymbol={insufficientSymbol}
         consumableFeedback={consumableFeedback}
         retry={retry}
         isSupportedOceanNetwork={isSupportedOceanNetwork}
@@ -445,7 +451,32 @@ export default function Download({
     useEffect(() => {
       if (!orderPriceAndFees) return
       setIsBalanceSufficient(sufficient)
-    }, [sufficient])
+      setInsufficientSymbol(null)
+
+      if (sufficient) return
+
+      if (areTokensSame) {
+        setInsufficientSymbol(price.tokenSymbol)
+        return
+      }
+      if (!userBaseBalance.greaterThanOrEqualTo(totalBaseTokenNeeded)) {
+        setInsufficientSymbol(price.tokenSymbol)
+        return
+      }
+      if (!userProviderBalance.greaterThanOrEqualTo(totalProviderTokenNeeded)) {
+        setInsufficientSymbol(tokenInfoProviderFee?.symbol || null)
+      }
+    }, [
+      sufficient,
+      orderPriceAndFees,
+      areTokensSame,
+      userBaseBalance,
+      userProviderBalance,
+      totalBaseTokenNeeded,
+      totalProviderTokenNeeded,
+      price.tokenSymbol,
+      tokenInfoProviderFee?.symbol
+    ])
 
     if (!orderPriceAndFees) return null
 
@@ -679,9 +710,9 @@ export default function Download({
                               ? `This dataset is free to use. Please note that a provider fee of ${formatUnits(
                                   orderPriceAndFees?.providerFee
                                     ?.providerFeeAmount || '0',
-                                  tokenInfo?.decimals
+                                  tokenInfoProviderFee?.decimals
                                 )} ${
-                                  tokenInfo?.symbol
+                                  tokenInfoProviderFee?.symbol
                                 } applies, as well as possible network gas fees.`
                               : `This dataset is free to use. Please note that network gas fees still apply, even when using free assets.`
                           }
