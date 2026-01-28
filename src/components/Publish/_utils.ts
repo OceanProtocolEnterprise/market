@@ -369,7 +369,10 @@ export function generateCredentials(
     match_deny: 'any'
   }
 
-  if (appConfig.ssiEnabled) {
+  const ssiEnabledForCredentials =
+    appConfig.ssiEnabled && updatedCredentials?.enabled !== false
+
+  if (ssiEnabledForCredentials) {
     const requestCredentials: RequestCredential[] =
       updatedCredentials?.requestCredentials?.map<RequestCredential>(
         (credential) => {
