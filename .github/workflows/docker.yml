@@ -1,9 +1,14 @@
-name: Build & Push Docker image (latest)
+name: Build & Push Docker image
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Optional tag override (leave empty to use branch name)"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -25,12 +30,39 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push (latest)
+      
+      - name: Compute image tag
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${GITHUB_EVENT_NAME}" == "push" && "${GITHUB_REF_NAME}" == "main" ]]; then
+            TAG="latest"
+          else
+            # If user provided an override tag, use it; otherwise use the branch name
+            TAG_INPUT="${{ github.event.inputs.tag }}"
+            if [[ -n "${TAG_INPUT}" ]]; then
+              TAG="${TAG_INPUT}"
+            else
+              TAG="${GITHUB_REF_NAME}"
+            fi
+          fi
+
+          TAG="$(echo "${TAG}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9._-]+/-/g; s/^-+//; s/-+$//')"
+
+          # Docker tags <= 128 chars
+          TAG="${TAG:0:128}"
+
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Using tag: ${TAG}"
+
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: oceanenterprise/market:latest
+          tags: oceanenterprise/market:${{ steps.meta.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
