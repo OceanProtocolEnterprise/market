@@ -4,7 +4,7 @@ import InputElement from '@shared/FormInput/InputElement'
 import Markdown from '@shared/Markdown'
 import styles from './CookieModule.module.css'
 
-export interface CookieModuleProps {
+interface CookieModuleProps {
   title: string
   desc: string
   cookieName: string

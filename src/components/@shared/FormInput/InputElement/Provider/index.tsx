@@ -22,7 +22,7 @@ export default function CustomProvider(props: InputProps): ReactElement {
   const chainId = useChainId()
   const newCancelToken = useCancelToken()
   const { initialValues, setFieldError } = useFormikContext<FormPublishData>()
-  const [field, meta, helpers] = useField(props.name)
+  const [field, , helpers] = useField(props.name)
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -92,11 +92,6 @@ export default function CustomProvider(props: InputProps): ReactElement {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  function handleFileInfoClose() {
-    helpers.setValue({ url: '', valid: false, custom: true })
-    helpers.setTouched(false)
   }
 
   function handleDefault(e: React.SyntheticEvent) {

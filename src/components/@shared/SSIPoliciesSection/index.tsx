@@ -9,8 +9,6 @@ import appConfig from 'app.config.cjs'
 const DEFAULT_TITLE = 'SSI Policies'
 const DEFAULT_HELP =
   'Self-sovereign identity (SSI) policies define verification requirements for asset consumers. Configure which credentials and verification policies are required to access this asset.'
-const POLICY_EDITOR_HELP =
-  'Self-sovereign identity (SSI) is used verify the consumer of an asset. Indicate which SSI policy is required for this asset (static, parameterized, custom URL, other).'
 
 interface SSIPoliciesSectionProps {
   defaultPolicies: string[]
@@ -136,9 +134,7 @@ export default function SSIPoliciesSection({
             }
             name={credentialsPath}
             defaultPolicies={defaultPolicies}
-            help={POLICY_EDITOR_HELP}
             isAsset={isAsset}
-            buttonStyle="ocean"
             enabledView={true}
             hideDefaultPolicies={hideDefaultPolicies}
           />

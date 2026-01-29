@@ -25,7 +25,7 @@ interface TabsItemProps {
   name: string
 }
 
-export interface TabsItem {
+interface TabsItem {
   field: TabsField
   title: string
   content: ReactNode
@@ -33,7 +33,7 @@ export interface TabsItem {
   props: TabsItemProps
 }
 
-export interface TabsProps {
+interface TabsProps {
   items: TabsItem[]
   className?: string
   activeFileType?: string

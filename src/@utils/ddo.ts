@@ -107,7 +107,7 @@ interface FileExtended extends FileInfo {
 export function normalizeFile(
   storageType: string,
   file: FileExtended,
-  chainId: number
+  _chainId: number
 ) {
   let fileObj
   const headersProvider = {}
@@ -193,7 +193,7 @@ export function parseConsumerParameters(
   })
 }
 
-export function findCredential(
+function findCredential(
   credentials: (CredentialAddressBased | CredentialPolicyBased)[],
   consumerCredentials: CredentialAddressBased,
   type?: string
@@ -228,7 +228,7 @@ export function findCredential(
  * @param credentials credentials
  * @param consumerAddress consumer address
  */
-export function checkCredentials(
+function checkCredentials(
   credentials: Credential,
   consumerAddress: string,
   type?: string

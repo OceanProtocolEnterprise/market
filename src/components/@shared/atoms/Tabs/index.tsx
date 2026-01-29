@@ -8,7 +8,7 @@ export interface TabsItem {
   disabled?: boolean
 }
 
-export interface TabsProps {
+interface TabsProps {
   items: TabsItem[]
   className?: string
   handleTabChange?: (tabName: string) => void

@@ -1,5 +1,4 @@
 import { ReactElement } from 'react'
-import Button from '@shared/atoms/Button'
 import styles from './index.module.css'
 import useNetworkMetadata, {
   getNetworkDataById,

@@ -77,7 +77,7 @@ export default function FormConsumerParameters({
         })}
       >
         {parameters.map((param) => {
-          const { default: paramDefault, ...rest } = param
+          const { default: _paramDefault, ...rest } = param
 
           return 'name' in param && typeof param.name === 'string' ? (
             <div key={param.name} className={styles.parameter}>

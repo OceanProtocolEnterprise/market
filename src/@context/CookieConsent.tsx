@@ -16,7 +16,7 @@ export enum CookieConsentStatus {
   REJECTED = 1
 }
 
-export interface ConsentStatus {
+interface ConsentStatus {
   [name: string]: CookieConsentStatus
 }
 
@@ -137,5 +137,5 @@ function ConsentProvider({ children }: { children: ReactNode }): ReactElement {
 
 const useConsent = (): ConsentProviderValue => useContext(ConsentContext)
 
-export { ConsentProvider, useConsent, ConsentContext }
+export { useConsent }
 export default ConsentProvider

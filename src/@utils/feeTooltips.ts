@@ -1,4 +1,4 @@
-export const feeTooltipText = {
+const feeTooltipText = {
   marketplace: 'For marketplace operation & maintenance',
   provider: 'For Ocean Node operator(s)',
   oec: 'For Ocean Enterprise Collective e.V. maintaining and developing the OE basecode'

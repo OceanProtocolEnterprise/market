@@ -56,7 +56,7 @@ export default function EditService({
   const { address: accountId } = useAccount()
   const chainId = useChainId()
   const walletClient = useEthersSigner()
-  const publicClient = usePublicClient()
+  const _publicClient = usePublicClient()
   const newCancelToken = useCancelToken()
   const ssiWalletContext = useSsiWallet()
 
@@ -320,7 +320,6 @@ export default function EditService({
             />
 
             <Web3Feedback
-              networkId={asset?.credentialSubject?.chainId}
               accountId={accountId}
               isAssetNetwork={isAssetNetwork}
             />

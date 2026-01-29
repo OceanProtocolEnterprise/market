@@ -18,7 +18,7 @@ export function sortAssets(items: Asset[], sorted: string[]) {
   return items
 }
 
-export const isPlainObject = (object: any) => {
+const isPlainObject = (object: any) => {
   return object !== null && typeof object === 'object' && !Array.isArray(object)
 }
 

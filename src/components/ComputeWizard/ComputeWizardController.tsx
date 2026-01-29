@@ -33,7 +33,6 @@ import { useUserPreferences } from '@context/UserPreferences'
 import { useSsiWallet } from '@context/SsiWallet'
 import { secondsToString } from '@utils/ddo'
 import {
-  getAlgorithmAssetSelectionList,
   getAlgorithmAssetSelectionListForComputeWizard,
   getAlgorithmsForAsset
 } from '@utils/compute'
@@ -171,7 +170,6 @@ export default function ComputeWizardController({
   } = useComputeJobs({
     asset,
     service,
-    accountId,
     ownerAddress: address,
     chainIds,
     cancelTokenFactory: newCancelToken
@@ -844,7 +842,7 @@ export default function ComputeWizardController({
         const selectedAlgoAssetForDisplay = isAlgorithmFlow
           ? asset
           : selectedAlgorithmAsset
-        const algorithmAssetChainId =
+        const _algorithmAssetChainId =
           selectedAlgoAssetForDisplay?.credentialSubject?.chainId
         const algorithmSymbol =
           selectedAlgoAssetForDisplay?.accessDetails?.[svcIndex]?.baseToken
@@ -952,10 +950,8 @@ export default function ComputeWizardController({
 
                 {!showSuccess && (
                   <WizardActions
-                    submitButtonText="Buy Compute Job"
                     rightAlignFirstStep={false}
                     isContinueDisabled={isContinueDisabled}
-                    isSubmitDisabled={isComputeButtonDisabled}
                     action="compute"
                     disabled={
                       isComputeButtonDisabled ||
@@ -978,7 +974,6 @@ export default function ComputeWizardController({
                     selectedComputeAssetType="algorithm"
                     stepText={computeStatusText}
                     isLoading={isOrdering || isSubmittingJob}
-                    type="submit"
                     priceType={accessDetails.type}
                     algorithmPriceType={asset?.accessDetails?.[0]?.type}
                     isBalanceSufficient={isBalanceSufficient}

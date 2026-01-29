@@ -12,7 +12,6 @@ import {
   Provider,
   Wallet
 } from 'ethers'
-import { getNetworkDisplayName } from '@hooks/useNetworkMetadata'
 import { getOceanConfig } from '../ocean'
 import { getSupportedChains } from './chains'
 import { chainIdsSupported } from '../../../app.config.cjs'
@@ -46,30 +45,6 @@ function getWagmiChains(): readonly [Chain, ...Chain[]] {
   }
 
   return baseChains as unknown as readonly [Chain, ...Chain[]]
-}
-
-/* -----------------------------------------
-   WAGMI CLIENT — SSR SAFE LAZY INITIALIZER
------------------------------------------- */
-const client: any = null
-
-export function getWagmiClient() {
-  if (client) return client
-  if (typeof window === 'undefined') return null
-  const chains = getWagmiChains()
-
-  return createConfig({
-    chains,
-    ssr: true,
-    storage: createStorage({ storage: cookieStorage }),
-    transports: chains.reduce(
-      (acc, chain) => ({
-        ...acc,
-        [chain.id]: http()
-      }),
-      {} as Record<number, ReturnType<typeof http>>
-    )
-  })
 }
 
 export const wagmiConfig = (() => {
@@ -148,61 +123,6 @@ export async function addTokenToWallet(
         )
       }
     }
-  )
-}
-
-export async function addCustomNetwork(
-  web3Provider: any,
-  network: EthereumListsChain
-): Promise<void> {
-  // Always add explorer URL from ocean.js first, as it's null sometimes
-  // in network data
-  const blockExplorerUrls = [
-    getOceanConfig(network.networkId).explorerUri,
-    network.explorers && network.explorers[0].url
-  ]
-
-  const newNetworkData = {
-    chainId: `0x${network.chainId.toString(16)}`,
-    chainName: getNetworkDisplayName(network),
-    nativeCurrency: network.nativeCurrency,
-    rpcUrls: network.rpc,
-    blockExplorerUrls
-  }
-  try {
-    await web3Provider.request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: newNetworkData.chainId }]
-    })
-  } catch (switchError: any) {
-    if (switchError.code === 4902) {
-      await web3Provider.request(
-        {
-          method: 'wallet_addEthereumChain',
-          params: [newNetworkData]
-        },
-        (err: string, added: any) => {
-          if (err || 'error' in added) {
-            LoggerInstance.error(
-              `Couldn't add ${network.name} (0x${
-                network.chainId
-              }) network to MetaMask, error: ${err || added.error}`
-            )
-          } else {
-            LoggerInstance.log(
-              `Added ${network.name} (0x${network.chainId}) network to MetaMask`
-            )
-          }
-        }
-      )
-    } else {
-      LoggerInstance.error(
-        `Couldn't add ${network.name} (0x${network.chainId}) network to MetaMask, error: ${switchError}`
-      )
-    }
-  }
-  LoggerInstance.log(
-    `Added ${network.name} (0x${network.chainId}) network to MetaMask`
   )
 }
 

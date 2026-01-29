@@ -111,7 +111,7 @@ const InputElement = forwardRef(
             : (options as string[]).sort((a: string, b: string) =>
                 a.localeCompare(b)
               )
-        const { type, ...rest } = props
+        const { type: _type, ...rest } = props
         return (
           <select
             {...rest}
@@ -191,7 +191,7 @@ const InputElement = forwardRef(
         return <PublishConsumerParameters {...field} form={form} {...props} />
 
       case 'textarea': {
-        const { type, ...rest } = props
+        const { type: _type, ...rest } = props
         return (
           <textarea {...rest} id={props.name} className={styles.textarea} />
         )

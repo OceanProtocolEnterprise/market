@@ -1,13 +1,12 @@
 import axios from 'axios'
 import {
   SsiKeyDesc,
-  SsiWalletIssuer,
   SsiVerifiableCredential,
   SsiWalletDesc,
   SsiWalletSession,
   SsiWalletDid
 } from 'src/@types/SsiWallet'
-import { Signer, JsonRpcSigner } from 'ethers'
+import { JsonRpcSigner } from 'ethers'
 import { ssiWalletApi } from 'app.config.cjs'
 import { LoggerInstance } from '@oceanprotocol/lib'
 
@@ -141,32 +140,6 @@ export async function getWalletKeys(
   }
 }
 
-export async function getWalletKey(
-  walletId: string,
-  keyId: string,
-  token: string
-) {
-  const api = getSsiWalletApi()
-  if (!api) {
-    throw new Error('No SSI Wallet API configured')
-  }
-  try {
-    const response = await axios.get(
-      `${api}/wallet-api/wallet/${walletId}/keys/${keyId}/load`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        withCredentials: true
-      }
-    )
-
-    return response.data
-  } catch (error) {
-    throw error.response
-  }
-}
-
 export async function signMessage(
   walletId: string,
   keyId: string,
@@ -181,31 +154,6 @@ export async function signMessage(
     const response = await axios.post(
       `${api}/wallet-api/wallet/${walletId}/keys/${keyId}/sign`,
       message,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        withCredentials: true
-      }
-    )
-
-    return response.data
-  } catch (error) {
-    throw error.response
-  }
-}
-
-export async function getWalletIssuers(
-  walletId: string,
-  token: string
-): Promise<SsiWalletIssuer[]> {
-  const api = getSsiWalletApi()
-  if (!api) {
-    throw new Error('No SSI Wallet API configured')
-  }
-  try {
-    const response = await axios.get(
-      `${api}/wallet-api/wallet/${walletId}/issuers`,
       {
         headers: {
           Authorization: `Bearer ${token}`

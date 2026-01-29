@@ -7,7 +7,7 @@ import { Signer } from 'ethers'
 
 type ComputeMode = 'dataset' | 'algorithm'
 
-export interface ComputeWizardProps {
+interface ComputeWizardProps {
   accountId: string
   signer: Signer
   asset: AssetExtended

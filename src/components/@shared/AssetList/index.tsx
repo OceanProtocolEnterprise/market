@@ -1,5 +1,5 @@
 import AssetTeaser from '@shared/AssetTeaser'
-import { ReactElement, useState } from 'react'
+import { ReactElement } from 'react'
 import Pagination from '@shared/Pagination'
 import styles from './index.module.css'
 import AssetTitle from '@shared/AssetListTitle'
@@ -82,7 +82,7 @@ const columns: TableOceanColumn<AssetExtended>[] = [
   }
 ]
 
-export declare type AssetListProps = {
+declare type AssetListProps = {
   assets: AssetExtended[]
   showPagination: boolean
   page?: number
@@ -108,12 +108,9 @@ export default function AssetList({
   noPublisher,
   noDescription,
   noPrice,
-  showAssetViewSelector,
   defaultAssetView
 }: AssetListProps): ReactElement {
-  const [activeAssetView, setActiveAssetView] = useState<AssetViewOptions>(
-    defaultAssetView || AssetViewOptions.Grid
-  )
+  const activeAssetView = defaultAssetView || AssetViewOptions.Grid
 
   // This changes the page field inside the query
   function handlePageChange(selected: number) {

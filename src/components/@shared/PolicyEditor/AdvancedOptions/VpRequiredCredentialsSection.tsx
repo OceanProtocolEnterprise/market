@@ -1,4 +1,3 @@
-import React from 'react'
 import styles from './Advanced.module.css'
 import Tooltip from '@shared/atoms/Tooltip'
 import Markdown from '@shared/Markdown'

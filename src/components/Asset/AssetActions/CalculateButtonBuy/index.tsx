@@ -3,7 +3,7 @@ import Button from '../../../@shared/atoms/Button'
 import styles from './index.module.css'
 import Loader from '../../../@shared/atoms/Loader'
 
-export interface CalculateButtonBuyProps {
+interface CalculateButtonBuyProps {
   isLoading?: boolean
   onClick?: (e: FormEvent<HTMLButtonElement>) => void
   stepText?: string

@@ -19,8 +19,6 @@ export default function MethodInput({
   handleButtonClick,
   isLoading,
   name,
-  checkUrl,
-  storageType,
   disabled = false,
   ...props
 }: MethodInputProps): ReactElement {

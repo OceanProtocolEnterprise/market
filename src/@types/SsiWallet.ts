@@ -34,13 +34,6 @@ export interface SsiVerifiableCredential {
   }
 }
 
-export interface SsiWalletIssuer {
-  wallet: string
-  did: string
-  description: string
-  uiEndpoint: string
-}
-
 export interface SsiWalletDid {
   alias: string
   did: string

@@ -51,20 +51,6 @@ export interface AssetNft {
   tokenURI: string
 }
 
-export interface Purgatory {
-  /**
-   * If `true`, asset is in purgatory.
-   * @type {boolean}
-   */
-  state: boolean
-
-  /**
-   * If asset is in purgatory, contains the reason for being there as defined in `list-purgatory`.
-   * @type {string}
-   */
-  reason: string
-}
-
 export interface AssetDatatoken {
   /**
    * Contract address of the deployed Datatoken contract.
@@ -109,34 +95,6 @@ export interface AssetPrice {
    * @type {string}
    */
   tokenAddress?: string
-}
-
-export interface Stats {
-  /**
-   * How often an asset was consumed, meaning how often it was either downloaded or used as part of a compute job.
-   * @type {number}
-   */
-  orders: number
-
-  /**
-   * Contains information about the price of this asset.
-   * @type {AssetPrice}
-   */
-  price: AssetPrice
-
-  /**
-   * Total amount of veOCEAN allocated on this asset.
-   * @type {number}
-   */
-  allocated?: number
-}
-
-export interface AssetLastEvent {
-  tx: string
-  block: number
-  from: string
-  contract: string
-  datetime: string
 }
 
 export interface Asset extends Credential {

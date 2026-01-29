@@ -10,7 +10,7 @@ import AddParam from '@images/add_param.svg'
 import BinIcon from '@images/bin.svg'
 import Button from '../../../atoms/Button'
 
-export const defaultConsumerParam: FormConsumerParameter = {
+const defaultConsumerParam: FormConsumerParameter = {
   name: '',
   label: '',
   description: '',
@@ -20,7 +20,7 @@ export const defaultConsumerParam: FormConsumerParameter = {
   required: 'optional'
 }
 
-export const paramTypes: FormConsumerParameter['type'][] = [
+const paramTypes: FormConsumerParameter['type'][] = [
   'number',
   'text',
   'boolean',
@@ -28,7 +28,7 @@ export const paramTypes: FormConsumerParameter['type'][] = [
 ]
 
 export function PublishConsumerParameters(props: InputProps): ReactElement {
-  const [field, meta, helpers] = useField<FormConsumerParameter[]>(props.name)
+  const [field, , helpers] = useField<FormConsumerParameter[]>(props.name)
   const [currentIndex, setCurrentIndex] = useState(0)
 
   useEffect(() => {

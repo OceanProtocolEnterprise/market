@@ -13,17 +13,11 @@ import { LoggerInstance } from '@oceanprotocol/lib'
 import { getOceanConfig } from '@utils/ocean'
 import { useChainId } from 'wagmi'
 
-let urqlClient: Client
-
 function createUrqlClient(subgraphUri: string) {
   return createClient({
     url: `${subgraphUri}/subgraphs/name/oceanprotocol/ocean-subgraph`,
     exchanges: [dedupExchange, refocusExchange(), fetchExchange]
   })
-}
-
-export function getUrqlClientInstance(): Client {
-  return urqlClient
 }
 
 export default function UrqlClientProvider({
@@ -48,11 +42,8 @@ export default function UrqlClientProvider({
     }
 
     const newClient = createUrqlClient(oceanConfig.nodeUri)
-    urqlClient = newClient
     setClient(newClient)
   }, [chainId]) // re-run when chain changes
 
   return client ? <Provider value={client}>{children}</Provider> : <></>
 }
-
-export { UrqlClientProvider }

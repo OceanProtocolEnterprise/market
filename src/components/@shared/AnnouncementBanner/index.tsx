@@ -6,13 +6,13 @@ import styles from './index.module.css'
 
 const cx = classNames.bind(styles)
 
-export interface AnnouncementAction {
+interface AnnouncementAction {
   name: string
   style?: string
   handleAction: () => void
 }
 
-export interface AnnouncementBannerProps {
+interface AnnouncementBannerProps {
   text: string
   action?: AnnouncementAction
   state?: 'success' | 'warning' | 'error'

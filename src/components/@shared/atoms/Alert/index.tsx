@@ -7,7 +7,7 @@ import WarningSVG from '@images/warning.svg'
 
 const cx = classNames.bind(styles)
 
-export interface AlertProps {
+interface AlertProps {
   children?: ReactNode
   title?: string
   subtitle?: string

@@ -62,9 +62,9 @@ export function AssetActionCheckCredentialsAlgo({
     setShowVpDialog,
     showDidDialog,
     setShowDidDialog,
-    credentialError,
+    credentialError: _credentialError,
     setCredentialError,
-    isCheckingCredentials,
+    isCheckingCredentials: _isCheckingCredentials,
     setIsCheckingCredentials,
     autoStart
   } = useCredentialDialog()

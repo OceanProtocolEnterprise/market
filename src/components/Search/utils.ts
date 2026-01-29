@@ -30,7 +30,7 @@ export function updateQueryStringParameter(
   }
 }
 
-export function getSearchQuery(
+function getSearchQuery(
   chainIds: number[],
   text?: string,
   owner?: string,

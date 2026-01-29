@@ -24,7 +24,6 @@ export default function SearchPage({
   const [queryResult, setQueryResult] = useState<PagedAssets>()
   const [loading, setLoading] = useState<boolean>(true)
   const newCancelToken = useCancelToken()
-  const isSearchPage = true
 
   useEffect(() => {
     const parsed = queryString.parse(location.search, {
@@ -84,10 +83,7 @@ export default function SearchPage({
       </div>
       <div className={styles.results}>
         <div className={styles.searchContainer}>
-          <SearchBar
-            placeholder="Search for service offerings"
-            isSearchPage={isSearchPage}
-          />
+          <SearchBar placeholder="Search for service offerings" />
         </div>
         <AssetList
           assets={queryResult?.results}

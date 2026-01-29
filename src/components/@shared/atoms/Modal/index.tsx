@@ -4,7 +4,7 @@ import styles from './index.module.css'
 
 if (process.env.NODE_ENV !== 'test') ReactModal.setAppElement('#__next')
 
-export interface ModalProps extends ReactModal.Props {
+interface ModalProps extends ReactModal.Props {
   title: string
   onToggleModal: () => void
   children: ReactNode

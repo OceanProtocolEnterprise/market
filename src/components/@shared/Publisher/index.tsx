@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { accountTruncate } from '@utils/wallet'
 import { useIsMounted } from '@hooks/useIsMounted'
 
-export interface PublisherProps {
+interface PublisherProps {
   account: string
   minimal?: boolean
   verifiedServiceProviderName?: string

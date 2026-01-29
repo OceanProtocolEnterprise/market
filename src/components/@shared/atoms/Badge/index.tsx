@@ -4,7 +4,7 @@ import classNames from 'classnames/bind'
 
 const cx = classNames.bind(styles)
 
-export interface BadgeProps {
+interface BadgeProps {
   label: string | ReactNode
   className?: string
 }

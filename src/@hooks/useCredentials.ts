@@ -20,7 +20,7 @@ export interface ExchangeStateData {
   poliyServerData: any
 }
 
-export function newExchangeStateData(): ExchangeStateData {
+function newExchangeStateData(): ExchangeStateData {
   return {
     openid4vp: '',
     verifiableCredentials: [],

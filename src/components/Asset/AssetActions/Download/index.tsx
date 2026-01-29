@@ -89,7 +89,7 @@ export default function Download({
   const { balance } = useBalance()
   const chainId = useChainId()
   const [licenseLink, setLicenseLink] = useState('')
-  const [isDisabled, setIsDisabled] = useState(true)
+  const [, setIsDisabled] = useState(true)
   const [hasDatatoken, setHasDatatoken] = useState(false)
   const [statusText, setStatusText] = useState('')
   const [isLoading, setIsLoading] = useState(false)

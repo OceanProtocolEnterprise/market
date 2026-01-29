@@ -23,7 +23,7 @@ export default function FormActions({
 }): ReactElement {
   const { errors, setFieldTouched, validateField } =
     useFormikContext<FormPublishData>()
-  const [field, meta, helpers] = useField<FormConsumerParameter[]>(fieldName)
+  const [field, , helpers] = useField<FormConsumerParameter[]>(fieldName)
 
   // Safety check to ensure field.value is an array
   const parameters = field.value || []

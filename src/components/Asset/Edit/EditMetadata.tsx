@@ -241,7 +241,6 @@ export default function Edit({
             <FormEditMetadata />
 
             <Web3Feedback
-              networkId={asset?.credentialSubject?.chainId}
               accountId={accountId}
               isAssetNetwork={isAssetNetwork}
             />

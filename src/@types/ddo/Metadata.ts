@@ -3,7 +3,7 @@ import { License } from './License'
 import { RemoteObject } from './RemoteObject'
 import { Option } from './Option'
 
-export interface Container {
+interface Container {
   entrypoint: string
   image: string
   tag: string
@@ -36,17 +36,4 @@ export interface Metadata {
   additionalInformation?: Record<string, string | number | boolean>
   // Required if asset type is algorithm
   algorithm?: Algorithm
-}
-
-export interface MetadataProof {
-  validatorAddress?: string
-  r?: string
-  s?: string
-  v?: number
-}
-export interface ValidateMetadata {
-  valid: boolean
-  errors?: any
-  hash?: string
-  proof?: MetadataProof
 }

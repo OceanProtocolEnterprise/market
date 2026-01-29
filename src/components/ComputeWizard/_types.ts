@@ -122,14 +122,3 @@ export interface StepContent {
   title: string
   component: ReactElement
 }
-
-export interface ComputeFeedback {
-  [key: string]: {
-    name: string
-    description: string
-    status: 'success' | 'error' | 'pending' | 'active' | string
-    txCount: number
-    errorMessage?: string
-    txHash?: string
-  }
-}
