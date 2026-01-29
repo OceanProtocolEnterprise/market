@@ -119,6 +119,11 @@ export function useComputeInitialization({
   const [algorithmProviderFee, setAlgorithmProviderFee] = useState<
     string | null
   >(null)
+  const [datasetProviderFees, setDatasetProviderFees] = useState<
+    ProviderFees[]
+  >([])
+  const [algorithmProviderFees, setAlgorithmProviderFees] =
+    useState<ProviderFees | null>(null)
   const [extraFeesLoaded, setExtraFeesLoaded] = useState(false)
   const [isInitLoading, setIsInitLoading] = useState(false)
   const [initError, setInitError] = useState<string>()
@@ -153,6 +158,7 @@ export function useComputeInitialization({
           algoIndex,
           algoParams,
           datasetParams
+          // oceanTokenAddress
         )
 
         if (!initializedProvider) {
@@ -224,7 +230,7 @@ export function useComputeInitialization({
               if (allowanceNow >= amountWei) {
                 break
               }
-              await new Promise((resolve) => setTimeout(resolve, 1000))
+              await new Promise((resolve) => setTimeout(resolve, 2000))
             }
 
             const depositTx = await escrow.deposit(
@@ -254,18 +260,27 @@ export function useComputeInitialization({
         setAlgorithmProviderFee(
           initializedProvider?.algorithm?.providerFee?.providerFeeAmount || '0'
         )
+        setAlgorithmProviderFees(
+          initializedProvider?.algorithm?.providerFee || null
+        )
 
-        const datasetFees =
+        const datasetFeeAmounts =
           initializedProvider?.datasets?.map(
             (ds) => ds?.providerFee?.providerFeeAmount || null
           ) || []
         const totalDatasetFee =
-          datasetFees.length > 0 && datasetFees.some((f) => f !== null)
-            ? datasetFees.reduce((acc, fee) => acc + Number(fee || 0), 0)
+          datasetFeeAmounts.length > 0 &&
+          datasetFeeAmounts.some((f) => f !== null)
+            ? datasetFeeAmounts.reduce((acc, fee) => acc + Number(fee || 0), 0)
             : null
 
         setDatasetProviderFee(
           totalDatasetFee !== null ? totalDatasetFee.toString() : '0'
+        )
+        setDatasetProviderFees(
+          (initializedProvider?.datasets
+            ?.map((ds) => ds?.providerFee)
+            .filter(Boolean) as ProviderFees[]) || []
         )
         setInitializedProviderResponse(initializedProvider)
         setExtraFeesLoaded(true)
@@ -292,6 +307,8 @@ export function useComputeInitialization({
     initializedProviderResponse,
     datasetProviderFee,
     algorithmProviderFee,
+    datasetProviderFees,
+    algorithmProviderFees,
     extraFeesLoaded,
     isInitLoading,
     initError,

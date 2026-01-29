@@ -8,6 +8,7 @@ import NetworkName from '@shared/NetworkName'
 import External from '@images/external.svg'
 import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelection'
 import { AssetExtended } from 'src/@types/AssetExtended'
+import Link from 'next/link'
 
 export interface DatasetSelectionDataset extends AssetSelectionAsset {
   checked: boolean
@@ -94,7 +95,7 @@ export default function DatasetSelection({
                       <div className={styles.envId}>
                         {truncateDid(dataset.did)}
                         {dataset.did && (
-                          <a
+                          <Link
                             href={`/asset/${encodeURIComponent(dataset.did)}`}
                             target="_blank"
                             rel="noreferrer"
@@ -102,7 +103,7 @@ export default function DatasetSelection({
                             onClick={(e) => e.stopPropagation()}
                           >
                             <External />
-                          </a>
+                          </Link>
                         )}
                       </div>
                       {dataset.tokenSymbol && (

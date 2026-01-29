@@ -13,6 +13,7 @@ import { AssetExtended } from 'src/@types/AssetExtended'
 import { ComputeFlow, FormComputeData } from '../_types'
 import styles from './index.module.css'
 import LoaderOverlay from '../LoaderOverlay'
+import { useMarketMetadata } from '@context/MarketMetadata'
 
 type DatasetService = {
   serviceId: string
@@ -32,6 +33,7 @@ type DatasetItem = {
   did: string
   name: string
   symbol?: string
+  tokenSymbol?: string
   description?: string
   datasetPrice: number
   expanded?: boolean
@@ -90,6 +92,7 @@ function transformDatasets(
   selectedIds: string[] = []
 ): DatasetItem[] {
   const grouped: Record<string, DatasetItem> = {}
+  const tokenSymbolSets: Record<string, Set<string>> = {}
 
   for (const ds of datasets) {
     const identifier = ds.did || ds.id
@@ -99,12 +102,17 @@ function transformDatasets(
         did: identifier,
         name: ds.name,
         symbol: ds.symbol,
+        tokenSymbol: '',
         description: ds.description,
         datasetPrice: 0,
         expanded: selectedIds.includes(identifier),
         checked: selectedIds.includes(identifier),
         services: []
       }
+    }
+
+    if (!tokenSymbolSets[identifier]) {
+      tokenSymbolSets[identifier] = new Set<string>()
     }
 
     const priceValue =
@@ -118,18 +126,30 @@ function transformDatasets(
         0) as DatasetService['serviceDuration'],
       serviceType: ds.serviceType,
       price: priceValue,
-      tokenSymbol: ds.tokenSymbol,
+      tokenSymbol: ds.tokenSymbol || ds.symbol,
       checked: ds.checked,
       isAccountIdWhitelisted: ds.isAccountIdWhitelisted,
       datetime: ds.datetime,
       userParameters: ds.userParameters ?? []
     }
 
+    if (service.tokenSymbol) {
+      tokenSymbolSets[identifier].add(service.tokenSymbol)
+    }
+
     grouped[identifier].services.push(service)
     grouped[identifier].datasetPrice += priceValue
   }
 
-  return Object.values(grouped)
+  return Object.values(grouped).map((dataset) => {
+    const tokens = tokenSymbolSets[dataset.did]
+      ? Array.from(tokenSymbolSets[dataset.did])
+      : []
+    return {
+      ...dataset,
+      tokenSymbol: tokens.length > 0 ? tokens.join(' & ') : dataset.tokenSymbol
+    }
+  })
 }
 
 export default function SelectPrimaryAsset({
@@ -142,9 +162,18 @@ export default function SelectPrimaryAsset({
   const isDatasetFlow = flow === 'dataset'
   const { address: accountId } = useAccount()
   const { values, setFieldValue } = useFormikContext<FormComputeData>()
+  const { approvedBaseTokens } = useMarketMetadata()
   const newCancelToken = useCancelToken()
   const [datasetsForCompute, setDatasetsForCompute] = useState<DatasetItem[]>()
   const [isLoadingDatasets, setIsLoadingDatasets] = useState(false)
+  const tokenSymbolMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    approvedBaseTokens?.forEach((token) => {
+      if (!token?.address || !token?.symbol) return
+      map[token.address.toLowerCase()] = token.symbol
+    })
+    return map
+  }, [approvedBaseTokens])
 
   const selectedDatasetIds = useMemo(() => {
     const ids =
@@ -187,7 +216,8 @@ export default function SelectPrimaryAsset({
           service.serviceEndpoint,
           accountId,
           asset.credentialSubject?.chainId,
-          newCancelToken()
+          newCancelToken(),
+          tokenSymbolMap
         )
         const datasetsRaw = (datasets as unknown as RawDatasetEntry[]) ?? []
         const groupedDatasets = transformDatasets(
@@ -205,7 +235,15 @@ export default function SelectPrimaryAsset({
 
     getDatasetsAllowedForCompute()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDatasetFlow, accessDetails, accountId, asset, newCancelToken, service])
+  }, [
+    isDatasetFlow,
+    accessDetails,
+    accountId,
+    asset,
+    newCancelToken,
+    service,
+    tokenSymbolMap
+  ])
 
   const handleDatasetSelect = (did: string) => {
     if (isDatasetFlow) return
@@ -285,7 +323,7 @@ export default function SelectPrimaryAsset({
         serviceDescription: algo.serviceDescription,
         serviceId: algo.serviceId,
         serviceName: algo.serviceName,
-        tokenSymbol: algo.tokenSymbol || algo.symbol,
+        tokenSymbol: '',
         symbol: algo.symbol || '',
         price: Number(algo.price ?? 0),
         serviceType: algo.serviceType,
@@ -312,7 +350,7 @@ export default function SelectPrimaryAsset({
           serviceDescription: svc?.serviceDescription,
           serviceId: svc?.serviceId || '',
           serviceName: svc?.serviceName || '',
-          tokenSymbol: svc?.tokenSymbol || ds.symbol || '',
+          tokenSymbol: '',
           symbol: ds.symbol || '',
           price: Number(svc?.price ?? 0),
           serviceType: svc?.serviceType,

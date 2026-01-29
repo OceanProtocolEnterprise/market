@@ -369,7 +369,10 @@ export function generateCredentials(
     match_deny: 'any'
   }
 
-  if (appConfig.ssiEnabled) {
+  const ssiEnabledForCredentials =
+    appConfig.ssiEnabled && updatedCredentials?.enabled !== false
+
+  if (ssiEnabledForCredentials) {
     const requestCredentials: RequestCredential[] =
       updatedCredentials?.requestCredentials?.map<RequestCredential>(
         (credential) => {
@@ -896,10 +899,10 @@ export async function createTokensAndPricing(
   switch (values.pricing.type) {
     case 'fixed': {
       const baseTokenAddress =
-        config.oceanTokenAddress ?? values.pricing.baseToken.address
+        values.pricing.baseToken.address ?? config.oceanTokenAddress
       const signer = await getDummySigner(values.user.chainId)
       const { provider } = signer
-      const tokenInfo = await getTokenInfo(config.oceanTokenAddress, provider)
+      const tokenInfo = await getTokenInfo(baseTokenAddress, provider)
       const baseTokenDecimals = tokenInfo?.decimals || 18
 
       const freParams: FreCreationParams = {

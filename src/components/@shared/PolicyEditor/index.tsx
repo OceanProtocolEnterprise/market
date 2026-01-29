@@ -180,19 +180,21 @@ export function PolicyEditor(props): ReactElement {
   })
   const [hasUserSetEnabled, setHasUserSetEnabled] = useState(false)
 
-  const [defaultPolicyStates, setDefaultPolicyStates] = useState(() => {
-    const currentVcPolicies = credentials.vcPolicies || []
-    // Initialize all policies as unchecked
-    const initialState = {
-      'not-before': currentVcPolicies.includes('not-before'),
-      expired: currentVcPolicies.includes('expired'),
-      'revoked-status-list': currentVcPolicies.includes('revoked-status-list'),
-      signature: currentVcPolicies.includes('signature'),
-      'signature_sd-jwt-vc': currentVcPolicies.includes('signature_sd-jwt-vc')
-    }
-
-    return initialState
-  })
+  const buildDefaultPolicyState = (
+    policies: string[],
+    selected: string[]
+  ): Record<string, boolean> => {
+    const selectedSet = new Set(selected)
+    return policies.reduce((acc, policy) => {
+      acc[policy] = selectedSet.has(policy)
+      return acc
+    }, {} as Record<string, boolean>)
+  }
+  const [defaultPolicyStates, setDefaultPolicyStates] = useState<
+    Record<string, boolean>
+  >(() =>
+    buildDefaultPolicyState(defaultPolicies, credentials.vcPolicies || [])
+  )
 
   // Update checkbox states when credentials change (e.g., when navigating between steps)
   useEffect(() => {
@@ -626,11 +628,18 @@ export function PolicyEditor(props): ReactElement {
   }, [vpRequiredCredentials])
 
   useEffect(() => {
-    if (!enabled) return
+    if (!defaultPolicies.length) return
+    setDefaultPolicyStates((prev) => {
+      const next = buildDefaultPolicyState(
+        defaultPolicies,
+        credentials.vcPolicies || []
+      )
+      return JSON.stringify(prev) === JSON.stringify(next) ? prev : next
+    })
+  }, [defaultPolicies, credentials.vcPolicies])
 
-    const hasCompletedCredentials = credentials.requestCredentials?.some(
-      (cred) => cred.type?.trim() && cred.format?.trim()
-    )
+  useEffect(() => {
+    if (!enabled) return
 
     const selectedPolicies = Object.entries(defaultPolicyStates)
       .filter(([_, isSelected]) => isSelected)
@@ -638,26 +647,13 @@ export function PolicyEditor(props): ReactElement {
 
     const currentVcPolicies = credentials.vcPolicies || []
 
-    if (!hasCompletedCredentials) {
-      if (currentVcPolicies.length > 0) {
-        setCredentials({ ...credentials, vcPolicies: [] })
-      }
-      return
-    }
-
     if (
       JSON.stringify(selectedPolicies.sort()) !==
       JSON.stringify(currentVcPolicies.sort())
     ) {
       setCredentials({ ...credentials, vcPolicies: selectedPolicies })
     }
-  }, [
-    defaultPolicyStates,
-    enabled,
-    credentials.requestCredentials,
-    credentials.vcPolicies,
-    setCredentials
-  ])
+  }, [defaultPolicyStates, enabled, credentials.vcPolicies, setCredentials])
 
   const ssiContent = enabled && (
     <>

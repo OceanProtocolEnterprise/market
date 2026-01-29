@@ -18,26 +18,8 @@ export default function SSIPoliciesSection({
   const [enabled, setEnabled] = useState(false)
 
   useEffect(() => {
-    const hasCurrentPolicies =
-      values.credentials?.requestCredentials?.length > 0 ||
-      values.credentials?.vcPolicies?.length > 0 ||
-      values.credentials?.vpPolicies?.length > 0
-
-    const isManuallyEnabled = values.credentials?.enabled === true
-
-    if (hasCurrentPolicies && !isManuallyEnabled) {
-      setEnabled(true)
-    } else if (isManuallyEnabled) {
-      setEnabled(true)
-    } else {
-      setEnabled(false)
-    }
-  }, [
-    values.credentials?.requestCredentials,
-    values.credentials?.vcPolicies,
-    values.credentials?.vpPolicies,
-    values.credentials?.enabled
-  ])
+    setEnabled(values.credentials?.enabled === true)
+  }, [values.credentials?.enabled])
 
   const handleToggleSSI = () => {
     const newEnabled = !enabled

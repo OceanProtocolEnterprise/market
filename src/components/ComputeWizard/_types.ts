@@ -114,6 +114,7 @@ export interface FormComputeData {
   totalPrice?: string
   escrowFunds: string
   jobPrice: string
+  baseToken?: string | null
 }
 
 export interface StepContent {

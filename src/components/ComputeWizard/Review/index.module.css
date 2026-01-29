@@ -133,12 +133,20 @@
 .pricingRow {
   display: flex;
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: center;
   min-height: 38px;
 }
 
 .itemInfo {
   flex: 1;
+}
+
+.pricingRowLeader .itemInfo {
+  flex: 0 1 auto;
+}
+
+.pricingRowLeader .dotLeader {
+  flex: 1 1 auto;
 }
 
 .priceInfo {
@@ -163,14 +171,93 @@
   font-size: 16px;
   font-weight: 600;
   line-height: 117%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 6px;
 }
 
 .priceNumber {
   color: var(--publish-text);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
 .priceSymbol {
   color: var(--clr-teal);
+}
+
+.pricePairWrap {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.pricePair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: clamp(7.5rem, 28vw, 9.5rem);
+  column-gap: 6px;
+}
+
+.pricePairNumber {
+  text-align: right;
+}
+
+.pricePairSymbol {
+  text-align: left;
+}
+
+.priceSeparator {
+  color: var(--publish-text);
+}
+
+.priceSkeleton {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: clamp(7.5rem, 28vw, 9.5rem);
+  column-gap: 6px;
+  align-items: center;
+}
+
+.skeletonBox {
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.08) 25%,
+    rgba(0, 0, 0, 0.15) 37%,
+    rgba(0, 0, 0, 0.08) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.skeletonValue {
+  width: 4.5rem;
+  justify-self: end;
+}
+
+.skeletonSymbol {
+  width: 2.5rem;
+  justify-self: start;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.dotLeader {
+  flex: 1;
+  align-self: center;
+  border-bottom: 1px dotted var(--border-color-light, #e6e6e6);
+  margin: 0 12px;
 }
 
 .duration {
@@ -180,9 +267,9 @@
 
 .totalSection {
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
+  flex-direction: column;
   gap: var(--sp-2);
+  align-items: flex-end;
   padding: var(--sp-4) 0;
   margin-top: 1rem;
   border-top: 2px solid #f0f0f0;
@@ -192,17 +279,36 @@
 .totalLabel {
   font-weight: 700;
   color: var(--publish-text);
+  display: block;
 }
 
-.totalValue {
+.totalRows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+  width: fit-content;
+}
+
+.currencySplitRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  align-items: baseline;
+  column-gap: 8px;
+}
+
+.currencySplitValue {
+  text-align: left;
   font-weight: 700;
-}
-
-.totalValueNumber {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
   color: var(--publish-text);
 }
 
-.totalValueSymbol {
+.currencySplitSymbol {
+  text-align: left;
+  font-weight: 700;
   color: var(--clr-teal);
 }
 
@@ -400,13 +506,6 @@
   margin-top: 1rem;
 }
 
-.c2dHeading {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: var(--text-primary, #222);
-}
-
 .c2dList,
 .c2dBox {
   border: 1px solid var(--border-color, #e1e4e8);
@@ -429,11 +528,74 @@
   margin-top: 1rem;
 }
 
-.marketFeesHeading {
+.sectionHeading {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
   color: var(--text-primary, #222);
+}
+
+.sectionSummary {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 0.9rem;
+  color: var(--publish-text);
+}
+
+.sectionSummaryItem {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.sectionSummaryValue {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.sectionSummarySymbol {
+  font-weight: 600;
+  color: var(--clr-teal);
+}
+
+.sectionSummarySeparator {
+  color: var(--publish-text);
+  margin: 0 2px;
+}
+
+.sectionSummaryEmpty {
+  font-size: 0.9rem;
+  color: var(--publish-text-secondary);
+}
+
+.listRow {
+  padding: 6px 4px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.listRow:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.currencyGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--publish-text-secondary);
+  margin-top: 6px;
+}
+
+.currencyGroupDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--clr-teal);
 }
 
 .marketFeesList,

@@ -68,3 +68,38 @@
     width: 1480px;
   }
 }
+
+.selectorColumn {
+  margin-top: var(--spacer);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: calc(var(--spacer) / 4);
+}
+
+.tokenSelect {
+  width: auto;
+  min-width: 0;
+  align-self: flex-end;
+  display: inline-flex;
+}
+
+.tokenSelect select {
+  width: auto !important;
+  min-width: 8rem;
+  max-width: 12rem;
+}
+
+.tokenPlaceholder {
+  color: var(--color-secondary);
+  font-size: var(--font-size-small);
+}
+
+.selectorLabel {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-label);
+  color: var(--font-color-label);
+  line-height: 1.2;
+  font-family: var(--publish-font-family);
+}

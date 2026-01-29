@@ -45,7 +45,7 @@ function generateCredentials(
     credentials.allow?.forEach((policyCredential) => {
       if (isCredentialPolicyBased(policyCredential)) {
         policyCredential.values.forEach((value) => {
-          value.request_credentials.forEach((requestCredential) => {
+          value.request_credentials?.forEach((requestCredential) => {
             let policyTypes = (requestCredential?.policies ?? []).map(
               (policy) => {
                 try {
