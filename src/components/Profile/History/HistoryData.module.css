@@ -1,13 +1,13 @@
 .containerHistory {
   display: flex;
-  flex-direction: row; /* Changed from column to row */
+  flex-direction: row;
   gap: calc(var(--spacer) / 4);
   width: 100%;
 }
 
 .filterContainer {
   display: flex;
-  flex-direction: column; /* Changed from row to column */
+  flex-direction: column;
   flex-wrap: wrap;
   gap: calc(var(--spacer) / 4);
   width: 20%;
