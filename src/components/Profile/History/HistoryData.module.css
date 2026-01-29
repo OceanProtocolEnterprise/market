@@ -10,8 +10,31 @@
   flex-direction: column; /* Changed from row to column */
   flex-wrap: wrap;
   gap: calc(var(--spacer) / 4);
-  width: 20%; /* Adjust width as needed */
+  width: 20%;
   padding-right: calc(var(--spacer) / 1.2);
+}
+
+@media screen and (max-width: 64.999rem) {
+  .containerHistory {
+    flex-direction: column;
+  }
+
+  .filterContainer {
+    width: 100%;
+    padding-right: 0;
+  }
+}
+
+@media screen and (min-width: 65rem) {
+  .filterContainer {
+    width: 16rem;
+    border-right: 1px solid var(--border-color);
+  }
+
+  .filterContainer > div {
+    padding-bottom: calc(var(--spacer) / 1.2);
+    border-bottom: 1px solid var(--border-color);
+  }
 }
 
 .tableContainer {
