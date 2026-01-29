@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useMemo, useState } from 'react'
+import { ReactElement, useEffect, useMemo } from 'react'
 import { Field, Form, useFormikContext } from 'formik'
 import Input from '@shared/FormInput'
 import FormActions from './FormActions'
@@ -10,9 +10,6 @@ import IconDownload from '@images/download.svg'
 import IconCompute from '@images/compute.svg'
 import FormEditComputeService from './FormEditComputeService'
 import { defaultServiceComputeOptions } from './_constants'
-import { getDefaultPolicies } from '@components/Publish/_utils'
-import appConfig from 'app.config.cjs'
-import { LoggerInstance } from '@oceanprotocol/lib'
 import { supportedLanguages } from '../languageType'
 import ContainerForm from '@shared/atoms/ContainerForm'
 import AccessRulesSection from '@components/Publish/AccessPolicies/AccessRulesSection'
@@ -30,7 +27,6 @@ export default function FormAddService({
 }): ReactElement {
   const { approvedBaseTokens } = useMarketMetadata()
   const { values, setFieldValue } = useFormikContext<ServiceEditForm>()
-  const [defaultPolicies, setDefaultPolicies] = useState<string[]>([])
   const baseTokenOptions = useMemo(() => {
     return approvedBaseTokens.map((token) => token.symbol)
   }, [approvedBaseTokens])
@@ -93,21 +89,6 @@ export default function FormAddService({
       checked: values.access === 'compute'
     }
   ]
-
-  useEffect(() => {
-    if (appConfig.ssiEnabled) {
-      getDefaultPolicies()
-        .then((policies) => {
-          setFieldValue('credentials.vcPolicies', policies)
-          setDefaultPolicies(policies)
-        })
-        .catch((error) => {
-          LoggerInstance.error(error)
-          setFieldValue('credentials.vcPolicies', [])
-          setDefaultPolicies([])
-        })
-    }
-  }, [setFieldValue])
 
   return (
     <Form>
@@ -212,7 +193,7 @@ export default function FormAddService({
         <AccessRulesSection fieldPrefix="credentials" />
 
         <SSIPoliciesSection
-          defaultPolicies={defaultPolicies}
+          defaultPolicies={[]}
           isAsset={false}
           hideDefaultPolicies={true}
         />
