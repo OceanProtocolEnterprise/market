@@ -253,7 +253,6 @@ export default function ConfigureEnvironment({
   const escrowAvailableFundsDisplay = useMemo(() => {
     if (!displaySymbol) return '0'
     const funds = escrowFundsByToken[displaySymbol]
-    console.log('funds', funds)
     if (!funds?.available) return '0'
     return new Decimal(funds.available)
       .toDecimalPlaces(MAX_DECIMALS, Decimal.ROUND_DOWN)
