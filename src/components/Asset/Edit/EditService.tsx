@@ -184,7 +184,11 @@ export default function EditService({
         updatedFiles = filesEncrypted
       }
 
-      const updatedCredentials = generateCredentials(values.credentials)
+      const serviceCredentials = {
+        ...(values.credentials || {}),
+        vcPolicies: []
+      }
+      const updatedCredentials = generateCredentials(serviceCredentials)
       const updatedService: Service = {
         ...service,
         name: values.name,

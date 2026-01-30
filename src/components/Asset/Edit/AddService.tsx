@@ -141,7 +141,7 @@ export default function AddService({
         accountId,
         values.paymentCollector,
         marketFeeAddress,
-        config.oceanTokenAddress,
+        values.baseToken || config.oceanTokenAddress,
         publisherMarketFixedSwapFee,
         defaultDatatokenCap,
         'Access Token',
@@ -167,11 +167,11 @@ export default function AddService({
             break
           }
         } catch (err) {
-          console.log(
+          console.error(
             `[AddService] isERC20Deployer call reverted (retry ${retries})...`
           )
         }
-        await new Promise((resolve) => setTimeout(resolve, 1500)) // wait 1.5s
+        await new Promise((resolve) => setTimeout(resolve, 1500))
       }
 
       if (!deployerReady) {
@@ -191,13 +191,13 @@ export default function AddService({
         )
 
         const tokenInfo = await getTokenInfo(
-          config.oceanTokenAddress,
+          values.baseToken || config.oceanTokenAddress,
           ethersProvider
         )
 
         const freParams: FreCreationParams = {
           fixedRateAddress: config.fixedRateExchangeAddress,
-          baseTokenAddress: config.oceanTokenAddress,
+          baseTokenAddress: values.baseToken || config.oceanTokenAddress,
           owner: accountId,
           marketFeeCollector: marketFeeAddress,
           baseTokenDecimals: tokenInfo?.decimals || 18,
@@ -251,7 +251,11 @@ export default function AddService({
         newFiles = filesEncrypted
       }
 
-      const credentials = generateCredentials(values.credentials)
+      const serviceCredentials = {
+        ...(values.credentials || {}),
+        vcPolicies: []
+      }
+      const credentials = generateCredentials(serviceCredentials)
 
       const newService: Service = {
         id: getHash(datatokenAddress + newFiles),

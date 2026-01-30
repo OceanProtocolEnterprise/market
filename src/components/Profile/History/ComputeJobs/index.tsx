@@ -9,6 +9,7 @@ import NetworkName from '@shared/NetworkName'
 import styles from './index.module.css'
 import AssetListTitle from '@shared/AssetListTitle'
 import { useAccount } from 'wagmi'
+import { SkeletonTable } from '../HistoryData'
 // import { getAsset } from '@utils/aquarius'
 // import { useCancelToken } from '@hooks/useCancelToken'
 // import { getPdf } from '@utils/invoice/createInvoice'
@@ -294,15 +295,19 @@ export default function ComputeJobs({
           Refresh
         </Button>
       )}
-      <Table
-        columns={minimal ? columnsMinimal : columns}
-        data={jobs}
-        isLoading={isLoading}
-        defaultSortFieldId="row.dateCreated"
-        defaultSortAsc={false}
-        emptyMessage={chainIds.length === 0 ? 'No network selected' : null}
-        onChangePage={async () => await refetchJobs(true)}
-      />
+      {isLoading ? (
+        <SkeletonTable />
+      ) : (
+        <Table
+          columns={minimal ? columnsMinimal : columns}
+          data={jobs}
+          isLoading={isLoading}
+          defaultSortFieldId="row.dateCreated"
+          defaultSortAsc={false}
+          emptyMessage={chainIds.length === 0 ? 'No network selected' : null}
+          onChangePage={async () => await refetchJobs(true)}
+        />
+      )}
     </>
   ) : (
     <div>Please connect your wallet.</div>

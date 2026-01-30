@@ -1,7 +1,8 @@
+import { useContext } from 'react'
 import { useAsset } from '@context/Asset'
 import Tooltip from '@shared/atoms/Tooltip'
 import { decodeTokenURI } from '@utils/nft'
-import { useFormikContext } from 'formik'
+import { FormikContext, FormikContextType } from 'formik'
 import { FormPublishData } from '@components/Publish/_types'
 import NftTooltip from './NftTooltip'
 import styles from './index.module.css'
@@ -18,7 +19,9 @@ export default function Nft({
   // on asset details page as there is no formik context there:
   // Warning: Formik context is undefined, please verify you are calling useFormikContext()
   // as child of a <Formik> component.
-  const formikState = useFormikContext<FormPublishData>()
+  const formikState = useContext(FormikContext) as
+    | FormikContextType<FormPublishData>
+    | undefined
 
   // checking if the NFT has an image associated (tokenURI)
   // if tokenURI is undefined, then we are in Preview

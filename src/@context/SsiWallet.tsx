@@ -4,6 +4,7 @@ import {
   ReactNode,
   useContext,
   useEffect,
+  useRef,
   useState
 } from 'react'
 import {
@@ -37,6 +38,8 @@ export interface SsiWalletContext {
   setCachedCredentials: (credentials: SsiVerifiableCredential[]) => void
   selectedDid?: string
   setSelectedDid: (did?: string) => void
+  tryAcquireSsiAutoConnectLock: () => boolean
+  resetSsiAutoConnectLock: () => void
 }
 
 const SessionTokenStorage = 'sessionToken'
@@ -64,6 +67,17 @@ export function SsiWalletProvider({
   >({})
 
   const [selectedDid, setSelectedDid] = useState<string>()
+  const ssiAutoConnectLockRef = useRef(false)
+
+  function tryAcquireSsiAutoConnectLock(): boolean {
+    if (ssiAutoConnectLockRef.current) return false
+    ssiAutoConnectLockRef.current = true
+    return true
+  }
+
+  function resetSsiAutoConnectLock() {
+    ssiAutoConnectLockRef.current = false
+  }
 
   useEffect(() => {
     try {
@@ -90,6 +104,7 @@ export function SsiWalletProvider({
       setSelectedWallet(undefined)
       setSelectedKey(undefined)
       setSelectedDid(undefined)
+      resetSsiAutoConnectLock()
     }
     localStorage.setItem(SessionTokenStorage, JSON.stringify(sessionToken))
   }, [sessionToken])
@@ -147,7 +162,9 @@ export function SsiWalletProvider({
           cachedCredentials,
           setCachedCredentials,
           selectedDid,
-          setSelectedDid
+          setSelectedDid,
+          tryAcquireSsiAutoConnectLock,
+          resetSsiAutoConnectLock
         } as SsiWalletContext
       }
     >

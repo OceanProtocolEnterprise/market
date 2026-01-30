@@ -16,6 +16,7 @@
   --font-color-did: var(--clr-did-text);
   --background-body: var(--brand-white);
   --background-body-transparent: rgba(255, 255, 255, 0.8);
+  --modal-overlay-background: rgba(1, 32, 55, 0.45);
   --background-content: var(--brand-white);
   --background-highlight: var(--brand-grey-dimmed);
   --background-detail-box: var(--publish-background-highlight);
@@ -306,6 +307,7 @@
   --font-color-heading: #f7f7f7;
   --background-body: rgb(10, 10, 10);
   --background-body-transparent: rgba(10, 10, 10, 0.9);
+  --modal-overlay-background: rgba(0, 0, 0, 0.6);
   --background-content: #141414;
   --background-highlight: #201f1f;
   --border-color: #303030;

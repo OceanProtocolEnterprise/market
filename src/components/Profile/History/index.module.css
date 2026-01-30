@@ -19,23 +19,59 @@
 .tabs {
   margin-top: var(--spacer);
   background-color: var(--background-body);
+  border: var(--publish-input-border-size) solid
+    var(--publish-input-border-color);
+  border-radius: var(--publish-input-border-radius);
+  --history-tab-pill-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--publish-shadow);
 }
 
 .tabs ul[class*='tabList'] {
-  background-color: var(--background-content);
-  border: 1px solid var(--border-color);
-  border-bottom: 0;
-  border-top-left-radius: var(--border-radius);
-  border-top-right-radius: var(--border-radius);
+  background-color: var(--publish-white);
+  border: 0;
   white-space: nowrap;
   overflow-y: hidden;
   overflow-x: auto;
 }
 
+.tabs ul[class*='tabList'],
+.tabs div[class*='tabListContainer'] {
+  border-radius: 0;
+}
+
+.tabs div[class*='tabListContainer'] {
+  border-bottom: var(--publish-input-border-size) solid
+    var(--publish-input-border-color);
+}
+
 .tabs div[class*='tabContent'] {
-  border: 1px solid var(--border-color);
-  border-top: 0;
+  border: 0;
+  background-color: var(--publish-white);
   padding-bottom: 0;
+}
+
+.tabs [class*='tab'][aria-selected='true'] {
+  background: var(--publish-primary-gradient);
+  color: var(--publish-white);
+  border-color: var(--publish-input-border-color);
+}
+
+.tabs [class*='tab'][aria-selected='true']:focus,
+.tabs [class*='tab'][aria-selected='true']:focus-visible {
+  outline: none;
+  box-shadow: none;
+  border-color: var(--publish-input-border-color);
+}
+
+.tabs li[class*='Tabs_tab']:first-child {
+  border-top-left-radius: var(--history-tab-pill-radius);
+  border-bottom-left-radius: var(--history-tab-pill-radius);
+}
+
+.tabs li[class*='Tabs_tab']:last-child {
+  border-top-right-radius: var(--history-tab-pill-radius);
+  border-bottom-right-radius: var(--history-tab-pill-radius);
 }
 
 .tabs div[class*='tab-panel--selected'] {
@@ -44,9 +80,9 @@
 
 @media screen and (min-width: 1500px) {
   .tabs div[class*='tabContent'] {
-    width: 1480px;
+    width: 100%;
   }
   .tabs ul[class*='tabList'] {
-    width: 1480px;
+    width: 100%;
   }
 }

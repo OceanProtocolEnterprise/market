@@ -27,7 +27,7 @@ const ComputeJobs = ({
 
   async function fetchComputeJobs(type: string = 'init') {
     if (!accountId) {
-      console.log('No account ID available')
+      console.warn('No account ID available')
       setIsLoading(false)
       return
     }
