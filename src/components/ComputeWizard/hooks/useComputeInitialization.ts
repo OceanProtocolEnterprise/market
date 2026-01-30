@@ -186,8 +186,12 @@ export function useComputeInitialization({
             }
           )
         )
-
-        if (shouldDepositEscrow && selectedResources.mode === 'paid') {
+        const depositRequired =
+          selectedResources.mode === 'paid' &&
+          Number(selectedResources.price || 0) > 0
+        const shouldDeposit =
+          Boolean(shouldDepositEscrow) || Boolean(depositRequired)
+        if (shouldDeposit && depositRequired) {
           if (!oceanTokenAddress || !web3Provider) {
             throw new Error('Missing token or provider for escrow payment')
           }
@@ -197,7 +201,6 @@ export function useComputeInitialization({
             signer,
             algorithmAsset.credentialSubject.chainId
           )
-
           const amountHuman = String(selectedResources.price || 0)
           const tokenDetails = await getTokenInfo(
             oceanTokenAddress,
@@ -221,7 +224,7 @@ export function useComputeInitialization({
           const escrowAddress = (
             escrow.contract.target ?? escrow.contract.address
           ).toString()
-
+          console.log('amount wei', amountWei.toString())
           if (amountWei !== BigInt(0)) {
             const approveTx = await erc20.approve(escrowAddress, amountWei)
             await approveTx.wait()
@@ -232,7 +235,6 @@ export function useComputeInitialization({
               }
               await new Promise((resolve) => setTimeout(resolve, 2000))
             }
-
             const depositTx = await escrow.deposit(
               oceanTokenAddress,
               amountHuman
