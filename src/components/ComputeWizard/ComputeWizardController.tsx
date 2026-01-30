@@ -554,7 +554,6 @@ export default function ComputeWizardController({
     formikValues?: FormComputeData
   ): Promise<void> {
     setIsSubmittingJob(true)
-    console.log('here')
     try {
       const formValuesForEscrow = formikValues || initialFormValues
       const shouldDepositEscrow = new Decimal(
