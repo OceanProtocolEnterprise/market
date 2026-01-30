@@ -9,6 +9,8 @@ import { useProfile } from '@context/Profile'
 import styles from './index.module.css'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 import Input from '@components/@shared/FormInput'
+import Decimal from 'decimal.js'
+import { MAX_DECIMALS } from '@utils/constants'
 
 interface ResourceValues {
   cpu: number
@@ -241,7 +243,20 @@ export default function ConfigureEnvironment({
   const escrowAvailableFunds = useMemo(() => {
     if (!displaySymbol) return 0
     const funds = escrowFundsByToken[displaySymbol]
-    return funds ? parseFloat(funds.available ?? '0') : 0
+    if (!funds?.available) return 0
+    // Avoid floating rounding up (e.g. 2.9999999999 -> 3)
+    return new Decimal(funds.available)
+      .toDecimalPlaces(MAX_DECIMALS, Decimal.ROUND_DOWN)
+      .toNumber()
+  }, [escrowFundsByToken, displaySymbol])
+
+  const escrowAvailableFundsDisplay = useMemo(() => {
+    if (!displaySymbol) return '0'
+    const funds = escrowFundsByToken[displaySymbol]
+    if (!funds?.available) return '0'
+    return new Decimal(funds.available)
+      .toDecimalPlaces(MAX_DECIMALS, Decimal.ROUND_DOWN)
+      .toFixed(3)
   }, [escrowFundsByToken, displaySymbol])
 
   const [mode, setMode] = useState<'free' | 'paid'>(
@@ -312,6 +327,8 @@ export default function ConfigureEnvironment({
     getEnvResourceValues(false)
   )
   const round3 = (v: number) => Math.round((v + Number.EPSILON) * 1000) / 1000
+  const roundUp3 = (v: number) =>
+    new Decimal(v).toDecimalPlaces(3, Decimal.ROUND_UP).toNumber()
 
   const getLimits = (id: string, isFree: boolean) => {
     const env = values.computeEnv
@@ -442,7 +459,7 @@ export default function ConfigureEnvironment({
         }
         currentPrice = round3(totalPrice * currentValues.jobDuration)
         const availableEscrow = escrowAvailableFunds
-        actualPaymentAmount = round3(
+        actualPaymentAmount = roundUp3(
           Math.max(0, currentPrice - availableEscrow)
         )
         escrowCoveredAmount = round3(Math.min(availableEscrow, currentPrice))
@@ -790,24 +807,26 @@ export default function ConfigureEnvironment({
       {mode === 'paid' && (
         <div className={styles.escrowValidation}>
           {(() => {
-            const jobPrice = calculatePrice()
-            const availableEscrow = escrowAvailableFunds
-
-            if (jobPrice > availableEscrow) {
-              const deltaAmount = jobPrice - availableEscrow
+            const jobPrice = new Decimal(calculatePrice())
+            const availableEscrow = new Decimal(escrowAvailableFunds)
+            if (jobPrice.gt(availableEscrow)) {
+              const deltaAmount = jobPrice.minus(availableEscrow)
+              const deltaDisplay = deltaAmount.lt(0.001)
+                ? '<0.001'
+                : deltaAmount.toDecimalPlaces(3, Decimal.ROUND_UP).toFixed(3)
               return (
                 <div className={styles.insufficientEscrow}>
                   <p>
                     Insufficient escrow balance. An additional{' '}
                     <strong>
-                      {deltaAmount.toFixed(3)} {displaySymbol}
+                      {deltaDisplay} {displaySymbol}
                     </strong>{' '}
                     will be added to your escrow account to cover this job.
                   </p>
                   <p className={styles.escrowBreakdown}>
                     Job cost: {jobPrice.toFixed(3)} {displaySymbol} | Available
-                    escrow: {availableEscrow.toFixed(3)} {displaySymbol} |
-                    Additional needed: {deltaAmount.toFixed(3)} {displaySymbol}
+                    escrow: {escrowAvailableFundsDisplay} {displaySymbol} |
+                    Additional needed: {deltaDisplay} {displaySymbol}
                   </p>
                 </div>
               )
@@ -817,8 +836,8 @@ export default function ConfigureEnvironment({
               <div className={styles.sufficientEscrow}>
                 <p>Sufficient escrow balance available for this job.</p>
                 <p className={styles.escrowBreakdown}>
-                  Job cost: {jobPrice.toFixed(2)} {displaySymbol} | Available
-                  escrow: {availableEscrow.toFixed(2)} {displaySymbol}
+                  Job cost: {jobPrice.toFixed(3)} {displaySymbol} | Available
+                  escrow: {escrowAvailableFundsDisplay} {displaySymbol}
                 </p>
               </div>
             )

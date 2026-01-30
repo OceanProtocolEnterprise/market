@@ -275,7 +275,11 @@ export default function Review({
   const c2dPriceRaw =
     currentMode === 'paid' ? paidResources?.price : freeResources?.price
   const c2dPrice =
-    c2dPriceRaw != null ? Math.round(Number(c2dPriceRaw) * 100) / 100 : 0
+    c2dPriceRaw != null
+      ? new Decimal(c2dPriceRaw || 0)
+          .toDecimalPlaces(MAX_DECIMALS, Decimal.ROUND_DOWN)
+          .toNumber()
+      : 0
   const c2dFeeTokenAddress = useMemo(() => {
     if (!values.computeEnv || typeof values.computeEnv === 'string') return
     const currentChainId =
@@ -1480,16 +1484,40 @@ export default function Review({
   const escrowFunds = [
     {
       name: 'AMOUNT AVAILABLE IN THE ESCROW ACCOUNT',
-      value: Number(values.escrowFunds).toFixed(3) || '0'
+      value: new Decimal(values.escrowFunds || 0)
+        .toDecimalPlaces(MAX_DECIMALS, Decimal.ROUND_DOWN)
+        .toFixed(3)
     }
   ]
 
   const amountDeposit = [
     {
       name: 'AMOUNT TO DEPOSIT IN THE ESCROW ACCOUNT',
-      value: c2dPrice ? c2dPrice.toString() : '0'
+      value: (() => {
+        const jobPrice = new Decimal(values.jobPrice || 0)
+        const escrow = new Decimal(values.escrowFunds || 0)
+        const needed = Decimal.max(0, jobPrice.minus(escrow))
+        if (needed.eq(0)) return '0'
+        return needed.lt(0.001)
+          ? '0.001'
+          : needed.toDecimalPlaces(3, Decimal.ROUND_UP).toFixed(3)
+      })()
     }
   ]
+
+  useEffect(() => {
+    const jobPrice = new Decimal(values.jobPrice || 0)
+    const escrow = new Decimal(values.escrowFunds || 0)
+    const needed = Decimal.max(0, jobPrice.minus(escrow))
+    console.log('[Review] C2D deposit calc', {
+      jobPrice: jobPrice.toString(),
+      escrow: escrow.toString(),
+      needed: needed.toString(),
+      neededDisplay: needed.lt(0.001)
+        ? '<0.001'
+        : needed.toDecimalPlaces(3, Decimal.ROUND_UP).toFixed(3)
+    })
+  }, [values.jobPrice, values.escrowFunds])
 
   const nonZeroTotals = totalPriceBreakdown.filter(
     (price) => price.symbol && new Decimal(price.value || 0).gt(0)

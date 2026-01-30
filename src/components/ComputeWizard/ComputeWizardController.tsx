@@ -379,7 +379,6 @@ export default function ComputeWizardController({
           datasetParams[param.name] = param.value ?? param.default ?? ''
         })
       }
-
       const initResult = await initializePricingAndProvider({
         datasetsForProvider,
         algorithmAsset: actualAlgorithmAsset,
@@ -556,6 +555,10 @@ export default function ComputeWizardController({
   ): Promise<void> {
     setIsSubmittingJob(true)
     try {
+      const formValuesForEscrow = formikValues || initialFormValues
+      const shouldDepositEscrow = new Decimal(
+        formValuesForEscrow?.actualPaymentAmount || 0
+      ).gt(0)
       const {
         datasetResponses,
         actualAlgorithmAsset,
@@ -564,7 +567,11 @@ export default function ComputeWizardController({
         initializedProvider,
         selectedComputeEnv,
         selectedResources
-      } = await initPriceAndFees(datasetServices, formikValues)
+      } = await initPriceAndFees(
+        datasetServices,
+        formikValues,
+        shouldDepositEscrow
+      )
 
       if (!datasetResponses || !selectedComputeEnv || !selectedResources) {
         throw new Error('Missing compute initialization data.')

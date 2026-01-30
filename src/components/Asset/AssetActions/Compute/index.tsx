@@ -373,7 +373,6 @@ export default function Compute({
         const funds = await escrow.getUserFunds(owner, oceanTokenAddress)
         // funds[0] is returned as string, convert to bigint
         const depositedWei = BigInt(funds[0] ?? '0')
-
         if (depositedWei < amountWei) {
           const depositTx = await escrow.deposit(oceanTokenAddress, amountHuman)
           await depositTx.wait()

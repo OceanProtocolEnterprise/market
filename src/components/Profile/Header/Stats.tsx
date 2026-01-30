@@ -1,4 +1,5 @@
 import { ReactElement, useState } from 'react'
+import Decimal from 'decimal.js'
 import NumberUnit from './NumberUnit'
 import styles from './Stats.module.css'
 import { useProfile } from '@context/Profile'
@@ -60,9 +61,9 @@ export default function Stats({
                   ? 'Escrow Available Funds 👉 Click to Withdraw 👈'
                   : 'Escrow Available Funds'
               }
-              value={`${Number(selectedEscrowAvailable).toFixed(
-                2
-              )} ${activeToken}`}
+              value={`${new Decimal(selectedEscrowAvailable || 0)
+                .toDecimalPlaces(2, Decimal.ROUND_DOWN)
+                .toFixed(2)} ${activeToken}`}
             />
           </div>
         </>
