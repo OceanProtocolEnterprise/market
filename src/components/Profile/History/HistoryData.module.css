@@ -1,17 +1,40 @@
 .containerHistory {
   display: flex;
-  flex-direction: row; /* Changed from column to row */
+  flex-direction: row;
   gap: calc(var(--spacer) / 4);
   width: 100%;
 }
 
 .filterContainer {
   display: flex;
-  flex-direction: column; /* Changed from row to column */
+  flex-direction: column;
   flex-wrap: wrap;
   gap: calc(var(--spacer) / 4);
-  width: 20%; /* Adjust width as needed */
+  width: 20%;
   padding-right: calc(var(--spacer) / 1.2);
+}
+
+@media screen and (max-width: 64.999rem) {
+  .containerHistory {
+    flex-direction: column;
+  }
+
+  .filterContainer {
+    width: 100%;
+    padding-right: 0;
+  }
+}
+
+@media screen and (min-width: 65rem) {
+  .filterContainer {
+    width: 16rem;
+    border-right: 1px solid var(--border-color);
+  }
+
+  .filterContainer > div {
+    padding-bottom: calc(var(--spacer) / 1.2);
+    border-bottom: 1px solid var(--border-color);
+  }
 }
 
 .tableContainer {
@@ -50,7 +73,8 @@
 .skeletonHeader {
   height: 3rem;
   border-radius: 4px;
-  background: linear-gradient(
+  background:
+    linear-gradient(
       90deg,
       rgba(0, 0, 0, 0.06) 25%,
       rgba(0, 0, 0, 0.12) 37%,

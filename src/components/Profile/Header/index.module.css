@@ -1,8 +1,20 @@
 .grid {
   composes: box from '@shared/atoms/Box.module.css';
-  background: var(--background-body-transparent);
-  backdrop-filter: blur(3px);
+  background: var(--publish-white);
+  border: var(--publish-input-border-size) solid
+    var(--publish-input-border-color);
+  border-top: 0;
+  border-radius: var(--publish-input-border-radius);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  box-shadow: var(--publish-shadow);
+  backdrop-filter: none;
   position: relative;
+}
+
+.grid.grid {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 .description {
@@ -65,7 +77,7 @@
 
 @media screen and (min-width: 1500px) {
   .grid {
-    width: 1480px;
+    width: 1444px;
   }
 }
 

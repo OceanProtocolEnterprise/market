@@ -251,7 +251,11 @@ export default function AddService({
         newFiles = filesEncrypted
       }
 
-      const credentials = generateCredentials(values.credentials)
+      const serviceCredentials = {
+        ...(values.credentials || {}),
+        vcPolicies: []
+      }
+      const credentials = generateCredentials(serviceCredentials)
 
       const newService: Service = {
         id: getHash(datatokenAddress + newFiles),

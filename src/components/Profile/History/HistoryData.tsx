@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   startTransition
 } from 'react'
@@ -210,7 +211,6 @@ export default function HistoryData({
   )
   const filtersKey = useMemo(() => JSON.stringify(filters || {}), [filters])
   const [queryResult, setQueryResult] = useState<PagedAssets>()
-  const [isLoading, setIsLoading] = useState(true)
   const [isTableLoading, setIsTableLoading] = useState(false)
   const [page, setPage] = useState<number>(0)
   const [revenueTotal, setRevenueTotal] = useState(0)
@@ -222,6 +222,7 @@ export default function HistoryData({
     Record<string, AccessDetails>
   >({})
   const [allAssets, setAllAssets] = useState<AssetExtended[]>([])
+  const latestRequestRef = useRef(0)
 
   const newCancelToken = useCancelToken()
 
@@ -232,8 +233,6 @@ export default function HistoryData({
 
     async function fetchSalesAndRevenue() {
       try {
-        setIsLoading(true)
-
         const { totalOrders, totalRevenue, revenueByToken, results } =
           await getUserSalesAndRevenue(
             accountId,
@@ -253,8 +252,6 @@ export default function HistoryData({
           'Failed to fetch user sales/revenue',
           error.message
         )
-      } finally {
-        setIsLoading(false)
       }
     }
 
@@ -271,6 +268,8 @@ export default function HistoryData({
       currentFilters: Filters,
       cancelToken: CancelToken
     ) => {
+      const requestId = latestRequestRef.current + 1
+      latestRequestRef.current = requestId
       try {
         setIsTableLoading(true)
         const result = await getPublishedAssets(
@@ -282,6 +281,7 @@ export default function HistoryData({
           currentFilters,
           currentPage
         )
+        if (requestId !== latestRequestRef.current || !result) return
         let enrichedResults: AssetExtended[] = []
         if (result?.results) {
           enrichedResults = await Promise.all(
@@ -318,6 +318,7 @@ export default function HistoryData({
             })
           )
         }
+        if (requestId !== latestRequestRef.current) return
 
         const enrichedAllAssets: AssetExtended[] = allAssets.map((asset) => {
           const cached = accessDetailsCache[asset.id]
@@ -374,8 +375,8 @@ export default function HistoryData({
               return prev && prev > 0
                 ? prev
                 : computedTotal > 0
-                ? computedTotal
-                : 0
+                  ? computedTotal
+                  : 0
             })
           })
         }
@@ -384,7 +385,9 @@ export default function HistoryData({
           error instanceof Error ? error.message : String(error)
         LoggerInstance.error(errorMessage)
       } finally {
-        setIsTableLoading(false)
+        if (requestId === latestRequestRef.current) {
+          setIsTableLoading(false)
+        }
       }
     },
     [
@@ -415,39 +418,29 @@ export default function HistoryData({
         <Filter showPurgatoryOption={ownAccount} expanded showTime />
       </div>
       <div className={styles.tableContainer}>
-        {isTableLoading && <HistorySkeleton />}
-        {queryResult &&
-          queryResult?.results &&
-          queryResult.results.length > 0 && (
-            <HistoryTable
-              columns={columns}
-              data={queryResult.results}
-              paginationPerPage={9}
-              isLoading={isTableLoading}
-              emptyMessage={
-                chainIds.length === 0 ? 'No network selected' : null
-              }
-              exportEnabled={true}
-              onPageChange={(newPage) => {
-                setPage(newPage)
-              }}
-              showPagination
-              page={queryResult?.page > 0 ? queryResult?.page - 1 : 1}
-              totalPages={queryResult?.totalPages}
-              revenueByToken={revenueByToken}
-              revenueTotal={revenueTotal}
-              sales={sales}
-              items={queryResult?.totalResults}
-              allResults={queryResult.results}
-            />
-          )}
-        {!isLoading &&
-          !isTableLoading &&
-          (!queryResult ||
-            !queryResult?.results ||
-            queryResult.results.length === 0) && (
-            <div className={styles.empty}>No results found</div>
-          )}
+        {isTableLoading && !queryResult ? (
+          <HistorySkeleton />
+        ) : (
+          <HistoryTable
+            columns={columns}
+            data={queryResult?.results || []}
+            paginationPerPage={9}
+            isLoading={isTableLoading}
+            emptyMessage={chainIds.length === 0 ? 'No network selected' : null}
+            exportEnabled={Boolean(queryResult?.results?.length)}
+            onPageChange={(newPage) => {
+              setPage(newPage)
+            }}
+            showPagination={Boolean(queryResult?.results?.length)}
+            page={queryResult?.page > 0 ? queryResult?.page - 1 : 1}
+            totalPages={queryResult?.totalPages}
+            revenueByToken={revenueByToken}
+            revenueTotal={revenueTotal}
+            sales={sales}
+            items={queryResult?.totalResults || 0}
+            allResults={queryResult?.results || []}
+          />
+        )}
       </div>
     </div>
   ) : (

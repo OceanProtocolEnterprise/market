@@ -20,15 +20,25 @@ const Account = forwardRef((props, ref: any) => {
   const { address: accountId, isConnected } = useAccount()
   const walletClient = useEthersSigner()
   const { setOpen } = useModal()
-  const { sessionToken, setSessionToken } = useSsiWallet()
+  const {
+    sessionToken,
+    setSessionToken,
+    tryAcquireSsiAutoConnectLock,
+    resetSsiAutoConnectLock
+  } = useSsiWallet()
 
   const [showInput, setShowInput] = useState(false)
   const [overrideApi, setOverrideApi] = useState(appConfig.ssiWalletApi)
 
   useEffect(() => {
+    if (!isConnected) {
+      resetSsiAutoConnectLock()
+      return
+    }
     const storedApi = sessionStorage.getItem(STORAGE_KEY)
 
     if (isConnected && walletClient && appConfig.ssiEnabled && !sessionToken) {
+      if (!tryAcquireSsiAutoConnectLock()) return
       if (storedApi) {
         connectToWallet(walletClient as any)
           .then((session) => {
@@ -39,7 +49,14 @@ const Account = forwardRef((props, ref: any) => {
         setShowInput(true)
       }
     }
-  }, [isConnected, walletClient, sessionToken, setSessionToken])
+  }, [
+    isConnected,
+    walletClient,
+    sessionToken,
+    setSessionToken,
+    tryAcquireSsiAutoConnectLock,
+    resetSsiAutoConnectLock
+  ])
 
   async function handleActivation() {
     setOpen(true)
