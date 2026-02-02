@@ -331,7 +331,9 @@ export async function order(
           providerFeeHuman,
           false
         )
-        await tx.wait()
+        if (tx && typeof tx.wait === 'function') {
+          await tx.wait()
+        }
 
         const buyTx = await datatoken.buyFromDispenserAndOrder(
           service.datatokenAddress,
@@ -382,10 +384,13 @@ async function approveProviderFee(
   providerFeeAmount: string
 ): Promise<TransactionResponse> {
   const config = getOceanConfig(asset.credentialSubject?.chainId)
+  const freeBaseTokenAddress = accessDetails.baseToken?.address
   const baseToken =
-    accessDetails.type === 'free'
-      ? accessDetails.baseToken?.address
-      : getOceanConfig(asset.credentialSubject?.chainId).oceanTokenAddress
+    accessDetails.type === 'free' &&
+    typeof freeBaseTokenAddress === 'string' &&
+    freeBaseTokenAddress.trim().length > 0
+      ? freeBaseTokenAddress
+      : config.oceanTokenAddress
   const txApproveWei = await approveWei(
     signer as any,
     config,
