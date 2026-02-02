@@ -141,7 +141,7 @@ export default function FormAddService({
           component={Input}
           name="price"
           min={0}
-          step={0.01}
+          step={0.000001}
         />
         <Field
           label="Price Token"

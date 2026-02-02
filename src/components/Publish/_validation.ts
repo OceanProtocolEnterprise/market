@@ -2,7 +2,7 @@ import { FileInfo } from '@oceanprotocol/lib'
 import { MAX_DECIMALS } from '@utils/constants'
 import { getMaxDecimalsValidation } from '@utils/numbers'
 import * as Yup from 'yup'
-import { testLinks } from '@utils/yup'
+import { getOriginalValue, testLinks } from '@utils/yup'
 import { validationConsumerParameters } from '@components/@shared/FormInput/InputElement/ConsumerParameters/_validation'
 
 // TODO: conditional validation
@@ -318,7 +318,13 @@ const validationPricing = {
     .test(
       'maxDigitsAfterDecimal',
       `Must have maximum ${MAX_DECIMALS} decimal digits`,
-      (param) => getMaxDecimalsValidation(MAX_DECIMALS).test(param?.toString())
+      function (_value, ctx) {
+        const rawValue = getOriginalValue(ctx, _value)
+        if (rawValue === undefined || rawValue === null || rawValue === '') {
+          return true
+        }
+        return getMaxDecimalsValidation(MAX_DECIMALS).test(String(rawValue))
+      }
     )
     .required('Required')
 }

@@ -4,6 +4,19 @@ import * as Yup from 'yup'
 import { isAddress } from 'ethers'
 import { isGoogleUrl } from './url/index'
 
+export type YupTestContext = Yup.TestContext<Record<string, unknown>>
+
+export function getOriginalValue(
+  ctx: YupTestContext,
+  fallback: unknown
+): unknown {
+  const opts = ctx.options as unknown
+  if (opts && typeof opts === 'object' && 'originalValue' in opts) {
+    return (opts as { originalValue?: unknown }).originalValue
+  }
+  return fallback
+}
+
 export function testLinks(_isEdit?: boolean) {
   return Yup.string().test((value, context) => {
     const { type } = context.parent
