@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
   ComputeEnvironment,
   ProviderComputeInitializeResults,
@@ -127,6 +127,7 @@ export function useComputeInitialization({
   const [extraFeesLoaded, setExtraFeesLoaded] = useState(false)
   const [isInitLoading, setIsInitLoading] = useState(false)
   const [initError, setInitError] = useState<string>()
+  const lastEscrowDepositKey = useRef<string | null>(null)
 
   const initializePricingAndProvider = useCallback(
     async ({
@@ -186,65 +187,73 @@ export function useComputeInitialization({
             }
           )
         )
-
-        if (shouldDepositEscrow && selectedResources.mode === 'paid') {
+        const depositRequired =
+          selectedResources.mode === 'paid' &&
+          Number(selectedResources.price || 0) > 0
+        if (Boolean(shouldDepositEscrow) && depositRequired) {
           if (!oceanTokenAddress || !web3Provider) {
             throw new Error('Missing token or provider for escrow payment')
           }
 
-          const escrow = new EscrowContract(
-            ethers.getAddress(initializedProvider.payment.escrowAddress),
-            signer,
-            algorithmAsset.credentialSubject.chainId
+          const escrowAddress = ethers.getAddress(
+            initializedProvider.payment.escrowAddress
           )
-
           const amountHuman = String(selectedResources.price || 0)
-          const tokenDetails = await getTokenInfo(
-            oceanTokenAddress,
-            web3Provider
-          )
-          const amountWei = ethers.parseUnits(
-            amountHuman,
-            tokenDetails.decimals
-          )
+          const depositKey = `${escrowAddress}:${oceanTokenAddress}:${amountHuman}`
+          if (lastEscrowDepositKey.current === depositKey) {
+            console.log('escrow deposit skipped (already done)', depositKey)
+          } else {
+            lastEscrowDepositKey.current = depositKey
+            const tokenDetails = await getTokenInfo(
+              oceanTokenAddress,
+              web3Provider
+            )
+            const amountWei = ethers.parseUnits(
+              amountHuman,
+              tokenDetails.decimals
+            )
+            const escrow = new EscrowContract(
+              escrowAddress,
+              signer,
+              algorithmAsset.credentialSubject.chainId
+            )
 
-          const erc20 = new ethers.Contract(
-            oceanTokenAddress,
-            [
-              'function approve(address spender, uint256 amount) returns (bool)',
-              'function allowance(address owner, address spender) view returns (uint256)'
-            ],
-            signer
-          )
+            const erc20 = new ethers.Contract(
+              oceanTokenAddress,
+              [
+                'function approve(address spender, uint256 amount) returns (bool)',
+                'function allowance(address owner, address spender) view returns (uint256)'
+              ],
+              signer
+            )
 
-          const owner = await signer.getAddress()
-          const escrowAddress = (
-            escrow.contract.target ?? escrow.contract.address
-          ).toString()
-
-          if (amountWei !== BigInt(0)) {
-            const approveTx = await erc20.approve(escrowAddress, amountWei)
-            await approveTx.wait()
-            while (true) {
-              const allowanceNow = await erc20.allowance(owner, escrowAddress)
-              if (allowanceNow >= amountWei) {
-                break
+            const owner = await signer.getAddress()
+            const escrowSpender =
+              (escrow.contract.target ?? escrow.contract.address).toString() ||
+              escrowAddress
+            if (amountWei !== BigInt(0)) {
+              const approveTx = await erc20.approve(escrowSpender, amountWei)
+              await approveTx.wait()
+              while (true) {
+                const allowanceNow = await erc20.allowance(owner, escrowSpender)
+                if (allowanceNow >= amountWei) {
+                  break
+                }
+                await new Promise((resolve) => setTimeout(resolve, 2000))
               }
-              await new Promise((resolve) => setTimeout(resolve, 2000))
+              const depositTx = await escrow.deposit(
+                oceanTokenAddress,
+                amountHuman
+              )
+              await depositTx.wait()
+              await escrow.authorize(
+                oceanTokenAddress,
+                selectedComputeEnv.consumerAddress,
+                initializedProvider.payment.amount.toString(),
+                selectedResources.jobDuration.toString(),
+                '10'
+              )
             }
-
-            const depositTx = await escrow.deposit(
-              oceanTokenAddress,
-              amountHuman
-            )
-            await depositTx.wait()
-            await escrow.authorize(
-              oceanTokenAddress,
-              selectedComputeEnv.consumerAddress,
-              initializedProvider.payment.amount.toString(),
-              selectedResources.jobDuration.toString(),
-              '10'
-            )
           }
         }
 

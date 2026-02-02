@@ -113,6 +113,8 @@ export interface FormComputeData {
   }
   totalPrice?: string
   escrowFunds: string
+  escrowCoveredAmount?: string
+  actualPaymentAmount?: string
   jobPrice: string
   baseToken?: string | null
 }
