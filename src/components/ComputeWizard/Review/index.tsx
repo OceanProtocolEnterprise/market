@@ -1490,17 +1490,32 @@ export default function Review({
     }
   ]
 
+  const formatDepositDisplay = (amount: Decimal) => {
+    if (amount.eq(0)) return '0'
+    return amount.lt(0.001)
+      ? '0.001'
+      : amount.toDecimalPlaces(3, Decimal.ROUND_UP).toFixed(3)
+  }
+
   const amountDeposit = [
     {
       name: 'AMOUNT TO DEPOSIT IN THE ESCROW ACCOUNT',
       value: (() => {
+        const actualPaymentAmount =
+          values.actualPaymentAmount !== undefined &&
+          values.actualPaymentAmount !== null &&
+          values.actualPaymentAmount !== ''
+            ? new Decimal(values.actualPaymentAmount || 0)
+            : null
+
+        if (actualPaymentAmount && actualPaymentAmount.isFinite()) {
+          return formatDepositDisplay(actualPaymentAmount)
+        }
+
         const jobPrice = new Decimal(values.jobPrice || 0)
         const escrow = new Decimal(values.escrowFunds || 0)
         const needed = Decimal.max(0, jobPrice.minus(escrow))
-        if (needed.eq(0)) return '0'
-        return needed.lt(0.001)
-          ? '0.001'
-          : needed.toDecimalPlaces(3, Decimal.ROUND_UP).toFixed(3)
+        return formatDepositDisplay(needed)
       })()
     }
   ]
@@ -1513,11 +1528,12 @@ export default function Review({
       jobPrice: jobPrice.toString(),
       escrow: escrow.toString(),
       needed: needed.toString(),
+      actualPaymentAmount: values.actualPaymentAmount?.toString?.(),
       neededDisplay: needed.lt(0.001)
         ? '<0.001'
         : needed.toDecimalPlaces(3, Decimal.ROUND_UP).toFixed(3)
     })
-  }, [values.jobPrice, values.escrowFunds])
+  }, [values.jobPrice, values.escrowFunds, values.actualPaymentAmount])
 
   const nonZeroTotals = totalPriceBreakdown.filter(
     (price) => price.symbol && new Decimal(price.value || 0).gt(0)
