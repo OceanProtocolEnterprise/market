@@ -114,8 +114,8 @@
     "jest-environment-jsdom": "^29.3.1",
     "knip": "^5.82.1",
     "next-transpile-modules": "^10.0.1",
-    "prettier": "^3.8.1",
-    "pretty-quick": "^4.2.2",
+    "prettier": "^2.8.8",
+    "pretty-quick": "^3.3.1",
     "serve": "^14.1.2",
     "stream-http": "^3.2.0",
     "typescript": "^5.9.3"
