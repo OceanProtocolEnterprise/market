@@ -296,25 +296,25 @@ export default function ConfigureEnvironment({
 
       return {
         cpu: isFree
-          ? (envResourceValues?.cpu ?? 0)
+          ? envResourceValues?.cpu ?? 0
           : envResourceValues?.cpu && envResourceValues.cpu > 0
-            ? envResourceValues.cpu
-            : (env.resources?.find((r) => r.id === 'cpu')?.min ?? 1),
+          ? envResourceValues.cpu
+          : env.resources?.find((r) => r.id === 'cpu')?.min ?? 1,
         ram: isFree
-          ? (envResourceValues?.ram ?? 0)
+          ? envResourceValues?.ram ?? 0
           : envResourceValues?.ram && envResourceValues.ram > 0
-            ? envResourceValues.ram
-            : (env.resources?.find((r) => r.id === 'ram')?.min ?? 1),
+          ? envResourceValues.ram
+          : env.resources?.find((r) => r.id === 'ram')?.min ?? 1,
         disk: isFree
-          ? (envResourceValues?.disk ?? 0)
+          ? envResourceValues?.disk ?? 0
           : envResourceValues?.disk && envResourceValues.disk > 0
-            ? envResourceValues.disk
-            : (env.resources?.find((r) => r.id === 'disk')?.min ?? 0),
+          ? envResourceValues.disk
+          : env.resources?.find((r) => r.id === 'disk')?.min ?? 0,
         jobDuration: isFree
-          ? (envResourceValues?.jobDuration ?? 0)
+          ? envResourceValues?.jobDuration ?? 0
           : envResourceValues?.jobDuration && envResourceValues.jobDuration > 0
-            ? envResourceValues.jobDuration
-            : 1
+          ? envResourceValues.jobDuration
+          : 1
       }
     },
     [values.computeEnv, allResourceValues]
@@ -375,10 +375,10 @@ export default function ConfigureEnvironment({
         p.id === 'cpu'
           ? paidValues.cpu
           : p.id === 'ram'
-            ? paidValues.ram
-            : p.id === 'disk'
-              ? paidValues.disk
-              : 0
+          ? paidValues.ram
+          : p.id === 'disk'
+          ? paidValues.disk
+          : 0
       totalPrice += units * p.price
     }
 
@@ -451,10 +451,10 @@ export default function ConfigureEnvironment({
             p.id === 'cpu'
               ? currentValues.cpu
               : p.id === 'ram'
-                ? currentValues.ram
-                : p.id === 'disk'
-                  ? currentValues.disk
-                  : 0
+              ? currentValues.ram
+              : p.id === 'disk'
+              ? currentValues.disk
+              : 0
           totalPrice += units * p.price
         }
         currentPrice = round3(totalPrice * currentValues.jobDuration)

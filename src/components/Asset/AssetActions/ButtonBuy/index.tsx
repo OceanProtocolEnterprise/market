@@ -56,14 +56,14 @@ function getConsumeHelpText(
     isConsumable === false
       ? consumableFeedback
       : hasPreviousOrder && isAccountConnected && isSupportedOceanNetwork
-        ? ''
-        : hasDatatoken
-          ? `You own ${dtBalance} ${dtSymbol} allowing you to use this dataset by spending 1 ${dtSymbol}, but without paying ${btSymbol} again.`
-          : isBalanceSufficient === false
-            ? `You do not have enough ${insufficientSymbol} token in your wallet to purchase this asset.`
-            : priceType === 'free'
-              ? ''
-              : `To use this ${assetType}, you will buy 1 ${dtSymbol} and immediately send it back to the publisher.`
+      ? ''
+      : hasDatatoken
+      ? `You own ${dtBalance} ${dtSymbol} allowing you to use this dataset by spending 1 ${dtSymbol}, but without paying ${btSymbol} again.`
+      : isBalanceSufficient === false
+      ? `You do not have enough ${insufficientSymbol} token in your wallet to purchase this asset.`
+      : priceType === 'free'
+      ? ''
+      : `To use this ${assetType}, you will buy 1 ${dtSymbol} and immediately send it back to the publisher.`
   return text
 }
 
@@ -86,18 +86,18 @@ function getAlgoHelpText(
     isAlgorithmConsumable === false
       ? ''
       : hasPreviousOrderSelectedComputeAsset &&
-          isAccountConnected &&
-          isSupportedOceanNetwork
-        ? `You already bought the selected ${selectedComputeAssetType}, allowing you to use it without paying again.`
-        : hasDatatokenSelectedComputeAsset
-          ? `You own ${dtBalanceSelectedComputeAsset} ${dtSymbolSelectedComputeAsset} allowing you to use the selected ${selectedComputeAssetType} by spending 1 ${dtSymbolSelectedComputeAsset}, but without paying OCEAN again.`
-          : isAccountConnected && !isSupportedOceanNetwork
-            ? `Connect to the correct network to interact with this asset.`
-            : isBalanceSufficient === false
-              ? ''
-              : algorithmPriceType === 'free'
-                ? `Additionally, the selected ${selectedComputeAssetType} is free to use.`
-                : `Additionally, you will buy 1 ${dtSymbolSelectedComputeAsset} for the ${selectedComputeAssetType} and send it back to the publisher.`
+        isAccountConnected &&
+        isSupportedOceanNetwork
+      ? `You already bought the selected ${selectedComputeAssetType}, allowing you to use it without paying again.`
+      : hasDatatokenSelectedComputeAsset
+      ? `You own ${dtBalanceSelectedComputeAsset} ${dtSymbolSelectedComputeAsset} allowing you to use the selected ${selectedComputeAssetType} by spending 1 ${dtSymbolSelectedComputeAsset}, but without paying OCEAN again.`
+      : isAccountConnected && !isSupportedOceanNetwork
+      ? `Connect to the correct network to interact with this asset.`
+      : isBalanceSufficient === false
+      ? ''
+      : algorithmPriceType === 'free'
+      ? `Additionally, the selected ${selectedComputeAssetType} is free to use.`
+      : `Additionally, you will buy 1 ${dtSymbolSelectedComputeAsset} for the ${selectedComputeAssetType} and send it back to the publisher.`
   return text
 }
 
@@ -198,18 +198,18 @@ export default function ButtonBuy({
   const buttonText = retry
     ? 'Retry'
     : action === 'download'
-      ? hasPreviousOrder
-        ? 'Download'
-        : priceType === 'free'
-          ? 'Get'
-          : `Buy ${assetTimeout === 'Forever' ? '' : ` for ${assetTimeout}`}`
-      : hasPreviousOrder &&
-          hasPreviousOrderSelectedComputeAsset &&
-          !hasProviderFee
-        ? 'Start Compute Job'
-        : priceType === 'free' && algorithmPriceType === 'free'
-          ? 'Order Compute Job'
-          : `Buy Compute Job`
+    ? hasPreviousOrder
+      ? 'Download'
+      : priceType === 'free'
+      ? 'Get'
+      : `Buy ${assetTimeout === 'Forever' ? '' : ` for ${assetTimeout}`}`
+    : hasPreviousOrder &&
+      hasPreviousOrderSelectedComputeAsset &&
+      !hasProviderFee
+    ? 'Start Compute Job'
+    : priceType === 'free' && algorithmPriceType === 'free'
+    ? 'Order Compute Job'
+    : `Buy Compute Job`
 
   function message(): string {
     let message = ''

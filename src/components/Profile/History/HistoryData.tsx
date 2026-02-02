@@ -375,8 +375,8 @@ export default function HistoryData({
               return prev && prev > 0
                 ? prev
                 : computedTotal > 0
-                  ? computedTotal
-                  : 0
+                ? computedTotal
+                : 0
             })
           })
         }

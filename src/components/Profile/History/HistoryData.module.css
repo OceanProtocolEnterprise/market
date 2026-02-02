@@ -73,8 +73,7 @@
 .skeletonHeader {
   height: 3rem;
   border-radius: 4px;
-  background:
-    linear-gradient(
+  background: linear-gradient(
       90deg,
       rgba(0, 0, 0, 0.06) 25%,
       rgba(0, 0, 0, 0.12) 37%,

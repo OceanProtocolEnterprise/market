@@ -303,8 +303,8 @@ export default function ComputeWizardController({
         datasetServices && datasetServices.length > 0
           ? datasetServices
           : isAlgorithmFlow
-            ? getSelectedDatasetServices(formValues)
-            : [{ asset, service }]
+          ? getSelectedDatasetServices(formValues)
+          : [{ asset, service }]
       const { selectedComputeEnv, selectedResources } = selectEnvAndResources(
         formValues || {}
       )

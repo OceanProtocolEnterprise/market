@@ -88,8 +88,8 @@ const groupRowsByCurrency = (rows: RowEntry[]) => {
     const symbols = row.valueParts?.length
       ? Array.from(new Set(row.valueParts.map((part) => part.symbol)))
       : row.symbol
-        ? [row.symbol]
-        : []
+      ? [row.symbol]
+      : []
     const groupKey = symbols.length <= 1 ? symbols[0] || 'UNKNOWN' : 'MULTI'
 
     if (!groups.has(groupKey)) {
@@ -906,8 +906,8 @@ export default function Review({
             ? '0'
             : accessDetails.price
           : asset.accessDetails?.[0].validOrderTx
-            ? '0'
-            : asset.accessDetails?.[0].price
+          ? '0'
+          : asset.accessDetails?.[0].price
         queue.push({
           id: asset.id,
           type: 'algorithm',
@@ -1632,14 +1632,14 @@ export default function Review({
           symbol: fee.symbol
         }))
       : datasetProviderFee
-        ? [
-            {
-              name: 'PROVIDER FEE DATASET',
-              value: formatUnits(datasetProviderFee, tokenInfoState?.decimals),
-              symbol: fallbackProviderSymbol
-            }
-          ]
-        : []
+      ? [
+          {
+            name: 'PROVIDER FEE DATASET',
+            value: formatUnits(datasetProviderFee, tokenInfoState?.decimals),
+            symbol: fallbackProviderSymbol
+          }
+        ]
+      : []
   const algorithmProviderFeesList =
     algorithmProviderFeeEntries.length > 0
       ? algorithmProviderFeeEntries.map((fee) => ({
@@ -1648,17 +1648,14 @@ export default function Review({
           symbol: fee.symbol
         }))
       : algorithmProviderFee
-        ? [
-            {
-              name: 'PROVIDER FEE ALGORITHM',
-              value: formatUnits(
-                algorithmProviderFee,
-                tokenInfoState?.decimals
-              ),
-              symbol: fallbackProviderSymbol
-            }
-          ]
-        : []
+      ? [
+          {
+            name: 'PROVIDER FEE ALGORITHM',
+            value: formatUnits(algorithmProviderFee, tokenInfoState?.decimals),
+            symbol: fallbackProviderSymbol
+          }
+        ]
+      : []
 
   const datasetMarketFeeEntries = (() => {
     if (isDatasetFlow) {
@@ -2188,12 +2185,12 @@ export default function Review({
                         item.status === 'unverified'
                           ? 'Check Credentials'
                           : item.status === 'checking'
-                            ? 'Verifying...'
-                            : item.status === 'failed'
-                              ? 'Retry'
-                              : item.status === 'expired'
-                                ? 'Check Credentials'
-                                : 'Verified'
+                          ? 'Verifying...'
+                          : item.status === 'failed'
+                          ? 'Retry'
+                          : item.status === 'expired'
+                          ? 'Check Credentials'
+                          : 'Verified'
                       }
                       onAction={() => startVerification(i)}
                       actionDisabled={
