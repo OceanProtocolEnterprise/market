@@ -40,6 +40,7 @@ import { Asset } from 'src/@types/Asset'
 import { Signer, formatUnits } from 'ethers'
 import Decimal from 'decimal.js'
 import { getConsumeMarketFeeWei } from '@utils/consumeMarketFee'
+import { createCredentialStatus } from '@utils/credentialExpiration'
 import { MAX_DECIMALS } from '@utils/constants'
 import PricingRow from './PricingRow'
 import styles from './index.module.css'
@@ -961,8 +962,7 @@ export default function Review({
                 : null
             if (storedTimestamp) {
               const timestamp = parseInt(storedTimestamp, 10)
-              const now = Date.now()
-              const isExpired = now - timestamp > 5 * 60 * 1000
+              const isExpired = !createCredentialStatus(true, timestamp).isValid
               if (isExpired) {
                 return { ...item, status: 'expired' as const }
               }
