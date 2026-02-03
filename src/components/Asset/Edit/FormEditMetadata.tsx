@@ -206,7 +206,7 @@ export default function FormEditMetadata(): ReactElement {
                 )}
                 component={Input}
                 name="consumerParameters"
-                type="publishConsumerParameters"
+                type="consumerParametersBuilder"
               />
             )}
           </>

@@ -21,7 +21,7 @@ import { ConsumerParameters } from './ConsumerParameters'
 import ComputeEnvSelection from './ComputeEnvSelection'
 import Credentials from './Credential'
 import Option from './Radio/Option'
-import { PublishConsumerParameters } from './ConsumerParameters/PublishConsumerParameters'
+import { ConsumerParametersBuilder } from './ConsumerParameters/ConsumerParametersBuilder'
 
 const cx = classNames.bind(styles)
 
@@ -187,8 +187,8 @@ const InputElement = forwardRef(
 
       case 'consumerParameters':
         return <ConsumerParameters {...field} form={form} {...props} />
-      case 'publishConsumerParameters':
-        return <PublishConsumerParameters {...field} form={form} {...props} />
+      case 'consumerParametersBuilder':
+        return <ConsumerParametersBuilder {...field} form={form} {...props} />
 
       case 'textarea': {
         const { type: _type, ...rest } = props

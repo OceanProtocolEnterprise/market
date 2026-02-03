@@ -242,7 +242,7 @@ export default function MetadataFields(): ReactElement {
           {/* <ConsumerParametersSection
             title="Custom Parameters"
             fieldNamePrefix="metadata"
-            type="publishConsumerParameters"
+            type="consumerParametersBuilder"
           /> */}
         </>
       )}

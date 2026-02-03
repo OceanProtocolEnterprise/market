@@ -220,7 +220,7 @@ export default function FormEditService({
             )}
             component={Input}
             name="consumerParameters"
-            type="publishConsumerParameters"
+            type="consumerParametersBuilder"
           />
         )}
         <FormActions />

@@ -211,7 +211,7 @@ export default function ServicesFields(): ReactElement {
 
       <ConsumerParametersSection
         fieldNamePrefix="services[0]"
-        type="publishConsumerParameters"
+        type="consumerParametersBuilder"
       />
     </>
   )
