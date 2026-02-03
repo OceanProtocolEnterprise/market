@@ -125,6 +125,19 @@
   gap: 32px;
   width: 100%;
   padding: 24px 24px 16px 24px;
+  animation: consumerParamDrawer 200ms ease-out;
+  transform-origin: top;
+}
+
+@keyframes consumerParamDrawer {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scaleY(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
 }
 
 .formRow {
@@ -174,7 +187,7 @@
   min-width: 100% !important;
   height: 40px;
   border: 1px solid var(--publish-border);
-  filter: drop-shadow(1px 4px 8px rgba(0, 0, 0, 0.15));
+  box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.15);
   border-radius: 20px;
   padding: 0px 30px;
   font-family: 'Helvetica';
@@ -188,6 +201,7 @@
 
 .formColumn :global(select) {
   padding-right: 3rem !important;
+  filter: none !important;
   appearance: none !important;
   -webkit-appearance: none !important;
   -moz-appearance: none !important;

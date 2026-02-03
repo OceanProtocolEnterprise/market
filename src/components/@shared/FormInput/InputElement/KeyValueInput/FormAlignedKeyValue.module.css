@@ -42,7 +42,7 @@
   min-width: 100% !important;
   height: 40px;
   border: 1px solid var(--publish-border);
-  filter: drop-shadow(1px 4px 8px rgba(0, 0, 0, 0.15));
+  box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.15);
   border-radius: 20px;
   padding: 0px 30px;
   font-family: 'Helvetica';
@@ -60,7 +60,7 @@
   min-width: calc(100% - 82px - 10px) !important;
   height: 40px;
   border: 1px solid var(--publish-border);
-  filter: drop-shadow(1px 4px 8px rgba(0, 0, 0, 0.15));
+  box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.15);
   border-radius: 20px;
   padding: 0px 30px;
   font-family: 'Helvetica';
