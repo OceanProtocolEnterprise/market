@@ -211,6 +211,7 @@ export default function FormAddService({
             )}
             component={Input}
             name="consumerParameters"
+            type="publishConsumerParameters"
           />
         )}
         <FormActions />
