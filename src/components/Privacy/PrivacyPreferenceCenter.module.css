@@ -69,6 +69,7 @@
   max-width: 42rem;
   overflow: hidden;
   height: auto;
+  border-radius: var(--publish-border-radius);
 }
 
 .small .banner {
