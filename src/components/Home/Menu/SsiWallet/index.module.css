@@ -157,15 +157,13 @@
 }
 
 .dialogBorder {
-  border: 1px solid rgba(48, 48, 49, 0.3);
-  border-radius: 10px;
-  padding: 24px;
   width: 548px;
+  max-width: 100%;
 }
 
 @media screen and (max-width: 768px) {
   .dialogBorder {
-    padding: 1em 0.5em;
+    width: 100%;
   }
 }
 
@@ -314,10 +312,6 @@
 
   .marginRight2 {
     margin-right: 0.8em;
-  }
-
-  .dialogBorder {
-    padding: 0.8em;
   }
 
   .inputField {

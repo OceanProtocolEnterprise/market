@@ -1,4 +1,4 @@
-import React, { ReactElement, useEffect, useRef, useState } from 'react'
+import React, { ReactElement, useEffect, useState } from 'react'
 import styles from './index.module.css'
 import { SsiVerifiableCredential } from 'src/@types/SsiWallet'
 import { getSsiVerifiableCredentialType } from '@utils/wallet/ssiWallet'
@@ -9,6 +9,7 @@ import {
 import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
 import Button from '@shared/atoms/Button'
+import Modal from '@shared/atoms/Modal'
 
 export interface VpSelectorProps {
   showDialog: boolean
@@ -111,26 +112,11 @@ export function VpSelector(props: VpSelectorProps): ReactElement {
     asset,
     service
   } = props
-  const selectorDialog = useRef<HTMLDialogElement>(null)
   const [selections, setSelections] = useState<boolean[]>([])
   const credentialCount = ssiVerifiableCredentials?.length || 0
   const allSelected =
     credentialCount > 0 && selections.every((selection) => selection)
   const showToggleAll = credentialCount > 1
-  useEffect(() => {
-    if (showDialog) {
-      const dialog = selectorDialog.current
-      if (dialog && !dialog.open) {
-        dialog.show()
-      }
-    } else {
-      try {
-        selectorDialog.current.close()
-      } catch (e) {
-        console.error('[VpSelector] close error', e)
-      }
-    }
-  }, [showDialog])
   function handleAcceptSelection() {
     const selectedCredentials = ssiVerifiableCredentials
       .filter((credential, index) => selections[index])
@@ -145,23 +131,9 @@ export function VpSelector(props: VpSelectorProps): ReactElement {
   }
 
   useEffect(() => {
-    if (showDialog) {
-      const array = new Array(ssiVerifiableCredentials?.length || 0).fill(false)
-      setSelections(array)
-
-      try {
-        // Use non-modal dialog to avoid nested modal conflicts inside wizard overlays
-      } catch (e) {
-        console.error('[VpSelector] show error', e)
-      }
-    } else {
-      try {
-        selectorDialog.current.close()
-      } catch (e) {
-        console.error('[VpSelector] close error', e)
-      }
-    }
-  }, [showDialog])
+    if (!showDialog) return
+    setSelections(new Array(credentialCount).fill(false))
+  }, [showDialog, credentialCount])
 
   function handleOnChange(index: number, newValue: boolean) {
     const newValues = [...selections]
@@ -188,14 +160,14 @@ export function VpSelector(props: VpSelectorProps): ReactElement {
   }
 
   return (
-    <dialog
-      id="vpSelector"
-      ref={selectorDialog}
-      className={`${styles.dialogBorder} ${styles.dialogWidth}`}
+    <Modal
+      title="Verifiable Credentials to present"
+      isOpen={showDialog}
+      onToggleModal={handleAbortSelection}
+      shouldCloseOnOverlayClick
+      className={styles.vpModal}
     >
       <div className={`${styles.panelColumn} ${styles.width100p}`}>
-        <div className={styles.vptitle}>Verifiable Credentials to present</div>
-        {/* dynamic datat has to fetch here */}
         <div className={styles.dataInfo}>
           Asset: {asset.credentialSubject.metadata.name}, Service:{' '}
           {service.name}
@@ -271,6 +243,6 @@ export function VpSelector(props: VpSelectorProps): ReactElement {
           </Button>
         </div>
       </div>
-    </dialog>
+    </Modal>
   )
 }

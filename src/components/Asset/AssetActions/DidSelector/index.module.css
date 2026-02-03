@@ -16,27 +16,17 @@
   width: 100%;
 }
 
-.dialogBorder {
-  border: 1px solid rgba(48, 48, 49, 0.3);
-  border-radius: 10px;
-  padding: var(--publish-spacing-lg);
-  background: var(--publish-white);
-}
-
-.dialogBorder h3 {
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size-lg);
-  color: var(--publish-text);
-  margin-bottom: var(--sp-8);
-}
-
-.dialogBorder label {
+.label {
   font-family: var(--publish-font-family);
   font-weight: var(--publish-font-weight-normal);
   font-size: var(--publish-font-size);
   color: var(--publish-text);
   margin: 0 0 var(--publish-spacing-md) 0;
+}
+
+.didModal {
+  width: auto;
+  max-width: 90vw;
 }
 
 .inputField {

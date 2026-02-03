@@ -4,6 +4,17 @@ import styles from './index.module.css'
 
 if (process.env.NODE_ENV !== 'test') ReactModal.setAppElement('#__next')
 
+type ModalClassName = ReactModal.Props['className']
+
+function mergeClassName(base: string, extra?: ModalClassName): ModalClassName {
+  if (!extra) return base
+  if (typeof extra === 'string') return `${base} ${extra}`.trim()
+  return {
+    ...extra,
+    base: `${base} ${extra.base || ''}`.trim()
+  }
+}
+
 interface ModalProps extends ReactModal.Props {
   title: string
   onToggleModal: () => void
@@ -14,13 +25,15 @@ export default function Modal({
   title,
   onToggleModal,
   children,
+  className,
+  overlayClassName,
   ...props
 }: ModalProps): ReactElement {
   return (
     <ReactModal
       contentLabel={title}
-      className={styles.modal}
-      overlayClassName={styles.modalOverlay}
+      className={mergeClassName(styles.modal, className)}
+      overlayClassName={mergeClassName(styles.modalOverlay, overlayClassName)}
       {...props}
     >
       <button
