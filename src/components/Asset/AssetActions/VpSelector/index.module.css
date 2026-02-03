@@ -1,6 +1,8 @@
 .panelRow {
   display: flex;
   flex-direction: row;
+  position: relative;
+  width: 100%;
 }
 
 .panelColumn {
@@ -86,6 +88,18 @@
   font-size: var(--publish-font-size);
   color: var(--publish-text);
   margin: 0 0 var(--publish-spacing-md) 0;
+}
+
+.selectAllRow {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+body .selectAllButton {
+  font-size: 12px !important;
+  padding: 4px 12px !important;
 }
 
 .credentialRow {
@@ -199,47 +213,6 @@
   font-size: var(--publish-font-size);
   line-height: 1.2;
   color: #1b6690;
-}
-
-.acceptButton {
-  border-radius: var(--publish-border-radius);
-  padding: 4px 20px;
-  width: 94px;
-  height: var(--publish-input-height);
-  box-shadow: var(--publish-shadow-sm);
-  background: var(--publish-accent-gradient);
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-family);
-  font-weight: 700;
-  font-size: 14px;
-  line-height: 114%;
-  text-align: center;
-  color: #0a4b70;
-}
-
-.acceptButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.abortButton {
-  border-radius: var(--publish-border-radius);
-  padding: 4px 20px;
-  width: 79px;
-  height: var(--publish-input-height);
-  box-shadow: var(--publish-shadow-sm);
-  background: var(--clr-slate-12);
-  border: none;
-  cursor: pointer;
-  margin-left: var(--publish-spacing-sm);
-  font-family: var(--font-family);
-  font-weight: 700;
-  font-size: 14px;
-  line-height: 114%;
-  text-align: center;
-  color: #0a4b70;
 }
 
 .panelRow:last-child {

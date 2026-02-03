@@ -271,3 +271,22 @@ body .publish:focus {
   background: var(--publish-accent);
   color: var(--publish-primary);
 }
+
+.secondary,
+.secondary:hover,
+.secondary:focus,
+.secondary:active {
+  background: var(--clr-slate-12);
+  color: #0a4b70;
+  border-radius: var(--publish-border-radius);
+  box-shadow: var(--publish-shadow-sm);
+  border: none;
+  padding: 4px 20px;
+  min-width: 79px;
+  height: var(--publish-input-height);
+  font-family: var(--publish-font-family);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 114%;
+  text-transform: none;
+}

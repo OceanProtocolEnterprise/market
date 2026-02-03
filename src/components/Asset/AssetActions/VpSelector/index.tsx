@@ -8,6 +8,7 @@ import {
 } from 'src/@types/ddo/Credentials'
 import { Asset } from 'src/@types/Asset'
 import { Service } from 'src/@types/ddo/Service'
+import Button from '@shared/atoms/Button'
 
 export interface VpSelectorProps {
   showDialog: boolean
@@ -112,6 +113,10 @@ export function VpSelector(props: VpSelectorProps): ReactElement {
   } = props
   const selectorDialog = useRef<HTMLDialogElement>(null)
   const [selections, setSelections] = useState<boolean[]>([])
+  const credentialCount = ssiVerifiableCredentials?.length || 0
+  const allSelected =
+    credentialCount > 0 && selections.every((selection) => selection)
+  const showToggleAll = credentialCount > 1
   useEffect(() => {
     if (showDialog) {
       const dialog = selectorDialog.current
@@ -162,6 +167,15 @@ export function VpSelector(props: VpSelectorProps): ReactElement {
     const newValues = [...selections]
     newValues[index] = newValue
     setSelections(newValues)
+  }
+
+  function handleToggleAll() {
+    if (credentialCount === 0) {
+      return
+    }
+
+    const nextValue = !allSelected
+    setSelections(new Array(credentialCount).fill(nextValue))
   }
 
   function sortCredentials(
@@ -227,21 +241,34 @@ export function VpSelector(props: VpSelectorProps): ReactElement {
         </div>
 
         <div className={styles.panelRow}>
-          <button
+          {showToggleAll && (
+            <div className={styles.selectAllRow}>
+              <Button
+                type="button"
+                style="outlined"
+                size="small"
+                className={styles.selectAllButton}
+                onClick={handleToggleAll}
+              >
+                {allSelected ? 'Deselect all' : 'Select all'}
+              </Button>
+            </div>
+          )}
+          <Button
             type="button"
-            className={styles.abortButton}
+            style="secondary"
             onClick={handleAbortSelection}
           >
             Close
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className={styles.acceptButton}
+            style="publish"
             onClick={handleAcceptSelection}
             disabled={selections.length === 0 || !selections.some(Boolean)}
           >
             Accept
-          </button>
+          </Button>
         </div>
       </div>
     </dialog>
