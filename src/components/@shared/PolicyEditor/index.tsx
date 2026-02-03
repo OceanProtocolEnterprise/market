@@ -27,6 +27,52 @@ import CustomPolicyBlock from './PolicyBlocks/Custom'
 import AddIcon from '@images/add_param.svg'
 import { VpCredentialEntry } from './AdvancedOptions/VpRequiredCredentialsSection'
 
+function stripAdvancedVpPolicies(
+  vpPolicies: PolicyEditorProps['credentials']['vpPolicies']
+): PolicyEditorProps['credentials']['vpPolicies'] {
+  if (!Array.isArray(vpPolicies)) return []
+  return vpPolicies.filter((policy) => {
+    if (
+      policy?.type === 'staticVpPolicy' &&
+      (policy?.name === 'holder-binding' ||
+        policy?.name === 'presentation-definition')
+    ) {
+      return false
+    }
+    if (
+      policy?.type === 'argumentVpPolicy' &&
+      (policy?.policy === 'minimum-credentials' ||
+        policy?.policy === 'maximum-credentials')
+    ) {
+      return false
+    }
+    if (policy?.type === 'externalEvpForwardVpPolicy') {
+      return false
+    }
+    return true
+  })
+}
+
+function buildAdvancedToggleCredentials(
+  credentials: PolicyEditorProps['credentials'],
+  nextEnabled: boolean
+): PolicyEditorProps['credentials'] {
+  if (nextEnabled) {
+    return {
+      ...credentials,
+      advancedFeaturesEnabled: true
+    }
+  }
+
+  return {
+    ...credentials,
+    advancedFeaturesEnabled: false,
+    externalEvpForwardUrl: '',
+    vpRequiredCredentials: undefined,
+    vpPolicies: stripAdvancedVpPolicies(credentials.vpPolicies)
+  }
+}
+
 interface PolicyViewProps {
   policy: PolicyType
   name: string
@@ -776,24 +822,31 @@ export function PolicyEditor(props): ReactElement {
               options={['Edit Advanced SSI Policy Features']}
               checked={editAdvancedFeatures}
               onChange={() => {
-                const newValue = !editAdvancedFeatures
+                const nextEnabled = !editAdvancedFeatures
                 setHasUserSetEnabled(true)
-                setEditAdvancedFeatures(newValue)
+                setEditAdvancedFeatures(nextEnabled)
 
-                // Reset to initial values when re-enabling advanced features
-                if (newValue) {
+                if (nextEnabled) {
                   setHolderBinding(true)
                   setRequireAllTypes(true)
                   setLimitMinCredentials(false)
                   setLimitMaxCredentials(false)
                   setMinimumCredentials('1')
                   setMaximumCredentials('1')
+                } else {
+                  setHolderBinding(false)
+                  setRequireAllTypes(false)
+                  setLimitMinCredentials(false)
+                  setLimitMaxCredentials(false)
+                  setExternalEvpForward(false)
+                  setExternalEvpForwardUrl('')
+                  setVpRequiredCredentialsEnabled(false)
+                  setVpRequiredCredentials([])
                 }
 
-                setCredentials({
-                  ...credentials,
-                  advancedFeaturesEnabled: newValue
-                })
+                setCredentials(
+                  buildAdvancedToggleCredentials(credentials, nextEnabled)
+                )
               }}
               hideLabel={true}
               className={styles.advancedOptionsCheckbox}
