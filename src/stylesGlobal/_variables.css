@@ -5,7 +5,6 @@
   --color-primary: var(--brand-blue);
   --color-secondary: var(--brand-blue-light);
   --color-highlight: var(--brand-red);
-  --color-alert: var(--brand-alert-red);
   --color-success: var(--brand-alert-green);
 
   /* Only use these vars for most color referencing for easy light/dark mode */
@@ -28,10 +27,8 @@
   --link-font-color: var(--color-highlight);
   --nft-refresh-icon-fill: var(--brand-white);
   --badge-background-color: var(--color-primary);
-  --nft-placeholder-background: var(--brand-gradient);
 
   /* Menubar */
-  --menu-logo-color: var(--brand-blue);
   --menu-logo-color-hover: var(--brand-blue);
   --menu-logo-size-width-sm: 7.5rem;
   --menu-logo-size-height-sm: 3.5rem;
@@ -40,7 +37,6 @@
   --menu-font-color: var(--color-primary);
   --menu-font-color-active: var(--color-secondary);
   --menu-font-color-hover: var(--color-secondary);
-  --menu-active-indicator-color: var(--color-secondary);
   --menu-mobile-navigation-border-size: var(--border-size-sm);
   --menu-mobile-navigation-border-color: var(--brand-grey-lighter);
   --menu-border-color: var(--color-primary);
@@ -48,19 +44,13 @@
   --menu-border-size: var(--border-size);
   --menu-icon-fill-color: var(--color-primary);
   --menu-icon-fill-color-hover: var(--color-primary);
-  --menu-title-font-size: var(--font-size-h4);
   --menu-link-font-size: var(--font-size-base);
   --menu-link-font-weight: var(--font-weight-bold);
-  --menu-link-font-weight-active: var(--font-weight-bold);
   --menu-caret-size: var(--font-size-small);
   --menu-caret-fill-color: var(--color-primary);
   --menu-network-badge-font-color: var(--brand-white);
 
   /* Footer */
-  --footer-background-color: var(--brand-grey-lighter);
-  --footer-font-color: var(--font-color-text);
-  --footer-font-color-highlight: var(--brand-red);
-  --footer-link-category-font-color: var(--font-color-heading);
 
   /* Homepage */
   --home-brand-logo-size-width: 22rem;
@@ -80,8 +70,6 @@
   --input-selected-border-color: var(--font-color-heading);
   --input-error-text-color: var(--brand-error-red);
   --input-error-border-color: rgba(255, 54, 13, 0.5);
-  --input-error-spacing: calc(var(--spacer) / 3);
-  --input-padding: 15px 25px;
 
   /* Buttons */
   --button-border-radius: var(--border-radius);
@@ -89,17 +77,13 @@
   --button-background: var(--clr-slate-12);
   --button-hover-font-color: var(--brand-white);
   --button-hover-background: var(--font-color-light);
-  --button-active-font-color: var(--brand-white);
   --button-active-background: var(--font-color-light);
-  --button-primary-font-color: var(--brand-white);
   --button-primary-background: var(--brand-gradient);
   --button-ghost-font-color: var(--color-primary);
   --button-ghost-background: var(--brand-white);
   --button-text-font-color: var(--color-highlight);
 
   /* Loading spinner */
-  --loader-border-color: var(--brand-blue);
-  --loader-top-border-color: transparent;
   --loader-border-size: var(--border-size);
   --loader-message-color: var(--color-secondary);
   --loader-ordering-spinner-width: 18px;
@@ -131,17 +115,6 @@
   --pagination-hover-font-color: var(--color-highlight);
 
   /* Filter and sort */
-  --filter-font-color: var(--color-secondary);
-  --filter-hover-font-color: var(--font-color-text);
-  --filter-selected-font-color: var(--background-body);
-  --filter-background: var(--background-content);
-  --filter-selected-background: var(--font-color-text);
-  --filter-border-radius: var(--border-radius);
-  --filter-border-size: var(--border-size-sm);
-  --filter-border-color: var(--border-color);
-  --filter-selected-border-color: var(--background-body);
-  --filter-clear-font-color: var(--color-secondary);
-  --filter-clear-hover-font-color: var(--color-highlight);
 
   /* Confetti */
   --confetti-color-one: var(--brand-blue-light);
@@ -166,9 +139,7 @@
   --font-size-large: 1.2rem;
   --font-size-small: 0.85rem;
   --font-size-mini: 0.65rem;
-  --font-size-text: 1rem;
   --font-size-label: 14px;
-  --font-size-title: 1.4rem;
   --font-size-h1: 3rem;
   --font-size-h2: 2.5rem;
   --font-size-h3: 1.7rem;
@@ -186,13 +157,10 @@
 
   /* Additional tokens for PolicyEditor */
   --radius-xl: 20px;
-  --radius-sm: 2px;
   --sp-10: 40px;
-  --sp-9: 36px;
   --sp-8_5: 34px;
   --sp-8: 32px;
   --sp-7_5: 30px;
-  --sp-7: 28px;
   --sp-6_5: 26px;
   --sp-6: 24px;
   --sp-5_5: 22px;
@@ -200,29 +168,19 @@
   --sp-4_5: 18px;
   --sp-4: 16px;
   --sp-3_5: 14px;
-  --sp-3: 12px;
   --sp-2_5: 10px;
   --sp-2: 8px;
   --sp-1_5: 6px;
   --sp-1: 4px;
   --sp-0_5: 2px;
   --sp-0_25: 1px;
-  --sp-0: 0px;
-  --line-accent: 3px;
   --shadow-md: 1px 4px 8px rgba(0, 0, 0, 0.15);
 
-  --layout-max-width: 85rem;
-  --checkbox-size: 1.6em;
-
   --break-point--small: 640px;
-  --break-point--medium: 860px;
-  --break-point--large: 1140px;
   --break-point--huge: 1400px;
 
   /* Publish page design system - Figma specific variables */
   --publish-container-width: 1160px;
-  --publish-text-link-color: var(--ocean-blue);
-  --publish-yellow: var(--publish-accent);
 
   /* Publish Typography */
   --publish-font-size-xs: 10px;
@@ -247,13 +205,11 @@
   --publish-spacing-lg: 24px;
   --publish-spacing-xl: 32px;
   --publish-spacing-2xl: 40px;
-  --publish-spacing-3xl: 55px;
   --publish-spacing-4xl: 100px;
 
   /* Publish Border Radius */
   --publish-border-radius-sm: 2px;
   --publish-border-radius: 20px;
-  --publish-border-radius-lg: 40px;
   --publish-border-radius-full: 19px; /* For circular elements */
 
   /* Publish Shadows */
@@ -263,43 +219,22 @@
 
   /* Publish Form Elements - Specific to publish page only */
   --publish-input-height: 40px;
-  --publish-input-padding-small: 6px 10px;
   --publish-input-padding: 15px 25px;
   --publish-input-padding-compact: 12px 30px;
-  --publish-input-padding-x: 30px;
   --publish-input-border-size: 1px;
   --publish-input-border-color: rgba(10, 75, 112, 0.5);
   --publish-input-border-color-dark: rgba(48, 48, 49, 0.2);
   --publish-input-border-radius: 20px;
-  --publish-input-shadow: 1px 4px 8px 0 rgba(0, 0, 0, 0.15);
-  --publish-input-error-border-color: rgba(255, 54, 13, 0.5);
-  --publish-input-error-text-color: var(--brand-error-red);
-  --publish-input-error-spacing: 7px;
   --publish-form-container-padding: 40px;
   --publish-form-container-padding-top-extended: 50px 40px 40px 40px;
-  --publish-checkbox-selected-background: var(--publish-accent);
 
   /* Publish Progress Navigation */
-  --publish-progress-height: 12px;
-  --publish-progress-border-radius: var(--publish-border-radius);
-  --publish-step-size: 30px;
-  --publish-step-active-size: 38px;
-  --publish-step-gap: 55px;
 
   /* Publish Asset Type Buttons */
-  --publish-asset-button-width: 520px;
-  --publish-asset-button-height: 80px;
-  --publish-asset-button-border: 1.5px;
 
   /* Publish Docker Buttons */
-  --publish-docker-button-width: 328px;
-  --publish-docker-button-height: 40px;
-  --publish-docker-button-gap: 32px;
 
   /* Publish Continue Button */
-  --publish-continue-button-width: 110px;
-  --publish-continue-button-height: 40px;
-  --publish-continue-button-padding: 4px 20px;
 }
 
 .dark {
