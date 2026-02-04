@@ -40,14 +40,12 @@
 }
 
 .vpModal {
-  width: 60%;
-  max-width: none;
+  width: 92vw;
+  max-width: 1200px;
 }
 
-@media (max-width: 1024px) {
-  .vpModal {
-    width: 80%;
-  }
+.vpModal.vpModal {
+  max-width: 1200px;
 }
 
 .selectAllRow {
