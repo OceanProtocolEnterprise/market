@@ -12,7 +12,8 @@ import Ready from './Steps/Ready'
 import { useAccount, usePublicClient, useChainId } from 'wagmi'
 import { useUserPreferences } from '@context/UserPreferences'
 import useBalance from '@hooks/useBalance'
-import Faucet from './Steps/Faucet'
+import Faucet from './Steps/Faucet/Faucet'
+import SSI from './Steps/SSI/Ssi'
 import { getSupportedChainIds } from 'chains.config.cjs'
 
 export interface OnboardingStep {
@@ -23,12 +24,16 @@ export interface OnboardingStep {
   buttonLabel?: string
   buttonSuccess?: string
 }
+const isSSIEnabled = process.env.NEXT_PUBLIC_SSI_ENABLED === 'true'
 
 const steps = [
   { shortLabel: 'MetaMask', component: <DownloadMetamask /> },
   { shortLabel: 'Connect', component: <ConnectAccount /> },
   { shortLabel: 'Tokens', component: <ImportCustomTokens /> },
   { shortLabel: 'Faucet', component: <Faucet /> },
+
+  ...(isSSIEnabled ? [{ shortLabel: 'SSI', component: <SSI /> }] : []),
+
   { shortLabel: 'Ready', component: <Ready /> }
 ]
 

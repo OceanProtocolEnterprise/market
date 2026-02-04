@@ -1,0 +1,6 @@
+{
+  "title": "Set up your SSI Wallet",
+  "subtitle": "Use a Self-Sovereign Identity wallet to enable identity-based features",
+  "body": "A Self-Sovereign Identity (SSI) wallet allows you to securely store and manage. verifiable credentials issued by trusted entities. These credentials let you prove specific attributes without revealing unnecessary personal data, giving you full control over your digital identity.",
+  "image": "/images/onboarding/ssi_wallet.png"
+}
