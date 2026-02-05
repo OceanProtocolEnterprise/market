@@ -109,6 +109,7 @@ const ComputeJobs = ({
         <div className={styles.headerRow}>
           <h1 className={styles.title}>Your Compute Jobs</h1>
           <Button
+            style="gradient"
             className={styles.refreshButton}
             onClick={() => fetchComputeJobs('refresh')}
             disabled={isRefreshing}
@@ -132,6 +133,7 @@ const ComputeJobs = ({
       <div className={styles.headerRow}>
         <h1 className={styles.title}>Your Compute Jobs</h1>
         <Button
+          style="gradient"
           className={styles.refreshButton}
           onClick={() => fetchComputeJobs('refresh')}
           disabled={isRefreshing}

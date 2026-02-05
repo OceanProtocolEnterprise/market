@@ -127,6 +127,7 @@ const Account = forwardRef(
             apiValue={overrideApi}
             onChange={setOverrideApi}
             onConnect={handleSsiConnect}
+            onClose={() => setShowInput(false)}
           />
         )}
       </>
