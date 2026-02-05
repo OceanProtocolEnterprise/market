@@ -73,7 +73,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--black-alpha-50);
+  background: var(--modal-overlay-background);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;

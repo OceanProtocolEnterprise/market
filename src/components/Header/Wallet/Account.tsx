@@ -16,106 +16,123 @@ import appConfig from 'app.config.cjs'
 import SsiApiModal from './SsiApiModal'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 
-const Account = forwardRef((props, ref: any) => {
-  const { address: accountId, isConnected } = useAccount()
-  const walletClient = useEthersSigner()
-  const { setOpen } = useModal()
-  const {
-    sessionToken,
-    setSessionToken,
-    tryAcquireSsiAutoConnectLock,
-    resetSsiAutoConnectLock
-  } = useSsiWallet()
+interface AccountProps {
+  onSsiModalOpenChange?: (isOpen: boolean) => void
+}
 
-  const [showInput, setShowInput] = useState(false)
-  const [overrideApi, setOverrideApi] = useState(appConfig.ssiWalletApi)
+const Account = forwardRef(
+  ({ onSsiModalOpenChange }: AccountProps, ref: any) => {
+    const { address: accountId, isConnected } = useAccount()
+    const walletClient = useEthersSigner()
+    const { setOpen } = useModal()
+    const {
+      sessionToken,
+      setSessionToken,
+      tryAcquireSsiAutoConnectLock,
+      resetSsiAutoConnectLock
+    } = useSsiWallet()
 
-  useEffect(() => {
-    if (!isConnected) {
-      resetSsiAutoConnectLock()
-      return
-    }
-    const storedApi = sessionStorage.getItem(STORAGE_KEY)
+    const [showInput, setShowInput] = useState(false)
+    const [overrideApi, setOverrideApi] = useState(appConfig.ssiWalletApi)
 
-    if (isConnected && walletClient && appConfig.ssiEnabled && !sessionToken) {
-      if (!tryAcquireSsiAutoConnectLock()) return
-      if (storedApi) {
-        connectToWallet(walletClient as any)
-          .then((session) => {
-            setSessionToken(session)
-          })
-          .catch((error) => LoggerInstance.error(error))
-      } else {
-        setShowInput(true)
-      }
-    }
-  }, [
-    isConnected,
-    walletClient,
-    sessionToken,
-    setSessionToken,
-    tryAcquireSsiAutoConnectLock,
-    resetSsiAutoConnectLock
-  ])
+    useEffect(() => {
+      onSsiModalOpenChange?.(showInput)
+    }, [onSsiModalOpenChange, showInput])
 
-  async function handleActivation() {
-    setOpen(true)
-  }
-
-  async function handleSsiConnect() {
-    try {
-      if (!walletClient) {
-        LoggerInstance.error('Wallet Client not available for SSI connection.')
+    useEffect(() => {
+      if (!isConnected) {
+        resetSsiAutoConnectLock()
         return
       }
+      const storedApi = sessionStorage.getItem(STORAGE_KEY)
 
-      setSsiWalletApiOverride(overrideApi)
-      const session = await connectToWallet(walletClient as any)
-      setSessionToken(session)
-      setShowInput(false)
-    } catch (error) {
-      LoggerInstance.error(error)
+      if (
+        isConnected &&
+        walletClient &&
+        appConfig.ssiEnabled &&
+        !sessionToken
+      ) {
+        if (!tryAcquireSsiAutoConnectLock()) return
+        if (storedApi) {
+          connectToWallet(walletClient as any)
+            .then((session) => {
+              setSessionToken(session)
+            })
+            .catch((error) => LoggerInstance.error(error))
+        } else {
+          setShowInput(true)
+        }
+      }
+    }, [
+      isConnected,
+      walletClient,
+      sessionToken,
+      setSessionToken,
+      tryAcquireSsiAutoConnectLock,
+      resetSsiAutoConnectLock
+    ])
+
+    async function handleActivation() {
+      setOpen(true)
     }
-  }
 
-  return (
-    <>
-      <div className={styles.wrapper}>
-        {accountId ? (
-          <button
-            className={`${styles.button}`}
-            aria-label="Account"
-            ref={ref}
-            onClick={(e) => {
-              e.preventDefault()
-            }}
-          >
-            <Avatar accountId={accountId} />
-            <span className={styles.address} title={accountId}>
-              {accountTruncate(accountId)}
-            </span>
-            <Caret aria-hidden="true" className={styles.caret} />
-          </button>
-        ) : (
-          <button
-            className={`${styles.button} ${styles.initial}`}
-            onClick={handleActivation}
-            ref={ref}
-          >
-            <span>Connect Wallet</span>
-          </button>
+    async function handleSsiConnect() {
+      try {
+        if (!walletClient) {
+          LoggerInstance.error(
+            'Wallet Client not available for SSI connection.'
+          )
+          return
+        }
+
+        setSsiWalletApiOverride(overrideApi)
+        const session = await connectToWallet(walletClient as any)
+        setSessionToken(session)
+        setShowInput(false)
+      } catch (error) {
+        LoggerInstance.error(error)
+      }
+    }
+
+    return (
+      <>
+        <div className={styles.wrapper}>
+          {accountId ? (
+            <button
+              className={`${styles.button}`}
+              aria-label="Account"
+              ref={ref}
+              onClick={(e) => {
+                e.preventDefault()
+              }}
+            >
+              <Avatar accountId={accountId} />
+              <span className={styles.address} title={accountId}>
+                {accountTruncate(accountId)}
+              </span>
+              <Caret aria-hidden="true" className={styles.caret} />
+            </button>
+          ) : (
+            <button
+              className={`${styles.button} ${styles.initial}`}
+              onClick={handleActivation}
+              ref={ref}
+            >
+              <span>Connect Wallet</span>
+            </button>
+          )}
+        </div>
+        {showInput && (
+          <SsiApiModal
+            apiValue={overrideApi}
+            onChange={setOverrideApi}
+            onConnect={handleSsiConnect}
+          />
         )}
-      </div>
-      {showInput && (
-        <SsiApiModal
-          apiValue={overrideApi}
-          onChange={setOverrideApi}
-          onConnect={handleSsiConnect}
-        />
-      )}
-    </>
-  )
-})
+      </>
+    )
+  }
+)
 
 export default Account
 
