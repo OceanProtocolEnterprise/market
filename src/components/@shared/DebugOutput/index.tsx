@@ -1,4 +1,4 @@
-import { ReactElement } from 'react'
+import { ReactElement, useState } from 'react'
 import styles from './index.module.css'
 
 export default function DebugOutput({
@@ -10,11 +10,43 @@ export default function DebugOutput({
   output: any
   large?: boolean
 }): ReactElement {
+  const jsonString = JSON.stringify(output, null, 2)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(jsonString)
+      setCopied(true)
+
+      setTimeout(() => {
+        setCopied(false)
+      }, 2000)
+    } catch (e) {
+      console.error('Failed to copy output', e)
+    }
+  }
+
   return (
     <div className={styles.debugOutput}>
-      {title && <h5>{title}</h5>}
+      {title && (
+        <div className={styles.header}>
+          <h5>{title}</h5>
+
+          <button
+            type="button"
+            className={styles.copyButton}
+            onClick={handleCopy}
+            aria-label={copied ? 'Copied' : 'Copy'}
+          >
+            <span className={styles.icon}>{copied ? '✔' : '📋'}</span>
+
+            <span className={styles.tooltip}>{copied ? 'Copied' : 'Copy'}</span>
+          </button>
+        </div>
+      )}
+
       <pre className={large ? styles.large : ''}>
-        <code>{JSON.stringify(output, null, 2)}</code>
+        <code>{jsonString}</code>
       </pre>
     </div>
   )
