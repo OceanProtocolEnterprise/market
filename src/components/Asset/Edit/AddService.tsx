@@ -246,7 +246,8 @@ export default function AddService({
         const filesEncrypted = await getEncryptedFiles(
           file,
           asset.credentialSubject?.chainId,
-          values.providerUrl.url
+          values.providerUrl.url,
+          signer
         )
         newFiles = filesEncrypted
       }

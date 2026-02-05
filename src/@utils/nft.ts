@@ -113,7 +113,7 @@ export async function setNftMetadata(
       asset,
       asset.credentialSubject?.chainId,
       customProviderUrl || asset.credentialSubject?.services[0].serviceEndpoint,
-      signal
+      signer
     )
   } catch (err: any) {
     const message = getErrorMessage(err.message)
@@ -153,7 +153,7 @@ export async function setNFTMetadataAndTokenURI(
       asset,
       asset.credentialSubject?.chainId,
       customProviderUrl || asset.credentialSubject?.services[0].serviceEndpoint,
-      signal
+      signer
     )
   } catch (err: any) {
     const message = getErrorMessage(err.message)

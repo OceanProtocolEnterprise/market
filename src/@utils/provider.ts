@@ -210,14 +210,16 @@ export async function initializeProviderForCompute(
 export async function getEncryptedFiles(
   files: any,
   chainId: number,
-  providerUrl: string
+  providerUrl: string,
+  signer: Signer
 ): Promise<string> {
   try {
     // https://github.com/oceanprotocol/provider/blob/v4main/API.md#encrypt-endpoint
     const response = await ProviderInstance.encrypt(
       files,
       chainId,
-      customProviderUrl || providerUrl
+      customProviderUrl || providerUrl,
+      signer
     )
     return response
   } catch (error) {

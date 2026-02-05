@@ -505,7 +505,8 @@ export async function transformPublishFormToDdo(
   // so we can always assume if they are not passed, we are on preview.
   datatokenAddress?: string,
   nftAddress?: string,
-  cancelToken?: CancelToken
+  cancelToken?: CancelToken,
+  signer?: Signer
 ): Promise<Asset> {
   // Omit UI-only step completion flags
   const safeValues = omit(values, [
@@ -643,7 +644,7 @@ export async function transformPublishFormToDdo(
     !isPreview &&
     files?.length &&
     files[0].valid &&
-    (await getEncryptedFiles(file, chainId, providerUrl.url))
+    (await getEncryptedFiles(file, chainId, providerUrl.url, signer))
 
   const newServiceCredentials = generateCredentials(credentials)
   const valuesCompute: ComputeEditForm = {
@@ -847,7 +848,8 @@ export async function signAssetAndUploadToIpfs(
       metadataIPFS = await ProviderInstance.encrypt(
         remoteAsset,
         asset.credentialSubject?.chainId,
-        providerUrl
+        providerUrl,
+        owner
       )
       flags = 2
     } catch (error) {
