@@ -13,12 +13,12 @@
 }
 
 .boxModel {
-  border: 1px solid rgba(48, 48, 49, 0.1);
+  border: 1px solid var(--ink-alpha-10);
   border-radius: 20px;
   padding: 0 20px 20px;
   max-width: 1080px;
   min-height: 260px;
-  box-shadow: 1px 4px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 8px 0 var(--black-alpha-15);
   background: #fff;
   max-height: 510px;
   overflow-y: auto;
@@ -30,7 +30,7 @@
 }
 
 .boxModel::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--neutral-125);
   border-radius: 20px;
 }
 
@@ -40,7 +40,7 @@
 }
 
 .boxModel::-webkit-scrollbar-thumb:hover {
-  background: #fbcb05;
+  background: var(--yellow-600);
 }
 
 .headerWrapper {
@@ -49,8 +49,8 @@
   z-index: 3;
   background: #fff;
   padding: 20px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  border-bottom: 1px solid rgba(48, 48, 49, 0.1);
+  box-shadow: 0 2px 4px var(--black-alpha-4);
+  border-bottom: 1px solid var(--ink-alpha-10);
 }
 
 .header {
@@ -91,7 +91,7 @@
 .service {
   display: flex;
   padding: 10px 15px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--neutral-140);
   align-items: center;
   font-family: var(--font-family);
   font-weight: 400;
@@ -190,7 +190,7 @@
   height: 16px;
   appearance: none;
   -webkit-appearance: none;
-  border: 1px solid #d1d1d1;
+  border: 1px solid var(--neutral-225);
   position: relative;
 }
 
@@ -248,9 +248,9 @@
   border-radius: 6px;
   background: linear-gradient(
     90deg,
-    rgba(0, 0, 0, 0.08) 25%,
-    rgba(0, 0, 0, 0.15) 37%,
-    rgba(0, 0, 0, 0.08) 63%
+    var(--black-alpha-8) 25%,
+    var(--black-alpha-15) 37%,
+    var(--black-alpha-8) 63%
   );
   background-size: 400% 100%;
   animation: shimmer 3s ease-in-out infinite;

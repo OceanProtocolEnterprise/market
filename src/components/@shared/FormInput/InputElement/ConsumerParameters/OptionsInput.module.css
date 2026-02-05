@@ -42,8 +42,8 @@
   width: 100% !important;
   box-sizing: border-box !important;
   height: 40px !important;
-  border: 1px solid var(--publish-border) !important;
-  box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid var(--border-navy-soft) !important;
+  box-shadow: 1px 4px 8px var(--black-alpha-15) !important;
   border-radius: 20px !important;
   padding: 0px 30px !important;
   font-family: 'Helvetica' !important;

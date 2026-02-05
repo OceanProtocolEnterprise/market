@@ -6,7 +6,7 @@
   display: block;
   font-weight: var(--font-weight-bold);
   color: var(--font-color-heading);
-  margin-bottom: var(--publish-spacing-sm);
+  margin-bottom: var(--sp-2);
   font-size: var(--font-size-base);
 }
 
@@ -46,15 +46,15 @@
 .addressInput:focus {
   outline: none;
   border-color: var(--ocean-blue);
-  box-shadow: 0 0 0 3px rgba(75, 163, 211, 0.1);
+  box-shadow: 0 0 0 3px var(--ocean-alpha-10);
 }
 
 .deleteButton {
-  border: 1px solid var(--publish-primary) !important;
-  border-radius: var(--publish-border-radius) !important;
+  border: 1px solid var(--clr-navy) !important;
+  border-radius: var(--radius-xl) !important;
   padding: 9px 14px !important;
-  box-shadow: var(--publish-shadow) !important;
-  background: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: var(--shadow-md) !important;
+  background: var(--white-alpha-20) !important;
   min-width: auto !important;
   display: flex !important;
   align-items: center !important;
@@ -62,16 +62,16 @@
 }
 
 .deleteButton:hover {
-  background: rgba(255, 255, 255, 0.3) !important;
-  border-color: var(--publish-primary) !important;
+  background: var(--white-alpha-30) !important;
+  border-color: var(--clr-navy) !important;
   transform: none !important;
-  box-shadow: var(--publish-shadow) !important;
+  box-shadow: var(--shadow-md) !important;
 }
 
 .deleteButton svg {
   width: 16px;
   height: 16px;
-  fill: var(--publish-primary);
+  fill: var(--clr-navy);
 }
 
 .deleteButton:disabled {

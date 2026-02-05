@@ -75,9 +75,9 @@
   border-radius: 4px;
   background: linear-gradient(
       90deg,
-      rgba(0, 0, 0, 0.06) 25%,
-      rgba(0, 0, 0, 0.12) 37%,
-      rgba(0, 0, 0, 0.06) 63%
+      var(--black-alpha-6) 25%,
+      var(--black-alpha-12) 37%,
+      var(--black-alpha-6) 63%
     ),
     var(--background-highlight);
   background-size: 400% 100%;

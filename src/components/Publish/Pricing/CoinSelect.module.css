@@ -2,7 +2,7 @@
   composes: select from '../../@shared/FormInput/InputElement/index.module.css';
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-base);
-  border: 1px solid var(--publish-primary);
+  border: 1px solid var(--clr-navy);
   border-right: none;
   margin-right: -0.5rem;
   background-color: var(--background-highlight);
@@ -11,8 +11,8 @@
   height: 41px;
   text-align: center;
   font-weight: var(--font-weight-bold);
-  border-top-left-radius: var(--publish-border-radius);
-  border-bottom-left-radius: var(--publish-border-radius);
+  border-top-left-radius: var(--radius-xl);
+  border-bottom-left-radius: var(--radius-xl);
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 

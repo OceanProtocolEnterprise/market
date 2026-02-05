@@ -3,7 +3,7 @@
   padding: 2rem 1.75rem;
   min-width: 22rem;
   font-family: 'Inter', sans-serif;
-  color: #0f4c81;
+  color: var(--navy-700);
 }
 
 /* Profile & Bookmark links */
@@ -15,7 +15,7 @@
   font-weight: 700;
   font-size: 1.25rem;
   margin-bottom: 1rem;
-  color: #0f4c81;
+  color: var(--navy-700);
 }
 
 .profileLink img,
@@ -44,7 +44,7 @@
 }
 
 .bookmarksLink svg {
-  fill: #f4c542;
+  fill: var(--yellow-400);
 }
 
 /* Divider between sections */
@@ -69,7 +69,7 @@
 
 .walletLogoWrap {
   font-weight: 600;
-  color: #0f4c81;
+  color: var(--navy-700);
 }
 
 /* AddTokenList buttons */
@@ -77,7 +77,7 @@
   display: flex;
   align-items: center;
   font-size: 1rem;
-  color: #444;
+  color: var(--neutral-850);
   background: none;
   border: none;
   padding: 0.35rem 0;
@@ -86,7 +86,7 @@
 }
 
 .walletInfo button:hover {
-  color: #0f4c81;
+  color: var(--navy-700);
 }
 
 .walletLogo {
@@ -123,7 +123,7 @@
 .actions button:hover {
   font-size: 1rem;
   font-weight: 500;
-  color: #0f4c81;
+  color: var(--navy-700);
   background: none;
   border: none;
   text-align: left;

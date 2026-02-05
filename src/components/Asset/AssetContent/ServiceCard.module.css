@@ -1,9 +1,9 @@
 .service {
   cursor: pointer;
   padding: calc(var(--spacer) * 0.5) var(--spacer);
-  border: 1px solid rgba(48, 48, 49, 0.1);
+  border: 1px solid var(--ink-alpha-10);
   border-radius: 20px;
-  box-shadow: 1px 4px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 8px 0 var(--black-alpha-15);
   background: #fff;
   position: relative;
   min-height: 145px;
@@ -35,7 +35,7 @@
   font-family: var(--font-family);
   font-weight: 400;
   font-size: 14px;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   line-height: 250%;
 }
 .serviceTitle {
@@ -58,7 +58,7 @@
   font-weight: 400;
   font-size: 14px;
   line-height: 129%;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   word-break: break-word;
 }
 
@@ -95,7 +95,7 @@
 }
 
 .toggle:hover {
-  background: rgba(0, 150, 136, 0.1);
+  background: var(--teal-alpha-10);
 }
 
 .serviceDescription p {
@@ -106,7 +106,7 @@
   font-weight: 400;
   font-size: 14px;
   line-height: 124%;
-  color: rgba(48, 48, 49, 0.4);
+  color: var(--ink-alpha-40);
   font-style: italic;
 }
 
@@ -121,7 +121,7 @@
   padding: 2px 12px;
   width: 66px;
   height: 26px;
-  box-shadow: 1px 2px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 2px 8px 0 var(--black-alpha-15);
   background: linear-gradient(
     135deg,
     #fdd655 0%,
@@ -136,7 +136,7 @@
 }
 
 .selectButton:hover {
-  background: #f3ce4a;
+  background: var(--yellow-350);
 }
 
 .selectButtonWrapper {

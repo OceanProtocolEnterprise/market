@@ -24,7 +24,7 @@
   max-width: var(--break-point--small);
   position: relative;
   animation: moveUp 0.2s ease-out backwards;
-  border-radius: var(--publish-border-radius);
+  border-radius: var(--radius-xl);
 }
 
 @media (max-height: 40rem) {

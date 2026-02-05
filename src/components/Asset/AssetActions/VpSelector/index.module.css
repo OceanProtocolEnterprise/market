@@ -63,10 +63,10 @@ body .selectAllButton {
 .credentialRow {
   display: flex;
   align-items: center;
-  gap: var(--publish-spacing-md);
+  gap: var(--sp-4);
   border-bottom: 1px solid rgba(48, 48, 49, 0.2);
-  padding: 0px 0px var(--publish-spacing-md) 0px;
-  margin-bottom: var(--publish-spacing-md);
+  padding: 0px 0px var(--sp-4) 0px;
+  margin-bottom: var(--sp-4);
 }
 
 .credentialRow:last-child {
@@ -133,7 +133,7 @@ body .selectAllButton {
   font-weight: 700;
   font-size: 14px;
   color: #303031;
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
   display: flex;
   justify-content: flex-start;
 }
@@ -152,11 +152,11 @@ body .selectAllButton {
 }
 
 .fieldNames div {
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
-  font-size: var(--publish-font-size);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
   line-height: 1.2;
-  color: #1b6690;
+  color: var(--navy-650);
 }
 
 .fieldValues {
@@ -166,17 +166,17 @@ body .selectAllButton {
 }
 
 .fieldValues div {
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
-  font-size: var(--publish-font-size);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
   line-height: 1.2;
-  color: #1b6690;
+  color: var(--navy-650);
 }
 
 .panelRow:last-child {
   justify-content: center;
   gap: var(--sp-4);
-  margin-top: var(--publish-spacing-lg);
+  margin-top: var(--sp-6);
 }
 
 .scrollableList {
@@ -192,10 +192,10 @@ body .selectAllButton {
 }
 
 .scrollableList::-webkit-scrollbar-thumb {
-  background: var(--publish-accent-gradient);
+  background: var(--gradient-accent);
   border-radius: 3px;
 }
 
 .scrollableList::-webkit-scrollbar-thumb:hover {
-  background: var(--publish-accent-gradient);
+  background: var(--gradient-accent);
 }

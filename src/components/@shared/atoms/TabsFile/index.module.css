@@ -45,9 +45,9 @@
 }
 
 .tab[aria-selected='true'] {
-  color: var(--publish-primary);
+  color: var(--clr-navy);
   list-style: none;
-  border-bottom: 2px solid var(--publish-primary);
+  border-bottom: 2px solid var(--clr-navy);
 }
 
 .tab[aria-disabled='true'] {

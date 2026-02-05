@@ -1,34 +1,33 @@
 .input {
-  font-size: var(--publish-font-size);
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
-  color: var(--publish-text-secondary);
-  border: var(--publish-input-border-size) solid
-    var(--publish-input-border-color);
-  box-shadow: var(--publish-shadow);
+  font-size: var(--text-sm);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
+  color: var(--clr-slate-70);
+  border: var(--border-size-sm) solid var(--border-navy-soft);
+  box-shadow: var(--shadow-md);
   width: 100%;
-  background: var(--publish-white);
-  padding: var(--publish-input-padding);
+  background: var(--brand-white);
+  padding: var(--field-padding);
   margin: 0;
-  border-radius: var(--publish-input-border-radius);
+  border-radius: var(--radius-xl);
   transition: 0.2s ease-out;
-  height: var(--publish-input-height);
+  height: var(--field-height);
   min-width: 0;
   appearance: none;
   display: block;
 }
 
 .input:focus {
-  border-color: var(--publish-primary);
-  box-shadow: 0 0 0 2px rgba(10, 75, 112, 0.2);
+  border-color: var(--clr-navy);
+  box-shadow: 0 0 0 2px var(--navy-alpha-20);
   outline: 0;
 }
 
 .input::placeholder {
-  font-family: var(--publish-font-family);
-  font-size: var(--publish-font-size);
-  color: var(--publish-text-secondary);
-  font-weight: var(--publish-font-weight-normal);
+  font-family: var(--font-family-base);
+  font-size: var(--text-sm);
+  color: var(--clr-slate-70);
+  font-weight: var(--text-weight-regular);
   transition: 0.2s ease-out;
   opacity: 0.7;
 }
@@ -126,7 +125,7 @@
 .customSelect:focus {
   border-color: var(--font-color-text);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(10, 75, 112, 0.2);
+  box-shadow: 0 0 0 2px var(--navy-alpha-20);
 }
 
 :global(.container.publish)
@@ -185,26 +184,26 @@ body .publishSelect {
   min-width: 190px;
   width: fit-content;
   height: fit-content;
-  background: var(--publish-background-neutral);
-  border: 1px solid var(--publish-primary);
-  border-radius: var(--publish-input-border-radius);
-  font-family: var(--publish-font-family);
+  background: var(--surface-neutral);
+  border: 1px solid var(--clr-navy);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-normal);
-  font-size: var(--publish-font-size);
-  line-height: var(--publish-line-height-base);
-  color: var(--publish-primary);
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
+  color: var(--clr-navy);
   appearance: none;
   background-image: url('../../../../@images/chevron_down.svg') !important;
   background-position: calc(100% - 15px) center !important;
   background-size: 12px 12px !important;
   background-repeat: no-repeat !important;
   /* Remove styles inherited from .input */
-  font-size: var(--publish-font-size);
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
-  color: var(--publish-primary);
-  border: 1px solid var(--publish-primary);
+  font-size: var(--text-sm);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
+  color: var(--clr-navy);
+  border: 1px solid var(--clr-navy);
   box-shadow: none;
   margin: 0;
   transition: 0.2s ease-out;
@@ -370,7 +369,7 @@ body .publishSelect {
 .select.medium {
   font-size: var(--font-size-medium);
   height: fit-content;
-  padding: var(--publish-input-padding-compact);
+  padding: var(--field-padding-compact);
 }
 
 .medium::placeholder {
@@ -427,12 +426,12 @@ body .publishSelect {
 
 .publishPrefix,
 .publishPostfix {
-  border: 1px solid var(--publish-primary);
+  border: 1px solid var(--clr-navy);
   background: transparent;
-  color: var(--publish-primary);
-  border-radius: var(--publish-border-radius);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
+  color: var(--clr-navy);
+  border-radius: var(--radius-xl);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
   padding: 4px 8px;
 }
 

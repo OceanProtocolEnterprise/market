@@ -1,7 +1,7 @@
 .container {
   background: #ffffff;
   border: 1px solid rgba(48, 48, 49, 0.2);
-  box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 8px var(--black-alpha-15);
   border-radius: 20px;
   display: flex;
   flex-direction: column;
@@ -114,7 +114,7 @@
 }
 
 .deleteButton:hover {
-  background: rgba(76, 163, 211, 0.1);
+  background: var(--ocean-bright-alpha-10);
 }
 
 .formContainer {
@@ -176,7 +176,7 @@
   font-weight: 700;
   font-size: 14px;
   line-height: 16px;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
 }
 
 .formColumn :global(input),
@@ -186,8 +186,8 @@
   width: 100% !important;
   min-width: 100% !important;
   height: 40px;
-  border: 1px solid var(--publish-border);
-  box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-navy-soft);
+  box-shadow: 1px 4px 8px var(--black-alpha-15);
   border-radius: 20px;
   padding: 0px 30px;
   font-family: 'Helvetica';
@@ -278,7 +278,7 @@
       #1e2e52 100%
     ),
     #64ace0;
-  box-shadow: 1px 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 2px 8px var(--black-alpha-15);
   border-radius: 20px;
   border: none;
   cursor: pointer;

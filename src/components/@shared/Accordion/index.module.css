@@ -40,14 +40,14 @@
   display: inline-flex;
   align-items: baseline;
   gap: calc(var(--spacer) / 4);
-  color: var(--publish-text);
+  color: var(--text-ink);
   font-weight: 600;
   font-size: 0.9rem;
 }
 
 .headerLeader {
   flex: 1;
-  border-bottom: 1px dotted var(--border-color-light, #e6e6e6);
+  border-bottom: 1px dotted var(--border-color-light, var(--neutral-165));
   margin: 0 12px;
   align-self: center;
 }

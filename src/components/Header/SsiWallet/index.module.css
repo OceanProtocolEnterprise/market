@@ -11,7 +11,7 @@
 .panelColumn label {
   font-weight: 700;
   font-size: 14px;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
 }
 .panelRow {
   display: flex;
@@ -106,7 +106,7 @@
 }
 
 .connected {
-  color: #cbdce6;
+  color: var(--neutral-200);
   background-color: transparent;
 }
 
@@ -170,7 +170,7 @@
   line-height: 114%;
   text-align: center;
   color: #0a4b70;
-  box-shadow: 1px 2px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 2px 8px 0 var(--black-alpha-15);
   background: rgba(48, 48, 49, 0.12);
 }
 
@@ -184,7 +184,7 @@
   line-height: 114%;
   text-align: center;
   color: #0a4b70;
-  box-shadow: 1px 2px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 2px 8px 0 var(--black-alpha-15);
   background: linear-gradient(
     135deg,
     #fdd655 0%,
@@ -224,7 +224,7 @@
   }
   .ssiPanel {
     border: none;
-    box-shadow: 1px 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 1px 2px 8px var(--black-alpha-15);
     cursor: pointer;
     display: flex;
     justify-content: center;
@@ -237,9 +237,9 @@
     background: linear-gradient(
       135deg,
       #1f2c50 0%,
-      rgb(13 76 113) 27.47%,
-      rgb(10 81 121) 43.49%,
-      rgb(6 68 103 / 94%) 55.43%,
+      var(--navy-640) 27.47%,
+      var(--navy-620) 43.49%,
+      var(--navy-alpha-94) 55.43%,
       #1e2e52 100%
     );
   }
@@ -248,7 +248,7 @@
     font-size: var(--font-size-small);
   }
   .icon {
-    background: #71ff7b;
+    background: var(--green-450);
     border-radius: 20px;
   }
   .closeButton {
@@ -317,7 +317,7 @@
 @media screen and (min-width: 481px) and (max-width: 768px) and (height: 893px) {
   .ssiPanel {
     border: none;
-    box-shadow: 1px 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 1px 2px 8px var(--black-alpha-15);
     cursor: pointer;
     display: flex;
     justify-content: center;
@@ -330,9 +330,9 @@
     background: linear-gradient(
       135deg,
       #1f2c50 0%,
-      rgb(13 76 113) 27.47%,
-      rgb(10 81 121) 43.49%,
-      rgb(6 68 103 / 94%) 55.43%,
+      var(--navy-640) 27.47%,
+      var(--navy-620) 43.49%,
+      var(--navy-alpha-94) 55.43%,
       #1e2e52 100%
     );
   }
@@ -357,7 +357,7 @@
     margin-bottom: auto;
   }
   .icon {
-    background: #71ff7b;
+    background: var(--green-450);
     border-radius: 20px;
   }
 }

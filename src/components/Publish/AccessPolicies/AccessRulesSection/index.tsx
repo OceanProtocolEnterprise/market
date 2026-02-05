@@ -229,7 +229,7 @@ export default function AccessRulesSection({
             <div
               style={{
                 fontSize: '14px',
-                color: '#666',
+                color: '#666666',
                 fontStyle: 'italic',
                 marginTop: '8px'
               }}
@@ -314,7 +314,7 @@ export default function AccessRulesSection({
             <div
               style={{
                 fontSize: '14px',
-                color: '#666',
+                color: '#666666',
                 fontStyle: 'italic',
                 marginTop: '8px'
               }}

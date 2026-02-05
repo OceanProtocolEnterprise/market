@@ -6,8 +6,8 @@
 }
 
 .section > h3 {
-  font-size: var(--publish-font-size-xxl);
-  color: var(--publish-text);
+  font-size: var(--text-xxl);
+  color: var(--text-ink);
   margin: 0;
 }
 

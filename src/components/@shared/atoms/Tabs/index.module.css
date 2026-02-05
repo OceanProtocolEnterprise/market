@@ -98,7 +98,7 @@
   width: fit-content;
   margin-left: 0;
   margin-right: 0;
-  border-bottom-color: var(--publish-border);
+  border-bottom-color: var(--border-navy-soft);
 }
 
 .publishTab {
@@ -106,7 +106,7 @@
 }
 
 .publishTab[aria-selected='true'] {
-  border-radius: var(--publish-border-radius);
+  border-radius: var(--radius-xl);
   background-color: var(--clr-navy);
   color: var(--brand-white);
   border-color: var(--clr-navy);

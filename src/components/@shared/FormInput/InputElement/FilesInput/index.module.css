@@ -43,14 +43,14 @@
   padding: 9px 14px;
   gap: 4px;
   height: 40px;
-  background: var(--publish-accent-gradient);
-  box-shadow: var(--publish-shadow-sm);
+  background: var(--gradient-accent);
+  box-shadow: var(--shadow-sm);
   border-radius: 20px;
   border: none;
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
-  color: var(--publish-primary);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  color: var(--clr-navy);
   cursor: pointer;
   text-transform: uppercase;
   min-width: auto;
@@ -58,9 +58,9 @@
 
 .filesContainer .addButton:hover,
 .filesContainer .addButton:focus {
-  background: var(--publish-accent-gradient);
+  background: var(--gradient-accent);
   transform: none;
-  box-shadow: var(--publish-shadow-sm);
+  box-shadow: var(--shadow-sm);
 }
 
 .filesContainer .submitButton {
@@ -70,34 +70,34 @@
   padding: 9px 16px;
   gap: 4px;
   height: 40px;
-  background: var(--publish-primary-gradient);
-  color: var(--publish-white);
-  box-shadow: var(--publish-shadow-sm);
+  background: var(--gradient-primary);
+  color: var(--brand-white);
+  box-shadow: var(--shadow-sm);
   border-radius: 20px;
   border: none;
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
   cursor: pointer;
   min-width: auto;
 }
 
 .filesContainer .submitButton:hover,
 .filesContainer .submitButton:focus {
-  background: var(--publish-primary-gradient);
+  background: var(--gradient-primary);
   transform: none;
-  box-shadow: var(--publish-shadow-sm);
+  box-shadow: var(--shadow-sm);
 }
 
 .methodDropdown {
   min-width: 80px;
   height: 40px;
   border-radius: 20px;
-  border: 1px solid var(--publish-input-border-color);
-  background: var(--publish-accent);
-  color: var(--publish-primary);
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
+  border: 1px solid var(--border-navy-soft);
+  background: var(--clr-amber);
+  color: var(--clr-navy);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
   padding: 0 15px;
 }

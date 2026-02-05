@@ -41,8 +41,8 @@
   width: 100% !important;
   min-width: 100% !important;
   height: 40px;
-  border: 1px solid var(--publish-border);
-  box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-navy-soft);
+  box-shadow: 1px 4px 8px var(--black-alpha-15);
   border-radius: 20px;
   padding: 0px 30px;
   font-family: 'Helvetica';
@@ -59,8 +59,8 @@
   width: calc(100% - 82px - 10px) !important; /* 100% - button width - gap */
   min-width: calc(100% - 82px - 10px) !important;
   height: 40px;
-  border: 1px solid var(--publish-border);
-  box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-navy-soft);
+  box-shadow: 1px 4px 8px var(--black-alpha-15);
   border-radius: 20px;
   padding: 0px 30px;
   font-family: 'Helvetica';
@@ -90,8 +90,8 @@
 }
 
 .labelAndButtonRow :global(.addButton) {
-  background: var(--publish-accent-gradient);
-  color: var(--publish-primary);
+  background: var(--gradient-accent);
+  color: var(--clr-navy);
   border: none;
 }
 
@@ -117,17 +117,17 @@
 .pairRow .inputColumn :global(input),
 .pairRow .labelAndButtonRow :global(input) {
   background: #f5f5f5;
-  color: #666;
+  color: var(--neutral-700);
 }
 
 .pairRow .labelAndButtonRow :global(button) {
   background: transparent;
-  border: 1px solid var(--publish-border);
-  color: var(--publish-text-secondary);
+  border: 1px solid var(--border-navy-soft);
+  color: var(--clr-slate-70);
 }
 
 .pairRow .labelAndButtonRow :global(button):hover {
-  background: rgba(48, 48, 49, 0.05);
+  background: var(--ink-alpha-5);
 }
 
 .hasError label {
