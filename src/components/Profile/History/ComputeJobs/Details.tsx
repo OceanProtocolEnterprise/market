@@ -46,6 +46,33 @@ const getPaymentTokenSymbol = (
   )?.symbol
 }
 
+const getJobTypeDisplay = (job: ComputeJobMetaData): string => {
+  if (typeof job?.isFree === 'boolean') {
+    return job.isFree ? JobTypeText.Free : JobTypeText.Paid
+  }
+
+  const rawCost = job?.payment?.cost
+  if (rawCost != null && rawCost !== '') {
+    const cost = Number(rawCost)
+    if (!Number.isNaN(cost)) {
+      return cost > 0 ? JobTypeText.Paid : JobTypeText.Free
+    }
+  }
+
+  return '—'
+}
+
+const getJobCostDisplay = (
+  job: ComputeJobMetaData,
+  paymentSymbol?: string
+): string => {
+  const rawCost = job?.payment?.cost
+  if (rawCost == null || rawCost === '') return '—'
+
+  const formatted = formatJobCost(rawCost)
+  return paymentSymbol ? `${formatted} ${paymentSymbol}` : formatted
+}
+
 function Asset({
   title,
   symbol,
@@ -250,23 +277,8 @@ export default function Details({
     return parts.slice(0, 3).join(' ')
   }
 
-  const jobCostValue = job?.payment?.cost
-  const hasJobCostValue = jobCostValue !== undefined && jobCostValue !== null
-  const jobCostNumber = hasJobCostValue ? Number(jobCostValue) : Number.NaN
-  const jobTypeFromIsFree =
-    typeof job.isFree === 'boolean'
-      ? job.isFree
-        ? JobTypeText.Free
-        : JobTypeText.Paid
-      : null
-  const jobTypeFromCost =
-    hasJobCostValue && !Number.isNaN(jobCostNumber)
-      ? jobCostNumber > 0
-        ? JobTypeText.Paid
-        : JobTypeText.Free
-      : null
-  const hasJobType = jobTypeFromIsFree !== null || jobTypeFromCost !== null
-  const jobTypeDisplay = hasJobType ? jobTypeFromIsFree ?? jobTypeFromCost : '—'
+  const jobTypeDisplay = getJobTypeDisplay(job)
+  const jobCostDisplay = getJobCostDisplay(job, paymentSymbol)
 
   return (
     <>
@@ -331,16 +343,7 @@ export default function Details({
                   />
                 )}
                 {job.dateFinished && (
-                  <MetaItem
-                    title="Job Cost"
-                    content={
-                      job?.payment?.cost
-                        ? `${formatJobCost(job.payment.cost)}${
-                            paymentSymbol ? ` ${paymentSymbol}` : ''
-                          }`
-                        : 'FREE'
-                    }
-                  />
+                  <MetaItem title="Job Cost" content={jobCostDisplay} />
                 )}
                 <MetaItem title="Job Type" content={jobTypeDisplay} />
 
