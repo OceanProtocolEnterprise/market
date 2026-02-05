@@ -15,6 +15,11 @@ import useIsMobile from '@hooks/useIsMobile'
 import Link from 'next/link'
 import Modal from '@shared/atoms/Modal'
 
+enum JobTypeText {
+  Free = 'Free',
+  Paid = 'Paid'
+}
+
 const extractString = (
   value: string | { '@value': string } | undefined
 ): string => {
@@ -245,6 +250,24 @@ export default function Details({
     return parts.slice(0, 3).join(' ')
   }
 
+  const jobCostValue = job?.payment?.cost
+  const hasJobCostValue = jobCostValue !== undefined && jobCostValue !== null
+  const jobCostNumber = hasJobCostValue ? Number(jobCostValue) : Number.NaN
+  const jobTypeFromIsFree =
+    typeof job.isFree === 'boolean'
+      ? job.isFree
+        ? JobTypeText.Free
+        : JobTypeText.Paid
+      : null
+  const jobTypeFromCost =
+    hasJobCostValue && !Number.isNaN(jobCostNumber)
+      ? jobCostNumber > 0
+        ? JobTypeText.Paid
+        : JobTypeText.Free
+      : null
+  const hasJobType = jobTypeFromIsFree !== null || jobTypeFromCost !== null
+  const jobTypeDisplay = hasJobType ? jobTypeFromIsFree ?? jobTypeFromCost : '—'
+
   return (
     <>
       <Button style="text" size="small" onClick={() => setIsDialogOpen(true)}>
@@ -319,6 +342,7 @@ export default function Details({
                     }
                   />
                 )}
+                <MetaItem title="Job Type" content={jobTypeDisplay} />
 
                 {job.dateFinished ? (
                   // When finished date exists, show JobDID on new line
