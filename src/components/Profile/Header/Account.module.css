@@ -23,6 +23,12 @@
   }
 }
 
+@media (max-width: 65rem) {
+  .account {
+    text-align: left;
+  }
+}
+
 /* Sledgehammer !important cause Next.js reordering of styles is clashing with
 our Blockies implementation.
 See https://github.com/oceanprotocol/market/issues/1143 */

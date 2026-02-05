@@ -13,11 +13,11 @@
   display: block;
   flex: 1 1 0px;
   padding: 15px 25px;
-  border-radius: var(--publish-border-radius);
-  border: 1.5px solid var(--publish-border);
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--border-navy-soft);
   color: var(--color-secondary);
   cursor: pointer;
-  box-shadow: -2px 0 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: -2px 0 8px 0 var(--black-alpha-15);
   background: transparent;
   transition: all 0.2s ease-out;
   min-height: 90px;
@@ -34,7 +34,7 @@
 }
 
 :global(.publish) .title {
-  font-weight: var(--publish-font-weight-normal);
+  font-weight: var(--text-weight-regular);
 }
 
 .boxSelectionsWrapper input[type='radio'] {
@@ -55,19 +55,19 @@
     rgba(10, 75, 112, 0.8) 55.43%,
     #1e2e52 100%
   );
-  box-shadow: 1px 4px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 8px 0 var(--black-alpha-15);
 }
 
 .boxSelection svg {
   width: var(--font-size-h5);
   height: var(--font-size-h5);
-  fill: var(--publish-accent);
+  fill: var(--clr-amber);
   margin-bottom: calc(var(--spacer) / 5);
   transition: fill 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out;
 }
 
 .boxSelection svg path {
-  fill: var(--publish-accent);
+  fill: var(--clr-amber);
 }
 
 .boxSelectionsWrapper input[type='radio']:checked + label svg,
@@ -126,7 +126,7 @@
   min-height: 40px;
   max-height: 40px;
   padding: 8px 25px;
-  font-size: var(--publish-font-size);
+  font-size: var(--text-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -134,7 +134,7 @@
 }
 
 .small .boxSelection {
-  border: 1px solid var(--publish-input-border-color);
+  border: 1px solid var(--border-navy-soft);
 }
 
 .small .boxSelection svg {

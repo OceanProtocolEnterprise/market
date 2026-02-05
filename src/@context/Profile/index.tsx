@@ -5,7 +5,8 @@ import {
   createContext,
   ReactElement,
   useCallback,
-  ReactNode
+  ReactNode,
+  useRef
 } from 'react'
 import { useUserPreferences } from '../UserPreferences'
 import { EscrowContract, LoggerInstance } from '@oceanprotocol/lib'
@@ -17,12 +18,23 @@ import {
 } from '@utils/aquarius'
 import axios, { CancelToken } from 'axios'
 import { useMarketMetadata } from '../MarketMetadata'
-import { formatUnits, isAddress } from 'ethers'
+import { formatUnits, isAddress, Signer } from 'ethers'
 import { Asset } from 'src/@types/Asset'
 import { useChainId } from 'wagmi'
 import { getOceanConfig } from '@utils/ocean'
 import { getTokenInfo } from '@utils/wallet'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import { getAccessDetails } from '@utils/accessDetailsAndPricing'
+import { useCancelToken } from '@hooks/useCancelToken'
+import { getComputeEnvironments } from '@utils/provider'
+
+interface EscrowFunds {
+  available: string
+  locked: string
+  symbol: string
+  address: string
+  decimals: number
+}
 
 interface ProfileProviderValue {
   assets: Asset[]
@@ -33,9 +45,8 @@ interface ProfileProviderValue {
   isDownloadsLoading: boolean
   sales: number
   ownAccount: boolean
-  revenue: number
-  escrowAvailableFunds: string
-  escrowLockedFunds: string
+  revenue: { [symbol: string]: number }
+  escrowFundsByToken: { [symbol: string]: EscrowFunds }
   handlePageChange: (pageNumber: number) => void
   refreshEscrowFunds?: () => void
 }
@@ -56,10 +67,13 @@ function ProfileProvider({
   const walletClient = useEthersSigner() // FIX: Replaced useSigner
   const chainId = useChainId() // FIX: Replaced useNetwork
   const { chainIds } = useUserPreferences()
-  const { appConfig } = useMarketMetadata()
-  const [revenue, setRevenue] = useState(0)
-  const [escrowAvailableFunds, setEscrowAvailableFunds] = useState('0')
-  const [escrowLockedFunds, setEscrowLockedFunds] = useState('0')
+  const { appConfig, approvedBaseTokens } = useMarketMetadata()
+  const [revenue, setRevenue] = useState<{ [symbol: string]: number }>({})
+  const [escrowFundsByToken, setEscrowFundsByToken] = useState<{
+    [symbol: string]: EscrowFunds
+  }>({})
+  const tokenInfoCache = useRef<Map<string, TokenInfo>>(new Map())
+  const newCancelToken = useCancelToken()
 
   const [isEthAddress, setIsEthAddress] = useState<boolean>()
   //
@@ -100,8 +114,10 @@ function ProfileProvider({
         // more queries to Aquarius.
         // const assetsWithPrices = await getAssetsBestPrices(result.results)
         // setAssetsWithPrices(assetsWithPrices)
-      } catch (error: any) {
-        LoggerInstance.error(error.message)
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error)
+        LoggerInstance.error(errorMessage)
       }
     }
     getAllPublished()
@@ -182,8 +198,9 @@ function ProfileProvider({
       try {
         setIsDownloadsLoading(true)
         await fetchDownloads(cancelTokenSource.token)
-      } catch (err: any) {
-        LoggerInstance.log(err.message)
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err)
+        LoggerInstance.log(errorMessage)
       } finally {
         setIsDownloadsLoading(false)
       }
@@ -210,64 +227,205 @@ function ProfileProvider({
   useEffect(() => {
     if (!accountId || chainIds.length === 0) {
       setSales(0)
+      setRevenue({})
       return
     }
     async function getUserSalesNumber() {
       try {
-        const { totalOrders, totalRevenue } = await getUserSalesAndRevenue(
-          accountId,
-          chainIds
-        )
-        setRevenue(totalRevenue)
+        const { totalOrders, revenueByToken, results } =
+          await getUserSalesAndRevenue(accountId, chainIds)
         setSales(totalOrders)
-      } catch (error: any) {
-        LoggerInstance.error(error.message)
+
+        const enrichedResults = await Promise.all(
+          results.map(async (item) => {
+            try {
+              const accessDetails = await getAccessDetails(
+                item.credentialSubject.chainId,
+                item.credentialSubject.services[0],
+                accountId,
+                newCancelToken()
+              )
+              return {
+                ...item,
+                accessDetails: [accessDetails]
+              }
+            } catch (err) {
+              LoggerInstance.warn(
+                `[Profile] Failed to fetch access details for ${item.id}`,
+                err.message
+              )
+              return { ...item, accessDetails: [] }
+            }
+          })
+        )
+
+        const revenueByTokenFromAccess: { [symbol: string]: number } = {}
+        enrichedResults.forEach((asset) => {
+          const orders = asset?.indexedMetadata?.stats?.[0]?.orders || 0
+          const priceEntry = (
+            asset.indexedMetadata?.stats?.[0] as {
+              prices?: Array<{ price?: number | string }>
+            }
+          )?.prices?.[0]
+          const price = priceEntry?.price ? Number(priceEntry.price) : 0
+
+          const firstAccessDetail = asset.accessDetails?.[0]
+          const baseTokenSymbol =
+            firstAccessDetail?.baseToken?.symbol || undefined
+
+          if (!baseTokenSymbol) return
+
+          const revenueValue = orders * price
+          if (revenueValue > 0) {
+            if (!revenueByTokenFromAccess[baseTokenSymbol]) {
+              revenueByTokenFromAccess[baseTokenSymbol] = 0
+            }
+            revenueByTokenFromAccess[baseTokenSymbol] += revenueValue
+          }
+        })
+
+        const finalRevenueMap =
+          Object.keys(revenueByTokenFromAccess).length > 0
+            ? revenueByTokenFromAccess
+            : revenueByToken
+
+        setRevenue(finalRevenueMap)
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error)
+        LoggerInstance.error(errorMessage)
       }
     }
     getUserSalesNumber()
-  }, [accountId, chainIds])
+  }, [accountId, chainIds, newCancelToken])
 
   async function getEscrowFunds() {
     if (!accountId || !isEthAddress || !walletClient || !chainId) {
-      setEscrowAvailableFunds('0')
-      setEscrowLockedFunds('0')
+      setEscrowFundsByToken({})
       return
     }
 
     try {
-      const { oceanTokenAddress, escrowAddress } = getOceanConfig(chainId)
-
+      const { escrowAddress } = getOceanConfig(chainId)
       const escrow = new EscrowContract(
         escrowAddress,
-        walletClient as any,
+        walletClient as Signer,
         chainId
       )
 
-      const funds = await escrow.getUserFunds(accountId, oceanTokenAddress)
+      const feeTokenAddresses = new Set<string>()
+      const approvedTokenMap = new Map<string, TokenInfo>()
+      approvedBaseTokens?.forEach((token) => {
+        if (token?.address) {
+          const normalizedAddress = token.address.toLowerCase()
+          feeTokenAddresses.add(token.address)
+          approvedTokenMap.set(normalizedAddress, token)
+          tokenInfoCache.current.set(normalizedAddress, token)
+        }
+      })
 
-      const tokenDetails = await getTokenInfo(
-        oceanTokenAddress,
-        walletClient as any
+      const providerUrl = appConfig?.customProviderUrl
+      if (!providerUrl) {
+        LoggerInstance.warn(
+          '[Profile] No provider URL for compute environments'
+        )
+      } else {
+        try {
+          const computeEnvs = await getComputeEnvironments(providerUrl, chainId)
+          if (!computeEnvs || computeEnvs.length === 0) {
+            LoggerInstance.warn('[Profile] No compute environments found')
+          } else {
+            computeEnvs.forEach((env) => {
+              const chainIdString = chainId.toString()
+              const envWithFees = env as unknown as {
+                fees?: Record<string, Array<{ feeToken?: string }>>
+              }
+              const fee = envWithFees.fees?.[chainIdString]?.[0]
+              if (fee?.feeToken) {
+                feeTokenAddresses.add(fee.feeToken)
+              }
+            })
+          }
+        } catch (err) {
+          LoggerInstance.warn(
+            '[Profile] Failed to fetch compute environments',
+            err.message
+          )
+        }
+      }
+
+      if (feeTokenAddresses.size === 0) {
+        setEscrowFundsByToken({})
+        return
+      }
+
+      const escrowFundsMap: { [symbol: string]: EscrowFunds } = {}
+      const tokenAddresses = Array.from(feeTokenAddresses)
+      const results = await Promise.allSettled(
+        tokenAddresses.map(async (tokenAddress) => {
+          const normalizedAddress = tokenAddress.toLowerCase()
+          const cachedToken =
+            approvedTokenMap.get(normalizedAddress) ||
+            tokenInfoCache.current.get(normalizedAddress)
+          const tokenDetailsPromise = cachedToken
+            ? Promise.resolve(cachedToken)
+            : getTokenInfo(tokenAddress, walletClient.provider)
+          const fundsPromise = escrow.getUserFunds(accountId, tokenAddress)
+          const [funds, tokenDetails] = await Promise.all([
+            fundsPromise,
+            tokenDetailsPromise
+          ])
+
+          if (!cachedToken) {
+            tokenInfoCache.current.set(normalizedAddress, tokenDetails)
+          }
+
+          const tokenDecimals = tokenDetails.decimals ?? 18
+          const available = formatUnits(funds.available, tokenDecimals)
+          const locked = formatUnits(funds.locked, tokenDecimals)
+
+          return {
+            symbol: tokenDetails.symbol,
+            data: {
+              available,
+              locked,
+              symbol: tokenDetails.symbol,
+              address: tokenAddress,
+              decimals: tokenDecimals
+            }
+          }
+        })
       )
 
-      const availableFunds = formatUnits(funds.available, tokenDetails.decimals)
-      const lockedFunds = formatUnits(funds.locked, tokenDetails.decimals)
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          escrowFundsMap[result.value.symbol] = result.value.data
+          return
+        }
+        LoggerInstance.warn(
+          `[Profile] Failed to get escrow funds for token ${tokenAddresses[index]}`,
+          result.reason?.message || result.reason
+        )
+      })
 
-      setEscrowLockedFunds(lockedFunds)
-      setEscrowAvailableFunds(availableFunds)
-    } catch (error: any) {
-      LoggerInstance.error(error.message)
+      setEscrowFundsByToken(escrowFundsMap)
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      LoggerInstance.error('[Profile] Error getting escrow funds', errorMessage)
     }
   }
 
   useEffect(() => {
     getEscrowFunds()
-  }, [accountId, walletClient, isEthAddress, chainId])
-
-  useEffect(() => {
-    // FIX: Update dependencies to use new variables
-    getEscrowFunds()
-  }, [accountId, walletClient, isEthAddress, chainId])
+  }, [
+    accountId,
+    walletClient,
+    isEthAddress,
+    chainId,
+    appConfig?.customProviderUrl,
+    approvedBaseTokens
+  ])
 
   return (
     <ProfileContext.Provider
@@ -282,8 +440,7 @@ function ProfileProvider({
         ownAccount,
         sales,
         revenue,
-        escrowAvailableFunds,
-        escrowLockedFunds,
+        escrowFundsByToken,
         refreshEscrowFunds: getEscrowFunds
       }}
     >
@@ -295,5 +452,5 @@ function ProfileProvider({
 // Helper hook to access the provider values
 const useProfile = (): ProfileProviderValue => useContext(ProfileContext)
 
-export { ProfileProvider, useProfile, ProfileContext }
+export { useProfile }
 export default ProfileProvider

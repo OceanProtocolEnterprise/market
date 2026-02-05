@@ -44,7 +44,7 @@ body .freeAssetButton {
 
   width: fit-content;
   padding: 6px 12px;
-  border-radius: var(--publish-border-radius);
-  box-shadow: 1px 2px 8px 0 rgba(0, 0, 0, 0.15);
-  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-xl);
+  box-shadow: 1px 2px 8px 0 var(--black-alpha-15);
+  background: var(--white-alpha-20);
 }

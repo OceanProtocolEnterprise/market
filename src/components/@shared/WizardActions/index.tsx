@@ -1,4 +1,4 @@
-import React, { FormEvent, ReactElement, RefObject } from 'react'
+import { FormEvent, ReactElement, RefObject } from 'react'
 import Button from '@shared/atoms/Button'
 import styles from './index.module.css'
 import { FormikContextType, useFormikContext } from 'formik'
@@ -9,12 +9,10 @@ import { getDatasetSteps } from '@components/ComputeWizard/_steps'
 interface WizardActionsProps {
   disabled?: boolean
   action?: 'compute'
-  submitButtonText?: string
   continueButtonText?: string
   scrollToRef?: RefObject<any>
   isContinueDisabled?: boolean
   rightAlignFirstStep?: boolean
-  isSubmitDisabled?: boolean
   hasPreviousOrder?: boolean
   hasDatatoken?: boolean
   btSymbol?: string
@@ -33,7 +31,6 @@ interface WizardActionsProps {
   isLoading?: boolean
   onClick?: (e: FormEvent<HTMLButtonElement>) => void
   stepText?: string
-  type?: 'submit' | 'button'
   priceType?: string
   algorithmPriceType?: string
   isAlgorithmConsumable?: boolean
@@ -48,12 +45,10 @@ interface WizardActionsProps {
 }
 
 export default function WizardActions({
-  submitButtonText,
   continueButtonText = 'Continue',
   scrollToRef,
   isContinueDisabled,
   rightAlignFirstStep = true,
-  isSubmitDisabled = false,
   action,
   disabled,
   hasPreviousOrder,
@@ -73,7 +68,6 @@ export default function WizardActions({
   selectedComputeAssetType,
   stepText,
   isLoading,
-  type,
   priceType,
   algorithmPriceType,
   isAlgorithmConsumable,
@@ -126,7 +120,7 @@ export default function WizardActions({
   const PurchaseButton = () => (
     <ButtonBuy
       action={action}
-      disabled={disabled || !isValid}
+      disabled={disabled || !isValid || isBalanceSufficient === false}
       hasPreviousOrder={hasPreviousOrder}
       hasDatatoken={hasDatatoken}
       btSymbol={btSymbol}
@@ -164,9 +158,7 @@ export default function WizardActions({
         <Button
           style="gradient"
           onClick={onInitCompute}
-          disabled={
-            isInitLoading || disabled || !isValid || !isBalanceSufficient
-          }
+          disabled={isInitLoading || disabled || !isValid}
         >
           {isInitLoading ? 'Calculating...' : 'Calculate Extra Fees'}
         </Button>

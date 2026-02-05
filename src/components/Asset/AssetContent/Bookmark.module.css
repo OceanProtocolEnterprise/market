@@ -33,7 +33,7 @@
   bottom: 35px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: var(--tooltip-bg-color, #333);
+  background-color: var(--tooltip-bg-color, var(--neutral-900));
   color: var(--tooltip-text-color, #fff);
   padding: 4px 8px;
   border-radius: 4px;
@@ -54,8 +54,8 @@
   transform: translateX(-50%);
   border-width: 4px;
   border-style: solid;
-  border-color: transparent transparent var(--tooltip-bg-color, #333)
-    transparent;
+  border-color: transparent transparent
+    var(--tooltip-bg-color, var(--neutral-900)) transparent;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;

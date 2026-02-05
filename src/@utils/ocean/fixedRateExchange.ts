@@ -12,6 +12,13 @@ export async function getFixedBuyPrice(
   chainId?: number,
   signer?: Signer
 ): Promise<PriceAndFees> {
+  const zeroPriceAndFees: PriceAndFees = {
+    baseTokenAmount: '0',
+    oceanFeeAmount: '0',
+    marketFeeAmount: '0',
+    consumeMarketFeeAmount: '0'
+  }
+
   const config = getOceanConfig(chainId)
 
   if (!signer && !chainId)
@@ -20,6 +27,10 @@ export async function getFixedBuyPrice(
   if (!signer) {
     signer = await getDummySigner(chainId)
   }
+  if (accessDetails.type === 'free') {
+    return zeroPriceAndFees
+  }
+  console.log('config', config.fixedRateExchangeAddress)
   const fixed = new FixedRateExchange(
     config.fixedRateExchangeAddress,
     signer,
@@ -33,6 +44,7 @@ export async function getFixedBuyPrice(
     )
     return estimatedPrice
   } catch (error) {
-    console.log('Error:', error)
+    console.error('Error:', error)
+    return zeroPriceAndFees
   }
 }

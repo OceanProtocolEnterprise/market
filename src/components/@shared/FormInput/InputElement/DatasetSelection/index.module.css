@@ -23,7 +23,7 @@
 }
 
 .scroll::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--neutral-125);
   border-radius: 4px;
 }
 
@@ -33,16 +33,16 @@
 }
 
 .scroll::-webkit-scrollbar-thumb:hover {
-  background: #fbcb05;
+  background: var(--yellow-600);
 }
 
 .datasetCard {
-  background: var(--publish-white);
-  border-radius: var(--publish-border-radius);
+  background: var(--brand-white);
+  border-radius: var(--radius-xl);
   padding: 24px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--black-alpha-10);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -50,13 +50,13 @@
 }
 
 .datasetCard:hover {
-  box-shadow: 1px 4px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 8px 0 var(--black-alpha-15);
   background: rgba(10, 75, 112, 0.04);
 }
 
 .datasetCard.selected {
   background: rgba(10, 75, 112, 0.04);
-  box-shadow: 0 4px 8px rgba(10, 75, 112, 0.2);
+  box-shadow: 0 4px 8px var(--navy-alpha-20);
 }
 
 .cardHeader {
@@ -73,10 +73,10 @@
 }
 
 .title {
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
   font-weight: 700;
   font-size: 18px;
-  color: var(--publish-text);
+  color: var(--text-ink);
   margin: 0;
 }
 .price {
@@ -135,8 +135,8 @@
   width: fit-content;
   height: fit-content;
 
-  box-shadow: 1px 2px 8px 0 rgba(0, 0, 0, 0.15);
-  background: rgba(0, 173, 178, 0.01);
+  box-shadow: 1px 2px 8px 0 var(--black-alpha-15);
+  background: var(--cyan-alpha-1);
 
   font-weight: 700;
   font-size: 12px;
@@ -152,8 +152,8 @@
   width: fit-content;
   height: fit-content;
 
-  box-shadow: 1px 2px 8px 0 rgba(0, 0, 0, 0.15);
-  background: rgba(69, 192, 31, 0.01);
+  box-shadow: 1px 2px 8px 0 var(--black-alpha-15);
+  background: var(--green-alpha-1);
 
   font-weight: 700;
   font-size: 12px;
@@ -165,7 +165,7 @@
 .description {
   font-size: 12px;
   font-weight: 400;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -178,11 +178,11 @@
 }
 
 .selectedTag {
-  background: var(--publish-accent);
-  color: var(--publish-primary);
-  border-radius: var(--publish-border-radius);
+  background: var(--clr-amber);
+  color: var(--clr-navy);
+  border-radius: var(--radius-xl);
   padding: 2px 8px;
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
   font-weight: 700;
   font-size: 12px;
 }

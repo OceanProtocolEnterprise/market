@@ -1,8 +1,19 @@
 .grid {
   composes: box from '@shared/atoms/Box.module.css';
-  background: var(--background-body-transparent);
-  backdrop-filter: blur(3px);
+  background: var(--brand-white);
+  border: var(--border-size-sm) solid var(--border-navy-soft);
+  border-top: 0;
+  border-radius: var(--radius-xl);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: none;
   position: relative;
+}
+
+.grid.grid {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 .description {
@@ -65,6 +76,41 @@
 
 @media screen and (min-width: 1500px) {
   .grid {
-    width: 1480px;
+    width: 1444px;
   }
+}
+
+.selectorColumn {
+  margin-top: var(--spacer);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: calc(var(--spacer) / 4);
+}
+
+.tokenSelect {
+  width: auto;
+  min-width: 0;
+  align-self: flex-end;
+  display: inline-flex;
+}
+
+.tokenSelect select {
+  width: auto !important;
+  min-width: 8rem;
+  max-width: 12rem;
+}
+
+.tokenPlaceholder {
+  color: var(--color-secondary);
+  font-size: var(--font-size-small);
+}
+
+.selectorLabel {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-label);
+  color: var(--font-color-label);
+  line-height: 1.2;
+  font-family: var(--font-family-base);
 }

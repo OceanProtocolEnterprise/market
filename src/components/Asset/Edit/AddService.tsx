@@ -141,7 +141,7 @@ export default function AddService({
         accountId,
         values.paymentCollector,
         marketFeeAddress,
-        config.oceanTokenAddress,
+        values.baseToken || config.oceanTokenAddress,
         publisherMarketFixedSwapFee,
         defaultDatatokenCap,
         'Access Token',
@@ -167,11 +167,11 @@ export default function AddService({
             break
           }
         } catch (err) {
-          console.log(
+          console.error(
             `[AddService] isERC20Deployer call reverted (retry ${retries})...`
           )
         }
-        await new Promise((resolve) => setTimeout(resolve, 1500)) // wait 1.5s
+        await new Promise((resolve) => setTimeout(resolve, 1500))
       }
 
       if (!deployerReady) {
@@ -185,19 +185,19 @@ export default function AddService({
       const datatoken = new Datatoken(signer)
 
       let pricingTransactionReceipt
-      if (values.price > 0) {
+      if (Number(values.price) > 0) {
         LoggerInstance.log(
           `Creating fixed rate exchange with price ${values.price} for datatoken ${datatokenAddress}`
         )
 
         const tokenInfo = await getTokenInfo(
-          config.oceanTokenAddress,
+          values.baseToken || config.oceanTokenAddress,
           ethersProvider
         )
 
         const freParams: FreCreationParams = {
           fixedRateAddress: config.fixedRateExchangeAddress,
-          baseTokenAddress: config.oceanTokenAddress,
+          baseTokenAddress: values.baseToken || config.oceanTokenAddress,
           owner: accountId,
           marketFeeCollector: marketFeeAddress,
           baseTokenDecimals: tokenInfo?.decimals || 18,
@@ -246,12 +246,17 @@ export default function AddService({
         const filesEncrypted = await getEncryptedFiles(
           file,
           asset.credentialSubject?.chainId,
-          values.providerUrl.url
+          values.providerUrl.url,
+          signer
         )
         newFiles = filesEncrypted
       }
 
-      const credentials = generateCredentials(values.credentials)
+      const serviceCredentials = {
+        ...(values.credentials || {}),
+        vcPolicies: []
+      }
+      const credentials = generateCredentials(serviceCredentials)
 
       const newService: Service = {
         id: getHash(datatokenAddress + newFiles),
@@ -371,7 +376,6 @@ export default function AddService({
             />
 
             <Web3Feedback
-              networkId={asset?.credentialSubject?.chainId}
               accountId={accountId}
               isAssetNetwork={isAssetNetwork}
             />

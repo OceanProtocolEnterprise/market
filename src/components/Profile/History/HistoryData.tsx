@@ -1,73 +1,131 @@
 import { LoggerInstance } from '@oceanprotocol/lib'
-import { ReactElement, useEffect, useState } from 'react'
+import axios, { CancelToken } from 'axios'
+import {
+  ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  startTransition
+} from 'react'
 import { getPublishedAssets, getUserSalesAndRevenue } from '@utils/aquarius'
 import { useUserPreferences } from '@context/UserPreferences'
 import styles from './HistoryData.module.css'
 import { useCancelToken } from '@hooks/useCancelToken'
 import Filter from '@components/Search/Filter'
 import { useMarketMetadata } from '@context/MarketMetadata'
-import { CancelToken } from 'axios'
 import { useProfile } from '@context/Profile'
 import { useFilter, Filters } from '@context/Filter'
-import { useDebouncedCallback } from 'use-debounce'
 import { TableOceanColumn } from '@shared/atoms/Table'
 import Time from '@shared/atoms/Time'
 import AssetTitle from '@shared/AssetListTitle'
 import NetworkName from '@shared/NetworkName'
 import HistoryTable from '@components/@shared/atoms/Table/HistoryTable'
-import { getAccessDetails } from '@utils/accessDetailsAndPricing'
+import useNetworkMetadata, {
+  getNetworkDataById,
+  getNetworkDisplayName
+} from '@hooks/useNetworkMetadata'
 import { AssetExtended } from 'src/@types/AssetExtended'
-import { Asset } from 'src/@types/Asset'
+import { getAccessDetails } from '@utils/accessDetailsAndPricing'
+import { getBaseTokenSymbol } from '@utils/getBaseTokenSymbol'
 
-const columns: TableOceanColumn<AssetExtended>[] = [
-  {
-    name: 'Dataset',
-    selector: (asset) => <AssetTitle asset={asset} />
-  },
-  {
-    name: 'Network',
-    selector: (asset) => (
-      <NetworkName networkId={asset.credentialSubject.chainId} />
-    )
-  },
-  {
-    name: 'Datatoken',
-    selector: (asset) => asset.indexedMetadata.stats[0]?.symbol
-  },
-  {
-    name: 'Time',
-    selector: (asset) => {
-      const unixTime = Math.floor(
-        new Date(asset.credentialSubject.metadata.created).getTime()
-      ).toString()
-      return <Time date={unixTime} relative isUnix />
+function HistorySkeleton(): ReactElement {
+  const rows = Array.from({ length: 9 })
+  const cols = Array.from({ length: 6 })
+
+  return (
+    <div className={styles.skeletonWrapper}>
+      <div className={styles.skeletonTable}>
+        <div className={styles.skeletonHeaderRow}>
+          {cols.map((_, idx) => (
+            <div key={`header-skel-${idx}`} className={styles.skeletonHeader} />
+          ))}
+        </div>
+        {rows.map((_, rowIdx) => (
+          <div key={`skeleton-row-${rowIdx}`} className={styles.skeletonRow}>
+            {cols.map((__, colIdx) => (
+              <div
+                key={`skeleton-cell-${rowIdx}-${colIdx}`}
+                className={styles.skeletonCell}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+interface PriceEntry {
+  price?: number | string
+  baseToken?: TokenInfo
+}
+
+interface StatsWithPrices {
+  prices?: PriceEntry[]
+  orders?: number
+  symbol?: string
+}
+
+const getPrice = (asset: AssetExtended): number => {
+  const firstAccessDetail = asset.accessDetails?.[0]
+  if (firstAccessDetail?.price) {
+    const priceValue =
+      typeof firstAccessDetail.price === 'string'
+        ? Number(firstAccessDetail.price)
+        : firstAccessDetail.price
+    if (!isNaN(priceValue)) {
+      return priceValue
     }
-  },
-  {
-    name: 'Sales',
-    selector: (asset) => asset.indexedMetadata.stats[0]?.orders || 0
-  },
-  {
-    name: 'Price',
-    selector: (asset) => {
-      const price =
-        asset.indexedMetadata.stats[0]?.prices[0]?.price ??
-        (asset.accessDetails[0]?.price
-          ? parseFloat(asset.accessDetails[0]?.price)
-          : 0)
-      const tokenSymbol = asset.indexedMetadata.stats[0]?.symbol || 'OCEAN'
-      return `${price} ${tokenSymbol}`
-    }
-  },
-  {
-    name: 'Revenue',
-    selector: (asset) =>
-      `${
-        (asset.indexedMetadata.stats[0]?.orders || 0) *
-        (Number(asset.indexedMetadata.stats[0]?.prices[0]?.price) || 0)
-      } ${asset.indexedMetadata.stats[0]?.symbol || 'OCEAN'}`
   }
-]
+
+  const stats = asset.indexedMetadata?.stats?.[0] as StatsWithPrices | undefined
+  const priceEntry = stats?.prices?.[0]
+  if (priceEntry?.price) {
+    const priceValue =
+      typeof priceEntry.price === 'string'
+        ? Number(priceEntry.price)
+        : priceEntry.price
+    if (!isNaN(priceValue)) {
+      return priceValue
+    }
+  }
+
+  return 0
+}
+
+const getOrders = (asset: AssetExtended) =>
+  asset.indexedMetadata?.stats?.[0]?.orders || 0
+
+const buildRevenueByToken = (assets: AssetExtended[] = []) => {
+  const map: Record<string, number> = {}
+  assets.forEach((asset) => {
+    const price = getPrice(asset)
+    const orders = getOrders(asset)
+    const symbol = getBaseTokenSymbol(asset)
+    const revenue = orders * price
+    if (!symbol || isNaN(revenue)) return
+    map[symbol] = (map[symbol] || 0) + revenue
+  })
+  return map
+}
+
+const filterAndSeedRevenue = (
+  revenue: Record<string, number>,
+  approvedBaseTokens?: { symbol: string }[]
+) => {
+  const seeded = { ...(revenue || {}) }
+  approvedBaseTokens?.forEach((token) => {
+    if (!seeded[token.symbol]) seeded[token.symbol] = 0
+  })
+
+  return seeded
+}
+
+export function SkeletonTable(): ReactElement {
+  return <HistorySkeleton />
+}
 
 export default function HistoryData({
   accountId
@@ -76,117 +134,271 @@ export default function HistoryData({
 }): ReactElement {
   const { appConfig } = useMarketMetadata()
   const { chainIds } = useUserPreferences()
+  const { approvedBaseTokens } = useMarketMetadata()
   const { ownAccount } = useProfile()
   const { filters, ignorePurgatory } = useFilter()
+  const { networksList } = useNetworkMetadata()
+
+  const columns: TableOceanColumn<AssetExtended>[] = useMemo(
+    () => [
+      {
+        name: 'Dataset',
+        selector: (asset) => <AssetTitle asset={asset} />
+      },
+      {
+        name: 'Network',
+        selector: (asset) => {
+          const networkData = getNetworkDataById(
+            networksList,
+            asset.credentialSubject.chainId
+          )
+          const networkName = getNetworkDisplayName(networkData)
+          return (
+            <span className={styles.networkWrapper} title={networkName}>
+              <NetworkName networkId={asset.credentialSubject.chainId} />
+            </span>
+          )
+        }
+      },
+      {
+        name: 'Datatoken',
+        selector: (asset) => asset.indexedMetadata?.stats?.[0]?.symbol || '-'
+      },
+      {
+        name: 'Time',
+        selector: (asset) => {
+          const unixTime = Math.floor(
+            new Date(asset.credentialSubject.metadata.created).getTime()
+          ).toString()
+          return <Time date={unixTime} relative isUnix />
+        }
+      },
+      {
+        name: 'Sales',
+        selector: (asset) => getOrders(asset),
+        maxWidth: '5rem'
+      },
+      {
+        name: 'Price',
+        selector: (asset) => {
+          const price = getPrice(asset)
+          const tokenSymbol = getBaseTokenSymbol(asset)
+          return tokenSymbol ? `${price} ${tokenSymbol}` : `${price}`
+        },
+        maxWidth: '7rem'
+      },
+      {
+        name: 'Revenue',
+        selector: (asset) => {
+          const price = getPrice(asset)
+          const orders = getOrders(asset)
+          const tokenSymbol = getBaseTokenSymbol(asset)
+          return tokenSymbol
+            ? `${orders * price} ${tokenSymbol}`
+            : `${orders * price}`
+        },
+        maxWidth: '7rem'
+      }
+    ],
+    [networksList]
+  )
+  const activeChainIds = useMemo(
+    () =>
+      (chainIds && chainIds.length > 0
+        ? chainIds
+        : appConfig?.chainIdsSupported) || [],
+    [chainIds, appConfig?.chainIdsSupported]
+  )
+  const filtersKey = useMemo(() => JSON.stringify(filters || {}), [filters])
   const [queryResult, setQueryResult] = useState<PagedAssets>()
-  const [isLoading, setIsLoading] = useState(true)
+  const [isTableLoading, setIsTableLoading] = useState(false)
   const [page, setPage] = useState<number>(0)
-  const [revenue, setRevenue] = useState(0)
+  const [revenueTotal, setRevenueTotal] = useState(0)
+  const [revenueByToken, setRevenueByToken] = useState<Record<string, number>>(
+    {}
+  )
   const [sales, setSales] = useState(0)
-  const [allAssets, setAllAssets] = useState<Asset[]>([])
+  const [accessDetailsCache, setAccessDetailsCache] = useState<
+    Record<string, AccessDetails>
+  >({})
+  const [allAssets, setAllAssets] = useState<AssetExtended[]>([])
+  const latestRequestRef = useRef(0)
 
   const newCancelToken = useCancelToken()
 
   useEffect(() => {
-    if (!accountId) return
+    if (!accountId || activeChainIds.length === 0) return
+
+    const source = axios.CancelToken.source()
 
     async function fetchSalesAndRevenue() {
       try {
-        setIsLoading(true)
-
-        const { totalOrders, totalRevenue, results } =
-          await getUserSalesAndRevenue(accountId, chainIds, filters)
-
-        const enrichedResults = await Promise.all(
-          results.map(async (item) => {
-            try {
-              const accessDetails = await getAccessDetails(
-                item.credentialSubject.chainId,
-                item.credentialSubject.services[0],
-                accountId,
-                newCancelToken()
-              )
-
-              return {
-                ...item,
-                accessDetails
-              }
-            } catch (err) {
-              LoggerInstance.warn(
-                `Failed to fetch access details for ${item.id}`,
-                err.message
-              )
-              return { ...item, accessDetails: [] }
-            }
-          })
-        )
+        const { totalOrders, totalRevenue, revenueByToken, results } =
+          await getUserSalesAndRevenue(
+            accountId,
+            activeChainIds,
+            filters,
+            source.token
+          )
 
         setSales(totalOrders)
-        setRevenue(totalRevenue)
-        setAllAssets(enrichedResults)
+        setAllAssets((results as AssetExtended[]) || [])
+        setRevenueTotal(totalRevenue)
+        setRevenueByToken(
+          filterAndSeedRevenue(revenueByToken || {}, approvedBaseTokens)
+        )
       } catch (error) {
         LoggerInstance.error(
           'Failed to fetch user sales/revenue',
           error.message
         )
-      } finally {
-        setIsLoading(false)
       }
     }
 
     fetchSalesAndRevenue()
-  }, [accountId, chainIds, filters])
+    return () => {
+      source.cancel('history-sales-cancelled')
+    }
+  }, [accountId, activeChainIds, filtersKey, approvedBaseTokens])
 
-  const getPublished = useDebouncedCallback(
+  const getPublished = useCallback(
     async (
-      accountId: string,
-      chainIds: number[],
-      page: number,
-      filters: Filters,
-      ignorePurgatory: boolean,
+      account: string,
+      currentPage: number,
+      currentFilters: Filters,
       cancelToken: CancelToken
     ) => {
+      const requestId = latestRequestRef.current + 1
+      latestRequestRef.current = requestId
       try {
-        setIsLoading(true)
+        setIsTableLoading(true)
         const result = await getPublishedAssets(
-          accountId.toLowerCase(),
-          chainIds,
+          account.toLowerCase(),
+          activeChainIds,
           cancelToken,
           ownAccount && ignorePurgatory,
           ownAccount,
-          filters,
-          page
+          currentFilters,
+          currentPage
         )
-        let updatedResults = []
-        if (result.results) {
-          updatedResults = await Promise.all(
-            result?.results?.map(async (item) => {
-              const accessDetails = await getAccessDetails(
-                item.credentialSubject.chainId,
-                item.credentialSubject.services[0],
-                accountId,
-                newCancelToken()
-              )
-
-              return {
-                ...item,
-                accessDetails
+        if (requestId !== latestRequestRef.current || !result) return
+        let enrichedResults: AssetExtended[] = []
+        if (result?.results) {
+          enrichedResults = await Promise.all(
+            result.results.map(async (item) => {
+              try {
+                const cached = accessDetailsCache[item.id]
+                const accessDetails =
+                  cached ||
+                  (await getAccessDetails(
+                    item.credentialSubject.chainId,
+                    item.credentialSubject.services[0],
+                    account,
+                    newCancelToken()
+                  ))
+                if (!cached && accessDetails) {
+                  setAccessDetailsCache((prev) => ({
+                    ...prev,
+                    [item.id]: accessDetails
+                  }))
+                }
+                return {
+                  ...item,
+                  accessDetails: [accessDetails]
+                } as AssetExtended
+              } catch (err) {
+                const errorMessage =
+                  err instanceof Error ? err.message : String(err)
+                LoggerInstance.warn(
+                  `[History] Failed to fetch access details for ${item.id}`,
+                  errorMessage
+                )
+                return { ...item, accessDetails: [] } as AssetExtended
               }
             })
           )
         }
+        if (requestId !== latestRequestRef.current) return
 
-        setQueryResult({
-          ...result,
-          results: updatedResults
+        const enrichedAllAssets: AssetExtended[] = allAssets.map((asset) => {
+          const cached = accessDetailsCache[asset.id]
+          const currentPageEnriched = enrichedResults.find(
+            (a) => a.id === asset.id
+          )
+
+          if (currentPageEnriched?.accessDetails?.[0]) {
+            return currentPageEnriched
+          } else if (cached) {
+            return {
+              ...asset,
+              accessDetails: [cached]
+            } as AssetExtended
+          }
+          return asset
         })
+
+        const computedRevenue = buildRevenueByToken(enrichedAllAssets)
+        const computedTotal = Object.values(computedRevenue).reduce(
+          (acc, val) => acc + Number(val || 0),
+          0
+        )
+
+        const hasEnrichedData = enrichedAllAssets.some(
+          (asset) => asset.accessDetails?.[0]
+        )
+
+        setQueryResult(
+          result
+            ? {
+                ...result,
+                results: enrichedResults.length
+                  ? enrichedResults
+                  : result.results || []
+              }
+            : result
+        )
+
+        if (Object.keys(computedRevenue).length > 0) {
+          startTransition(() => {
+            setRevenueByToken((prev) => {
+              if (hasEnrichedData) {
+                return filterAndSeedRevenue(computedRevenue, approvedBaseTokens)
+              }
+              return prev && Object.keys(prev).length > 0
+                ? prev
+                : filterAndSeedRevenue(computedRevenue, approvedBaseTokens)
+            })
+            setRevenueTotal((prev) => {
+              if (hasEnrichedData && computedTotal > 0) {
+                return computedTotal
+              }
+              return prev && prev > 0
+                ? prev
+                : computedTotal > 0
+                ? computedTotal
+                : 0
+            })
+          })
+        }
       } catch (error) {
-        LoggerInstance.error(error.message)
+        const errorMessage =
+          error instanceof Error ? error.message : String(error)
+        LoggerInstance.error(errorMessage)
       } finally {
-        setIsLoading(false)
+        if (requestId === latestRequestRef.current) {
+          setIsTableLoading(false)
+        }
       }
     },
-    500
+    [
+      activeChainIds,
+      ignorePurgatory,
+      newCancelToken,
+      ownAccount,
+      accessDetailsCache,
+      allAssets,
+      approvedBaseTokens
+    ]
   )
 
   useEffect(() => {
@@ -194,60 +406,42 @@ export default function HistoryData({
   }, [page, queryResult])
 
   useEffect(() => {
-    if (!accountId) return
-    getPublished(
-      accountId,
-      chainIds,
-      page,
-      filters,
-      ignorePurgatory,
-      newCancelToken()
-    )
-  }, [
-    accountId,
-    ownAccount,
-    page,
-    appConfig?.metadataCacheUri,
-    chainIds,
-    newCancelToken,
-    getPublished,
-    filters,
-    ignorePurgatory
-  ])
+    if (!accountId || activeChainIds.length === 0) return
+    const source = axios.CancelToken.source()
+    getPublished(accountId, page, filters, source.token)
+    return () => source.cancel('history-published-cancelled')
+  }, [accountId, ownAccount, page, getPublished, filtersKey])
 
   return accountId ? (
     <div className={styles.containerHistory}>
       <div className={styles.filterContainer}>
         <Filter showPurgatoryOption={ownAccount} expanded showTime />
       </div>
-      {queryResult && (
-        <div className={styles.tableContainer}>
-          {queryResult?.results.length > 0 ? (
-            <HistoryTable
-              columns={columns}
-              data={queryResult.results}
-              paginationPerPage={9}
-              isLoading={isLoading}
-              emptyMessage={
-                chainIds.length === 0 ? 'No network selected' : null
-              }
-              exportEnabled={true}
-              onPageChange={(newPage) => {
-                setPage(newPage)
-              }}
-              showPagination
-              page={queryResult?.page > 0 ? queryResult?.page - 1 : 1}
-              totalPages={queryResult?.totalPages}
-              revenue={revenue}
-              sales={sales}
-              items={queryResult?.totalResults}
-              allResults={allAssets}
-            />
-          ) : (
-            <div className={styles.empty}>No results found</div>
-          )}
-        </div>
-      )}
+      <div className={styles.tableContainer}>
+        {isTableLoading && !queryResult ? (
+          <HistorySkeleton />
+        ) : (
+          <HistoryTable
+            columns={columns}
+            data={queryResult?.results || []}
+            paginationPerPage={9}
+            isLoading={isTableLoading}
+            emptyMessage={chainIds.length === 0 ? 'No network selected' : null}
+            exportEnabled={Boolean(queryResult?.results?.length)}
+            onPageChange={(newPage) => {
+              setPage(newPage)
+            }}
+            showPagination={Boolean(queryResult?.results?.length)}
+            page={queryResult?.page > 0 ? queryResult?.page - 1 : 1}
+            totalPages={queryResult?.totalPages}
+            revenueByToken={revenueByToken}
+            revenueTotal={revenueTotal}
+            sales={sales}
+            items={queryResult?.totalResults || 0}
+            allResults={queryResult?.results || []}
+          />
+        )}
+      </div>
     </div>
   ) : (
     <div>Please connect your wallet.</div>

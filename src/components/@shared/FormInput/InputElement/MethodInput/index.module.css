@@ -16,8 +16,8 @@
   text-transform: uppercase;
   border-radius: var(--border-radius);
   transition: 0.2s ease-out;
-  color: var(--publish-primary);
-  box-shadow: 0 9px 18px 0 rgb(0 0 0 / 10%);
+  color: var(--clr-navy);
+  box-shadow: 0 9px 18px 0 var(--black-alpha-10);
   -webkit-user-select: none;
   user-select: none;
   text-align: center;
@@ -30,7 +30,7 @@
   width: -moz-fit-content;
   width: fit-content;
   white-space: nowrap;
-  background: var(--publish-accent-gradient);
+  background: var(--gradient-accent);
   border: 0;
 }
 
@@ -44,14 +44,14 @@
 body .inputMethod.publishSelect,
 body select.inputMethod {
   background: #fdd655;
-  color: var(--publish-primary);
+  color: var(--clr-navy);
   border: 0;
   width: 100%;
   min-height: 40px;
   padding: 9px 14px;
   font-weight: var(--font-weight-bold);
-  border-radius: var(--publish-border-radius);
-  box-shadow: 0 9px 18px 0 rgb(0 0 0 / 10%);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 9px 18px 0 var(--black-alpha-10);
   text-align: center;
   margin-top: 0;
   margin-left: 0;
@@ -73,14 +73,14 @@ body .methodDisplay {
   justify-content: center;
   gap: 4px;
   background: #fdd655;
-  color: var(--publish-primary);
-  border-radius: var(--publish-border-radius);
+  color: var(--clr-navy);
+  border-radius: var(--radius-xl);
   width: fit-content;
   min-width: 82px;
   min-height: 40px;
   padding: 9px 14px;
   font-weight: var(--font-weight-bold);
-  box-shadow: 0 9px 18px 0 rgb(0 0 0 / 10%);
+  box-shadow: 0 9px 18px 0 var(--black-alpha-10);
   text-transform: capitalize;
 }
 
@@ -93,24 +93,24 @@ body .methodDisplay.disabled {
 .getIcon {
   min-width: 16px;
   min-height: 16px;
-  fill: var(--publish-primary);
+  fill: var(--clr-navy);
   display: block;
 }
 
 .getIcon path {
-  fill: var(--publish-primary);
+  fill: var(--clr-navy);
 }
 
 .postIcon {
   min-width: 16px;
   min-height: 16px;
-  fill: var(--publish-primary);
+  fill: var(--clr-navy);
   transform: rotate(180deg);
   display: block;
 }
 
 .postIcon path {
-  fill: var(--publish-primary);
+  fill: var(--clr-navy);
 }
 
 .hasError {

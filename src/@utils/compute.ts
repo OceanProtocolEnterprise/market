@@ -1,11 +1,10 @@
 import {
-  getHash,
   LoggerInstance,
   ProviderInstance,
-  ComputeEnvironment,
   ComputeJob,
   getErrorMessage,
-  ComputeAlgorithm
+  ComputeAlgorithm,
+  getHash
 } from '@oceanprotocol/lib'
 import { CancelToken } from 'axios'
 import {
@@ -114,31 +113,7 @@ export function getValidUntilTime(
   return Math.floor(mytime.getTime() / 1000)
 }
 
-export async function getComputeEnvironment(
-  asset: Asset
-): Promise<ComputeEnvironment> {
-  if (asset?.credentialSubject?.services[0]?.type !== 'compute') return null
-  try {
-    const computeEnvs = await ProviderInstance.getComputeEnvironments(
-      asset.credentialSubject?.services[0].serviceEndpoint
-    )
-    const computeEnv = Array.isArray(computeEnvs)
-      ? computeEnvs[0]
-      : computeEnvs[asset?.credentialSubject?.chainId][0]
-
-    if (!computeEnv) return null
-    return computeEnv
-  } catch (e: any) {
-    const message = getErrorMessage(e.message)
-    LoggerInstance.error(
-      '[Compute to Data] Fetch compute environment:',
-      message
-    )
-    toast.error(message)
-  }
-}
-
-export function getQueryString(
+function getQueryString(
   trustedAlgorithmList: PublisherTrustedAlgorithms[],
   trustedPublishersList: string[],
   chainId?: number,
@@ -220,31 +195,11 @@ export async function getAlgorithmsForAsset(
   return algorithms
 }
 
-export async function getAlgorithmAssetSelectionList(
-  service: Service,
-  algorithms: Asset[],
-  accountId: string
-): Promise<AssetSelectionAsset[]> {
-  if (!algorithms || algorithms?.length === 0) return []
-
-  let algorithmSelectionList: AssetSelectionAsset[]
-  if (!service.compute) {
-    algorithmSelectionList = []
-  } else {
-    algorithmSelectionList = await transformAssetToAssetSelection(
-      service?.serviceEndpoint,
-      algorithms,
-      accountId,
-      service.compute.publisherTrustedAlgorithms
-    )
-  }
-  return algorithmSelectionList
-}
-
 export async function getAlgorithmAssetSelectionListForComputeWizard(
   service: Service,
   algorithms: Asset[],
-  accountId: string
+  accountId: string,
+  tokenSymbolMap?: Record<string, string>
 ): Promise<AssetSelectionAsset[]> {
   if (!algorithms || algorithms?.length === 0) return []
 
@@ -257,7 +212,9 @@ export async function getAlgorithmAssetSelectionListForComputeWizard(
         service?.serviceEndpoint,
         algorithms,
         accountId,
-        service.compute.publisherTrustedAlgorithms
+        service.compute.publisherTrustedAlgorithms,
+        undefined,
+        tokenSymbolMap
       )
   }
   return algorithmSelectionList
@@ -267,7 +224,7 @@ async function getJobs(
   providerUrls: string[],
   accountId: string,
   assets?: Asset[],
-  cancelToken?: CancelToken
+  _cancelToken?: CancelToken
 ): Promise<ComputeJobMetaData[]> {
   const uniqueProviders = [...new Set(providerUrls)]
   const providersComputeJobsExtended: ComputeJobExtended[] = []
@@ -394,7 +351,7 @@ export async function getAllComputeJobs(
   return computeResult
 }
 
-export async function createTrustedAlgorithmList(
+async function createTrustedAlgorithmList(
   selectedAlgorithms: string[],
   assetChainId: number,
   cancelToken: CancelToken

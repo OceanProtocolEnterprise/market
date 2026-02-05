@@ -10,12 +10,12 @@ import {
 import { MarketMetadataProviderValue, OpcFee } from './_types'
 import siteContent from '../../../content/site.json'
 import appConfig from '../../../app.config.cjs'
-import { LoggerInstance } from '@oceanprotocol/lib'
 import { useConnect, useChainId } from 'wagmi'
-import { getOceanConfig } from '@utils/ocean'
 import { getTokenInfo } from '@utils/wallet'
 import useEnterpriseFeeColletor from '@hooks/useEnterpriseFeeCollector'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import useAllowedTokenAddresses from '@hooks/useAllowedTokenAddresses'
+
 const MarketMetadataContext = createContext({} as MarketMetadataProviderValue)
 
 function MarketMetadataProvider({
@@ -28,27 +28,27 @@ function MarketMetadataProvider({
   const chainId = useChainId()
   const signer = useEthersSigner()
 
-  const { getOpcData } = useEnterpriseFeeColletor()
+  const { getOpcData, enterpriseFeeCollector } = useEnterpriseFeeColletor()
   const [opcFees, setOpcFees] = useState<OpcFee[]>()
   const [approvedBaseTokens, setApprovedBaseTokens] = useState<TokenInfo[]>()
-  const config = getOceanConfig(chainId)
+  const envAllowedAddresses = useAllowedTokenAddresses(chainId)
 
   // ---------------------------
   // Load OPC Fee Data
   // ---------------------------
   useEffect(() => {
     async function fetchData() {
+      // Safety check: Don't run if we don't have a signer yet
+      if (!signer) return
+
       const opcData = await getOpcData(appConfig.chainIdsSupported)
-      LoggerInstance.log('[MarketMetadata] Got new data.', {
-        opcFees: opcData,
-        siteContent,
-        appConfig
-      })
       setOpcFees(opcData)
     }
 
-    if (signer) fetchData()
-  }, [signer])
+    if (!opcFees && signer && enterpriseFeeCollector) {
+      fetchData()
+    }
+  }, [signer, getOpcData, enterpriseFeeCollector])
 
   // ---------------------------
   // Get OPC fee for given token
@@ -57,48 +57,68 @@ function MarketMetadataProvider({
     (tokenAddress: string, chainId: number): string => {
       if (!opcFees) return '0'
       const opc = opcFees.find((x) => x.chainId === chainId)
-      return opc?.feePercentage || '0'
+      return (
+        opc?.tokensData.find(
+          (x) => x.tokenAddress.toLowerCase() === tokenAddress.toLowerCase()
+        )?.feePercentage || '0'
+      )
     },
     [opcFees]
   )
 
   // ---------------------------
-  // Load OCEAN token metadata
+  // Load approved tokens metadata
   // ---------------------------
+
   useEffect(() => {
     async function fetchTokenInfoSafe() {
       try {
         if (isLoading) return
-        if (!config?.oceanTokenAddress) {
-          console.warn('[fetchTokenInfo] No oceanTokenAddress configured.')
+        if (!chainId || !signer) return
+        if (!enterpriseFeeCollector) return
+
+        if (!envAllowedAddresses || envAllowedAddresses.length === 0) {
+          setApprovedBaseTokens([])
           return
         }
 
-        if (!chainId) {
-          console.error('[fetchTokenInfo] chainId missing.')
-          return
-        }
-
-        if (!signer) {
-          console.warn('[fetchTokenInfo] Waiting for signer...')
-          return
-        }
-        const tokenDetails = await getTokenInfo(
-          config.oceanTokenAddress,
-          signer.provider
+        const allowanceChecks = await Promise.all(
+          envAllowedAddresses.map(async (address) => {
+            try {
+              const isAllowed =
+                await enterpriseFeeCollector.contract.isTokenAllowed(address)
+              return isAllowed ? address : null
+            } catch {
+              return null
+            }
+          })
+        )
+        const contractAllowedAddresses = allowanceChecks.filter(
+          (a): a is string => Boolean(a)
         )
 
-        setApprovedBaseTokens([tokenDetails])
+        if (contractAllowedAddresses.length === 0) {
+          setApprovedBaseTokens([])
+          return
+        }
+        const tokenDetails = await Promise.all(
+          contractAllowedAddresses.map((address) =>
+            getTokenInfo(address, signer.provider)
+          )
+        )
+        const validTokens = tokenDetails.filter(Boolean)
+
+        setApprovedBaseTokens(validTokens)
       } catch (error: any) {
         console.error(
-          '[fetchTokenInfo] Error fetching token info:',
+          '[fetchTokenInfoSafe] Error fetching approved token info:',
           error.message
         )
       }
     }
 
     fetchTokenInfoSafe()
-  }, [isLoading, chainId, signer, config?.oceanTokenAddress])
+  }, [isLoading, chainId, signer, enterpriseFeeCollector, envAllowedAddresses])
 
   return (
     <MarketMetadataContext.Provider
@@ -120,5 +140,5 @@ function MarketMetadataProvider({
 const useMarketMetadata = (): MarketMetadataProviderValue =>
   useContext(MarketMetadataContext)
 
-export { MarketMetadataProvider, useMarketMetadata, MarketMetadataContext }
+export { useMarketMetadata }
 export default MarketMetadataProvider

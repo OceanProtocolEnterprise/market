@@ -12,14 +12,16 @@ import useNetworkMetadata, {
 import Button from '../Button'
 import styles from './index.module.css'
 import NumberUnit from '@components/Profile/Header/NumberUnit'
+import { AssetExtended } from 'src/@types/AssetExtended'
+import { getBaseTokenSymbol } from '@utils/getBaseTokenSymbol'
 
 // Hack in support for returning components for each row, as this works,
 // but is not supported by the typings.
-export interface TableOceanColumn<T> extends TableColumn<T> {
+interface TableOceanColumn<T> extends TableColumn<T> {
   selector?: (row: T) => any
 }
 
-export interface TableOceanProps<T> extends TableProps<T> {
+interface TableOceanProps<T> extends TableProps<T> {
   columns: TableOceanColumn<T>[]
   isLoading?: boolean
   emptyMessage?: string
@@ -31,7 +33,8 @@ export interface TableOceanProps<T> extends TableProps<T> {
   showPagination?: boolean
   page?: number
   totalPages?: number
-  revenue: number
+  revenueByToken?: Record<string, number>
+  revenueTotal?: number
   sales: number
   items: number
   allResults?: any[]
@@ -52,17 +55,66 @@ export default function HistoryTable({
   showPagination,
   page,
   totalPages,
-  revenue,
+  revenueByToken,
+  revenueTotal,
   sales,
   items,
   allResults,
   ...props
 }: TableOceanProps<any>): ReactElement {
   const { networksList } = useNetworkMetadata()
+  const revenueEntries = Object.entries(revenueByToken || {})
+    .filter(([symbol]) => !!symbol && symbol !== 'UNKNOWN')
+    .sort(([symbolA], [symbolB]) => {
+      // Sort with OCEAN first, then alphabetically
+      if (symbolA === 'OCEAN') return -1
+      if (symbolB === 'OCEAN') return 1
+      return symbolA.localeCompare(symbolB)
+    })
+  const totalRevenueValue =
+    revenueTotal ??
+    revenueEntries.reduce((acc, [, amount]) => acc + Number(amount || 0), 0)
 
   const handleExport = () => {
-    const exportData = allResults.map((asset) => {
-      const exportedAsset = {}
+    interface PriceEntry {
+      baseToken?: { symbol?: string }
+      price?: number | string
+    }
+
+    interface StatsEntry {
+      prices?: PriceEntry[]
+      orders?: number
+    }
+
+    const exportData = (allResults || []).map((asset) => {
+      const exportedAsset: Record<string, string | number> = {}
+      const assetWithAccess = asset as AssetExtended
+      const access = assetWithAccess.accessDetails?.[0]
+      const statsEntry = assetWithAccess.indexedMetadata?.stats?.[0] as
+        | StatsEntry
+        | undefined
+      const priceEntry = statsEntry?.prices?.[0]
+
+      const baseTokenSymbol = getBaseTokenSymbol(assetWithAccess)
+
+      const accessPrice =
+        access?.price && typeof access.price === 'string'
+          ? Number(access.price)
+          : access?.price
+          ? Number(access.price)
+          : undefined
+
+      const priceValue =
+        accessPrice ??
+        (priceEntry?.price
+          ? typeof priceEntry.price === 'string'
+            ? Number(priceEntry.price)
+            : priceEntry.price
+          : undefined) ??
+        0
+
+      const orders = statsEntry?.orders || 0
+
       columns.forEach((col) => {
         const value = col.selector(asset)
 
@@ -79,6 +131,15 @@ export default function HistoryTable({
           exportedAsset[col.name as string] = new Date(
             asset.indexedMetadata?.event?.datetime
           ).toLocaleString()
+        } else if (col.name === 'Price') {
+          exportedAsset[col.name as string] = baseTokenSymbol
+            ? `${Number(priceValue)} ${baseTokenSymbol}`
+            : Number(priceValue)
+        } else if (col.name === 'Revenue') {
+          const revenueValue = orders * Number(priceValue)
+          exportedAsset[col.name as string] = baseTokenSymbol
+            ? `${revenueValue} ${baseTokenSymbol}`
+            : revenueValue
         } else {
           exportedAsset[col.name as string] = value
         }
@@ -90,7 +151,7 @@ export default function HistoryTable({
       dataset: exportData,
       totalSales: sales,
       totalPublished: items,
-      totalRevenue: revenue
+      revenueByToken
     }
 
     const jsonString = JSON.stringify(exportObject, null, 2)
@@ -139,7 +200,20 @@ export default function HistoryTable({
           <div className={styles.totalContainer}>
             <NumberUnit label="Total sales" value={sales} />
             <NumberUnit label="Total published" value={items} />
-            <NumberUnit label="Total Revenue Ocean" value={revenue} />
+            {revenueEntries.length > 0 &&
+              revenueEntries.map(([symbol, amount]) => (
+                <NumberUnit
+                  key={symbol}
+                  label={`Total Revenue ${symbol}`}
+                  value={Number(amount || 0)}
+                />
+              ))}
+            {revenueEntries.length === 0 && (
+              <NumberUnit
+                label="Total Revenue"
+                value={Number(totalRevenueValue || 0)}
+              />
+            )}
           </div>
         </>
       )}

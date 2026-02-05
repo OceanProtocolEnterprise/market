@@ -1,9 +1,8 @@
 .langSelect {
   background: var(--background-body);
-  border: var(--publish-input-border-size) solid
-    var(--publish-input-border-color);
-  border-radius: var(--publish-input-border-radius);
-  padding: var(--publish-form-container-padding);
+  border: var(--border-size-sm) solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
+  padding: var(--sp-10);
   margin: var(--spacer) auto;
   text-align: center;
 }

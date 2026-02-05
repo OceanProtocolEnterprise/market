@@ -21,9 +21,9 @@
 }
 
 .title {
-  font-size: var(--publish-font-size-lg);
-  line-height: var(--publish-line-height-base);
-  color: var(--publish-text-secondary);
+  font-size: var(--text-lg);
+  line-height: var(--text-line-base);
+  color: var(--clr-slate-70);
   font-weight: 700;
   margin: 0;
 }

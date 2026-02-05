@@ -113,22 +113,14 @@ export interface FormComputeData {
   }
   totalPrice?: string
   escrowFunds: string
+  escrowCoveredAmount?: string
+  actualPaymentAmount?: string
   jobPrice: string
+  baseToken?: string | null
 }
 
 export interface StepContent {
   step: number
   title: string
   component: ReactElement
-}
-
-export interface ComputeFeedback {
-  [key: string]: {
-    name: string
-    description: string
-    status: 'success' | 'error' | 'pending' | 'active' | string
-    txCount: number
-    errorMessage?: string
-    txHash?: string
-  }
 }

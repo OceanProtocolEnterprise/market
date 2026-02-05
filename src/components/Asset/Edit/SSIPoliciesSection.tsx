@@ -113,13 +113,7 @@ export default function SSIPoliciesSection({
             }
             name="credentials"
             defaultPolicies={defaultPolicies}
-            help={`Self-sovereign identity (SSI) is used to verify the consumer of a ${
-              isAsset ? 'asset' : 'service'
-            }. Indicate which SSI policy is required for this ${
-              isAsset ? 'asset' : 'service'
-            } (static, parameterized, custom URL, other).`}
             isAsset={isAsset}
-            buttonStyle="ocean"
             enabledView={true}
             hideDefaultPolicies={hideDefaultPolicies}
           />

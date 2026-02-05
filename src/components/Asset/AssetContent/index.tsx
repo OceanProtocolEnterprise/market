@@ -23,6 +23,7 @@ import { LanguageValueObject } from 'src/@types/ddo/LanguageValueObject'
 import MetaInfo from './MetaMain/MetaInfo'
 import EditIcon from '@images/edit.svg'
 import ComputeJobs from '@components/@shared/ComputeJobs'
+import Link from 'next/link'
 
 export default function AssetContent({
   asset
@@ -35,6 +36,7 @@ export default function AssetContent({
   const [receipts] = useState([])
   const [nftPublisher, setNftPublisher] = useState<string>()
   const [selectedService, setSelectedService] = useState<number | undefined>()
+  const isPublished = Boolean(asset?.indexedMetadata?.nft?.created)
 
   // const [loadingInvoice, setLoadingInvoice] = useState(false)
   // const [pdfUrl, setPdfUrl] = useState(null)
@@ -130,7 +132,7 @@ export default function AssetContent({
         <div>
           <div className={styles.metaMenu}>
             {' '}
-            <MetaMain asset={asset} nftPublisher={nftPublisher} />
+            <MetaMain asset={asset} />
             <Bookmark did={asset.id} />
           </div>
           <div className={styles.content}>
@@ -214,12 +216,14 @@ export default function AssetContent({
             <MetaFull ddo={asset} />
             {debug === true && <DebugOutput title="DDO" output={asset} />}
           </div>
-          {computeServiceIndex !== undefined && computeServiceIndex >= 0 && (
-            <ComputeJobs
-              asset={asset}
-              refetchTrigger={computeJobsRefetchTrigger}
-            />
-          )}
+          {isPublished &&
+            computeServiceIndex !== undefined &&
+            computeServiceIndex >= 0 && (
+              <ComputeJobs
+                asset={asset}
+                refetchTrigger={computeJobsRefetchTrigger}
+              />
+            )}
         </div>
 
         <div className={styles.actions}>
@@ -227,11 +231,7 @@ export default function AssetContent({
             networkId={asset.credentialSubject?.chainId}
             className={styles.network}
           />
-          <Web3Feedback
-            networkId={asset.credentialSubject?.chainId}
-            accountId={accountId}
-            isAssetNetwork={isAssetNetwork}
-          />
+          <Web3Feedback accountId={accountId} isAssetNetwork={isAssetNetwork} />
           {!asset.accessDetails ? (
             <p>Loading access details...</p>
           ) : (
@@ -303,10 +303,13 @@ export default function AssetContent({
           )}
           {isOwner && isAssetNetwork && isConnected && (
             <div className={styles.ownerButtonsContainer}>
-              <a href={`/asset/${asset.id}/edit`} className={styles.editButton}>
+              <Link
+                href={`/asset/${asset.id}/edit`}
+                className={styles.editButton}
+              >
                 <EditIcon className={styles.editIcon} />
                 Edit Asset
-              </a>
+              </Link>
 
               {/* <div
                 className={`${styles.invoiceDropdown} ${

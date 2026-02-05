@@ -33,7 +33,6 @@ import { useUserPreferences } from '@context/UserPreferences'
 import { useSsiWallet } from '@context/SsiWallet'
 import { secondsToString } from '@utils/ddo'
 import {
-  getAlgorithmAssetSelectionList,
   getAlgorithmAssetSelectionListForComputeWizard,
   getAlgorithmsForAsset
 } from '@utils/compute'
@@ -49,6 +48,7 @@ import { useComputeJobs } from './hooks/useComputeJobs'
 import { useComputeSubmission } from './hooks/useComputeSubmission'
 import { getSelectedComputeEnvAndResources } from './hooks/computeEnvSelection'
 import { resetCredentialCache } from './hooks/resetCredentialCache'
+import { useMarketMetadata } from '@context/MarketMetadata'
 import appConfig from 'app.config.cjs'
 
 type ParamValue = string | number | boolean | undefined
@@ -95,6 +95,7 @@ export default function ComputeWizardController({
   const { oceanTokenAddress } = config
   const newCancelToken = useCancelToken()
   const { isSupportedOceanNetwork } = useNetworkMetadata()
+  const { approvedBaseTokens } = useMarketMetadata()
   const web3Provider = signer?.provider
 
   const [isLoading, setIsLoading] = useState(true)
@@ -105,6 +106,14 @@ export default function ComputeWizardController({
       : 'dataset')
   const isAlgorithmFlow = flow === 'algorithm'
   const initialFormValues = useMemo(() => createInitialValues(flow), [flow])
+  const tokenSymbolMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    approvedBaseTokens?.forEach((token) => {
+      if (!token?.address || !token?.symbol) return
+      map[token.address.toLowerCase()] = token.symbol
+    })
+    return map
+  }, [approvedBaseTokens])
 
   // copied from compute
   const { address } = useAccount()
@@ -131,9 +140,10 @@ export default function ComputeWizardController({
   const [algoOrderPriceAndFees, setAlgoOrderPriceAndFees] =
     useState<OrderPriceAndFees>()
   const [isBalanceSufficient, setIsBalanceSufficient] = useState<boolean>(true)
+  const [baseTokenAddress, setBaseTokenAddress] = useState<string>()
 
   const [isConsumablePrice, setIsConsumablePrice] = useState(true)
-  const [providerFeesSymbol, setProviderFeesSymbol] = useState('OCEAN')
+  const [providerFeesSymbol, setProviderFeesSymbol] = useState('')
   const { computeEnvs, computeEnvsError } = useComputeEnvironments({
     serviceEndpoint: service?.serviceEndpoint,
     chainId: asset.credentialSubject?.chainId
@@ -142,12 +152,14 @@ export default function ComputeWizardController({
     initializePricingAndProvider,
     datasetProviderFee,
     algorithmProviderFee,
+    datasetProviderFees,
+    algorithmProviderFees,
     extraFeesLoaded,
     isInitLoading,
     initError,
     setInitError
   } = useComputeInitialization({
-    oceanTokenAddress,
+    oceanTokenAddress: baseTokenAddress,
     web3Provider
   })
   const {
@@ -158,7 +170,6 @@ export default function ComputeWizardController({
   } = useComputeJobs({
     asset,
     service,
-    accountId,
     ownerAddress: address,
     chainIds,
     cancelTokenFactory: newCancelToken
@@ -366,7 +377,6 @@ export default function ComputeWizardController({
           datasetParams[param.name] = param.value ?? param.default ?? ''
         })
       }
-
       const initResult = await initializePricingAndProvider({
         datasetsForProvider,
         algorithmAsset: actualAlgorithmAsset,
@@ -434,7 +444,8 @@ export default function ComputeWizardController({
             service.serviceEndpoint,
             accountId,
             asset.credentialSubject?.chainId,
-            newCancelToken()
+            newCancelToken(),
+            tokenSymbolMap
           )
           if (!cancelled) setDatasetList(datasetLists || [])
         } else {
@@ -448,7 +459,8 @@ export default function ComputeWizardController({
             await getAlgorithmAssetSelectionListForComputeWizard(
               service,
               algorithmsAssets,
-              accountId
+              accountId,
+              tokenSymbolMap
             )
           if (!cancelled) setAlgorithmList(algorithmSelectionList)
         }
@@ -541,6 +553,10 @@ export default function ComputeWizardController({
   ): Promise<void> {
     setIsSubmittingJob(true)
     try {
+      const formValuesForEscrow = formikValues || initialFormValues
+      const shouldDepositEscrow = new Decimal(
+        formValuesForEscrow?.actualPaymentAmount || 0
+      ).gt(0)
       const {
         datasetResponses,
         actualAlgorithmAsset,
@@ -549,7 +565,11 @@ export default function ComputeWizardController({
         initializedProvider,
         selectedComputeEnv,
         selectedResources
-      } = await initPriceAndFees(datasetServices, formikValues)
+      } = await initPriceAndFees(
+        datasetServices,
+        formikValues,
+        shouldDepositEscrow
+      )
 
       if (!datasetResponses || !selectedComputeEnv || !selectedResources) {
         throw new Error('Missing compute initialization data.')
@@ -571,9 +591,10 @@ export default function ComputeWizardController({
         lookupVerifierSessionId,
         algoOrderPriceAndFees,
         datasetOrderPriceAndFees,
-        paymentTokenAddress: accessDetails?.baseToken?.address,
-        oceanTokenAddress,
+        paymentTokenAddress:
+          baseTokenAddress ?? accessDetails?.baseToken?.address,
         computeServiceEndpoint: service.serviceEndpoint
+        // oceanTokenAddress --- IGNORE ---
       })
 
       await refetchComputeJobs('init')
@@ -828,11 +849,11 @@ export default function ComputeWizardController({
         const selectedAlgoAssetForDisplay = isAlgorithmFlow
           ? asset
           : selectedAlgorithmAsset
-        const algorithmAssetChainId =
+        const _algorithmAssetChainId =
           selectedAlgoAssetForDisplay?.credentialSubject?.chainId
         const algorithmSymbol =
           selectedAlgoAssetForDisplay?.accessDetails?.[svcIndex]?.baseToken
-            ?.symbol || (algorithmAssetChainId === 137 ? 'mOCEAN' : 'OCEAN')
+            ?.symbol || ''
         const dtSymbolSelectedComputeAsset =
           selectedAlgoAssetForDisplay?.accessDetails?.[svcIndex]?.datatoken
             ?.symbol
@@ -842,7 +863,7 @@ export default function ComputeWizardController({
         )
         const providerSymbolForDisplay = isAlgorithmFlow
           ? providerFeesSymbol
-          : 'OCEAN'
+          : ''
 
         return (
           <div className={styles.containerOuter}>
@@ -924,24 +945,25 @@ export default function ComputeWizardController({
                       setFieldValue={setFieldValue}
                       datasetProviderFeeProp={datasetProviderFee}
                       algorithmProviderFeeProp={algorithmProviderFee}
+                      datasetProviderFees={datasetProviderFees}
+                      algorithmProviderFees={algorithmProviderFees}
                       isBalanceSufficient={isBalanceSufficient}
                       setIsBalanceSufficient={setIsBalanceSufficient}
+                      baseTokenAddress={baseTokenAddress}
+                      setBaseTokenAddress={setBaseTokenAddress}
                     />
                   </CredentialDialogProvider>
                 )}
 
                 {!showSuccess && (
                   <WizardActions
-                    submitButtonText="Buy Compute Job"
                     rightAlignFirstStep={false}
                     isContinueDisabled={isContinueDisabled}
-                    isSubmitDisabled={isComputeButtonDisabled}
                     action="compute"
                     disabled={
                       isComputeButtonDisabled ||
                       !isAssetNetwork ||
-                      !isAccountIdWhitelisted ||
-                      !isBalanceSufficient
+                      !isAccountIdWhitelisted
                     }
                     hasPreviousOrder={!!validOrderTx}
                     hasDatatoken={hasDatatoken}
@@ -959,7 +981,6 @@ export default function ComputeWizardController({
                     selectedComputeAssetType="algorithm"
                     stepText={computeStatusText}
                     isLoading={isOrdering || isSubmittingJob}
-                    type="submit"
                     priceType={accessDetails.type}
                     algorithmPriceType={asset?.accessDetails?.[0]?.type}
                     isBalanceSufficient={isBalanceSufficient}

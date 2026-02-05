@@ -47,7 +47,7 @@ type StartJobParams = {
   algoOrderPriceAndFees?: OrderPriceAndFees
   datasetOrderPriceAndFees?: OrderPriceAndFees
   paymentTokenAddress?: string
-  oceanTokenAddress?: string
+  // oceanTokenAddress?: string
   computeServiceEndpoint?: string
 }
 
@@ -122,7 +122,7 @@ export function useComputeSubmission() {
       algoOrderPriceAndFees,
       datasetOrderPriceAndFees,
       paymentTokenAddress,
-      oceanTokenAddress,
+      // oceanTokenAddress,
       computeServiceEndpoint
     }: StartJobParams) => {
       try {
@@ -244,9 +244,7 @@ export function useComputeSubmission() {
           firstDataset?.service?.serviceEndpoint ||
           algorithmService.serviceEndpoint
         const paymentToken =
-          paymentTokenAddress ||
-          oceanTokenAddress ||
-          algorithmAccessDetails?.baseToken?.address
+          paymentTokenAddress || algorithmAccessDetails?.baseToken?.address
 
         const policyServerAlgo = {
           sessionId: lookupVerifierSessionId(

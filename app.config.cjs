@@ -55,9 +55,8 @@ module.exports = {
 
   // consume market fee that is taken upon ordering an asset, it is an absolute value with 18 decimals, it is specified on order
   consumeMarketOrderFee:
-    getEnv('NEXT_PUBLIC_CONSUME_MARKET_ORDER_FEE') ||
-    process.env.NEXT_PUBLIC_CONSUME_MARKET_ORDER_FEE ||
-    '0',
+    getEnv('NEXT_PUBLIC_CONSUME_MARKET_ORDER_FEE_MAP') ||
+    process.env.NEXT_PUBLIC_CONSUME_MARKET_ORDER_FEE_MAP,
   consumeMarketFee:
     getEnv('NEXT_PUBLIC_CONSUME_MARKET_FEE') ||
     process.env.NEXT_PUBLIC_CONSUME_MARKET_FEE ||

@@ -1,23 +1,22 @@
 .select [class$='control'] {
-  border-color: var(--publish-input-border-color);
-  border-radius: var(--publish-input-border-radius);
+  border-color: var(--border-navy-soft);
+  border-radius: var(--radius-xl);
   box-shadow: none;
   background-color: var(--input-background);
-  font-size: var(--publish-font-size);
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
+  font-size: var(--text-sm);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
   cursor: text;
   min-height: 43px;
-  border: var(--publish-input-border-size) solid
-    var(--publish-input-border-color);
+  border: var(--border-size-sm) solid var(--border-navy-soft);
 }
 
 .select [class$='control']:hover {
-  border-color: var(--publish-input-border-color);
+  border-color: var(--border-navy-soft);
 }
 
 .select [class$='control']:focus-within {
-  border-color: var(--publish-input-border-color);
+  border-color: var(--border-navy-soft);
 }
 
 /* ONLY when dropdown menu is actually open/visible */
@@ -47,24 +46,24 @@
   margin: 0;
   padding-bottom: 0;
   padding-top: 0;
-  font-size: var(--publish-font-size);
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
+  font-size: var(--text-sm);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
 }
 
 .select input {
-  color: var(--publish-text) !important;
+  color: var(--text-ink) !important;
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
 }
 
 .select [class$='option'] {
-  color: var(--publish-text);
-  font-size: var(--publish-font-size);
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
-  padding: var(--publish-spacing-sm) var(--publish-spacing-md);
+  color: var(--text-ink);
+  font-size: var(--text-sm);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
+  padding: var(--sp-2) var(--sp-4);
   transition: background-color 0.2s ease;
 }
 
@@ -75,12 +74,12 @@
 .select [class$='multiValue'],
 .select [class$='multiValue'] > *,
 .select [class$='multiValue']:hover > * {
-  border-radius: var(--publish-border-radius);
+  border-radius: var(--radius-xl);
   background-color: var(--input-background-highlight);
-  color: var(--publish-text);
-  font-size: var(--publish-font-size);
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
+  color: var(--text-ink);
+  font-size: var(--text-sm);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
   padding-top: 0;
   padding-bottom: 0;
 }
@@ -93,10 +92,10 @@
 .select [class$='placeholder'] {
   margin-left: 0;
   margin-right: 0;
-  color: var(--publish-text-secondary);
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
-  font-size: var(--publish-font-size);
+  color: var(--clr-slate-70);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
   transition: 0.2s ease-out;
   opacity: 0.7;
 }
@@ -104,28 +103,28 @@
 .select [class$='menu'] {
   background-color: var(--input-background);
   margin-top: 0;
-  border: 2px solid var(--publish-input-border-color);
+  border: 2px solid var(--border-navy-soft);
   border-top: none;
-  border-bottom-left-radius: var(--publish-input-border-radius);
-  border-bottom-right-radius: var(--publish-input-border-radius);
+  border-bottom-left-radius: var(--radius-xl);
+  border-bottom-right-radius: var(--radius-xl);
   border-top-left-radius: 0;
   border-top-right-radius: 0;
-  box-shadow: var(--publish-shadow);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
 }
 
 .select [class$='menu'] [class$='option']:hover,
 .select [class$='menu'] [class$='option']:focus-within {
   background-color: var(--input-background-highlight);
-  color: var(--publish-text);
+  color: var(--text-ink);
 }
 
 .select [class$='menu'] [class$='option']:first-child {
-  padding-top: var(--publish-spacing-sm);
+  padding-top: var(--sp-2);
 }
 
 .select [class$='menu'] [class$='option']:last-child {
-  padding-bottom: var(--publish-spacing-sm);
+  padding-bottom: var(--sp-2);
 }
 
 .select [class$='MenuList'] {
@@ -133,11 +132,11 @@
 }
 
 .select [class$='NoOptionsMessage'] {
-  font-size: var(--publish-font-size);
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
-  color: var(--publish-text-secondary);
+  font-size: var(--text-sm);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
+  color: var(--clr-slate-70);
   text-align: left;
-  padding: var(--publish-spacing-md);
+  padding: var(--sp-4);
   margin: 0;
 }

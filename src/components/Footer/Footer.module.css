@@ -36,7 +36,7 @@
   font-size: 14px;
   line-height: 143%;
   text-align: center;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--white-alpha-70);
   font-weight: 700;
   text-decoration: underline;
   text-decoration-skip-ink: none;
@@ -57,9 +57,9 @@
   fill: linear-gradient(
     135deg,
     #1f2c50 0%,
-    rgb(13 76 113) 27.47%,
-    rgb(10 81 121) 43.49%,
-    rgb(6 68 103 / 94%) 55.43%,
+    var(--navy-640) 27.47%,
+    var(--navy-620) 43.49%,
+    var(--navy-alpha-94) 55.43%,
     #1e2e52 100%
   ); /* This makes icons inherit parent color */
 }
