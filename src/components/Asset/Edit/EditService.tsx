@@ -179,7 +179,8 @@ export default function EditService({
         const filesEncrypted = await getEncryptedFiles(
           file,
           asset.credentialSubject?.chainId,
-          service.serviceEndpoint
+          service.serviceEndpoint,
+          signer
         )
         updatedFiles = filesEncrypted
       }
