@@ -20,3 +20,9 @@
   word-wrap: break-word;
   white-space: normal;
 }
+
+.horizontal {
+  display: flex;
+  flex-direction: row;
+  gap: var(--sp-2);
+}

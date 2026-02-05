@@ -76,7 +76,7 @@
   --border-size-sm: 1px;
   --border-size: 2px;
 
-  /* Additional tokens for PolicyEditor */
+  /* Spacing */
   --radius-xl: 20px;
   --radius-compact: 2px;
   --radius-full: 19px; /* For circular elements */

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import styles from './index.module.css'
 import { getAllComputeJobs } from '@utils/compute'
 import { useAccount } from 'wagmi'
@@ -25,63 +25,89 @@ const ComputeJobs = ({
   const { address: accountId } = useAccount()
   const newCancelToken = useCancelToken()
 
-  async function fetchComputeJobs(type: string = 'init') {
-    if (!accountId) {
-      console.warn('No account ID available')
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      if (type === 'init') {
-        setIsLoading(true)
-      } else if (type === 'refresh') {
-        setIsRefreshing(true)
+  const fetchComputeJobs = useCallback(
+    async (type: string = 'init') => {
+      if (!accountId) {
+        console.warn('No account ID available')
+        setIsLoading(false)
+        return
       }
 
-      setError(null)
-      const response = await getAllComputeJobs(accountId, newCancelToken())
+      try {
+        if (type === 'init') {
+          setIsLoading(true)
+        } else if (type === 'refresh') {
+          setIsRefreshing(true)
+        }
 
-      if (response?.computeJobs) {
-        const allJobs = response.computeJobs
+        setError(null)
+        const response = await getAllComputeJobs(accountId, newCancelToken())
 
-        const matchingJobs = Object.entries(allJobs)
-          .filter(([jobId, job]: [string, ComputeJobMetaData]) => {
-            if (!job.assets || !Array.isArray(job.assets)) {
-              console.warn(`Job ${jobId} has no assets array.`)
-              return false
-            }
+        if (response?.computeJobs) {
+          const allJobs = response.computeJobs
 
-            const hasMatch = job.assets.some(
-              (assetObj: { documentId: string }) =>
-                assetObj.documentId === asset?.id
-            )
+          const matchingJobs = Object.entries(allJobs)
+            .filter(([jobId, job]: [string, ComputeJobMetaData]) => {
+              if (!job.assets || !Array.isArray(job.assets)) {
+                console.warn(`Job ${jobId} has no assets array.`)
+                return false
+              }
 
-            const hasAlgorithmMatch =
-              job.algorithm && job.algorithm.documentId === asset?.id
+              const hasMatch = job.assets.some(
+                (assetObj: { documentId: string }) =>
+                  assetObj.documentId === asset?.id
+              )
 
-            return hasMatch || hasAlgorithmMatch
-          })
-          .map(([, job]) => job)
+              const hasAlgorithmMatch =
+                job.algorithm && job.algorithm.documentId === asset?.id
 
-        setJobs(matchingJobs)
-      } else {
-        console.warn('No compute jobs found in response')
+              return hasMatch || hasAlgorithmMatch
+            })
+            .map(([, job]) => job)
+
+          setJobs(matchingJobs)
+        } else {
+          console.warn('No compute jobs found in response')
+          setJobs([])
+        }
+      } catch (err) {
+        console.error('Error fetching compute jobs:', err)
+        setError('Failed to load compute jobs. Please try again.')
         setJobs([])
+      } finally {
+        if (type === 'init') setIsLoading(false)
+        if (type === 'refresh') setIsRefreshing(false)
       }
-    } catch (err) {
-      console.error('Error fetching compute jobs:', err)
-      setError('Failed to load compute jobs. Please try again.')
-      setJobs([])
-    } finally {
-      if (type === 'init') setIsLoading(false)
-      if (type === 'refresh') setIsRefreshing(false)
-    }
-  }
+    },
+    [accountId, asset?.id, newCancelToken]
+  )
 
   useEffect(() => {
     fetchComputeJobs('init')
-  }, [accountId, newCancelToken, refetchTrigger, asset?.id])
+  }, [fetchComputeJobs, refetchTrigger])
+
+  const header = useMemo(
+    () => (
+      <div className={styles.headerRow}>
+        <h1 className={styles.title}>Your Compute Jobs</h1>
+        <Button
+          style="gradient"
+          className={styles.refreshButton}
+          onClick={() => fetchComputeJobs('refresh')}
+          disabled={isRefreshing}
+        >
+          {isRefreshing ? (
+            <div className={styles.refreshLoader}>
+              <Loader />
+            </div>
+          ) : (
+            'Refresh'
+          )}
+        </Button>
+      </div>
+    ),
+    [fetchComputeJobs, isRefreshing]
+  )
 
   if (isLoading) {
     return (
@@ -106,23 +132,7 @@ const ComputeJobs = ({
   if (jobs.length === 0) {
     return (
       <div className={styles.container}>
-        <div className={styles.headerRow}>
-          <h1 className={styles.title}>Your Compute Jobs</h1>
-          <Button
-            style="gradient"
-            className={styles.refreshButton}
-            onClick={() => fetchComputeJobs('refresh')}
-            disabled={isRefreshing}
-          >
-            {isRefreshing ? (
-              <div className={styles.refreshLoader}>
-                <Loader />
-              </div>
-            ) : (
-              'Refresh'
-            )}
-          </Button>
-        </div>
+        {header}
         <div className={styles.empty}>No compute jobs found</div>
       </div>
     )
@@ -130,23 +140,7 @@ const ComputeJobs = ({
 
   return (
     <div className={styles.container}>
-      <div className={styles.headerRow}>
-        <h1 className={styles.title}>Your Compute Jobs</h1>
-        <Button
-          style="gradient"
-          className={styles.refreshButton}
-          onClick={() => fetchComputeJobs('refresh')}
-          disabled={isRefreshing}
-        >
-          {isRefreshing ? (
-            <div className={styles.refreshLoader}>
-              <Loader />
-            </div>
-          ) : (
-            'Refresh'
-          )}
-        </Button>
-      </div>
+      {header}
 
       {jobs.length === 0 ? (
         <div className={styles.empty}>No compute jobs found</div>

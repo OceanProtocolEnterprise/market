@@ -288,13 +288,21 @@ export default function Details({
 
       {isDialogOpen && (
         <Modal
-          title={job.statusText}
+          title="Job Details"
           isOpen
           onToggleModal={() => setIsDialogOpen(false)}
           shouldCloseOnOverlayClick
+          className={styles.modal}
         >
           <div className={styles.content}>
             <div className={styles.scrollArea}>
+              <div className={styles.statusWrapper}>
+                <MetaItem
+                  title="Status"
+                  content={job.statusText || '—'}
+                  horizontal
+                />
+              </div>
               <DetailsAssets job={job} isMobile={isMobile} />
               <Results job={job} />
 

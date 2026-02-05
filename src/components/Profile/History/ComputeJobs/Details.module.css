@@ -147,6 +147,18 @@
   max-height: min(70vh, 680px);
 }
 
+.statusSubtitle {
+  font-family: var(--font-family);
+  font-size: 14px;
+  color: var(--color-secondary);
+  margin: 0.35rem 0 0.85rem;
+}
+
+.modal {
+  max-width: 720px;
+  width: min(92vw, 720px);
+}
+
 .scrollArea {
   display: grid;
   overflow-y: auto;
@@ -192,4 +204,8 @@
     word-break: break-all;
     margin-top: 0.5rem;
   }
+}
+
+.statusWrapper {
+  margin-bottom: var(--sp-2);
 }
