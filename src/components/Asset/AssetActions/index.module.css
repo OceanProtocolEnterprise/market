@@ -114,7 +114,8 @@ body .backButton {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: var(--black-alpha-80);
+  background: var(--modal-overlay-background);
+  backdrop-filter: blur(3px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -122,8 +123,10 @@ body .backButton {
 }
 
 .computePopupContent {
-  background: #fff;
-  border-radius: 12px;
+  background: var(--box-template-background);
+  border-radius: var(--radius-xl);
+  border: var(--box-template-border-size) solid var(--box-template-border-color);
+  box-shadow: var(--box-template-box-shadow);
   padding: 20px;
   width: 90%;
   max-width: 1350px;
