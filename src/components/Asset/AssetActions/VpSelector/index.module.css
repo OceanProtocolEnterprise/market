@@ -48,6 +48,10 @@
   max-width: 1200px;
 }
 
+.vpModalOverlay.vpModalOverlay {
+  z-index: 1100;
+}
+
 .selectAllRow {
   position: absolute;
   left: 0;

@@ -49,6 +49,7 @@ export function DidSelector(props: DidSelectorProps): ReactElement {
       onToggleModal={handleAbortSelection}
       shouldCloseOnOverlayClick
       className={styles.didModal}
+      overlayClassName={styles.didModalOverlay}
     >
       <div className={`${styles.panelColumn} ${styles.width100p}`}>
         <label

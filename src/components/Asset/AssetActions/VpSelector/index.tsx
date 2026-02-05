@@ -166,6 +166,7 @@ export function VpSelector(props: VpSelectorProps): ReactElement {
       onToggleModal={handleAbortSelection}
       shouldCloseOnOverlayClick
       className={styles.vpModal}
+      overlayClassName={styles.vpModalOverlay}
     >
       <div className={`${styles.panelColumn} ${styles.width100p}`}>
         <div className={styles.dataInfo}>
