@@ -13,8 +13,8 @@ export default function Network({
   const { networksList } = useNetworkMetadata()
 
   function changeNetwork(chainId: number) {
-    const networkNode = networksList.find((data) => data.chainId === chainId)
-    // addCustomNetwork(networkNode)
+    const _networkNode = networksList.find((data) => data.chainId === chainId)
+    // addCustomNetwork(_networkNode)
   }
 
   return (

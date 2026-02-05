@@ -32,7 +32,7 @@
 }
 
 .stepsRow::-webkit-scrollbar-track {
-  background: #e5e5e5;
+  background: var(--neutral-170);
   border-radius: 4px;
   border: 1px solid var(--brand-grey);
 }
@@ -44,14 +44,14 @@
 }
 
 .stepsRow::-webkit-scrollbar-thumb:hover {
-  background: #fcc432;
+  background: var(--yellow-550);
   border: 1px solid var(--brand-grey);
 }
 
 /* Firefox scrollbar */
 .stepsRow {
   scrollbar-width: thin;
-  scrollbar-color: #fdd655 #e5e5e5;
+  scrollbar-color: #fdd655 var(--neutral-170);
 }
 
 /* Individual Step */
@@ -179,7 +179,7 @@
 }
 
 .step:focus-visible {
-  outline: 2px solid var(--publish-primary);
+  outline: 2px solid var(--clr-navy);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -200,7 +200,7 @@
   .navigation {
     width: 100%;
     max-width: 1160px;
-    padding: 0 var(--publish-spacing-md);
+    padding: 0 var(--sp-4);
   }
 
   .stepsRow {
@@ -219,7 +219,7 @@
 
   .stepsRow {
     gap: 40px;
-    padding: 0 var(--publish-spacing-md);
+    padding: 0 var(--sp-4);
   }
 
   .activeStep {
@@ -267,7 +267,7 @@
   pointer-events: none;
   z-index: 1;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 6px 0 rgba(253, 214, 85, 0.15);
+  box-shadow: 0 1px 6px 0 var(--surface-warning);
   min-width: 0;
   /* Width set by JavaScript based on actual step measurements */
 }

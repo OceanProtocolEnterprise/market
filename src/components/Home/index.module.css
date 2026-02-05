@@ -5,9 +5,9 @@
   background: linear-gradient(
     135deg,
     #1f2c50 0%,
-    rgb(13 76 113) 27.47%,
-    rgb(10 81 121) 43.49%,
-    rgb(6 68 103 / 94%) 55.43%,
+    var(--navy-640) 27.47%,
+    var(--navy-620) 43.49%,
+    var(--navy-alpha-94) 55.43%,
     #1e2e52 100%
   );
   display: flex;
@@ -87,7 +87,7 @@
   background: white;
   border-radius: 50px;
   border: none;
-  box-shadow: 1px 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 2px 8px var(--black-alpha-15);
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -121,7 +121,7 @@
 .divider {
   width: 1px;
   height: 120px;
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--white-alpha-15);
   margin-top: 0px;
 }
 
@@ -141,7 +141,7 @@
   border-radius: 20px;
   display: flex;
   align-items: center;
-  box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 8px var(--black-alpha-15);
   overflow: hidden;
 }
 
@@ -150,7 +150,7 @@
   border: none;
   outline: none;
   font-size: 16px;
-  color: rgba(30, 30, 30, 0.8);
+  color: var(--gray-alpha-80);
   padding: 0 20px;
   background: transparent;
   border-radius: 20px;
@@ -159,7 +159,7 @@
 }
 
 .searchInput::placeholder {
-  color: rgba(30, 30, 30, 0.5);
+  color: var(--gray-alpha-50);
 }
 
 .searchButton {
@@ -177,13 +177,13 @@
 }
 
 .searchButton:hover {
-  background: #f3ce4a;
+  background: var(--yellow-350);
 }
 
 .searchIcon {
   width: 24px;
   height: 24px;
-  fill: #072d3b;
+  fill: var(--navy-750);
   transition: transform 0.2s ease;
 }
 
@@ -202,7 +202,7 @@
 .ecosystemDivider {
   width: 100%;
   height: 1px;
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--white-alpha-15);
 }
 
 .ecosystemTitle {

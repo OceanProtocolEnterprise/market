@@ -452,5 +452,5 @@ function ProfileProvider({
 // Helper hook to access the provider values
 const useProfile = (): ProfileProviderValue => useContext(ProfileContext)
 
-export { ProfileProvider, useProfile, ProfileContext }
+export { useProfile }
 export default ProfileProvider

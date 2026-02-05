@@ -45,4 +45,3 @@ function useAccountPurgatory(accountId: string): UseAccountPurgatory {
 }
 
 export { useAccountPurgatory }
-export default useAccountPurgatory

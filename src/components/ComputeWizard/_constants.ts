@@ -1,4 +1,4 @@
-import { ComputeFlow, FormComputeData } from './_types'
+import { FormComputeData } from './_types'
 
 export const initialValues: FormComputeData = {
   flow: 'dataset',
@@ -49,14 +49,4 @@ export const initialValues: FormComputeData = {
   escrowFunds: '0',
   jobPrice: '0',
   baseToken: null
-}
-
-export function createInitialValues(flow: ComputeFlow): FormComputeData {
-  const clonedValues = JSON.parse(
-    JSON.stringify(initialValues)
-  ) as FormComputeData
-  return {
-    ...clonedValues,
-    flow
-  }
 }

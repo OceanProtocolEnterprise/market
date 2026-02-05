@@ -5,8 +5,7 @@
 
 /* GDPR Section */
 .gdpr {
-  border: var(--publish-input-border-size) solid
-    var(--publish-input-border-color);
+  border: var(--border-size-sm) solid var(--border-navy-soft);
   padding: calc(var(--spacer) / 2);
   margin-top: calc(var(--spacer) * -0.5);
   margin-bottom: var(--spacer);
@@ -18,8 +17,8 @@
 
 /* Docker Configuration Section */
 .dockerContainer {
-  border: 1px solid var(--publish-input-border-color);
-  border-radius: var(--publish-input-border-radius);
+  border: 1px solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
   padding: 24px 16px;
   margin-bottom: var(--spacer);
   display: flex;
@@ -65,22 +64,18 @@
   min-width: 190px;
   width: fit-content;
   height: fit-content;
-  background: var(--publish-background-neutral);
-  border: 1px solid var(--publish-primary);
-  border-radius: var(--publish-input-border-radius);
-  font-family: var(--publish-font-family);
+  background: var(--surface-neutral);
+  border: 1px solid var(--clr-navy);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-normal);
-  font-size: var(--publish-font-size);
-  line-height: var(--publish-line-height-base);
-  color: var(--publish-primary);
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
+  color: var(--clr-navy);
   appearance: none;
-  background-image: linear-gradient(
-      45deg,
-      transparent 50%,
-      var(--publish-primary) 50%
-    ),
-    linear-gradient(135deg, var(--publish-primary) 50%, transparent 50%);
+  background-image: linear-gradient(45deg, transparent 50%, var(--clr-navy) 50%),
+    linear-gradient(135deg, var(--clr-navy) 50%, transparent 50%);
   background-position: calc(100% - 15px) calc(50% + 2px),
     calc(100% - 10px) calc(50% + 2px);
   background-size: 5px 5px, 5px 5px;
@@ -105,31 +100,31 @@
 .licenseContainer .inputGroup input {
   box-sizing: border-box;
   width: 810px;
-  height: var(--publish-input-height);
-  border: 1px solid var(--publish-input-border-color);
-  filter: drop-shadow(var(--publish-shadow));
-  border-radius: var(--publish-input-border-radius);
-  border-top-right-radius: var(--publish-input-border-radius);
-  border-bottom-right-radius: var(--publish-input-border-radius);
-  border-top-left-radius: var(--publish-input-border-radius);
-  border-bottom-left-radius: var(--publish-input-border-radius);
-  padding: var(--publish-input-padding);
-  font-family: var(--publish-font-family);
+  height: var(--field-height);
+  border: 1px solid var(--border-navy-soft);
+  filter: drop-shadow(var(--shadow-md));
+  border-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+  border-bottom-right-radius: var(--radius-xl);
+  border-top-left-radius: var(--radius-xl);
+  border-bottom-left-radius: var(--radius-xl);
+  padding: var(--field-padding);
+  font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-normal);
-  font-size: var(--publish-font-size);
-  line-height: var(--publish-line-height-base);
-  color: var(--publish-text-secondary);
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
+  color: var(--clr-slate-70);
   margin: 0;
 }
 
 .licenseContainer .inputGroup input::placeholder {
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-normal);
-  font-size: var(--publish-font-size);
-  line-height: var(--publish-line-height-base);
-  color: var(--publish-text-secondary);
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
+  color: var(--clr-slate-70);
 }
 
 .licenseContainer .inputGroup button {
@@ -140,22 +135,22 @@
   padding: 9px 14px;
   gap: 10px;
   width: 81px;
-  height: var(--publish-input-height);
-  background: var(--publish-accent-gradient);
-  box-shadow: var(--publish-shadow-sm);
-  border-radius: var(--publish-input-border-radius);
-  border-top-right-radius: var(--publish-input-border-radius);
-  border-top-left-radius: var(--publish-input-border-radius);
-  border-bottom-left-radius: var(--publish-input-border-radius);
-  border-bottom-right-radius: var(--publish-input-border-radius);
+  height: var(--field-height);
+  background: var(--gradient-accent);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+  border-top-left-radius: var(--radius-xl);
+  border-bottom-left-radius: var(--radius-xl);
+  border-bottom-right-radius: var(--radius-xl);
   border: none;
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
   line-height: 22px;
   text-align: center;
-  color: var(--publish-primary);
+  color: var(--clr-navy);
   cursor: pointer;
   margin: 0;
   margin-left: 0;
@@ -164,9 +159,9 @@
 
 .licenseContainer .inputGroup button:hover,
 .licenseContainer .inputGroup button:focus {
-  background: var(--publish-accent-gradient);
+  background: var(--gradient-accent);
   transform: none;
-  box-shadow: var(--publish-shadow-sm);
+  box-shadow: var(--shadow-sm);
 }
 
 /* File Label */
@@ -174,12 +169,12 @@
   width: 100%;
   /* max-width: 903px; */
   height: 16px;
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
-  line-height: var(--publish-line-height-base);
-  color: var(--publish-text-secondary);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
+  color: var(--clr-slate-70);
   margin-bottom: 8px;
 }
 
@@ -201,7 +196,7 @@
 
 .continueButton:hover,
 .continueButton:focus {
-  background: var(--publish-accent-gradient);
+  background: var(--gradient-accent);
   transform: none;
 }
 
@@ -214,11 +209,11 @@
 }
 
 .consentContainer input[type='checkbox'] + label {
-  font-weight: var(--publish-font-weight-normal) !important;
+  font-weight: var(--text-weight-regular) !important;
 }
 
 .termsAndConditionsContainer input[type='checkbox'] + label {
-  font-weight: var(--publish-font-weight-normal) !important;
+  font-weight: var(--text-weight-regular) !important;
 }
 
 /* Style the Terms and Conditions link specifically in publish context */
@@ -234,8 +229,8 @@
 
 /* Custom Parameters Section */
 .customParametersContainer {
-  border: 1px solid var(--publish-input-border-color);
-  border-radius: var(--publish-input-border-radius);
+  border: 1px solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
   padding: 24px 16px;
   margin-bottom: var(--spacer);
   display: flex;
@@ -254,21 +249,21 @@
 }
 /* Publish-specific override for Add parameter button */
 body .customParametersContainer .actions .primary {
-  background: var(--publish-accent-gradient);
-  box-shadow: var(--publish-shadow-sm);
-  border-top-right-radius: var(--publish-input-border-radius) !important;
-  border-top-left-radius: var(--publish-input-border-radius) !important;
-  border-bottom-left-radius: var(--publish-input-border-radius) !important;
-  border-bottom-right-radius: var(--publish-input-border-radius) !important;
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
-  line-height: var(--publish-font-size);
-  color: var(--publish-primary);
+  background: var(--gradient-accent);
+  box-shadow: var(--shadow-sm);
+  border-top-right-radius: var(--radius-xl) !important;
+  border-top-left-radius: var(--radius-xl) !important;
+  border-bottom-left-radius: var(--radius-xl) !important;
+  border-bottom-right-radius: var(--radius-xl) !important;
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm);
+  color: var(--clr-navy);
 }
 
 .customParametersContainer .actions .primary:hover,
 .customParametersContainer .actions .primary:focus {
-  background: var(--publish-accent-gradient);
-  box-shadow: var(--publish-shadow-sm);
+  background: var(--gradient-accent);
+  box-shadow: var(--shadow-sm);
 }

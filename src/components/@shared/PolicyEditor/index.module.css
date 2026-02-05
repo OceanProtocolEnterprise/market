@@ -164,7 +164,7 @@
   padding: 0.5em;
   margin-left: 1em;
   border-radius: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--neutral-250);
 }
 
 .enablePolicyToggle {
@@ -190,12 +190,12 @@
   width: 50px;
   margin-left: 1em;
   border-radius: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--neutral-250);
 }
 
 /* Default policies section styling */
 .defaultPoliciesSection {
-  background: rgba(253, 214, 85, 0.1);
+  background: var(--yellow-alpha-10);
   border: 1px solid var(--clr-amber);
   border-radius: var(--radius-xl);
   padding: var(--sp-6);
@@ -304,7 +304,7 @@
 .selectDropdown {
   border-radius: var(--radius-xl);
   height: 48px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--neutral-210);
 }
 
 .policiesRow {
@@ -327,7 +327,7 @@
 .policyTypeSelect {
   min-width: 200px;
   height: 40px;
-  border: 1px solid var(--publish-border);
+  border: 1px solid var(--border-navy-soft);
   border-radius: 20px;
   padding: 12px 30px;
   background: var(--brand-white);
@@ -353,7 +353,7 @@ body .addPolicyDropdown {
   padding: 9px 16px;
   width: 124px;
   height: 32px;
-  box-shadow: 1px 2px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 2px 8px 0 var(--black-alpha-15);
   background: linear-gradient(45deg, transparent 50%, #ffffff 50%),
     linear-gradient(135deg, #ffffff 50%, transparent 50%),
     linear-gradient(
@@ -396,7 +396,7 @@ body .addPolicyDropdown option {
 }
 
 .noPolicies {
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   text-align: left;
   font-size: var(--font-size-mini);
 }
@@ -405,7 +405,7 @@ body .addPolicyDropdown option {
 .selectDropdown {
   min-width: 200px;
   height: 40px;
-  border: 1px solid var(--publish-border);
+  border: 1px solid var(--border-navy-soft);
   border-radius: 20px;
   padding: 12px 30px;
   background: var(--brand-white);
@@ -428,9 +428,9 @@ body .advancedOptionsCheckbox {
 
 .policyMenu {
   background: white;
-  border: 1px solid var(--publish-border);
+  border: 1px solid var(--border-navy-soft);
   border-radius: 8px;
-  box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 8px var(--black-alpha-15);
   min-width: 160px;
   z-index: 1000;
 }
@@ -441,7 +441,7 @@ body .advancedOptionsCheckbox {
   font-size: 14px;
   color: #303031;
   cursor: pointer;
-  border-bottom: 1px solid rgba(10, 75, 112, 0.1);
+  border-bottom: 1px solid var(--navy-alpha-10);
 }
 
 .policyOption:last-child {
@@ -449,7 +449,7 @@ body .advancedOptionsCheckbox {
 }
 
 .policyOption:hover {
-  background: rgba(10, 75, 112, 0.05);
+  background: var(--navy-alpha-5);
 }
 
 .select {

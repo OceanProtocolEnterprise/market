@@ -5,7 +5,7 @@ import styles from './index.module.css'
 
 const cx = classNames.bind(styles)
 
-export interface ButtonProps {
+interface ButtonProps {
   children: ReactNode
   className?: string
   href?: string
@@ -24,6 +24,7 @@ export interface ButtonProps {
     | 'delete'
     | 'outlined'
     | 'slim'
+    | 'secondary'
   type?: 'submit' | 'button'
   download?: boolean
   target?: string
@@ -53,6 +54,7 @@ export default function Button({
     delete: style === 'delete',
     outlined: style === 'outlined',
     slim: style === 'slim',
+    secondary: style === 'secondary',
     small: size === 'small',
     default: size === 'default',
     [className]: className

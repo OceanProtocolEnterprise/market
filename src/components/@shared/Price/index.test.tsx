@@ -1,6 +1,5 @@
 import { render, screen } from '@testing-library/react'
 import Price from './index'
-import { asset } from '../../../../.jest/__fixtures__/datasetWithAccessDetails'
 
 describe('@shared/Price', () => {
   it('renders fixed price', () => {

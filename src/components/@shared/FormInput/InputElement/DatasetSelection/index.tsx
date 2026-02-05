@@ -10,12 +10,12 @@ import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelecti
 import { AssetExtended } from 'src/@types/AssetExtended'
 import Link from 'next/link'
 
-export interface DatasetSelectionDataset extends AssetSelectionAsset {
+interface DatasetSelectionDataset extends AssetSelectionAsset {
   checked: boolean
   value?: string
 }
 
-export function Empty({ message }: { message: string }) {
+function Empty({ message }: { message: string }) {
   return <div className={styles.empty}>{message}</div>
 }
 

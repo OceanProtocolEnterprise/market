@@ -12,16 +12,16 @@
   justify-content: flex-start;
   margin-bottom: 1rem;
   padding: 0.85rem 1rem;
-  border: 1px solid var(--border-color, #ccc);
+  border: 1px solid var(--border-color, var(--neutral-250));
   border-radius: 0.75rem;
-  background-color: #f9f9f9;
+  background-color: var(--neutral-110);
   transition: all 0.25s ease-in-out;
   cursor: pointer;
 }
 
 .noDatasetOptionActive {
-  background-color: #fff3b0;
-  border-color: #e5b000;
+  background-color: var(--yellow-200);
+  border-color: var(--yellow-700);
 }
 
 .noDatasetLabel {
@@ -29,7 +29,7 @@
   align-items: center;
   gap: 0.6rem;
   font-weight: 600;
-  color: #333;
+  color: var(--neutral-900);
   font-size: 0.95rem;
 }
 

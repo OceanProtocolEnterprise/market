@@ -11,7 +11,7 @@
 .panelColumn label {
   font-weight: 700;
   font-size: 14px;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
 }
 
 .panelRow {
@@ -107,7 +107,7 @@
 }
 
 .connected {
-  color: #cbdce6;
+  color: var(--neutral-200);
   background-color: transparent;
 }
 
@@ -157,15 +157,13 @@
 }
 
 .dialogBorder {
-  border: 1px solid rgba(48, 48, 49, 0.3);
-  border-radius: 10px;
-  padding: 24px;
   width: 548px;
+  max-width: 100%;
 }
 
 @media screen and (max-width: 768px) {
   .dialogBorder {
-    padding: 1em 0.5em;
+    width: 100%;
   }
 }
 
@@ -179,7 +177,7 @@
   line-height: 114%;
   text-align: center;
   color: #0a4b70;
-  box-shadow: 1px 2px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 2px 8px 0 var(--black-alpha-15);
   background: rgba(48, 48, 49, 0.12);
 }
 
@@ -193,7 +191,7 @@
   line-height: 114%;
   text-align: center;
   color: #0a4b70;
-  box-shadow: 1px 2px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 2px 8px 0 var(--black-alpha-15);
   background: linear-gradient(
     135deg,
     #fdd655 0%,
@@ -314,10 +312,6 @@
 
   .marginRight2 {
     margin-right: 0.8em;
-  }
-
-  .dialogBorder {
-    padding: 0.8em;
   }
 
   .inputField {

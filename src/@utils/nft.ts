@@ -9,7 +9,7 @@ import {
 } from '@oceanprotocol/lib'
 import { SvgWaves } from './SvgWaves'
 import { customProviderUrl } from '../../app.config.cjs'
-import { Signer, ethers, TransactionResponse, hexlify } from 'ethers'
+import { Signer, TransactionResponse } from 'ethers'
 import { toast } from 'react-toastify'
 import { Asset } from 'src/@types/Asset'
 

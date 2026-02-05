@@ -17,11 +17,11 @@ import { getBaseTokenSymbol } from '@utils/getBaseTokenSymbol'
 
 // Hack in support for returning components for each row, as this works,
 // but is not supported by the typings.
-export interface TableOceanColumn<T> extends TableColumn<T> {
+interface TableOceanColumn<T> extends TableColumn<T> {
   selector?: (row: T) => any
 }
 
-export interface TableOceanProps<T> extends TableProps<T> {
+interface TableOceanProps<T> extends TableProps<T> {
   columns: TableOceanColumn<T>[]
   isLoading?: boolean
   emptyMessage?: string
@@ -73,7 +73,7 @@ export default function HistoryTable({
     })
   const totalRevenueValue =
     revenueTotal ??
-    revenueEntries.reduce((acc, [_, amount]) => acc + Number(amount || 0), 0)
+    revenueEntries.reduce((acc, [, amount]) => acc + Number(amount || 0), 0)
 
   const handleExport = () => {
     interface PriceEntry {

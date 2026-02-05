@@ -19,10 +19,7 @@ import Tooltip from '@shared/atoms/Tooltip'
 import Markdown from '@shared/Markdown'
 import FormHelp from './Help'
 import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelection'
-import {
-  BoxSelectionOption,
-  BoxSelectionSize
-} from '@shared/FormInput/InputElement/BoxSelection'
+import { BoxSelectionOption } from '@shared/FormInput/InputElement/BoxSelection'
 import { getObjectPropertyByPath } from '@utils/index'
 import { ComputeEnvironment } from '@oceanprotocol/lib'
 import ErrorSVG from '@images/circle_error.svg'

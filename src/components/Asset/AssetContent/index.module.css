@@ -28,9 +28,9 @@
   padding-top: 0;
   margin-top: var(--spacer);
   position: relative;
-  box-shadow: 1px 4px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 8px 0 var(--black-alpha-15);
   background: #fff;
-  border: 1px solid rgba(48, 48, 49, 0.1);
+  border: 1px solid var(--ink-alpha-10);
   border-radius: 20px;
   /* padding: 25px; */
 }
@@ -44,11 +44,11 @@
 
 .metaMenu {
   position: relative;
-  border: 1px solid rgba(48, 48, 49, 0.1);
+  border: 1px solid var(--ink-alpha-10);
   border-radius: 10px;
   min-height: 40px;
   width: 100%;
-  box-shadow: 1px 4px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 8px 0 var(--black-alpha-15);
   background: #fff;
   overflow: hidden;
 }
@@ -97,14 +97,14 @@
   gap: 4px;
   width: fit-content;
   height: 32px;
-  background: var(--publish-primary-gradient);
+  background: var(--gradient-primary);
   box-shadow: 1px 2px 8px var(--box-shadow-color);
   border-radius: 20px;
-  border: 1px solid var(--publish-primary);
+  border: 1px solid var(--clr-navy);
   cursor: pointer;
   font-family: var(--font-family-base);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
   text-align: center;
   color: #ffffff;
   text-transform: none;
@@ -114,7 +114,7 @@
 
 .editButton:active {
   transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--black-alpha-10);
 }
 
 .editIcon {
@@ -129,17 +129,17 @@
 }
 
 .invoiceButton {
-  border: 1px solid var(--publish-primary);
-  border-radius: var(--publish-input-border-radius);
+  border: 1px solid var(--clr-navy);
+  border-radius: var(--radius-xl);
   padding: 9px 14px;
-  box-shadow: var(--publish-shadow-sm);
+  box-shadow: var(--shadow-sm);
   background: transparent;
   font-family: var(--font-family-base);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
   line-height: 114%;
   text-align: center;
-  color: var(--publish-primary);
+  color: var(--clr-navy);
   text-transform: none;
   min-width: unset;
   display: flex;
@@ -174,7 +174,7 @@
   background: white;
   border: 1px solid rgba(48, 48, 49, 0.2);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px var(--black-alpha-15);
   margin-top: 4px;
   opacity: 0;
   visibility: hidden;
@@ -208,7 +208,7 @@
 }
 
 .dropdownItem:hover {
-  background: #f8f9fa;
+  background: var(--neutral-120);
 }
 
 .dropdownItem:first-child {
@@ -224,7 +224,7 @@
 }
 
 .dropdownItem:not(:last-child) {
-  border-bottom: 1px solid rgba(48, 48, 49, 0.1);
+  border-bottom: 1px solid var(--ink-alpha-10);
 }
 
 .loadingText {
@@ -256,7 +256,7 @@
   font-weight: 400;
   font-size: 14px;
   line-height: 129%;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   word-break: break-word;
 }
 
@@ -286,7 +286,7 @@
 }
 
 .toggle:hover {
-  background: rgba(0, 150, 136, 0.1);
+  background: var(--teal-alpha-10);
 }
 
 .description p {
@@ -328,7 +328,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--black-alpha-80);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -358,13 +358,13 @@
   justify-content: flex-end;
   padding: 16px 20px;
   border-bottom: 1px solid #e0e0e0;
-  background: #f8f9fa;
+  background: var(--neutral-120);
 }
 
 .closeButton {
   background: none;
   border: none;
-  color: #666;
+  color: var(--neutral-700);
   font-size: 14px;
   cursor: pointer;
   padding: 8px 12px;
@@ -373,6 +373,6 @@
 }
 
 .closeButton:hover {
-  background: #e9ecef;
-  color: #333;
+  background: var(--neutral-160);
+  color: var(--neutral-900);
 }

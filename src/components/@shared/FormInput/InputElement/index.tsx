@@ -21,7 +21,7 @@ import { ConsumerParameters } from './ConsumerParameters'
 import ComputeEnvSelection from './ComputeEnvSelection'
 import Credentials from './Credential'
 import Option from './Radio/Option'
-import { PublishConsumerParameters } from './ConsumerParameters/PublishConsumerParameters'
+import { ConsumerParametersBuilder } from './ConsumerParameters/ConsumerParametersBuilder'
 
 const cx = classNames.bind(styles)
 
@@ -111,7 +111,7 @@ const InputElement = forwardRef(
             : (options as string[]).sort((a: string, b: string) =>
                 a.localeCompare(b)
               )
-        const { type, ...rest } = props
+        const { type: _type, ...rest } = props
         return (
           <select
             {...rest}
@@ -187,11 +187,11 @@ const InputElement = forwardRef(
 
       case 'consumerParameters':
         return <ConsumerParameters {...field} form={form} {...props} />
-      case 'publishConsumerParameters':
-        return <PublishConsumerParameters {...field} form={form} {...props} />
+      case 'consumerParametersBuilder':
+        return <ConsumerParametersBuilder {...field} form={form} {...props} />
 
       case 'textarea': {
-        const { type, ...rest } = props
+        const { type: _type, ...rest } = props
         return (
           <textarea {...rest} id={props.name} className={styles.textarea} />
         )

@@ -30,7 +30,7 @@ export interface VPValue {
   args?: number | string | Record<string, any>
 }
 
-export type VC = string
+type VC = string
 export type VP = string | VPValue
 export interface RequestCredential {
   type: string

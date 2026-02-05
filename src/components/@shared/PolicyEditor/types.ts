@@ -93,12 +93,9 @@ export interface CredentialForm {
 export interface PolicyEditorProps {
   credentials: CredentialForm
   setCredentials: (CredentialForm) => void
-  label: string
   name: string
-  help: string
   defaultPolicies?: string[]
   enabledView?: boolean
   isAsset?: boolean
-  buttonStyle?: 'primary' | 'ghost' | 'text' | 'publish' | 'ocean'
   hideDefaultPolicies?: boolean
 }

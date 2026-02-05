@@ -33,12 +33,10 @@ async function emptySearch() {
 
 function HeroSection({
   placeholder,
-  initialValue,
-  isSearchPage
+  initialValue
 }: {
   placeholder?: string
   initialValue?: string
-  isSearchPage?: boolean
 }): ReactElement {
   const router = useRouter()
   const [value, setValue] = useState(initialValue || '')

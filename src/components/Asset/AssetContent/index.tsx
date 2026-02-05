@@ -132,7 +132,7 @@ export default function AssetContent({
         <div>
           <div className={styles.metaMenu}>
             {' '}
-            <MetaMain asset={asset} nftPublisher={nftPublisher} />
+            <MetaMain asset={asset} />
             <Bookmark did={asset.id} />
           </div>
           <div className={styles.content}>
@@ -231,11 +231,7 @@ export default function AssetContent({
             networkId={asset.credentialSubject?.chainId}
             className={styles.network}
           />
-          <Web3Feedback
-            networkId={asset.credentialSubject?.chainId}
-            accountId={accountId}
-            isAssetNetwork={isAssetNetwork}
-          />
+          <Web3Feedback accountId={accountId} isAssetNetwork={isAssetNetwork} />
           {!asset.accessDetails ? (
             <p>Loading access details...</p>
           ) : (

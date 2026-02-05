@@ -8,9 +8,9 @@ const nextConfig = () => {
    */
   const config = {
     output: 'standalone',
+    serverExternalPackages: ['wagmi', 'viem', 'connectkit'],
     experimental: {
-      esmExternals: 'loose',
-      serverComponentsExternalPackages: ['wagmi', 'viem', 'connectkit']
+      esmExternals: 'loose'
     },
     webpack: (config, options) => {
       const { isServer } = options
@@ -94,7 +94,7 @@ const nextConfig = () => {
     }
   }
 
-  return withTM(['@oceanprotocol/lib'])(config)
+  return withTM(['@oceanprotocol/lib', '@oceanprotocol/ddo-js'])(config)
 }
 
 export default nextConfig

@@ -5,7 +5,8 @@ import {
   Provider,
   Client,
   dedupExchange,
-  fetchExchange
+  fetchExchange,
+  Exchange
 } from 'urql'
 import { refocusExchange } from '@urql/exchange-refocus'
 import { useState, useEffect, ReactNode, ReactElement } from 'react'
@@ -13,17 +14,13 @@ import { LoggerInstance } from '@oceanprotocol/lib'
 import { getOceanConfig } from '@utils/ocean'
 import { useChainId } from 'wagmi'
 
-let urqlClient: Client
-
 function createUrqlClient(subgraphUri: string) {
+  // Cast to the local Exchange type to avoid duplicate @urql/core instances in type checking.
+  const refocus = refocusExchange() as unknown as Exchange
   return createClient({
     url: `${subgraphUri}/subgraphs/name/oceanprotocol/ocean-subgraph`,
-    exchanges: [dedupExchange, refocusExchange(), fetchExchange]
+    exchanges: [dedupExchange, refocus, fetchExchange]
   })
-}
-
-export function getUrqlClientInstance(): Client {
-  return urqlClient
 }
 
 export default function UrqlClientProvider({
@@ -48,11 +45,8 @@ export default function UrqlClientProvider({
     }
 
     const newClient = createUrqlClient(oceanConfig.nodeUri)
-    urqlClient = newClient
     setClient(newClient)
   }, [chainId]) // re-run when chain changes
 
   return client ? <Provider value={client}>{children}</Provider> : <></>
 }
-
-export { UrqlClientProvider }

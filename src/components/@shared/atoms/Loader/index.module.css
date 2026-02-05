@@ -35,13 +35,13 @@ button .loaderWrap {
 }
 
 .loader.white {
-  border-color: rgba(255, 255, 255, 0.6);
+  border-color: var(--white-alpha-60);
   border-top-color: #ffffff;
 }
 
 .loader.primary {
-  border-color: rgba(10, 75, 112, 0.3);
-  border-top-color: var(--publish-primary);
+  border-color: var(--navy-alpha-30);
+  border-top-color: var(--clr-navy);
 }
 
 @keyframes loader {

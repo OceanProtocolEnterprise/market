@@ -11,9 +11,9 @@
 
 .container h2 {
   margin: 0;
-  color: var(--publish-text);
-  font-size: var(--publish-font-size-xl);
-  font-weight: var(--publish-font-weight-bold);
+  color: var(--text-ink);
+  font-size: var(--text-xl);
+  font-weight: var(--text-weight-bold);
   text-align: left;
   width: 100%;
 }
@@ -42,17 +42,17 @@
   width: 18px;
   height: 18px;
   border-radius: 100px;
-  border: 1px solid var(--publish-accent);
+  border: 1px solid var(--clr-amber);
   cursor: pointer;
   position: relative;
-  background: var(--publish-white);
+  background: var(--brand-white);
   appearance: none;
   -webkit-appearance: none;
   margin: 0;
 }
 
 .radioButton:checked {
-  background: var(--publish-accent);
+  background: var(--clr-amber);
 }
 
 .radioButton:checked::after {
@@ -62,17 +62,17 @@
   height: 8px;
   left: calc(50% - 8px / 2);
   top: calc(50% - 8px / 2);
-  background: var(--publish-white);
+  background: var(--brand-white);
   border-radius: 20px;
 }
 
 .sectionTitle {
   font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-bold);
+  font-weight: var(--text-weight-bold);
   font-size: 16px;
   line-height: 18px;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   margin: 0;
   cursor: pointer;
   user-select: none;
@@ -105,11 +105,11 @@
   height: 16px;
   font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-bold);
+  font-weight: var(--text-weight-bold);
   font-size: 14px;
   line-height: 16px;
   text-transform: uppercase;
-  color: var(--publish-text);
+  color: var(--text-ink);
   flex-shrink: 0;
 }
 
@@ -140,10 +140,10 @@
   height: 14px;
   font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-normal);
+  font-weight: var(--text-weight-regular);
   font-size: 12px;
   line-height: 14px;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   flex-shrink: 0;
 }
 
@@ -160,7 +160,7 @@
   position: absolute;
   width: 100%;
   height: 1px;
-  background: #e5e5e5;
+  background: var(--neutral-170);
   top: 50%;
   transform: translateY(-50%);
   z-index: 1;
@@ -203,14 +203,14 @@ body .customSlider {
   cursor: pointer;
   border: none;
   outline: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--black-alpha-10);
   transition: all 0.2s ease;
 }
 
 .customSlider::-webkit-slider-thumb:hover {
   background: #0a4b70;
   transform: scale(1.1);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 6px var(--black-alpha-15);
 }
 
 .customSlider::-moz-range-track {
@@ -231,14 +231,14 @@ body .customSlider {
   cursor: pointer;
   border: none;
   outline: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--black-alpha-10);
   transition: all 0.2s ease;
 }
 
 .customSlider::-moz-range-thumb:hover {
   background: #0a4b70;
   transform: scale(1.1);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 6px var(--black-alpha-15);
 }
 
 .customSlider::-ms-track {
@@ -260,14 +260,14 @@ body .customSlider {
   cursor: pointer;
   border: none;
   outline: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--black-alpha-10);
   transition: all 0.2s ease;
 }
 
 .customSlider::-ms-thumb:hover {
   background: #0a4b70;
   transform: scale(1.1);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 6px var(--black-alpha-15);
 }
 
 .maxLabel {
@@ -275,23 +275,23 @@ body .customSlider {
   height: 14px;
   font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-normal);
+  font-weight: var(--text-weight-regular);
   font-size: 12px;
   line-height: 14px;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   flex-shrink: 0;
 }
 
 body .input {
   box-sizing: border-box;
-  border: 1px solid var(--publish-border);
-  filter: drop-shadow(var(--publish-shadow));
-  border-radius: var(--publish-border-radius);
-  background: var(--publish-white);
+  border: 1px solid var(--border-navy-soft);
+  filter: drop-shadow(var(--shadow-md));
+  border-radius: var(--radius-xl);
+  background: var(--brand-white);
   font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-normal);
-  color: var(--publish-text-secondary);
+  font-weight: var(--text-weight-regular);
+  color: var(--clr-slate-70);
   text-align: center;
   padding: 8px 16px;
   flex-shrink: 0;
@@ -299,7 +299,7 @@ body .input {
 
 .input:focus {
   outline: none;
-  border-color: var(--publish-primary);
+  border-color: var(--clr-navy);
 }
 
 /* Input size variants */
@@ -321,16 +321,16 @@ body .inputSmall {
   height: 40px;
   font-size: 16px;
   line-height: 16px;
-  color: var(--publish-text);
+  color: var(--text-ink);
 }
 
 .unit {
   font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-normal);
+  font-weight: var(--text-weight-regular);
   font-size: 12px;
   line-height: 14px;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   margin-left: 4px;
   flex-shrink: 0;
 }
@@ -356,7 +356,7 @@ body .inputSmall {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent backdrop */
+  background-color: var(--black-alpha-50); /* Semi-transparent backdrop */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -364,14 +364,14 @@ body .inputSmall {
 }
 
 .errorPopup {
-  background-color: #ffe6e6;
+  background-color: var(--red-80);
   border: 1px solid red;
   border-radius: 8px;
   padding: 20px;
   display: flex;
   align-items: center;
   gap: 15px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 8px var(--black-alpha-30);
   width: 400px; /* Larger width */
   max-width: 90vw; /* Responsive max-width */
   min-height: 100px; /* Minimum height for larger appearance */
@@ -401,10 +401,10 @@ body .inputSmall {
   height: 14px;
   font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-bold);
+  font-weight: var(--text-weight-bold);
   font-size: 12px;
   line-height: 14px;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   flex-shrink: 0;
 }
 
@@ -430,10 +430,10 @@ body .inputSmall {
   height: 16px;
   font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-bold);
+  font-weight: var(--text-weight-bold);
   font-size: 14px;
   line-height: 16px;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   margin: 0;
 }
 
@@ -450,7 +450,7 @@ body .inputSmall {
 .priceInfo {
   width: 545px;
   height: 34px;
-  background: var(--publish-background-highlight);
+  background: var(--surface-highlight);
   position: relative;
   display: flex;
   align-items: center;
@@ -464,16 +464,16 @@ body .inputSmall {
   height: 34px;
   left: 0;
   top: 0;
-  background: var(--publish-accent);
+  background: var(--clr-amber);
 }
 
 .priceInfo span {
   font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-normal);
+  font-weight: var(--text-weight-regular);
   font-size: 14px;
   line-height: 18px;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   width: 513px;
   height: 18px;
   position: absolute;
@@ -500,10 +500,10 @@ body .inputSmall {
   justify-content: center;
   padding: 12px 24px;
   gap: 8px;
-  border-radius: var(--publish-border-radius);
+  border-radius: var(--radius-xl);
   font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-bold);
+  font-weight: var(--text-weight-bold);
   font-size: 14px;
   line-height: 16px;
   cursor: pointer;
@@ -512,22 +512,22 @@ body .inputSmall {
 }
 
 .actions button:first-child {
-  background: var(--publish-background);
-  color: var(--publish-text);
-  border: 1px solid var(--publish-border);
+  background: var(--background-content);
+  color: var(--text-ink);
+  border: 1px solid var(--border-navy-soft);
 }
 
 .actions button:first-child:hover {
-  background: var(--publish-background-highlight);
+  background: var(--surface-highlight);
 }
 
 .actions button:last-child {
-  background: var(--publish-primary);
-  color: var(--publish-white);
+  background: var(--clr-navy);
+  color: var(--brand-white);
 }
 
 .actions button:last-child:hover {
-  background: var(--publish-primary-hover);
+  background: var(--primary-hover);
 }
 
 .escrowInfo {
@@ -540,17 +540,17 @@ body .inputSmall {
 }
 
 .insufficientEscrow {
-  background-color: #fff3cd;
-  border: 1px solid #ffeaa7;
-  color: #856404;
+  background-color: var(--yellow-150);
+  border: 1px solid var(--yellow-180);
+  color: var(--yellow-900);
   padding: 15px;
   border-radius: 8px;
 }
 
 .sufficientEscrow {
-  background-color: #d1ecf1;
-  border: 1px solid #bee5eb;
-  color: #0c5460;
+  background-color: var(--blue-80);
+  border: 1px solid var(--blue-90);
+  color: var(--teal-700);
   padding: 15px;
   border-radius: 8px;
 }
@@ -651,7 +651,7 @@ body .inputSmall {
   }
 
   .container h2 {
-    font-size: var(--publish-font-size-lg);
+    font-size: var(--text-lg);
     text-align: center;
   }
 

@@ -39,7 +39,7 @@ export interface PublisherTrustedAlgorithmService {
   serviceId: string
 }
 
-export function Empty({ message }: { message: string }) {
+function Empty({ message }: { message: string }) {
   return <div className={styles.empty}>{message}</div>
 }
 

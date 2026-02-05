@@ -8,10 +8,12 @@ import appConfig from 'app.config.cjs'
 
 interface SSIPoliciesSectionProps {
   defaultPolicies: string[]
+  defaultSelectedPolicies: string[]
 }
 
 export default function SSIPoliciesSection({
-  defaultPolicies
+  defaultPolicies,
+  defaultSelectedPolicies
 }: SSIPoliciesSectionProps): ReactElement {
   const { values, setFieldValue } = useFormikContext<FormPublishData>()
 
@@ -31,6 +33,8 @@ export default function SSIPoliciesSection({
       setFieldValue('credentials.requestCredentials', [])
       setFieldValue('credentials.vcPolicies', [])
       setFieldValue('credentials.vpPolicies', [])
+    } else if (!values.credentials?.vcPolicies?.length) {
+      setFieldValue('credentials.vcPolicies', defaultSelectedPolicies)
     }
   }
 
@@ -61,9 +65,7 @@ export default function SSIPoliciesSection({
             }
             name="credentials"
             defaultPolicies={defaultPolicies}
-            help="Self-sovereign identity (SSI) is used verify the consumer of an asset. Indicate which SSI policy is required for this asset (static, parameterized, custom URL, other)."
             isAsset={true}
-            buttonStyle="ocean"
             enabledView={true}
             hideDefaultPolicies={false}
           />

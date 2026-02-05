@@ -6,6 +6,7 @@ import {
   Datatoken,
   Nft
 } from '@oceanprotocol/lib'
+import Decimal from 'decimal.js'
 import { getServiceInitialValues } from './_constants'
 import { ServiceEditForm } from './_types'
 import Web3Feedback from '@shared/Web3Feedback'
@@ -56,7 +57,7 @@ export default function EditService({
   const { address: accountId } = useAccount()
   const chainId = useChainId()
   const walletClient = useEthersSigner()
-  const publicClient = usePublicClient()
+  const _publicClient = usePublicClient()
   const newCancelToken = useCancelToken()
   const ssiWalletContext = useSsiWallet()
 
@@ -97,7 +98,7 @@ export default function EditService({
     fetchFileType()
   }, [asset.id, service.id, service.serviceEndpoint, service.files])
 
-  async function updateFixedPrice(newPrice: number) {
+  async function updateFixedPrice(newPrice: string | number) {
     const config = getOceanConfig(asset.credentialSubject?.chainId)
 
     const fixedRateInstance = new FixedRateExchange(
@@ -107,7 +108,7 @@ export default function EditService({
 
     const setPriceResp = await fixedRateInstance.setRate(
       accessDetails.addressOrId,
-      newPrice.toString()
+      String(newPrice)
     )
     LoggerInstance.log('[edit] setFixedRate result', setPriceResp)
     if (!setPriceResp) {
@@ -152,11 +153,18 @@ export default function EditService({
         processAddress(values.credentials.denyInputValue, 'deny')
       }
 
-      if (
-        accessDetails.type === 'fixed' &&
-        values.price !== parseFloat(accessDetails.price)
-      ) {
-        await updateFixedPrice(values.price)
+      if (accessDetails.type === 'fixed' && values.price !== undefined) {
+        const nextPrice = String(values.price || '0')
+        const currentPrice = String(accessDetails.price || '0')
+        let priceChanged = true
+        try {
+          priceChanged = !new Decimal(nextPrice).eq(new Decimal(currentPrice))
+        } catch {
+          priceChanged = true
+        }
+        if (priceChanged) {
+          await updateFixedPrice(nextPrice)
+        }
       }
 
       if (values.paymentCollector !== accessDetails.paymentCollector) {
@@ -321,7 +329,6 @@ export default function EditService({
             />
 
             <Web3Feedback
-              networkId={asset?.credentialSubject?.chainId}
               accountId={accountId}
               isAssetNetwork={isAssetNetwork}
             />

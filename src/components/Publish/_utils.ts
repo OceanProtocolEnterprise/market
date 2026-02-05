@@ -970,8 +970,3 @@ export async function createTokensAndPricing(
 
   return { erc721Address, datatokenAddress, txHash }
 }
-
-export function getFormattedCodeString(parsedCodeBlock: any): string {
-  const formattedString = JSON.stringify(parsedCodeBlock, null, 2)
-  return `\`\`\`\n${formattedString}\n\`\`\``
-}

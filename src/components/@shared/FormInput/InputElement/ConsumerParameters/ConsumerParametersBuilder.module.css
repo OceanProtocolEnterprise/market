@@ -1,7 +1,7 @@
 .container {
   background: #ffffff;
   border: 1px solid rgba(48, 48, 49, 0.2);
-  box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 8px var(--black-alpha-15);
   border-radius: 20px;
   display: flex;
   flex-direction: column;
@@ -32,6 +32,7 @@
   height: 64px;
   background: #ffffff;
   border-bottom: 1px solid rgba(48, 48, 49, 0.2);
+  border-top: 1px solid rgba(48, 48, 49, 0.2);
   flex: none;
   order: 0;
   flex-grow: 0;
@@ -53,6 +54,14 @@
 .tab:first-child {
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
+}
+
+.tab:first-child {
+  border-top: 0;
+}
+
+.tab:last-child {
+  border-bottom: 0;
 }
 
 .tab:hover {
@@ -105,7 +114,7 @@
 }
 
 .deleteButton:hover {
-  background: rgba(76, 163, 211, 0.1);
+  background: var(--ocean-bright-alpha-10);
 }
 
 .formContainer {
@@ -116,6 +125,19 @@
   gap: 32px;
   width: 100%;
   padding: 24px 24px 16px 24px;
+  animation: consumerParamDrawer 200ms ease-out;
+  transform-origin: top;
+}
+
+@keyframes consumerParamDrawer {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scaleY(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
 }
 
 .formRow {
@@ -154,7 +176,7 @@
   font-weight: 700;
   font-size: 14px;
   line-height: 16px;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
 }
 
 .formColumn :global(input),
@@ -164,8 +186,8 @@
   width: 100% !important;
   min-width: 100% !important;
   height: 40px;
-  border: 1px solid var(--publish-border);
-  filter: drop-shadow(1px 4px 8px rgba(0, 0, 0, 0.15));
+  border: 1px solid var(--border-navy-soft);
+  box-shadow: 1px 4px 8px var(--black-alpha-15);
   border-radius: 20px;
   padding: 0px 30px;
   font-family: 'Helvetica';
@@ -179,6 +201,7 @@
 
 .formColumn :global(select) {
   padding-right: 3rem !important;
+  filter: none !important;
   appearance: none !important;
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
@@ -255,7 +278,7 @@
       #1e2e52 100%
     ),
     #64ace0;
-  box-shadow: 1px 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 2px 8px var(--black-alpha-15);
   border-radius: 20px;
   border: none;
   cursor: pointer;

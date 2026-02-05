@@ -22,7 +22,7 @@ export interface KeyValuePair {
   value: string
 }
 
-export interface KeyValueInputProps extends Omit<InputProps, 'value'> {
+interface KeyValueInputProps extends Omit<InputProps, 'value'> {
   value: KeyValuePair[]
   uniqueKeys?: boolean
   keyPlaceholder?: string

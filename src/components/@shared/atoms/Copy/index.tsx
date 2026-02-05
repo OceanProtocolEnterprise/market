@@ -3,7 +3,7 @@ import styles from './index.module.css'
 import IconCopy from '@images/copy.svg'
 import { copyTextToClipboard } from '@utils/clipboard'
 
-export interface CopyProps {
+interface CopyProps {
   text: string
 }
 
