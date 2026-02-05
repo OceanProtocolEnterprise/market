@@ -15,6 +15,11 @@ import useIsMobile from '@hooks/useIsMobile'
 import Link from 'next/link'
 import Modal from '@shared/atoms/Modal'
 
+enum JobTypeText {
+  Free = 'Free',
+  Paid = 'Paid'
+}
+
 const extractString = (
   value: string | { '@value': string } | undefined
 ): string => {
@@ -39,6 +44,33 @@ const getPaymentTokenSymbol = (
   return approvedBaseTokens.find(
     (token) => token.address?.toLowerCase() === tokenAddress.toLowerCase()
   )?.symbol
+}
+
+const getJobTypeDisplay = (job: ComputeJobMetaData): string => {
+  if (typeof job?.isFree === 'boolean') {
+    return job.isFree ? JobTypeText.Free : JobTypeText.Paid
+  }
+
+  const rawCost = job?.payment?.cost
+  if (rawCost != null && rawCost !== '') {
+    const cost = Number(rawCost)
+    if (!Number.isNaN(cost)) {
+      return cost > 0 ? JobTypeText.Paid : JobTypeText.Free
+    }
+  }
+
+  return '—'
+}
+
+const getJobCostDisplay = (
+  job: ComputeJobMetaData,
+  paymentSymbol?: string
+): string => {
+  const rawCost = job?.payment?.cost
+  if (rawCost == null || rawCost === '') return '—'
+
+  const formatted = formatJobCost(rawCost)
+  return paymentSymbol ? `${formatted} ${paymentSymbol}` : formatted
 }
 
 function Asset({
@@ -245,6 +277,9 @@ export default function Details({
     return parts.slice(0, 3).join(' ')
   }
 
+  const jobTypeDisplay = getJobTypeDisplay(job)
+  const jobCostDisplay = getJobCostDisplay(job, paymentSymbol)
+
   return (
     <>
       <Button style="text" size="small" onClick={() => setIsDialogOpen(true)}>
@@ -308,17 +343,9 @@ export default function Details({
                   />
                 )}
                 {job.dateFinished && (
-                  <MetaItem
-                    title="Job Cost"
-                    content={
-                      job?.payment?.cost
-                        ? `${formatJobCost(job.payment.cost)}${
-                            paymentSymbol ? ` ${paymentSymbol}` : ''
-                          }`
-                        : 'FREE'
-                    }
-                  />
+                  <MetaItem title="Job Cost" content={jobCostDisplay} />
                 )}
+                <MetaItem title="Job Type" content={jobTypeDisplay} />
 
                 {job.dateFinished ? (
                   // When finished date exists, show JobDID on new line

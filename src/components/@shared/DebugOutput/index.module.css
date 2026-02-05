@@ -1,5 +1,6 @@
 .debugOutput {
   margin-top: var(--spacer);
+  position: relative;
 }
 
 .debugOutput h5 {
@@ -46,4 +47,53 @@
   display: block;
   word-break: break-all;
   overflow-wrap: break-word;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.copyButton {
+  position: relative;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  font-size: 18px;
+  line-height: 1;
+  color: #04bd45;
+  margin-bottom: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.copyButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.icon {
+  display: inline-block;
+}
+
+.tooltip {
+  position: absolute;
+  top: -28px;
+  right: 0;
+  background-color: #303031;
+  color: #ffffff;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.copyButton:hover .tooltip {
+  opacity: 1;
+  transform: translateY(0);
 }
