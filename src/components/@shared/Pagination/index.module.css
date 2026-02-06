@@ -1,11 +1,18 @@
+.paginationWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--spacer) / 8);
+  margin-top: var(--spacer);
+}
+
 .pagination {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
   padding-left: 0;
   font-size: var(--font-size-small);
-
-  margin-top: var(--spacer);
+  margin-top: 0;
 }
 
 .number {
@@ -13,7 +20,6 @@
   padding: calc(var(--spacer) / 4) calc(var(--spacer) / 2);
   margin-left: -1px;
   margin-top: -1px;
-  display: block;
   cursor: pointer;
   min-width: 3rem;
   height: 100%;
@@ -22,6 +28,22 @@
   justify-content: center;
   color: var(--pagination-font-color);
   border-radius: var(--radius-xl);
+}
+
+.control {
+  composes: number;
+  border: none;
+  background: transparent;
+  font-size: calc(var(--font-size-base) * 1.1);
+  font-weight: var(--text-weight-bold);
+  min-width: 3.5rem;
+  padding: calc(var(--spacer) / 3) calc(var(--spacer) / 1.8);
+}
+
+.control:disabled {
+  cursor: default;
+  pointer-events: none;
+  opacity: 0.7;
 }
 
 li:first-child .number,
@@ -49,8 +71,6 @@ li:last-child .number {
 }
 
 .current,
-.prev,
-.next,
 .break {
   composes: number;
 }
@@ -80,20 +100,23 @@ li:last-child .number {
   border-radius: var(--radius-xl);
 }
 
-.next {
-  text-align: right;
+.hiddenControl {
+  display: none;
 }
 
-.prevNextDisabled {
-  opacity: 0;
-}
+@media screen and (max-width: 37.5rem) {
+  .paginationWrapper {
+    gap: calc(var(--spacer) / 10);
+  }
 
-.arrow {
-  width: 1rem;
-  height: 1rem;
-  fill: currentColor;
-}
+  .number {
+    min-width: 2.35rem;
+    padding: calc(var(--spacer) / 5) calc(var(--spacer) / 4);
+  }
 
-.arrow.previous {
-  transform: rotate(180deg);
+  .control {
+    min-width: 2.35rem;
+    padding: calc(var(--spacer) / 5) calc(var(--spacer) / 4);
+    font-size: var(--font-size-base);
+  }
 }

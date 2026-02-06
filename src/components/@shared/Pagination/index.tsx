@@ -1,9 +1,8 @@
-import { useState, useEffect, ReactElement } from 'react'
+import { ReactElement } from 'react'
 import ReactPaginate from 'react-paginate'
 import styles from './index.module.css'
-import { MAXIMUM_NUMBER_OF_PAGES_WITH_RESULTS } from '@utils/aquarius'
-import Arrow from '@images/arrow.svg'
 import { PaginationProps } from './_types'
+import usePagination from './usePagination'
 
 export default function Pagination({
   totalPages,
@@ -12,68 +11,81 @@ export default function Pagination({
   rowCount,
   onChangePage
 }: PaginationProps): ReactElement {
-  const [smallViewport, setSmallViewport] = useState(true)
-  const [totalPageNumbers, setTotalPageNumbers] = useState<number>()
-  const pageSelectionProps =
-    typeof currentPage === 'number' && currentPage > 0
-      ? { forcePage: currentPage - 1 }
-      : { initialPage: 0 }
+  const {
+    changePage,
+    displayedPageCount,
+    isFirstPage,
+    isLastPage,
+    selectedPage,
+    shouldRenderPagination,
+    smallViewport
+  } = usePagination({
+    currentPage,
+    onChangePage,
+    rowCount,
+    rowsPerPage,
+    totalPages
+  })
 
-  function getTotalPages() {
-    if (totalPages) return setTotalPageNumbers(totalPages)
-    const doublePageNumber = rowCount / rowsPerPage
-    const roundedPageNumber = Math.round(doublePageNumber)
-    const total =
-      roundedPageNumber < doublePageNumber
-        ? roundedPageNumber + 1
-        : roundedPageNumber
-    setTotalPageNumbers(total)
-  }
+  return shouldRenderPagination ? (
+    <div className={styles.paginationWrapper}>
+      <button
+        type="button"
+        className={styles.control}
+        onClick={() => changePage(0)}
+        disabled={isFirstPage}
+        aria-label="First page"
+      >
+        {'<<'}
+      </button>
 
-  function onPageChange(page: number) {
-    totalPages ? onChangePage(page) : onChangePage(page + 1)
-  }
+      <button
+        type="button"
+        className={styles.control}
+        onClick={() => changePage(selectedPage - 1)}
+        disabled={isFirstPage}
+        aria-label="Previous page"
+      >
+        {'<'}
+      </button>
 
-  function viewportChange(mq: { matches: boolean }) {
-    setSmallViewport(!mq.matches)
-  }
+      <ReactPaginate
+        pageCount={displayedPageCount}
+        forcePage={selectedPage}
+        marginPagesDisplayed={smallViewport ? 0 : 1}
+        pageRangeDisplayed={smallViewport ? 2 : 6}
+        onPageChange={(data) => changePage(data.selected)}
+        disableInitialCallback
+        previousLabel={null}
+        nextLabel={null}
+        breakLabel="..."
+        containerClassName={styles.pagination}
+        pageLinkClassName={styles.number}
+        activeLinkClassName={styles.current}
+        previousClassName={styles.hiddenControl}
+        nextClassName={styles.hiddenControl}
+        breakLinkClassName={styles.break}
+      />
 
-  useEffect(() => {
-    getTotalPages()
-  }, [totalPages, rowCount])
+      <button
+        type="button"
+        className={styles.control}
+        onClick={() => changePage(selectedPage + 1)}
+        disabled={isLastPage}
+        aria-label="Next page"
+      >
+        {'>'}
+      </button>
 
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 600px)')
-    viewportChange(mq)
-    mq.addEventListener('change', viewportChange)
-
-    return () => {
-      mq.removeEventListener('change', viewportChange)
-    }
-  }, [])
-
-  return totalPageNumbers && totalPageNumbers > 1 ? (
-    <ReactPaginate
-      pageCount={
-        totalPageNumbers > MAXIMUM_NUMBER_OF_PAGES_WITH_RESULTS
-          ? MAXIMUM_NUMBER_OF_PAGES_WITH_RESULTS
-          : totalPageNumbers
-      }
-      {...pageSelectionProps}
-      marginPagesDisplayed={smallViewport ? 0 : 1}
-      pageRangeDisplayed={smallViewport ? 3 : 6}
-      onPageChange={(data) => onPageChange(data.selected)}
-      disableInitialCallback
-      previousLabel={<Arrow className={`${styles.arrow} ${styles.previous}`} />}
-      nextLabel={<Arrow className={styles.arrow} />}
-      breakLabel="..."
-      containerClassName={styles.pagination}
-      pageLinkClassName={styles.number}
-      activeLinkClassName={styles.current}
-      previousLinkClassName={styles.prev}
-      nextLinkClassName={styles.next}
-      disabledClassName={styles.prevNextDisabled}
-      breakLinkClassName={styles.break}
-    />
+      <button
+        type="button"
+        className={styles.control}
+        onClick={() => changePage(displayedPageCount - 1)}
+        disabled={isLastPage}
+        aria-label="Last page"
+      >
+        {'>>'}
+      </button>
+    </div>
   ) : null
 }
