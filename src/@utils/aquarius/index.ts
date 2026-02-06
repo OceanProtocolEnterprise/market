@@ -200,6 +200,13 @@ export function generateBaseQuery(
 }
 
 function transformQueryResult(queryResult, from = 0, size = 21): PagedAssets {
+  const parsedFrom = Number(from)
+  const parsedSize = Number(size)
+  const normalizedFrom =
+    Number.isFinite(parsedFrom) && parsedFrom > 0 ? parsedFrom : 0
+  const normalizedSize =
+    Number.isFinite(parsedSize) && parsedSize > 0 ? parsedSize : 21
+
   const result: PagedAssets = {
     results: [],
     page: 0,
@@ -212,8 +219,8 @@ function transformQueryResult(queryResult, from = 0, size = 21): PagedAssets {
   result.totalResults =
     queryResult.totalResults || queryResult.results?.length || 0
 
-  result.totalPages = Math.ceil(result.totalResults / size)
-  result.page = from ? from + 1 : 1
+  result.totalPages = Math.ceil(result.totalResults / normalizedSize)
+  result.page = normalizedFrom + 1
   result.aggregations = queryResult.aggregations || {}
   return result
 }
