@@ -14,6 +14,10 @@ export default function Pagination({
 }: PaginationProps): ReactElement {
   const [smallViewport, setSmallViewport] = useState(true)
   const [totalPageNumbers, setTotalPageNumbers] = useState<number>()
+  const pageSelectionProps =
+    typeof currentPage === 'number' && currentPage > 0
+      ? { forcePage: currentPage - 1 }
+      : { initialPage: 0 }
 
   function getTotalPages() {
     if (totalPages) return setTotalPageNumbers(totalPages)
@@ -55,9 +59,7 @@ export default function Pagination({
           ? MAXIMUM_NUMBER_OF_PAGES_WITH_RESULTS
           : totalPageNumbers
       }
-      // react-pagination starts counting at 0, we start at 1
-      initialPage={currentPage ? currentPage - 1 : 0}
-      // adapt based on media query match
+      {...pageSelectionProps}
       marginPagesDisplayed={smallViewport ? 0 : 1}
       pageRangeDisplayed={smallViewport ? 3 : 6}
       onPageChange={(data) => onPageChange(data.selected)}

@@ -21,17 +21,18 @@
   align-items: center;
   justify-content: center;
   color: var(--pagination-font-color);
+  border-radius: var(--radius-xl);
 }
 
 li:first-child .number,
 :global(li.selected):nth-child(2) .number {
-  border-top-left-radius: var(--border-radius);
-  border-bottom-left-radius: var(--border-radius);
+  border-top-left-radius: var(--radius-xl);
+  border-bottom-left-radius: var(--radius-xl);
 }
 
 li:last-child .number {
-  border-top-right-radius: var(--border-radius);
-  border-bottom-right-radius: var(--border-radius);
+  border-top-right-radius: var(--radius-xl);
+  border-bottom-right-radius: var(--radius-xl);
 }
 
 .number,
@@ -40,6 +41,7 @@ li:last-child .number {
 .number:active {
   transform: none;
   outline: 0;
+  border-radius: var(--radius-xl);
 }
 
 .number:hover {
@@ -58,11 +60,24 @@ li:last-child .number {
   pointer-events: none;
 }
 
+:global(li.selected) .number {
+  background: var(--gradient-primary);
+  color: var(--brand-white);
+  box-shadow: var(--shadow-sm);
+}
+
 .current,
 .current:hover,
 .current:focus,
 .current:active {
-  color: var(--pagination-selected-font-color);
+  background: var(--gradient-primary);
+  color: var(--brand-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.current,
+:global(li.selected) .number {
+  border-radius: var(--radius-xl);
 }
 
 .next {
