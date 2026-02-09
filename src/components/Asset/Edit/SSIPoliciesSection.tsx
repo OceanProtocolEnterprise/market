@@ -104,7 +104,6 @@ export default function SSIPoliciesSection({
           } consumers. Configure which credentials and verification policies are required to access this ${
             isAsset ? 'asset' : 'service'
           }.`}
-          // variant="publish"
         >
           <PolicyEditor
             credentials={values.credentials}

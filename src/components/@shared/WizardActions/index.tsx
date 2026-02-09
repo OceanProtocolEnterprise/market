@@ -176,7 +176,7 @@ export default function WizardActions({
       )}
       {!isLastStep ? (
         <Button
-          style="publish"
+          style="accent"
           onClick={handleNext}
           disabled={isContinueDisabled}
         >

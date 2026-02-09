@@ -33,7 +33,7 @@
   text-align: center;
 }
 
-:global(.publish) .title {
+:global(.accent) .title {
   font-weight: var(--text-weight-regular);
 }
 

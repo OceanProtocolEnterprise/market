@@ -15,7 +15,7 @@ interface TabsProps {
   showRadio?: boolean
   selectedIndex?: number
   onIndexSelected?: (index: number) => void
-  variant?: 'default' | 'publish'
+  variant?: 'default' | 'accent'
   isEditPage?: boolean
 }
 
@@ -35,23 +35,21 @@ export default function Tabs({
       selectedIndex={selectedIndex}
       onSelect={onIndexSelected}
     >
-      <div
-        className={variant === 'publish' ? styles.publishTabListWrapper : ''}
-      >
+      <div className={variant === 'accent' ? styles.accentTabListWrapper : ''}>
         <div
           className={`${styles.tabListContainer} ${
-            variant === 'publish' ? styles.publishTabListContainer : ''
+            variant === 'accent' ? styles.accentTabListContainer : ''
           }`}
         >
           <TabList
             className={`${styles.tabList} ${
-              variant === 'publish' ? styles.publishTabList : ''
+              variant === 'accent' ? styles.accentTabList : ''
             }`}
           >
             {items.map((item, index) => (
               <Tab
                 className={`${styles.tab} ${
-                  variant === 'publish' ? styles.publishTab : ''
+                  variant === 'accent' ? styles.accentTab : ''
                 }`}
                 key={index}
                 onClick={
@@ -79,15 +77,15 @@ export default function Tabs({
       </div>
       <div
         className={`${styles.tabContent} ${
-          variant === 'publish' ? styles.publishTabContent : ''
+          variant === 'accent' ? styles.accentTabContent : ''
         }`}
       >
         {items.map((item, index) => (
           <TabPanel
             key={index}
-            className={`${
-              variant === 'publish' ? styles.publishTabPanel : ''
-            } ${isEditPage ? styles.editTabPanel : ''}`}
+            className={`${variant === 'accent' ? styles.accentTabPanel : ''} ${
+              isEditPage ? styles.editTabPanel : ''
+            }`}
           >
             {item.content}
           </TabPanel>

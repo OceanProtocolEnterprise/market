@@ -58,7 +58,7 @@ export default function Price({
                       approvedBaseTokens[0]?.symbol
                     )
                   }
-                  variant="publish"
+                  variant="accent"
                   {...field}
                 />
                 <Error meta={meta} />

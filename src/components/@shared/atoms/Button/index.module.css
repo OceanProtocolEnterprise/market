@@ -85,7 +85,7 @@
   min-width: auto;
 }
 
-body .publish {
+body .accent {
   min-width: auto;
   background: var(--clr-amber);
   color: var(--clr-navy);
@@ -99,8 +99,8 @@ body .publish {
   transition: all 0.3s ease;
 }
 
-body .publish:hover,
-body .publish:focus {
+body .accent:hover,
+body .accent:focus {
   transform: translate3d(0, -0.05rem, 0);
   box-shadow: var(--shadow-lg);
   background: var(--yellow-450);
@@ -108,7 +108,7 @@ body .publish:focus {
   transition: all 0.3s ease;
 }
 
-.publish:active {
+.accent:active {
   transform: none;
   box-shadow: var(--shadow-sm);
 }
@@ -241,11 +241,11 @@ body .publish:focus {
 }
 
 /* Specific padding overrides for Upload File and View Asset buttons */
-.button.publish.marginRight2 {
+.button.accent.marginRight2 {
   padding: 14px 20px;
 }
 
-:global(.action) .button.publish {
+:global(.action) .button.accent {
   padding: 14px 20px;
 }
 

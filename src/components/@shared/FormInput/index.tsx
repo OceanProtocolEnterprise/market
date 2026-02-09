@@ -77,7 +77,7 @@ export interface InputProps {
   step?: string
   defaultChecked?: boolean
   size?: 'mini' | 'small' | 'large' | 'default' | 'medium'
-  selectStyle?: 'default' | 'publish' | 'custom' | 'serviceLanguage'
+  selectStyle?: 'default' | 'accent' | 'custom' | 'serviceLanguage'
   className?: string
   style?: CSSProperties
   checked?: boolean
@@ -86,8 +86,8 @@ export interface InputProps {
   accountId?: string
   actions?: string[]
   hideLabel?: boolean
-  buttonStyle?: 'primary' | 'ghost' | 'text' | 'publish' | 'ocean'
-  variant?: 'default' | 'publish'
+  buttonStyle?: 'primary' | 'ghost' | 'text' | 'accent' | 'ocean'
+  variant?: 'default' | 'accent'
   centerError?: boolean
   allResourceValues?: {
     [envId: string]: ResourceType

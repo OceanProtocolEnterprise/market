@@ -12,7 +12,7 @@ interface InputRadioProps extends InputHTMLAttributes<HTMLInputElement> {
   prefixes?: string[]
   postfixes?: string[]
   actions?: string[]
-  variant?: 'default' | 'publish'
+  variant?: 'default' | 'accent'
 }
 
 export default function InputRadio({
@@ -32,7 +32,7 @@ export default function InputRadio({
             <input
               {...props}
               className={`${styles[props.type as string]} ${
-                variant === 'publish' ? styles.publishRadio : ''
+                variant === 'accent' ? styles.accentRadio : ''
               }`}
               id={slugify(option)}
             />

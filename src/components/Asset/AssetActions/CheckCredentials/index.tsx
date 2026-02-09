@@ -443,7 +443,7 @@ export function AssetActionCheckCredentials({
                   <Button
                     type="button"
                     onClick={handleRetry}
-                    style="publish"
+                    style="accent"
                     className={styles.retryButton}
                   >
                     Retry
@@ -480,7 +480,7 @@ export function AssetActionCheckCredentials({
                     <Button
                       type="button"
                       onClick={handleRetry}
-                      style="publish"
+                      style="accent"
                       className={styles.retryButton}
                     >
                       Retry
@@ -499,7 +499,7 @@ export function AssetActionCheckCredentials({
                       CheckCredentialState.StartCredentialExchange
                     )
                   }}
-                  style="publish"
+                  style="accent"
                   disabled={
                     !showVpDialog &&
                     !showDidDialog &&

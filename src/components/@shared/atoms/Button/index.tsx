@@ -18,7 +18,7 @@ interface ButtonProps {
     | 'primary'
     | 'ghost'
     | 'text'
-    | 'publish'
+    | 'accent'
     | 'ocean'
     | 'gradient'
     | 'delete'
@@ -48,7 +48,7 @@ export default function Button({
     primary: style === 'primary',
     ghost: style === 'ghost',
     text: style === 'text',
-    publish: style === 'publish',
+    accent: style === 'accent',
     ocean: style === 'ocean',
     gradient: style === 'gradient',
     delete: style === 'delete',

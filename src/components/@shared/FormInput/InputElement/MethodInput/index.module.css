@@ -41,7 +41,7 @@
   margin-left: -1px;
 }
 
-body .inputMethod.publishSelect,
+body .inputMethod.accentSelect,
 body select.inputMethod {
   background: #fdd655;
   color: var(--clr-navy);

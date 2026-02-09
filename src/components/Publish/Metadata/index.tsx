@@ -276,7 +276,7 @@ export default function MetadataFields(): ReactElement {
                 fileName={values.metadata.uploadedLicense?.name}
                 buttonLabel="Upload File"
                 setFileItem={handleLicenseFileUpload}
-                buttonStyle="publish"
+                buttonStyle="accent"
               />
             </div>
           )}

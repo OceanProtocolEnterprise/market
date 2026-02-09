@@ -236,7 +236,7 @@ export function VpSelector(props: VpSelectorProps): ReactElement {
           </Button>
           <Button
             type="button"
-            style="publish"
+            style="accent"
             onClick={handleAcceptSelection}
             disabled={selections.length === 0 || !selections.some(Boolean)}
           >
