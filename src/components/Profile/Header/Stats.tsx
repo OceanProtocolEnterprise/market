@@ -3,7 +3,7 @@ import NumberUnit from './NumberUnit'
 import styles from './Stats.module.css'
 import { useProfile } from '@context/Profile'
 import EscrowWithdrawModal from './EscrowWithdrawModal'
-import { formatToFixed } from '@utils/numbers'
+import { formatToFixedNoRounding } from '@utils/numbers'
 
 export default function Stats({
   selectedToken
@@ -42,14 +42,20 @@ export default function Stats({
       {activeToken && (
         <NumberUnit
           label="Revenue"
-          value={`${formatToFixed(selectedRevenue, 3)} ${activeToken}`}
+          value={`${formatToFixedNoRounding(
+            selectedRevenue,
+            3
+          )} ${activeToken}`}
         />
       )}
       {ownAccount && activeToken && (
         <>
           <NumberUnit
             label="Escrow Locked Funds"
-            value={`${formatToFixed(selectedEscrowLocked, 3)} ${activeToken}`}
+            value={`${formatToFixedNoRounding(
+              selectedEscrowLocked,
+              3
+            )} ${activeToken}`}
           />
           <div
             onClick={hasAvailable ? () => setShowModal(true) : undefined}
@@ -61,7 +67,7 @@ export default function Stats({
                   ? 'Escrow Available Funds 👉 Click to Withdraw 👈'
                   : 'Escrow Available Funds'
               }
-              value={`${formatToFixed(
+              value={`${formatToFixedNoRounding(
                 selectedEscrowAvailable,
                 3
               )} ${activeToken}`}
