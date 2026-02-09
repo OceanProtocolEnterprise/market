@@ -23,25 +23,32 @@ export default function Publisher({
   )
 
   useEffect(() => {
-    if (!account || account === '') return
+    if (!account) return
 
-    // set default name on hook
-    // to avoid side effect (UI not updating on account's change)
-    if (verifiedServiceProviderName && isMounted())
-      setName(verifiedServiceProviderName || accountTruncate(account))
+    if (verifiedServiceProviderName && isMounted()) {
+      setName(verifiedServiceProviderName)
+    } else {
+      setName(accountTruncate(account))
+    }
   }, [account, isMounted, verifiedServiceProviderName])
+
+  if (minimal) {
+    return <span className={styles.publisher}>{name}</span>
+  }
 
   return (
     <div className={`${styles.publisher} ${className || ''}`}>
-      {minimal ? (
-        name
-      ) : (
-        <>
-          <Link href={`/profile/${account}`} title="Show profile page.">
-            {name}
-          </Link>
-        </>
-      )}
+      <span className={styles.hoverReveal}>
+        <Link
+          href={`/profile/${account}`}
+          className={styles.truncated}
+          title="Show profile page."
+        >
+          {name}
+        </Link>
+
+        <span className={styles.fullValue}>{account}</span>
+      </span>
     </div>
   )
 }

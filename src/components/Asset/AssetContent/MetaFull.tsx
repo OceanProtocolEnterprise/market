@@ -65,7 +65,14 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
       <div className={styles.didContainer}>
         <MetaItem
           title="DID"
-          content={<code>{truncateMiddle(ddo?.id, 12, 8)}</code>}
+          content={
+            <span className={styles.hoverReveal}>
+              <code className={styles.truncated}>
+                {truncateMiddle(ddo?.id, 12, 8)}
+              </code>
+              <span className={styles.fullValue}>{ddo?.id}</span>
+            </span>
+          }
         />
       </div>
 
@@ -99,7 +106,14 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
         {publisherDid && (
           <MetaItem
             title="Publisher DID"
-            content={<code>{truncateMiddle(publisherDid, 12, 12)}</code>}
+            content={
+              <span className={styles.hoverReveal}>
+                <code className={styles.truncated}>
+                  {truncateMiddle(publisherDid, 12, 12)}
+                </code>
+                <span className={styles.fullValue}>{publisherDid}</span>
+              </span>
+            }
           />
         )}
       </div>
