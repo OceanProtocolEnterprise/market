@@ -64,6 +64,9 @@
   text-transform: uppercase;
   color: #303031;
 }
+.didContainer {
+  margin-top: 1rem;
+}
 
 @media (min-width: 1024px) {
   .metaFull {
