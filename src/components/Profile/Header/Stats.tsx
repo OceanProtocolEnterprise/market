@@ -1,9 +1,9 @@
 import { ReactElement, useState } from 'react'
-import Decimal from 'decimal.js'
 import NumberUnit from './NumberUnit'
 import styles from './Stats.module.css'
 import { useProfile } from '@context/Profile'
 import EscrowWithdrawModal from './EscrowWithdrawModal'
+import { formatToFixed } from '@utils/numbers'
 
 export default function Stats({
   selectedToken
@@ -42,14 +42,14 @@ export default function Stats({
       {activeToken && (
         <NumberUnit
           label="Revenue"
-          value={`${selectedRevenue} ${activeToken}`}
+          value={`${formatToFixed(selectedRevenue, 3)} ${activeToken}`}
         />
       )}
       {ownAccount && activeToken && (
         <>
           <NumberUnit
             label="Escrow Locked Funds"
-            value={`${parseInt(selectedEscrowLocked, 10)} ${activeToken}`}
+            value={`${formatToFixed(selectedEscrowLocked, 3)} ${activeToken}`}
           />
           <div
             onClick={hasAvailable ? () => setShowModal(true) : undefined}
@@ -61,9 +61,10 @@ export default function Stats({
                   ? 'Escrow Available Funds 👉 Click to Withdraw 👈'
                   : 'Escrow Available Funds'
               }
-              value={`${new Decimal(selectedEscrowAvailable || 0)
-                .toDecimalPlaces(2, Decimal.ROUND_DOWN)
-                .toFixed(2)} ${activeToken}`}
+              value={`${formatToFixed(
+                selectedEscrowAvailable,
+                3
+              )} ${activeToken}`}
             />
           </div>
         </>

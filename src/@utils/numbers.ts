@@ -15,6 +15,12 @@ export function formatNumber(
   })
 }
 
+export function formatToFixed(value: number | string, decimals = 3): string {
+  const numeric = Number(value)
+  if (Number.isFinite(numeric)) return numeric.toFixed(decimals)
+  return Number(0).toFixed(decimals)
+}
+
 // Run decimal.js comparison
 // http://mikemcl.github.io/decimal.js/#cmp
 export function compareAsBN(balance: string, price: string): boolean {

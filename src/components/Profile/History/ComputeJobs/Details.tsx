@@ -14,6 +14,7 @@ import External from '@images/external.svg'
 import useIsMobile from '@hooks/useIsMobile'
 import Link from 'next/link'
 import Modal from '@shared/atoms/Modal'
+import { formatToFixed } from '@utils/numbers'
 
 enum JobTypeText {
   Free = 'Free',
@@ -27,11 +28,6 @@ const extractString = (
   if (value && typeof value === 'object' && '@value' in value)
     return value['@value']
   return ''
-}
-
-const formatJobCost = (value: number | string): string => {
-  const numeric = Number(value)
-  return Number.isFinite(numeric) ? numeric.toFixed(3) : String(value)
 }
 
 const getPaymentTokenSymbol = (
@@ -69,7 +65,7 @@ const getJobCostDisplay = (
   const rawCost = job?.payment?.cost
   if (rawCost == null || rawCost === '') return '—'
 
-  const formatted = formatJobCost(rawCost)
+  const formatted = formatToFixed(rawCost, 3)
   return paymentSymbol ? `${formatted} ${paymentSymbol}` : formatted
 }
 
