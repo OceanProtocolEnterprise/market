@@ -193,6 +193,7 @@
 .actions {
   display: flex;
   justify-content: flex-end;
+  gap: calc(var(--spacer) / 3);
   position: sticky;
   bottom: 0;
 }

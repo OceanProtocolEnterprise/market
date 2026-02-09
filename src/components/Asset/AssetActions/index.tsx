@@ -1,4 +1,12 @@
-import { ReactElement, useContext, useEffect, useState } from 'react'
+import {
+  ReactElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 import Download from './Download'
 import { FileInfo, LoggerInstance, Datatoken } from '@oceanprotocol/lib'
 import { compareAsBN } from '@utils/numbers'
@@ -26,6 +34,12 @@ import appConfig from 'app.config.cjs'
 import ComputeWizard from '@components/ComputeWizard'
 import { JsonRpcProvider } from 'ethers'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import { useRouter } from 'next/router'
+import {
+  ComputeRerunConfig,
+  getComputeRerunStorageKey,
+  isComputeRerunConfig
+} from '@utils/computeRerun'
 
 export default function AssetActions({
   asset,
@@ -44,6 +58,7 @@ export default function AssetActions({
   consumableFeedback?: string
   onComputeJobCreated?: () => void
 }): ReactElement {
+  const router = useRouter()
   const { address: accountId } = useAccount()
   const signer = useEthersSigner()
   const { balance } = useBalance()
@@ -65,6 +80,8 @@ export default function AssetActions({
     clearVerifierSessionCache
   } = useSsiWallet()
   const [isComputePopupOpen, setIsComputePopupOpen] = useState<boolean>(false)
+  const [rerunConfig, setRerunConfig] = useState<ComputeRerunConfig>()
+  const processedRerunJobRef = useRef<string | null>(null)
 
   // TODO: using this for the publish preview works fine, but produces a console warning
   // on asset details page as there is no formik context there:
@@ -82,6 +99,13 @@ export default function AssetActions({
     useState<boolean>()
 
   const isCompute = service.type === 'compute'
+  const rerunJobId = useMemo(() => {
+    if (!router.isReady) return null
+    const value = router.query.rerunJob
+    if (typeof value === 'string') return value
+    if (Array.isArray(value) && value.length > 0) return value[0]
+    return null
+  }, [router.isReady, router.query.rerunJob])
 
   // Get and set file info
   useEffect(() => {
@@ -224,6 +248,53 @@ export default function AssetActions({
     setIsComputePopupOpen(true)
   }
 
+  const clearRerunQueryFromUrl = useCallback(() => {
+    if (!router.isReady) return
+
+    const [pathname, search = ''] = router.asPath.split('?')
+    if (!search) return
+
+    const params = new URLSearchParams(search)
+    if (!params.has('rerunJob')) return
+
+    params.delete('rerunJob')
+    const nextUrl = params.toString()
+      ? `${pathname}?${params.toString()}`
+      : pathname
+    router
+      .replace(nextUrl, undefined, { shallow: true, scroll: false })
+      .catch((error) => {
+        console.error('Failed to clear rerun query param', error)
+      })
+  }, [router])
+
+  useEffect(() => {
+    if (!router.isReady || !isCompute || !rerunJobId) return
+    if (processedRerunJobRef.current === rerunJobId) return
+
+    processedRerunJobRef.current = rerunJobId
+
+    try {
+      const cached = localStorage.getItem(getComputeRerunStorageKey(rerunJobId))
+      if (cached) {
+        const parsed = JSON.parse(cached) as unknown
+        if (isComputeRerunConfig(parsed)) {
+          const algorithmDidMatchesCurrentAsset =
+            parsed.algorithmDid.toLowerCase() === asset.id.toLowerCase()
+          if (algorithmDidMatchesCurrentAsset) {
+            setRerunConfig(parsed)
+            localStorage.removeItem(getComputeRerunStorageKey(rerunJobId))
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to parse compute rerun payload', error)
+    }
+
+    setIsComputePopupOpen(true)
+    clearRerunQueryFromUrl()
+  }, [router.isReady, rerunJobId, isCompute, asset.id, clearRerunQueryFromUrl])
+
   function resetCacheWallet() {
     ssiWalletCache.clearCredentials()
     setCachedCredentials(undefined as any)
@@ -241,6 +312,7 @@ export default function AssetActions({
   const closeComputePopup = () => {
     resetCacheWallet()
     setIsComputePopupOpen(false)
+    clearRerunQueryFromUrl()
   }
   return (
     <>
@@ -375,6 +447,7 @@ export default function AssetActions({
               consumableFeedback={consumableFeedback}
               onClose={closeComputePopup}
               onComputeJobCreated={onComputeJobCreated}
+              rerunConfig={rerunConfig}
             />
           </div>
         </div>

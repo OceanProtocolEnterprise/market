@@ -1,4 +1,4 @@
-import { ReactElement, useState, useEffect } from 'react'
+import { ReactElement, useState, useEffect, useMemo } from 'react'
 import Markdown from '@shared/Markdown'
 import MetaFull from './MetaFull'
 import MetaSecondary from './MetaSecondary'
@@ -24,12 +24,14 @@ import MetaInfo from './MetaMain/MetaInfo'
 import EditIcon from '@images/edit.svg'
 import ComputeJobs from '@components/@shared/ComputeJobs'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 
 export default function AssetContent({
   asset
 }: {
   asset: AssetExtended
 }): ReactElement {
+  const router = useRouter()
   const { isInPurgatory, purgatoryData, isOwner, isAssetNetwork } = useAsset()
   const { address: accountId, isConnected } = useAccount()
   const { allowExternalContent, debug } = useUserPreferences()
@@ -54,6 +56,20 @@ export default function AssetContent({
   const computeServiceIndex = asset.credentialSubject?.services?.findIndex(
     (service) => service.type === 'compute'
   )
+  const rerunJobQuery = useMemo(() => {
+    const value = router.query.rerunJob
+    if (typeof value === 'string') return value
+    if (Array.isArray(value) && value.length > 0) return value[0]
+    return null
+  }, [router.query.rerunJob])
+
+  useEffect(() => {
+    if (!router.isReady) return
+    if (selectedService !== undefined) return
+    if (!rerunJobQuery) return
+    if (computeServiceIndex === undefined || computeServiceIndex < 0) return
+    setSelectedService(computeServiceIndex)
+  }, [router.isReady, rerunJobQuery, computeServiceIndex, selectedService])
 
   // async function handleGeneratePdf(id: string, tx: string) {
   //   try {

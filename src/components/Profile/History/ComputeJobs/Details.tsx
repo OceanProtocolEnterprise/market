@@ -14,6 +14,11 @@ import External from '@images/external.svg'
 import useIsMobile from '@hooks/useIsMobile'
 import Link from 'next/link'
 import Modal from '@shared/atoms/Modal'
+import { useRouter } from 'next/router'
+import {
+  ComputeRerunConfig,
+  getComputeRerunStorageKey
+} from '@utils/computeRerun'
 
 enum JobTypeText {
   Free = 'Free',
@@ -238,16 +243,11 @@ export default function Details({
 }: {
   job: ComputeJobMetaData
 }): ReactElement {
+  const router = useRouter()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { approvedBaseTokens } = useMarketMetadata()
   const isMobile = useIsMobile()
   const paymentSymbol = getPaymentTokenSymbol(job?.payment, approvedBaseTokens)
-
-  useEffect(() => {
-    if (!isDialogOpen || !job) return
-    console.log('[ComputeJob Details] payment payload', job.payment)
-    console.log('[ComputeJob Details] job payload', job)
-  }, [isDialogOpen, job])
 
   function formatDuration(seconds: number): string {
     if (isNaN(seconds) || seconds < 0) return '—'
@@ -279,6 +279,43 @@ export default function Details({
 
   const jobTypeDisplay = getJobTypeDisplay(job)
   const jobCostDisplay = getJobCostDisplay(job, paymentSymbol)
+  const isFreeJob = jobTypeDisplay === JobTypeText.Free
+  const canRerunJob = Boolean(job?.algorithm?.documentId && job?.jobId)
+
+  const handleRerunJob = () => {
+    if (!canRerunJob) return
+
+    const rerunConfig: ComputeRerunConfig = {
+      jobId: job.jobId,
+      algorithmDid: job.algorithm.documentId,
+      algorithmServiceId: job.algorithm.serviceId,
+      datasets:
+        job.assets?.map((asset) => ({
+          did: asset.documentId,
+          serviceId: asset.serviceId
+        })) || [],
+      computeEnv:
+        typeof (job as any).environment === 'string'
+          ? (job as any).environment
+          : undefined
+    }
+
+    try {
+      localStorage.setItem(
+        getComputeRerunStorageKey(job.jobId),
+        JSON.stringify(rerunConfig)
+      )
+    } catch (error) {
+      console.error('Failed to cache compute rerun payload', error)
+    }
+
+    setIsDialogOpen(false)
+    router.push(
+      `/asset/${encodeURIComponent(
+        job.algorithm.documentId
+      )}?rerunJob=${encodeURIComponent(job.jobId)}`
+    )
+  }
 
   return (
     <>
@@ -350,7 +387,7 @@ export default function Details({
                     )}
                   />
                 )}
-                {job.dateFinished && (
+                {job.dateFinished && !isFreeJob && (
                   <MetaItem title="Job Cost" content={jobCostDisplay} />
                 )}
                 <MetaItem title="Job Type" content={jobTypeDisplay} />
@@ -392,6 +429,14 @@ export default function Details({
             </div>
 
             <div className={styles.actions}>
+              <Button
+                style="outlined"
+                type="button"
+                onClick={handleRerunJob}
+                disabled={!canRerunJob}
+              >
+                Rerun Job
+              </Button>
               <Button
                 style="primary"
                 type="button"
