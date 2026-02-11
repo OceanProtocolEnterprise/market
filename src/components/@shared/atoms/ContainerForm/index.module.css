@@ -21,7 +21,7 @@
   padding: var(--sp-10);
 }
 
-.container.publish {
+.container.accent {
   border: var(--border-size-sm) solid var(--border-navy-soft);
   border-radius: var(--radius-xl);
   padding: var(--form-container-padding-top-extended);
@@ -29,17 +29,17 @@
 }
 
 /* Publish-specific override for form input spacing */
-.container.publish :global([class*='FormInput_field']) {
+.container.accent :global([class*='FormInput_field']) {
   margin-bottom: 0;
 }
 
 /* Override FormInput labels */
-.container.publish label {
+.container.accent label {
   font-family: var(--font-family-base);
 }
 
 /* Override select arrows */
-.container.publish select {
+.container.accent select {
   background-image: url('../../../../@images/chevron_down.svg');
   border: var(--border-size-sm) solid var(--border-navy-soft);
   border-radius: var(--radius-xl);
@@ -49,7 +49,7 @@
   padding: 6px 36px 6px 10px;
 }
 
-.container.publish
+.container.accent
   :global([class*='FormInput_field'])
   select[name='services[0].description.language'] {
   border: 1px solid rgba(10, 75, 112, 0.5);
@@ -64,17 +64,17 @@
   color: #303031;
 }
 
-.container.publish input[type='checkbox']:checked {
+.container.accent input[type='checkbox']:checked {
   border-color: var(--clr-amber);
   background: var(--clr-amber);
 }
 
-.container.publish input[type='checkbox']:checked::after {
+.container.accent input[type='checkbox']:checked::after {
   border-color: var(--brand-white);
 }
 
 /* Publish-specific overrides for TagsAutoComplete (react-select) */
-.container.publish :global([class$='control']) {
+.container.accent :global([class$='control']) {
   border: var(--border-size-sm) solid var(--border-navy-soft);
   border-radius: var(--radius-xl);
   min-height: var(--field-height);
@@ -82,17 +82,17 @@
   font-weight: var(--text-weight-regular);
 }
 
-.container.publish :global([class$='control']:hover) {
+.container.accent :global([class$='control']:hover) {
   border-color: var(--border-navy-soft);
 }
 
-.container.publish :global([class$='control']:focus-within) {
+.container.accent :global([class$='control']:focus-within) {
   border-color: var(--border-navy-soft);
   box-shadow: none;
 }
 
 /* Publish-specific overrides for BoxSelection component */
-.container.publish :global(.boxSelection) {
+.container.accent :global(.boxSelection) {
   border: 1px solid var(--border-navy-soft);
   border-radius: var(--radius-xl);
   padding: 8px 25px;
@@ -108,30 +108,30 @@
 }
 
 /* ADD button (accent color) - target CSS class */
-.container.publish button.primary {
+.container.accent button.primary {
   background: var(--gradient-accent);
   color: var(--clr-navy);
   border: none;
   box-shadow: var(--shadow-sm);
 }
 
-.container.publish button.primary:hover,
-.container.publish button.primary:focus {
+.container.accent button.primary:hover,
+.container.accent button.primary:focus {
   background: var(--gradient-accent);
   transform: none;
   box-shadow: var(--shadow-sm);
 }
 
 /* SUBMIT URL button (primary blue) - target CSS class */
-.container.publish button.publish {
+.container.accent button.accent {
   background: var(--gradient-primary);
   color: var(--brand-white);
   border: none;
   box-shadow: var(--shadow-sm);
 }
 
-.container.publish button.publish:hover,
-.container.publish button.publish:focus {
+.container.accent button.accent:hover,
+.container.accent button.accent:focus {
   background: var(--gradient-primary);
   transform: none;
   box-shadow: var(--shadow-sm);

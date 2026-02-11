@@ -5,7 +5,7 @@
 }
 
 /* Publish-specific button styling */
-:global(.publish) .actions button {
+:global(.accent) .actions button {
   border-radius: var(--radius-xl, 20px) !important;
   font-family: var(--font-family-base, 'Helvetica') !important;
   font-weight: var(--text-weight-bold, 700) !important;
@@ -62,7 +62,7 @@
 }
 
 /* Delete Parameter Button - Publish specific styling */
-:global(.publish) .actions button[style*='ghost'] {
+:global(.accent) .actions button[style*='ghost'] {
   border: 1px solid var(--border-navy-soft, var(--border-color)) !important;
   background: transparent !important;
   color: var(--clr-slate-70, var(--color-secondary)) !important;

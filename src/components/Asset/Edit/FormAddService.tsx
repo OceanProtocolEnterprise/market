@@ -92,7 +92,7 @@ export default function FormAddService({
 
   return (
     <Form>
-      <ContainerForm style="publish">
+      <ContainerForm style="accent">
         <Field
           {...getFieldContent('name', data)}
           component={Input}

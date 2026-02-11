@@ -215,7 +215,7 @@ export default function FilesInput(props: InputProps): ReactElement {
 
               {isLoading ? (
                 <Button
-                  style="publish"
+                  style="accent"
                   className={styles.submitButton}
                   disabled={true}
                 >

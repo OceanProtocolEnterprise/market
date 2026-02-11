@@ -10,7 +10,7 @@ import InputElement from '..'
 import { InputProps } from '../..'
 
 interface CredentialProps extends InputProps {
-  buttonStyle?: 'primary' | 'ghost' | 'text' | 'publish' | 'ocean'
+  buttonStyle?: 'primary' | 'ghost' | 'text' | 'accent' | 'ocean'
 }
 
 export default function Credentials(props: CredentialProps) {

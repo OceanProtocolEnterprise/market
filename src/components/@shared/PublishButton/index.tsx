@@ -34,7 +34,7 @@ export default function PublishButton({
     }
   }
 
-  const mappedButtonStyle = buttonStyle === 'gradient' ? 'gradient' : 'publish'
+  const mappedButtonStyle = buttonStyle === 'gradient' ? 'gradient' : 'accent'
 
   return (
     <Button

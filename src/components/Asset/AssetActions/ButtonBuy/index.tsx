@@ -280,7 +280,7 @@ export default function ButtonBuy({
       ) : (
         <>
           <Button
-            style="publish"
+            style="accent"
             type={type}
             onClick={onClick}
             disabled={disabled}

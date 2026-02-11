@@ -55,7 +55,7 @@ export default function Edit({ uri }: { uri: string }): ReactElement {
             selectedIndex={tabIndex}
             onIndexSelected={setTabIndex}
             className={styles.edit}
-            variant="publish"
+            variant="accent"
             showRadio
             isEditPage
           />

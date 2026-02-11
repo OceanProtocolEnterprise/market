@@ -329,7 +329,7 @@ export default function PublishPage({
           />
           <Form className={styles.form} ref={scrollToRef}>
             <Navigation />
-            <ContainerForm style="publish">
+            <ContainerForm style="accent">
               <Steps feedback={feedback} />
               <Actions scrollToRef={scrollToRef} did={did} />
             </ContainerForm>

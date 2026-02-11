@@ -26,7 +26,7 @@
   width: 100%;
 }
 
-.containerPublish :global([class*='publishTabPanel']) {
+.containerPublish :global([class*='accentTabPanel']) {
   max-width: none;
   width: 100%;
 }
@@ -37,7 +37,7 @@
 }
 
 /* Publish flow styling */
-.container.publish {
+.container.accent {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -105,7 +105,7 @@
 }
 
 /* Publish flow form styling */
-.container.publish .form {
+.container.accent .form {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -116,7 +116,7 @@
 }
 
 /* Publish flow section styling */
-.container.publish .section {
+.container.accent .section {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -126,7 +126,7 @@
 }
 
 /* Publish flow section content styling */
-.container.publish .sectionContent {
+.container.accent .sectionContent {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -226,7 +226,7 @@ body .addAddressButton {
 }
 
 /* Publish flow address list styling */
-.container.publish .addressListContainer {
+.container.accent .addressListContainer {
   display: flex;
   flex-direction: column;
   gap: calc(var(--spacer) * 0.5);
@@ -255,7 +255,7 @@ body .addAddressButton {
 }
 
 /* Publish flow address item styling */
-.container.publish .addressItem {
+.container.accent .addressItem {
   display: flex;
   gap: calc(var(--spacer) * 0.5);
   align-items: center;
@@ -270,7 +270,7 @@ body .addAddressButton {
 }
 
 /* Publish flow input container styling */
-.container.publish .inputContainer {
+.container.accent .inputContainer {
   display: flex;
   gap: calc(var(--spacer) * 0.5);
   align-items: flex-end;
@@ -298,35 +298,35 @@ body .addAddressButton {
 
 /* Publish flow responsive adjustments */
 @media (max-width: 1200px) {
-  .container.publish {
+  .container.accent {
     width: 100%;
     padding: 0 var(--sp-6);
   }
 }
 
 @media (max-width: 768px) {
-  .container.publish {
+  .container.accent {
     gap: var(--sp-10);
   }
 
-  .container.publish .form {
+  .container.accent .form {
     gap: var(--sp-6);
   }
 
-  .container.publish .section {
+  .container.accent .section {
     gap: var(--sp-2);
   }
 
-  .container.publish .sectionContent {
+  .container.accent .sectionContent {
     gap: var(--sp-2);
   }
 
-  .container.publish .inputContainer {
+  .container.accent .inputContainer {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .container.publish .addressItem {
+  .container.accent .addressItem {
     flex-direction: column;
     align-items: stretch;
   }

@@ -12,7 +12,7 @@
   gap: var(--sp-8);
 }
 
-.publish {
+.accent {
   border: var(--border-size-sm) solid var(--border-navy-soft);
   border-radius: var(--radius-xl);
   padding: var(--form-container-padding-top-extended);
