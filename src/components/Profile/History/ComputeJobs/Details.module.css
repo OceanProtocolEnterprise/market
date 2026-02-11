@@ -176,6 +176,10 @@
 }
 
 .jobDID {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .jobIdCopy {
@@ -200,10 +204,8 @@
 
 @media (max-width: 768px) {
   .jobDID {
-    font-size: 14px;
-    overflow-wrap: break-word;
-    word-break: break-all;
     margin-top: 0.5rem;
+    gap: 1rem;
   }
 }
 

@@ -275,6 +275,8 @@ export default function Details({
 
   const jobTypeDisplay = getJobTypeDisplay(job)
   const jobCostDisplay = getJobCostDisplay(job, paymentSymbol)
+  const jobStatusDisplay = job.statusText || '—'
+  const isFinishedStatus = jobStatusDisplay.toLowerCase() === 'job finished'
   const isFreeJob = jobTypeDisplay === JobTypeText.Free
   const canRerunJob = Boolean(job?.algorithm?.documentId && job?.jobId)
 
@@ -332,7 +334,7 @@ export default function Details({
               <div className={styles.statusWrapper}>
                 <MetaItem
                   title="Status"
-                  content={job.statusText || '—'}
+                  content={jobStatusDisplay}
                   horizontal
                 />
               </div>
@@ -383,7 +385,7 @@ export default function Details({
                     )}
                   />
                 )}
-                {job.dateFinished && !isFreeJob && (
+                {job.dateFinished && isFinishedStatus && !isFreeJob && (
                   <MetaItem title="Job Cost" content={jobCostDisplay} />
                 )}
                 <MetaItem title="Job Type" content={jobTypeDisplay} />
@@ -391,7 +393,7 @@ export default function Details({
                 {job.dateFinished ? (
                   // When finished date exists, show JobDID on new line
                   <div style={{ flexBasis: '100%' }}>
-                    <span className={styles.jobDID}>
+                    <div className={styles.jobDID}>
                       <MetaItem
                         title="Job ID"
                         content={
@@ -403,11 +405,12 @@ export default function Details({
                           />
                         }
                       />
-                    </span>
+                      <MetaItem title="Status" content={jobStatusDisplay} />
+                    </div>
                   </div>
                 ) : (
                   // Else show it in same row
-                  <span className={styles.jobDID}>
+                  <div className={styles.jobDID}>
                     <MetaItem
                       title="Job ID"
                       content={
@@ -419,7 +422,8 @@ export default function Details({
                         />
                       }
                     />
-                  </span>
+                    <MetaItem title="Status" content={jobStatusDisplay} />
+                  </div>
                 )}
               </div>
             </div>
