@@ -114,18 +114,18 @@ body .radioWrap > label {
   opacity: 1;
 }
 
-body .publishRadio {
+body .accentRadio {
   border: 1px solid var(--clr-navy) !important;
   border-radius: var(--radius-xl);
   background-color: var(--brand-white);
 }
 
-.publishRadio:checked {
+.accentRadio:checked {
   border-color: var(--brand-white);
   background: var(--brand-white);
 }
 
-.publishRadio:checked::after {
+.accentRadio:checked::after {
   background: var(--clr-navy);
   width: 10px;
   height: 10px;

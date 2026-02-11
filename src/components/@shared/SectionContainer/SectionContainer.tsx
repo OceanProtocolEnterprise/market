@@ -10,7 +10,7 @@ interface SectionContainerProps {
   required?: boolean
   gap?: string
   help?: string
-  variant?: 'default' | 'large' | 'publish'
+  variant?: 'default' | 'large' | 'accent'
   border?: boolean
   padding?: string
 }

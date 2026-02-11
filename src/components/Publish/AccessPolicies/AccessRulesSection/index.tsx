@@ -210,7 +210,7 @@ export default function AccessRulesSection({
           <Input
             name="allowDropdown"
             type="select"
-            selectStyle="publish"
+            selectStyle="accent"
             size="default"
             options={
               hasAllowAll
@@ -295,7 +295,7 @@ export default function AccessRulesSection({
           <Input
             name="denyDropdown"
             type="select"
-            selectStyle="publish"
+            selectStyle="accent"
             options={
               hasDenyAll
                 ? ['Deny all addresses']

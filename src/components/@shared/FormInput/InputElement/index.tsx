@@ -94,10 +94,10 @@ const InputElement = forwardRef(
   ): ReactElement => {
     const styleClasses = cx({
       select:
-        selectStyle !== 'publish' &&
+        selectStyle !== 'accent' &&
         selectStyle !== 'custom' &&
         selectStyle !== 'serviceLanguage',
-      publishSelect: selectStyle === 'publish',
+      accentSelect: selectStyle === 'accent',
       customSelect: selectStyle === 'custom',
       serviceLanguageSelect: selectStyle === 'serviceLanguage',
       [size]: size
@@ -278,7 +278,7 @@ const InputElement = forwardRef(
         return prefix || postfix ? (
           <div
             className={`${prefix ? styles.prefixGroup : styles.postfixGroup} ${
-              variant === 'publish' ? styles.publishPrefixGroup : ''
+              variant === 'accent' ? styles.accentPrefixGroup : ''
             }`}
           >
             {prefix && (
@@ -286,7 +286,7 @@ const InputElement = forwardRef(
                 className={cx({
                   prefix: true,
                   [size]: size,
-                  publishPrefix: variant === 'publish'
+                  accentPrefix: variant === 'accent'
                 })}
               >
                 {prefix}
@@ -304,7 +304,7 @@ const InputElement = forwardRef(
                 className={cx({
                   postfix: true,
                   [size]: size,
-                  publishPostfix: variant === 'publish'
+                  accentPostfix: variant === 'accent'
                 })}
               >
                 {postfix}

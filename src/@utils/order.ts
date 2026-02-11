@@ -298,6 +298,31 @@ export async function order(
           '1',
           accountId
         )
+        const providerFeeWei =
+          orderParams._providerFee?.providerFeeAmount || '0'
+        const providerToken = orderParams._providerFee?.providerFeeToken
+        if (providerToken && providerFeeWei !== '0') {
+          const providerTokenInfo = await getTokenInfo(
+            providerToken,
+            signer?.provider
+          )
+          const providerFeeHuman = formatUnits(
+            providerFeeWei,
+            providerTokenInfo?.decimals || 18
+          )
+          const tx: any = await approve(
+            signer as any,
+            config,
+            accountId,
+            providerToken,
+            accessDetails.datatoken.address,
+            providerFeeHuman,
+            false
+          )
+          if (tx && typeof tx.wait === 'function') {
+            await tx.wait()
+          }
+        }
         const startOrderTx = await datatoken.startOrder(
           accessDetails.datatoken.address,
           orderParams.consumer,

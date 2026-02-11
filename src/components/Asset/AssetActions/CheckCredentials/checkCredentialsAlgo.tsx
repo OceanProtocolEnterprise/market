@@ -405,7 +405,7 @@ export function AssetActionCheckCredentialsAlgo({
                 <Button
                   type="button"
                   onClick={handleRetry}
-                  style="publish"
+                  style="accent"
                   className={styles.retryButton}
                 >
                   Retry
@@ -415,7 +415,7 @@ export function AssetActionCheckCredentialsAlgo({
           ) : (
             <Button
               type="button"
-              style="publish"
+              style="accent"
               onClick={() => {
                 setCheckCredentialState(
                   CheckCredentialState.StartCredentialExchange
