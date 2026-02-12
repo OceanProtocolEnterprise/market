@@ -65,6 +65,7 @@ export interface FormPublishData {
     licenseTypeSelection?: string
     licenseUrl: FileInfo[]
     uploadedLicense: License
+    additionalLicense?: { url: string; type: string; valid?: boolean }[]
   }
   services: FormPublishService[]
   pricing: PricePublishOptions

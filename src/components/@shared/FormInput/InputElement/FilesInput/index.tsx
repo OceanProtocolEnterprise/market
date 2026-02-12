@@ -19,7 +19,18 @@ import MethodInput from '../MethodInput'
 import DeleteButton from '@shared/DeleteButton/DeleteButton'
 import { customProviderUrl } from 'app.config.cjs'
 
-export default function FilesInput(props: InputProps): ReactElement {
+type FilesInputProps = InputProps & {
+  form?: {
+    values?: any
+    setFieldValue?: (field: string, value: any) => void
+  }
+  onRemove?: () => void
+}
+
+export default function FilesInput(props: FilesInputProps): ReactElement {
+  const { form } = props
+  const values = form?.values
+  const setFieldValue = form?.setFieldValue
   const [field, meta, helpers] = useField(props.name)
   const [isLoading, setIsLoading] = useState(false)
   const [disabledButton, setDisabledButton] = useState(true)
@@ -40,24 +51,20 @@ export default function FilesInput(props: InputProps): ReactElement {
   const isValidated = field?.value?.[0]?.valid === true
 
   async function handleValidation(e: React.SyntheticEvent, url: string) {
-    // File example 'https://oceanprotocol.com/tech-whitepaper.pdf'
     e?.preventDefault()
+    if (!values || !setFieldValue) return
 
     try {
       setIsLoading(true)
 
       if (isUrl(url) && isGoogleUrl(url)) {
         throw Error(
-          'Google Drive is not a supported hosting service. Please use an alternative.'
+          'Google Drive is not supported. Use another hosting service.'
         )
       }
 
-      // Check if provider is a valid provider
       const isValid = await checkValidProvider(providerUrl)
-      if (!isValid)
-        throw Error(
-          '✗ Provider cannot be reached, please check status.oceanprotocol.com and try again later.'
-        )
+      if (!isValid) throw Error('✗ Provider cannot be reached.')
 
       const checkedFile = await getFileInfo(
         url,
@@ -70,31 +77,40 @@ export default function FilesInput(props: InputProps): ReactElement {
         method
       )
 
-      // error if something's not right from response
-      if (!checkedFile)
-        throw Error('Could not fetch file info. Is your network down?')
+      if (!checkedFile || checkedFile[0].valid === false)
+        throw Error('✗ No valid file detected.')
+      const currentDocs = values.metadata?.license?.licenseDocuments || []
 
-      if (checkedFile[0].valid === false)
-        throw Error(
-          `✗ No valid file detected. Check your ${props.label} and details, and try again.`
-        )
+      const isMainLicense = props.name.includes('licenseUrl')
+      const isAdditionalLicense = props.name.includes('additionalLicense')
 
-      // if all good, add file to formik state
-      helpers.setValue([
-        {
-          url,
-          providerUrl,
-          type: storageType,
-          query,
-          headers,
-          abi,
-          chainId,
-          method,
-          ...checkedFile[0]
-        }
-      ])
-    } catch (error) {
-      props.form.setFieldError(`${field.name}[0].url`, error.message)
+      const newDoc = {
+        name: url.split('/').pop() || url,
+        fileType: checkedFile[0].type,
+        sha256: checkedFile[0].checksum,
+        mirrors: [{ url, type: storageType, method }],
+        ...checkedFile[0]
+      }
+
+      if (isMainLicense) {
+        setFieldValue('metadata.license.licenseDocuments', [
+          newDoc,
+          ...currentDocs.slice(1)
+        ])
+      } else if (isAdditionalLicense) {
+        const mainLicense = currentDocs[0] || null
+        const additionalDocs = currentDocs.slice(1)
+
+        setFieldValue('metadata.license.licenseDocuments', [
+          ...(mainLicense ? [mainLicense] : []),
+          ...additionalDocs,
+          newDoc
+        ])
+      }
+
+      helpers.setValue([{ ...field.value[0], valid: true }])
+    } catch (error: any) {
+      helpers.setError(error.message)
       LoggerInstance.error(error.message)
     } finally {
       setIsLoading(false)

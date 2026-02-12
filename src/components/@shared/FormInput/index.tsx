@@ -21,7 +21,7 @@ import FormHelp from './Help'
 import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelection'
 import { BoxSelectionOption } from '@shared/FormInput/InputElement/BoxSelection'
 import { getObjectPropertyByPath } from '@utils/index'
-import { ComputeEnvironment } from '@oceanprotocol/lib'
+import { ComputeEnvironment, FileInfo } from '@oceanprotocol/lib'
 import ErrorSVG from '@images/circle_error.svg'
 import { ResourceType } from 'src/@types/ResourceType'
 
@@ -102,6 +102,9 @@ export interface InputProps {
   activeFileType?: string
   existingFilePlaceholder?: string
   showExistingFileNotice?: boolean
+  multipleFilesMode?: boolean
+  onAddFile?: (fileInfo: FileInfo) => void
+  isAdditionalLicense?: boolean
 }
 
 function checkError(form: any, field: FieldInputProps<any>) {
@@ -131,7 +134,7 @@ export default function Input(props: Partial<InputProps>): ReactElement {
     disclaimerValues,
     centerError
   } = props
-
+  console.log('Input props:', props)
   const isFormikField = typeof field !== 'undefined'
   // TODO: this feels hacky as it assumes nested `values` store. But we can't use the
   // `useField()` hook in here to get `meta.error` so we have to match against form?.errors?

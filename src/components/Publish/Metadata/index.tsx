@@ -1,6 +1,6 @@
 import { BoxSelectionOption } from '@shared/FormInput/InputElement/BoxSelection'
 import Input from '@shared/FormInput'
-import { Field, useField, useFormikContext } from 'formik'
+import { Field, FieldArray, useField, useFormikContext } from 'formik'
 import { ReactElement, useEffect } from 'react'
 import content from '../../../../content/publish/form.json'
 import { FormPublishData } from '../_types'
@@ -20,6 +20,11 @@ import { toast } from 'react-toastify'
 
 import SectionContainer from '../../@shared/SectionContainer/SectionContainer'
 import styles from './index.module.css'
+import Button from '@components/@shared/atoms/Button'
+import FilesInput from '@components/@shared/FormInput/InputElement/FilesInput'
+import DeleteButton from '@components/@shared/DeleteButton/DeleteButton' // Add this import
+import Tooltip from '@components/@shared/atoms/Tooltip'
+import InfoIcon from '@images/info.svg'
 
 const assetTypeOptionsTitles = getFieldContent(
   'type',
@@ -263,12 +268,86 @@ export default function MetadataFields(): ReactElement {
             />
           </div>
           {values.metadata.licenseTypeSelection === 'URL' && (
-            <Field
-              {...getFieldContent('license', content.metadata.fields)}
-              component={Input}
-              name="metadata.licenseUrl"
-            />
+            <div className={styles.licenseUrlContainer}>
+              <Field
+                {...getFieldContent('license', content.metadata.fields)}
+                component={Input}
+                name="metadata.licenseUrl"
+              />
+              {values.metadata.additionalLicense?.length > 0 && (
+                <div className={styles.additionalLicenseHeader}>
+                  <Label htmlFor="additionalLicense">
+                    Additional License Files
+                  </Label>
+                  <span className={styles.additionalLicenseSubtext}>
+                    Add additional license files if applicable
+                  </span>
+                </div>
+              )}
+
+              <FieldArray name="metadata.additionalLicense">
+                {({ push, remove }) => (
+                  <>
+                    {values.metadata.additionalLicense?.map((_, index) => (
+                      <div key={index} className={styles.additionalLicenseItem}>
+                        <div className={styles.additionalLicenseFieldWrapper}>
+                          <div className={styles.additionalLicenseFieldHeader}>
+                            <Label
+                              htmlFor={`metadata.additionalLicense[${index}]`}
+                            >
+                              Additional License {index + 1}
+                            </Label>
+                            <Tooltip content="A SPDX identifier of the additional license applicable to this service.">
+                              <InfoIcon className={styles.infoIcon} />
+                            </Tooltip>
+                          </div>
+                          <FilesInput
+                            {...getFieldContent(
+                              'additionalLicense',
+                              content.metadata.fields
+                            )}
+                            name={`metadata.additionalLicense[${index}]`}
+                            form={{ values, setFieldValue }}
+                            onRemove={() => remove(index)}
+                            hideLabel={true}
+                          />
+                        </div>
+                        <div>
+                          <DeleteButton
+                            onClick={() => {
+                              const currentDocs =
+                                values.metadata?.license?.licenseDocuments || []
+                              if (currentDocs.length > index + 1) {
+                                const mainLicense = currentDocs[0]
+                                const additionalDocs = currentDocs.slice(1)
+                                additionalDocs.splice(index, 1)
+                                setFieldValue(
+                                  'metadata.license.licenseDocuments',
+                                  [mainLicense, ...additionalDocs]
+                                )
+                              }
+                              remove(index)
+                            }}
+                            className={styles.deleteLicenseButton}
+                          />
+                        </div>
+                      </div>
+                    ))}
+
+                    <Button
+                      style="ghost"
+                      type="button"
+                      onClick={() => push([{ url: '', type: 'url' }])}
+                      className={styles.addLicenseButton}
+                    >
+                      Add Additional License
+                    </Button>
+                  </>
+                )}
+              </FieldArray>
+            </div>
           )}
+
           {values.metadata.licenseTypeSelection === 'Upload license file' && (
             <div className={styles.licenseUrlContainer}>
               <Label htmlFor="license">License File *</Label>

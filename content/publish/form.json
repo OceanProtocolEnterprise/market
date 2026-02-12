@@ -51,6 +51,14 @@
         "required": true
       },
       {
+        "name": "additionalLicense",
+        "label": "URL",
+        "placeholder": "e.g. https://file.com/license.json",
+        "help": "A SPDX identifier of the license applicable to this service.",
+        "type": "files",
+        "required": true
+      },
+      {
         "name": "licenseTypeSelection",
         "label": "License Type",
         "type": "select",

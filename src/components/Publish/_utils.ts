@@ -559,26 +559,52 @@ export async function transformPublishFormToDdo(
   //   : undefined
 
   let license: License
-  if (
-    values.metadata.licenseTypeSelection === 'URL' &&
-    values.metadata.licenseUrl[0]
-  ) {
-    license = {
-      name: values.metadata.licenseUrl[0].url,
-      licenseDocuments: [
-        {
-          name: values.metadata.licenseUrl[0].url,
-          fileType: values.metadata.licenseUrl[0].contentType,
-          sha256: values.metadata.licenseUrl[0].checksum,
-          mirrors: [
+  if (values.metadata.licenseTypeSelection === 'URL') {
+    if (values.metadata.license?.licenseDocuments?.length > 0) {
+      const licenseDocs = values.metadata.license.licenseDocuments.map(
+        (doc: any) => ({
+          name: doc.name || doc.url || 'license',
+          fileType: doc.fileType,
+          sha256: doc.sha256 || doc.checksum,
+          mirrors: doc.mirrors?.map((mirror: any) => ({
+            type: mirror.type || 'url',
+            method: mirror.method || 'get',
+            url: mirror.url
+          })) || [
             {
-              type: values.metadata.licenseUrl[0].type,
-              method: values.metadata.licenseUrl[0].method,
-              url: values.metadata.licenseUrl[0].url
+              type: 'url',
+              method: 'get',
+              url: doc.url || doc.mirrors?.[0]?.url
             }
           ]
-        }
-      ]
+        })
+      )
+
+      license = {
+        name:
+          licenseDocs[0]?.name ||
+          values.metadata.licenseUrl[0]?.url ||
+          'license',
+        licenseDocuments: licenseDocs
+      }
+    } else if (values.metadata.licenseUrl?.[0]) {
+      license = {
+        name: values.metadata.licenseUrl[0].url,
+        licenseDocuments: [
+          {
+            name: values.metadata.licenseUrl[0].url,
+            fileType: values.metadata.licenseUrl[0].contentType,
+            sha256: values.metadata.licenseUrl[0].checksum,
+            mirrors: [
+              {
+                type: values.metadata.licenseUrl[0].type,
+                method: values.metadata.licenseUrl[0].method,
+                url: values.metadata.licenseUrl[0].url
+              }
+            ]
+          }
+        ]
+      }
     }
   }
 

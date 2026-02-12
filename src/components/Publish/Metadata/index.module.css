@@ -194,6 +194,195 @@
   margin-bottom: 0;
 }
 
+/* Additional License Header */
+.additionalLicenseHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 24px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.additionalLicenseHeader label {
+  font-family: var(--font-family-base);
+  font-style: normal;
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-base);
+  line-height: var(--text-line-base);
+  color: var(--clr-navy);
+  margin-bottom: 0;
+}
+
+.additionalLicenseSubtext {
+  font-family: var(--font-family-base);
+  font-style: normal;
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
+  color: var(--clr-slate-70);
+}
+
+.additionalLicenseFieldWrapper {
+  flex: 1 1 calc(100% - 60px);
+  min-width: 0;
+  width: auto;
+  margin-right: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.additionalLicenseFieldHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  max-width: fit-content;
+}
+
+.additionalLicenseFieldHeader label {
+  font-family: var(--font-family-base);
+  font-style: normal;
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
+  color: var(--clr-slate-70);
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.infoIcon {
+  width: 16px;
+  height: 16px;
+  fill: var(--clr-slate-70);
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.infoIcon:hover {
+  fill: var(--clr-navy);
+}
+
+.additionalLicenseFieldWrapper .filesContainer {
+  width: 100%;
+}
+
+.additionalLicenseItem {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 40px;
+  width: 100%;
+  margin-bottom: 10px;
+  padding-right: 32px;
+}
+
+.additionalLicenseItem > div:first-child {
+  flex: 1 1 calc(100% - 60px);
+  min-width: 0;
+  width: auto;
+  margin-right: 0;
+}
+
+.additionalLicenseItem > div:last-child {
+  flex: 0 0 auto;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 0;
+  margin-top: 28px;
+}
+
+.additionalLicenseItem > div:first-child > div {
+  width: 100%;
+}
+
+.hideLabel :global(.field > label) {
+  display: none !important;
+}
+
+.deleteLicenseButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-lg);
+  color: var(--clr-slate-70);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteLicenseButton:hover {
+  background: var(--surface-alert-soft);
+  color: var(--clr-alert);
+}
+
+.deleteLicenseButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.addLicenseButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 16px;
+  gap: 8px;
+  width: fit-content;
+  background: transparent;
+  border: 1px solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
+  color: var(--clr-navy);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.addLicenseButton:hover {
+  background: var(--surface-neutral);
+  border-color: var(--clr-navy);
+}
+
+@media (max-width: 768px) {
+  .additionalLicenseItem {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .additionalLicenseItem > div:first-child {
+    flex: 1 1 auto;
+    margin-right: 0;
+  }
+
+  .additionalLicenseItem > div:last-child {
+    width: 100%;
+    justify-content: flex-end;
+    padding-right: 0;
+    margin-top: 8px;
+  }
+
+  .additionalLicenseFieldHeader {
+    margin-bottom: 4px;
+  }
+
+  .additionalLicenseHeader {
+    margin-top: 16px;
+    margin-bottom: 12px;
+  }
+}
+
 .continueButton:hover,
 .continueButton:focus {
   background: var(--gradient-accent);
