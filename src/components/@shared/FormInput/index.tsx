@@ -106,6 +106,7 @@ export interface InputProps {
   multipleFilesMode?: boolean
   onAddFile?: (fileInfo: FileInfo) => void
   isAdditionalLicense?: boolean
+  onValidationLoadingChange?: (isLoading: boolean) => void
 }
 
 function checkError(form: any, field: FieldInputProps<any>) {

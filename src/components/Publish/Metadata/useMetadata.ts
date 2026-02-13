@@ -182,10 +182,11 @@ export default function useMetadata() {
       const remoteSource = await uploadFileItemToIPFS(fileItem)
       const remoteObject = getRemoteObjectFromFileItem(fileItem, remoteSource)
       const additionalFiles = getAdditionalFilesSnapshot()
+      const currentName = additionalFiles[index]?.name
 
       additionalFiles[index] = {
         ...additionalFiles[index],
-        name: fileItem.name,
+        name: currentName?.trim() ? currentName : fileItem.name,
         uploadedDocument: remoteObject
       }
       await setAdditionalFiles(additionalFiles)
@@ -279,7 +280,7 @@ export default function useMetadata() {
     additionalFiles[index] = {
       ...currentAdditionalFile,
       sourceType,
-      name: '',
+      name: currentAdditionalFile?.name || '',
       url: sourceType === 'URL' ? [createEmptyUrlFileInfo()] : [],
       uploadedDocument:
         sourceType === 'Upload file'

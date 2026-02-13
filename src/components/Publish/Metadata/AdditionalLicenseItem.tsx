@@ -1,4 +1,4 @@
-import { ChangeEvent, ReactElement } from 'react'
+import { ChangeEvent, ReactElement, useState } from 'react'
 import { Field } from 'formik'
 import Input from '@shared/FormInput'
 import { FileUpload } from '@components/@shared/FileUpload'
@@ -41,6 +41,9 @@ export default function AdditionalLicenseItem({
   onSourceChange,
   onUpload
 }: AdditionalLicenseItemProps): ReactElement {
+  const [isUrlValidating, setIsUrlValidating] = useState(false)
+  const isNameDisabled = isUploading || isUrlValidating
+
   return (
     <div className={styles.additionalLicenseItem}>
       <div className={styles.additionalLicenseFieldWrapper}>
@@ -75,51 +78,56 @@ export default function AdditionalLicenseItem({
             sortOptions={false}
             required
             onChange={(event: ChangeEvent<HTMLSelectElement>) => {
+              setIsUrlValidating(false)
               onSourceChange(event.target.value as AdditionalLicenseSourceType)
             }}
           />
         </div>
 
-        {additionalFile.sourceType === 'URL' ? (
+        <div className={styles.licenseUrlContainer}>
           <Field
-            {...getFieldContent('license', content.metadata.fields)}
             component={Input}
-            name={`metadata.additionalLicenseFiles[${index}].url`}
-            hideLabel
-            isAdditionalLicense
-            errorClassName={styles.additionalLicenseError}
+            name={`metadata.additionalLicenseFiles[${index}].name`}
+            label={LICENSE_UI.fileNameLabel}
+            placeholder="e.g. terms.pdf"
+            required
+            disabled={isNameDisabled}
           />
-        ) : (
-          <div className={styles.licenseUrlContainer}>
+
+          {additionalFile.sourceType === 'URL' ? (
             <Field
+              {...getFieldContent('license', content.metadata.fields)}
               component={Input}
-              name={`metadata.additionalLicenseFiles[${index}].name`}
-              label={LICENSE_UI.fileNameLabel}
-              placeholder="e.g. terms.pdf"
-              required
-              disabled={isUploading}
+              name={`metadata.additionalLicenseFiles[${index}].url`}
+              hideLabel
+              isAdditionalLicense
+              errorClassName={styles.additionalLicenseError}
+              onValidationLoadingChange={setIsUrlValidating}
             />
-            <Label
-              htmlFor={`additional-file-${index}`}
-              className={styles.labelNoMargin}
-            >
-              {LICENSE_UI.fileLabel} <span className={styles.required}>*</span>
-            </Label>
-            <FileUpload
-              fileName={additionalFile.uploadedDocument?.name}
-              fileSize={
-                additionalFile.uploadedDocument?.additionalInformation?.size as
-                  | number
-                  | undefined
-              }
-              fileType={additionalFile.uploadedDocument?.fileType}
-              buttonLabel="Upload File"
-              setFileItem={onUpload}
-              buttonStyle="accent"
-              disabled={!!additionalFile.uploadedDocument}
-            />
-          </div>
-        )}
+          ) : (
+            <>
+              <Label
+                htmlFor={`additional-file-${index}`}
+                className={styles.labelNoMargin}
+              >
+                {LICENSE_UI.fileLabel}{' '}
+                <span className={styles.required}>*</span>
+              </Label>
+              <FileUpload
+                fileName={additionalFile.uploadedDocument?.name}
+                fileSize={
+                  additionalFile.uploadedDocument?.additionalInformation
+                    ?.size as number | undefined
+                }
+                fileType={additionalFile.uploadedDocument?.fileType}
+                buttonLabel="Upload File"
+                setFileItem={onUpload}
+                buttonStyle="accent"
+                disabled={!!additionalFile.uploadedDocument}
+              />
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

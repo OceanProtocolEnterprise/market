@@ -28,7 +28,7 @@ type FilesInputProps = InputProps & {
 }
 
 export default function FilesInput(props: FilesInputProps): ReactElement {
-  const { form } = props
+  const { form, onValidationLoadingChange, ...inputProps } = props
   const values = form?.values
   const setFieldValue = form?.setFieldValue
   const [field, meta, helpers] = useField(props.name)
@@ -56,6 +56,7 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
 
     try {
       setIsLoading(true)
+      onValidationLoadingChange?.(true)
 
       if (isUrl(url) && isGoogleUrl(url)) {
         throw Error(
@@ -128,6 +129,7 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
       LoggerInstance.error(error.message)
     } finally {
       setIsLoading(false)
+      onValidationLoadingChange?.(false)
     }
   }
 
@@ -171,7 +173,7 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
         <>
           {props.methods && storageType === 'url' ? (
             <MethodInput
-              {...props}
+              {...inputProps}
               name={`${field.name}[0].url`}
               isLoading={isLoading}
               checkUrl={true}
@@ -182,7 +184,7 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
           ) : (
             <UrlInput
               submitText="Validate"
-              {...props}
+              {...inputProps}
               name={`${field.name}[0].url`}
               isLoading={isLoading}
               hideButton={
