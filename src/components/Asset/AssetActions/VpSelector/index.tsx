@@ -78,22 +78,35 @@ function VpField(props: VpFieldProps): ReactElement {
               ))}
           </div>
           <div className={styles.fieldValues}>
-            <div>
+            <div className={styles.valueWrapper}>
               <DataView
                 data={credential?.parsedDocument?.id}
                 maxLength={maxLength}
               />
+              <div className={styles.fullValueTooltip}>
+                {credential?.parsedDocument?.id || '—'}
+              </div>
             </div>
+
             {Object.keys(credential?.parsedDocument?.credentialSubject || {})
               .sort((key1, key2) => key1.localeCompare(key2))
-              .map((key) => (
-                <div key={key}>
-                  <DataView
-                    data={credential?.parsedDocument?.credentialSubject?.[key]}
-                    maxLength={maxLength}
-                  />
-                </div>
-              ))}
+              .map((key) => {
+                const value =
+                  credential?.parsedDocument?.credentialSubject?.[key]
+                const displayValue =
+                  typeof value === 'string'
+                    ? value
+                    : JSON.stringify(value, null, 2)
+
+                return (
+                  <div key={key} className={styles.valueWrapper}>
+                    <DataView data={value} maxLength={maxLength} />
+                    <div className={styles.fullValueTooltip}>
+                      {displayValue}
+                    </div>
+                  </div>
+                )
+              })}
           </div>
         </div>
       </div>
