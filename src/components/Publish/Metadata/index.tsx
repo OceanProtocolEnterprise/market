@@ -186,9 +186,7 @@ export default function MetadataFields(): ReactElement {
 
           {primaryLicenseReady && (
             <div className={styles.additionalLicenseHeader}>
-              <Label htmlFor="additionalLicenseFiles">
-                Additional License Files
-              </Label>
+              <Label htmlFor="additionalLicenseFiles">Additional Files</Label>
               <span className={styles.additionalLicenseSubtext}>
                 {additionalLicenseSubtext}
               </span>
@@ -207,7 +205,7 @@ export default function MetadataFields(): ReactElement {
                       <Label
                         htmlFor={`metadata.additionalLicenseFiles[${index}]`}
                       >
-                        Additional License File {index + 1}
+                        Additional File {index + 1}
                       </Label>
                       <Tooltip
                         content={getAdditionalLicenseTooltipText(
@@ -297,7 +295,7 @@ export default function MetadataFields(): ReactElement {
                 className={styles.addLicenseButton}
                 disabled={!primaryLicenseReady}
               >
-                Add Additional License
+                Add Additional File
               </Button>
             </div>
           )}
