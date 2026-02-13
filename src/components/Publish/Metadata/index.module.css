@@ -106,7 +106,7 @@
   width: 100%;
   height: var(--field-height);
   border: 1px solid var(--border-navy-soft);
-  filter: drop-shadow(var(--shadow-md));
+  box-shadow: var(--shadow-md);
   border-radius: var(--radius-xl);
   border-top-right-radius: var(--radius-xl);
   border-bottom-right-radius: var(--radius-xl);
