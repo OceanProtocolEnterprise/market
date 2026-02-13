@@ -67,7 +67,7 @@ export default function Details(): ReactElement {
           />
         </li>
         <li className={styles.actions}>
-          <div title="Connected provider" className={styles.walletInfo}>
+          <div className={styles.walletInfo}>
             <span className={styles.walletLogoWrap}>
               {/* <img className={styles.walletLogo} src={activeConnector?.logo} /> */}
               {activeConnector?.name}

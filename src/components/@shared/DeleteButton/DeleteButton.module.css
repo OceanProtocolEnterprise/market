@@ -36,3 +36,20 @@ body .deleteButton svg {
   fill: currentColor;
   margin: 0;
 }
+
+.loadingContent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.loadingSpinner {
+  margin: 0;
+}
+
+.loadingSpinner span {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  border-width: 2px;
+}

@@ -4,7 +4,11 @@ import { NftMetadata } from '@utils/nft'
 import { ReactElement } from 'react'
 import { License } from 'src/@types/ddo/License'
 import { Option } from 'src/@types/ddo/Option'
+import { RemoteObject } from 'src/@types/ddo/RemoteObject'
 import { Compute } from 'src/@types/ddo/Service'
+
+export type AdditionalLicenseSourceType = 'URL' | 'Upload file'
+export type LicenseTypeSelection = '' | 'URL' | 'Upload license file'
 
 export interface FormPublishService {
   files: FileInfo[]
@@ -32,6 +36,19 @@ export interface FormAdditionalDdo {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any
   type: string
+}
+
+export interface FormUrlFileInfo {
+  url: string
+  type: 'url'
+  valid?: boolean
+}
+
+export interface FormAdditionalLicenseFile {
+  name: string
+  sourceType: AdditionalLicenseSourceType
+  url: FormUrlFileInfo[]
+  uploadedDocument?: RemoteObject
 }
 
 export interface FormPublishData {
@@ -62,10 +79,10 @@ export interface FormPublishData {
       usesConsumerParameters?: boolean
       consumerParameters?: FormConsumerParameter[]
     }
-    licenseTypeSelection?: string
-    licenseUrl: FileInfo[]
-    uploadedLicense: License
-    additionalLicense?: { url: string; type: string; valid?: boolean }[]
+    licenseTypeSelection?: LicenseTypeSelection
+    licenseUrl: FormUrlFileInfo[]
+    uploadedLicense?: License
+    additionalLicenseFiles: FormAdditionalLicenseFile[]
   }
   services: FormPublishService[]
   pricing: PricePublishOptions
