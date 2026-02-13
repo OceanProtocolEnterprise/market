@@ -33,6 +33,8 @@ export default function MetadataFields(): ReactElement {
     handleAdditionalFileSourceChange,
     handleResetPrimaryUploadedLicense
   } = useMetadata()
+  const primaryUploadedLicenseDocument =
+    values.metadata.uploadedLicense?.licenseDocuments?.[0]
 
   return (
     <>
@@ -154,19 +156,14 @@ export default function MetadataFields(): ReactElement {
               <FileUpload
                 fileName={values.metadata.uploadedLicense?.name}
                 fileSize={
-                  values.metadata.uploadedLicense?.licenseDocuments?.[0]
-                    ?.additionalInformation?.size as number | undefined
+                  primaryUploadedLicenseDocument?.additionalInformation
+                    ?.size as number | undefined
                 }
-                fileType={
-                  values.metadata.uploadedLicense?.licenseDocuments?.[0]
-                    ?.fileType
-                }
+                fileType={primaryUploadedLicenseDocument?.fileType}
                 buttonLabel="Upload File"
                 setFileItem={handleLicenseFileUpload}
                 buttonStyle="accent"
-                disabled={
-                  !!values.metadata.uploadedLicense?.licenseDocuments?.[0]
-                }
+                disabled={!!primaryUploadedLicenseDocument}
                 onReset={handleResetPrimaryUploadedLicense}
               />
             </div>

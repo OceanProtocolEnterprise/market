@@ -23,7 +23,11 @@ import {
   isPrimaryLicenseReady,
   reindexBooleanMapAfterDeletion
 } from '../_license'
-import { AdditionalLicenseSourceType, FormPublishData } from '../_types'
+import {
+  AdditionalLicenseSourceType,
+  FormAdditionalLicenseFile,
+  FormPublishData
+} from '../_types'
 
 const assetTypeOptionsTitles = getFieldContent(
   'type',
@@ -40,6 +44,21 @@ export default function useMetadata() {
     Record<number, boolean>
   >({})
   const [, meta] = useField('metadata.dockerImageCustomChecksum')
+
+  function getAdditionalFilesSnapshot(): FormAdditionalLicenseFile[] {
+    return [...(values.metadata.additionalLicenseFiles || [])]
+  }
+
+  async function setAdditionalFiles(
+    additionalFiles: FormAdditionalLicenseFile[],
+    shouldValidate = true
+  ) {
+    await setFieldValue(
+      'metadata.additionalLicenseFiles',
+      additionalFiles,
+      shouldValidate
+    )
+  }
 
   const assetTypeOptions: BoxSelectionOption[] = useMemo(
     () => [
@@ -162,28 +181,24 @@ export default function useMetadata() {
     try {
       const remoteSource = await uploadFileItemToIPFS(fileItem)
       const remoteObject = getRemoteObjectFromFileItem(fileItem, remoteSource)
-      const additionalFiles = [
-        ...(values.metadata.additionalLicenseFiles || [])
-      ]
+      const additionalFiles = getAdditionalFilesSnapshot()
 
       additionalFiles[index] = {
         ...additionalFiles[index],
         name: fileItem.name,
         uploadedDocument: remoteObject
       }
-      await setFieldValue('metadata.additionalLicenseFiles', additionalFiles)
+      await setAdditionalFiles(additionalFiles)
     } catch (error) {
       toast.error('Could not upload file')
       LoggerInstance.error(error)
 
-      const additionalFiles = [
-        ...(values.metadata.additionalLicenseFiles || [])
-      ]
+      const additionalFiles = getAdditionalFilesSnapshot()
       additionalFiles[index] = {
         ...additionalFiles[index],
         uploadedDocument: undefined
       }
-      await setFieldValue('metadata.additionalLicenseFiles', additionalFiles)
+      await setAdditionalFiles(additionalFiles)
       onError()
     } finally {
       setAdditionalFilesUploading((prev) => {
@@ -197,14 +212,10 @@ export default function useMetadata() {
   async function handleNewAdditionalFile() {
     if (!isPrimaryLicenseReady(values.metadata)) return
 
-    const additionalFiles = [...(values.metadata.additionalLicenseFiles || [])]
+    const additionalFiles = getAdditionalFilesSnapshot()
     const newIndex = additionalFiles.length
     additionalFiles.push(createEmptyAdditionalLicenseFile())
-    await setFieldValue(
-      'metadata.additionalLicenseFiles',
-      additionalFiles,
-      false
-    )
+    await setAdditionalFiles(additionalFiles, false)
 
     setFieldTouched(
       `metadata.additionalLicenseFiles[${newIndex}].name`,
@@ -235,14 +246,12 @@ export default function useMetadata() {
     }))
 
     try {
-      const additionalFiles = [
-        ...(values.metadata.additionalLicenseFiles || [])
-      ]
+      const additionalFiles = getAdditionalFilesSnapshot()
       const additionalFile = additionalFiles[index]
 
       await unpinUploadedDocument(additionalFile?.uploadedDocument)
       additionalFiles.splice(index, 1)
-      await setFieldValue('metadata.additionalLicenseFiles', additionalFiles)
+      await setAdditionalFiles(additionalFiles)
       setAdditionalFilesUploading((prev) =>
         reindexBooleanMapAfterDeletion(prev, index)
       )
@@ -257,7 +266,7 @@ export default function useMetadata() {
     index: number,
     sourceType: AdditionalLicenseSourceType
   ) {
-    const additionalFiles = [...(values.metadata.additionalLicenseFiles || [])]
+    const additionalFiles = getAdditionalFilesSnapshot()
     const currentAdditionalFile = additionalFiles[index]
 
     if (
@@ -278,7 +287,7 @@ export default function useMetadata() {
           : undefined
     }
 
-    await setFieldValue('metadata.additionalLicenseFiles', additionalFiles)
+    await setAdditionalFiles(additionalFiles)
   }
 
   async function handleResetPrimaryUploadedLicense() {

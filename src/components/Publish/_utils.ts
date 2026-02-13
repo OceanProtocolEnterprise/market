@@ -74,6 +74,7 @@ import { CancelToken } from 'axios'
 import { ComputeEditForm } from '@components/Asset/Edit/_types'
 import { getOceanConfig } from '@utils/ocean'
 import { getDummySigner, getTokenInfo } from '@utils/wallet'
+import { inferNameFromUrl } from './_license'
 
 function cleanupVpPolicies(value: any): void {
   if (!value.vp_policies || value.vp_policies.length === 0) {
@@ -505,10 +506,18 @@ function fileInfoToLicenseDocument(
   fileInfo: FileInfo,
   name: string
 ): RemoteObject {
+  const fileSize = Number(fileInfo?.contentLength)
+  const hasValidFileSize = Number.isFinite(fileSize) && fileSize >= 0
+
   return {
     name,
     fileType: fileInfo?.contentType || '',
     sha256: fileInfo?.checksum || '',
+    ...(hasValidFileSize && {
+      additionalInformation: {
+        size: fileSize
+      }
+    }),
     mirrors: [
       {
         type: fileInfo?.type || 'url',
@@ -583,28 +592,37 @@ export async function transformPublishFormToDdo(
   )
     .map((additionalFile) => {
       const additionalFileName = additionalFile?.name?.trim()
-      if (!additionalFileName) return null
 
       if (additionalFile.sourceType === 'Upload file') {
         const { uploadedDocument } = additionalFile
         if (!uploadedDocument) return null
+        const resolvedUploadedFileName =
+          additionalFileName || uploadedDocument.name?.trim()
+        if (!resolvedUploadedFileName) return null
 
-        return {
+        const uploadedDocumentWithName = {
           ...uploadedDocument,
-          name: additionalFileName,
+          name: resolvedUploadedFileName,
           ...(uploadedDocument.displayName && {
             displayName: {
               ...uploadedDocument.displayName,
-              '@value': additionalFileName
+              '@value': resolvedUploadedFileName
             }
           })
         }
+        return uploadedDocumentWithName
       }
 
       const fileInfo = additionalFile.url?.[0]
-      if (!fileInfo) return null
+      if (!fileInfo?.url) return null
+      const resolvedUrlFileName =
+        additionalFileName || inferNameFromUrl(fileInfo.url)
 
-      return fileInfoToLicenseDocument(fileInfo, additionalFileName)
+      const urlDocument = fileInfoToLicenseDocument(
+        fileInfo,
+        resolvedUrlFileName
+      )
+      return urlDocument
     })
     .filter(Boolean) as RemoteObject[]
 
