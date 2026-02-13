@@ -1,4 +1,11 @@
-import { ReactElement, useState, useEffect, useMemo } from 'react'
+import {
+  ReactElement,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef
+} from 'react'
 import Markdown from '@shared/Markdown'
 import MetaFull from './MetaFull'
 import MetaSecondary from './MetaSecondary'
@@ -25,6 +32,7 @@ import EditIcon from '@images/edit.svg'
 import ComputeJobs from '@components/@shared/ComputeJobs'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { toast } from 'react-toastify'
 
 export default function AssetContent({
   asset
@@ -62,14 +70,55 @@ export default function AssetContent({
     if (Array.isArray(value) && value.length > 0) return value[0]
     return null
   }, [router.query.rerunJob])
+  const processedRerunJobRef = useRef<string | null>(null)
+
+  const clearRerunQueryFromUrl = useCallback(() => {
+    if (!router.isReady) return
+
+    const [pathname, search = ''] = router.asPath.split('?')
+    if (!search) return
+
+    const params = new URLSearchParams(search)
+    if (!params.has('rerunJob')) return
+
+    params.delete('rerunJob')
+    const nextUrl = params.toString()
+      ? `${pathname}?${params.toString()}`
+      : pathname
+    router
+      .replace(nextUrl, undefined, { shallow: true, scroll: false })
+      .catch((error) => {
+        console.error('Failed to clear rerun query param', error)
+      })
+  }, [router])
 
   useEffect(() => {
     if (!router.isReady) return
-    if (selectedService !== undefined) return
     if (!rerunJobQuery) return
-    if (computeServiceIndex === undefined || computeServiceIndex < 0) return
+    if (processedRerunJobRef.current === rerunJobQuery) return
+
+    processedRerunJobRef.current = rerunJobQuery
+
+    if (Number(asset?.indexedMetadata?.nft?.state) !== 0) {
+      toast.error('Algorithm is not available.')
+      clearRerunQueryFromUrl()
+      return
+    }
+
+    if (computeServiceIndex === undefined || computeServiceIndex < 0) {
+      toast.error('Algorithm is not available.')
+      clearRerunQueryFromUrl()
+      return
+    }
+
     setSelectedService(computeServiceIndex)
-  }, [router.isReady, rerunJobQuery, computeServiceIndex, selectedService])
+  }, [
+    router.isReady,
+    rerunJobQuery,
+    computeServiceIndex,
+    asset?.indexedMetadata?.nft?.state,
+    clearRerunQueryFromUrl
+  ])
 
   // async function handleGeneratePdf(id: string, tx: string) {
   //   try {

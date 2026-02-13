@@ -40,6 +40,12 @@ import {
   getComputeRerunStorageKey,
   isComputeRerunConfig
 } from '@utils/computeRerun'
+import { getAsset } from '@utils/aquarius'
+import { toast } from 'react-toastify'
+
+function isNftActive(state: unknown): boolean {
+  return Number(state) === 0
+}
 
 export default function AssetActions({
   asset,
@@ -273,27 +279,78 @@ export default function AssetActions({
     if (processedRerunJobRef.current === rerunJobId) return
 
     processedRerunJobRef.current = rerunJobId
+    let cancelled = false
 
-    try {
-      const cached = localStorage.getItem(getComputeRerunStorageKey(rerunJobId))
-      if (cached) {
+    async function validateAndApplyRerun() {
+      console.log('balidate')
+      try {
+        const key = getComputeRerunStorageKey(rerunJobId)
+        const cached = localStorage.getItem(key)
+        if (!cached) return
+
         const parsed = JSON.parse(cached) as unknown
-        if (isComputeRerunConfig(parsed)) {
-          const algorithmDidMatchesCurrentAsset =
-            parsed.algorithmDid.toLowerCase() === asset.id.toLowerCase()
-          if (algorithmDidMatchesCurrentAsset) {
-            setRerunConfig(parsed)
-            localStorage.removeItem(getComputeRerunStorageKey(rerunJobId))
+        if (!isComputeRerunConfig(parsed)) return
+
+        const algorithmDidMatchesCurrentAsset =
+          parsed.algorithmDid.toLowerCase() === asset.id.toLowerCase()
+        if (!algorithmDidMatchesCurrentAsset) {
+          toast.error('Algorithm is not available.')
+          return
+        }
+
+        const algorithmAsset = await getAsset(
+          parsed.algorithmDid,
+          newCancelToken()
+        )
+        if (
+          !algorithmAsset ||
+          !isNftActive(algorithmAsset.indexedMetadata?.nft?.state)
+        ) {
+          toast.error('Algorithm is not available.')
+          return
+        }
+
+        const datasetDids = parsed.datasets.map((dataset) => dataset.did)
+        if (datasetDids.length > 0) {
+          const fetchedDatasets = await Promise.all(
+            datasetDids.map((did) => getAsset(did, newCancelToken()))
+          )
+          if (cancelled) return
+
+          const hasUnavailableDataset = fetchedDatasets.some(
+            (dataset) =>
+              !dataset || !isNftActive(dataset.indexedMetadata?.nft?.state)
+          )
+          if (hasUnavailableDataset) {
+            toast.error('One or more datasets are not available.')
+            return
           }
         }
+
+        setRerunConfig(parsed)
+        localStorage.removeItem(key)
+      } catch (error) {
+        console.error('Failed to validate compute rerun payload', error)
       }
-    } catch (error) {
-      console.error('Failed to parse compute rerun payload', error)
+
+      if (cancelled) return
+      setIsComputePopupOpen(true)
+      clearRerunQueryFromUrl()
     }
 
-    setIsComputePopupOpen(true)
-    clearRerunQueryFromUrl()
-  }, [router.isReady, rerunJobId, isCompute, asset.id, clearRerunQueryFromUrl])
+    validateAndApplyRerun()
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    router.isReady,
+    rerunJobId,
+    isCompute,
+    asset.id,
+    clearRerunQueryFromUrl,
+    newCancelToken
+  ])
 
   function resetCacheWallet() {
     ssiWalletCache.clearCredentials()
