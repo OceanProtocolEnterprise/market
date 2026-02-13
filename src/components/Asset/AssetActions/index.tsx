@@ -107,11 +107,11 @@ export default function AssetActions({
   const isCompute = service.type === 'compute'
   const rerunJobId = useMemo(() => {
     if (!router.isReady) return null
-    const value = router.query.rerunJob
+    const value = router.query.rerunJob ?? router.query.rerun
     if (typeof value === 'string') return value
     if (Array.isArray(value) && value.length > 0) return value[0]
     return null
-  }, [router.isReady, router.query.rerunJob])
+  }, [router.isReady, router.query.rerunJob, router.query.rerun])
 
   // Get and set file info
   useEffect(() => {
@@ -261,9 +261,11 @@ export default function AssetActions({
     if (!search) return
 
     const params = new URLSearchParams(search)
-    if (!params.has('rerunJob')) return
+    const hasRerunParam = params.has('rerunJob') || params.has('rerun')
+    if (!hasRerunParam) return
 
     params.delete('rerunJob')
+    params.delete('rerun')
     const nextUrl = params.toString()
       ? `${pathname}?${params.toString()}`
       : pathname
@@ -275,6 +277,12 @@ export default function AssetActions({
   }, [router])
 
   useEffect(() => {
+    if (rerunJobId) return
+    processedRerunJobRef.current = null
+    setRerunConfig(undefined)
+  }, [rerunJobId])
+
+  useEffect(() => {
     if (!router.isReady || !isCompute || !rerunJobId) return
     if (processedRerunJobRef.current === rerunJobId) return
 
@@ -282,14 +290,19 @@ export default function AssetActions({
     let cancelled = false
 
     async function validateAndApplyRerun() {
-      console.log('balidate')
       try {
         const key = getComputeRerunStorageKey(rerunJobId)
         const cached = localStorage.getItem(key)
-        if (!cached) return
+        if (!cached) {
+          clearRerunQueryFromUrl()
+          return
+        }
 
         const parsed = JSON.parse(cached) as unknown
-        if (!isComputeRerunConfig(parsed)) return
+        if (!isComputeRerunConfig(parsed)) {
+          clearRerunQueryFromUrl()
+          return
+        }
 
         const algorithmDidMatchesCurrentAsset =
           parsed.algorithmDid.toLowerCase() === asset.id.toLowerCase()

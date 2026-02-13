@@ -65,11 +65,11 @@ export default function AssetContent({
     (service) => service.type === 'compute'
   )
   const rerunJobQuery = useMemo(() => {
-    const value = router.query.rerunJob
+    const value = router.query.rerunJob ?? router.query.rerun
     if (typeof value === 'string') return value
     if (Array.isArray(value) && value.length > 0) return value[0]
     return null
-  }, [router.query.rerunJob])
+  }, [router.query.rerunJob, router.query.rerun])
   const processedRerunJobRef = useRef<string | null>(null)
 
   const clearRerunQueryFromUrl = useCallback(() => {
@@ -79,9 +79,11 @@ export default function AssetContent({
     if (!search) return
 
     const params = new URLSearchParams(search)
-    if (!params.has('rerunJob')) return
+    const hasRerunParam = params.has('rerunJob') || params.has('rerun')
+    if (!hasRerunParam) return
 
     params.delete('rerunJob')
+    params.delete('rerun')
     const nextUrl = params.toString()
       ? `${pathname}?${params.toString()}`
       : pathname
@@ -91,6 +93,11 @@ export default function AssetContent({
         console.error('Failed to clear rerun query param', error)
       })
   }, [router])
+
+  useEffect(() => {
+    if (rerunJobQuery) return
+    processedRerunJobRef.current = null
+  }, [rerunJobQuery])
 
   useEffect(() => {
     if (!router.isReady) return
