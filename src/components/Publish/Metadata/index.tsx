@@ -1,21 +1,14 @@
 import Input from '@shared/FormInput'
 import { Field } from 'formik'
-import { ChangeEvent, ReactElement } from 'react'
+import { ReactElement } from 'react'
 import content from '../../../../content/publish/form.json'
-import { AdditionalLicenseSourceType } from '../_types'
 import { getFieldContent } from '@utils/form'
 import { FileUpload } from '@components/@shared/FileUpload'
 import Label from '@components/@shared/FormInput/Label'
-import DeleteButton from '@shared/DeleteButton/DeleteButton'
 import Button from '@shared/atoms/Button'
-import Tooltip from '@shared/atoms/Tooltip'
-import InfoIcon from '@images/info.svg'
 import useMetadata from './useMetadata'
-import {
-  getAdditionalFileLabel,
-  getAdditionalLicenseTooltipText,
-  LICENSE_UI
-} from '../_license'
+import { LICENSE_UI } from '../_license'
+import AdditionalLicenseItem from './AdditionalLicenseItem'
 
 import SectionContainer from '../../@shared/SectionContainer/SectionContainer'
 import styles from './index.module.css'
@@ -192,96 +185,21 @@ export default function MetadataFields(): ReactElement {
 
           {primaryLicenseReady &&
             additionalFiles.map((additionalFile, index) => (
-              <div
+              <AdditionalLicenseItem
                 key={`additional-file-${index}`}
-                className={styles.additionalLicenseItem}
-              >
-                <div className={styles.additionalLicenseFieldWrapper}>
-                  <div className={styles.additionalLicenseFieldHeader}>
-                    <div className={styles.additionalLicenseTitle}>
-                      <Label
-                        htmlFor={`metadata.additionalLicenseFiles[${index}]`}
-                      >
-                        {getAdditionalFileLabel(index)}
-                      </Label>
-                      <Tooltip
-                        content={getAdditionalLicenseTooltipText(
-                          additionalFile.sourceType
-                        )}
-                      >
-                        <InfoIcon className={styles.infoIcon} />
-                      </Tooltip>
-                    </div>
-                    <DeleteButton
-                      onClick={() => handleDeleteAdditionalFile(index)}
-                      loading={!!additionalFilesDeleting[index]}
-                      loadingText="Deleting..."
-                      disabled={!!additionalFilesDeleting[index]}
-                    />
-                  </div>
-
-                  <div className={styles.additionalFileSourceWrapper}>
-                    <Field
-                      component={Input}
-                      name={`metadata.additionalLicenseFiles[${index}].sourceType`}
-                      label={LICENSE_UI.sourceLabel}
-                      type="select"
-                      options={additionalFileSourceOptions}
-                      sortOptions={false}
-                      required
-                      onChange={(event: ChangeEvent<HTMLSelectElement>) => {
-                        handleAdditionalFileSourceChange(
-                          index,
-                          event.target.value as AdditionalLicenseSourceType
-                        )
-                      }}
-                    />
-                  </div>
-
-                  {additionalFile.sourceType === 'URL' ? (
-                    <Field
-                      {...getFieldContent('license', content.metadata.fields)}
-                      component={Input}
-                      name={`metadata.additionalLicenseFiles[${index}].url`}
-                      hideLabel
-                      isAdditionalLicense
-                      errorClassName={styles.additionalLicenseError}
-                    />
-                  ) : (
-                    <div className={styles.licenseUrlContainer}>
-                      <Field
-                        component={Input}
-                        name={`metadata.additionalLicenseFiles[${index}].name`}
-                        label={LICENSE_UI.fileNameLabel}
-                        placeholder="e.g. terms.pdf"
-                        required
-                        disabled={!!additionalFilesUploading[index]}
-                      />
-                      <Label
-                        htmlFor={`additional-file-${index}`}
-                        className={styles.labelNoMargin}
-                      >
-                        {LICENSE_UI.fileLabel}{' '}
-                        <span className={styles.required}>*</span>
-                      </Label>
-                      <FileUpload
-                        fileName={additionalFile.uploadedDocument?.name}
-                        fileSize={
-                          additionalFile.uploadedDocument?.additionalInformation
-                            ?.size as number | undefined
-                        }
-                        fileType={additionalFile.uploadedDocument?.fileType}
-                        buttonLabel="Upload File"
-                        setFileItem={(fileItem, onError) =>
-                          handleAdditionalFileUpload(index, fileItem, onError)
-                        }
-                        buttonStyle="accent"
-                        disabled={!!additionalFile.uploadedDocument}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
+                index={index}
+                additionalFile={additionalFile}
+                isUploading={!!additionalFilesUploading[index]}
+                isDeleting={!!additionalFilesDeleting[index]}
+                additionalFileSourceOptions={additionalFileSourceOptions}
+                onDelete={() => handleDeleteAdditionalFile(index)}
+                onSourceChange={(sourceType) =>
+                  handleAdditionalFileSourceChange(index, sourceType)
+                }
+                onUpload={(fileItem, onError) =>
+                  handleAdditionalFileUpload(index, fileItem, onError)
+                }
+              />
             ))}
 
           {primaryLicenseReady && (
