@@ -279,7 +279,6 @@ export default function AssetActions({
   useEffect(() => {
     if (rerunJobId) return
     processedRerunJobRef.current = null
-    setRerunConfig(undefined)
   }, [rerunJobId])
 
   useEffect(() => {
@@ -381,6 +380,7 @@ export default function AssetActions({
 
   const closeComputePopup = () => {
     resetCacheWallet()
+    setRerunConfig(undefined)
     setIsComputePopupOpen(false)
     clearRerunQueryFromUrl()
   }
