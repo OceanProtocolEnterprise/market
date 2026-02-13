@@ -10,6 +10,15 @@ export const additionalLicenseSourceOptions: AdditionalLicenseSourceType[] = [
   'Upload file'
 ]
 
+export const LICENSE_UI = {
+  additionalFilesHeader: 'Additional Files',
+  additionalFilePrefix: 'Additional File',
+  addAdditionalFileButton: 'Add Additional File',
+  sourceLabel: 'Source',
+  fileNameLabel: 'File Name',
+  fileLabel: 'File'
+} as const
+
 const ADDITIONAL_LICENSE_TEXTS = {
   url: 'Optional extra license documents (in addition to the primary license). Add additional license URLs and validate them.',
   upload:
@@ -99,6 +108,10 @@ export function getAdditionalLicenseTooltipText(
   }
 
   return ADDITIONAL_LICENSE_TEXTS.url
+}
+
+export function getAdditionalFileLabel(index: number): string {
+  return `${LICENSE_UI.additionalFilePrefix} ${index + 1}`
 }
 
 export function reindexBooleanMapAfterDeletion(

@@ -11,7 +11,11 @@ import Button from '@shared/atoms/Button'
 import Tooltip from '@shared/atoms/Tooltip'
 import InfoIcon from '@images/info.svg'
 import useMetadata from './useMetadata'
-import { getAdditionalLicenseTooltipText } from '../_license'
+import {
+  getAdditionalFileLabel,
+  getAdditionalLicenseTooltipText,
+  LICENSE_UI
+} from '../_license'
 
 import SectionContainer from '../../@shared/SectionContainer/SectionContainer'
 import styles from './index.module.css'
@@ -186,7 +190,9 @@ export default function MetadataFields(): ReactElement {
 
           {primaryLicenseReady && (
             <div className={styles.additionalLicenseHeader}>
-              <Label htmlFor="additionalLicenseFiles">Additional Files</Label>
+              <Label htmlFor="additionalLicenseFiles">
+                {LICENSE_UI.additionalFilesHeader}
+              </Label>
               <span className={styles.additionalLicenseSubtext}>
                 {additionalLicenseSubtext}
               </span>
@@ -205,7 +211,7 @@ export default function MetadataFields(): ReactElement {
                       <Label
                         htmlFor={`metadata.additionalLicenseFiles[${index}]`}
                       >
-                        Additional File {index + 1}
+                        {getAdditionalFileLabel(index)}
                       </Label>
                       <Tooltip
                         content={getAdditionalLicenseTooltipText(
@@ -227,7 +233,7 @@ export default function MetadataFields(): ReactElement {
                     <Field
                       component={Input}
                       name={`metadata.additionalLicenseFiles[${index}].sourceType`}
-                      label="Source"
+                      label={LICENSE_UI.sourceLabel}
                       type="select"
                       options={additionalFileSourceOptions}
                       sortOptions={false}
@@ -255,7 +261,7 @@ export default function MetadataFields(): ReactElement {
                       <Field
                         component={Input}
                         name={`metadata.additionalLicenseFiles[${index}].name`}
-                        label="File Name"
+                        label={LICENSE_UI.fileNameLabel}
                         placeholder="e.g. terms.pdf"
                         required
                         disabled={!!additionalFilesUploading[index]}
@@ -264,7 +270,8 @@ export default function MetadataFields(): ReactElement {
                         htmlFor={`additional-file-${index}`}
                         className={styles.labelNoMargin}
                       >
-                        File <span className={styles.required}>*</span>
+                        {LICENSE_UI.fileLabel}{' '}
+                        <span className={styles.required}>*</span>
                       </Label>
                       <FileUpload
                         fileName={additionalFile.uploadedDocument?.name}
@@ -295,7 +302,7 @@ export default function MetadataFields(): ReactElement {
                 className={styles.addLicenseButton}
                 disabled={!primaryLicenseReady}
               >
-                Add Additional File
+                {LICENSE_UI.addAdditionalFileButton}
               </Button>
             </div>
           )}
