@@ -186,7 +186,7 @@ export default function MetadataFields(): ReactElement {
           {primaryLicenseReady &&
             additionalFiles.map((additionalFile, index) => (
               <AdditionalLicenseItem
-                key={`additional-file-${index}`}
+                key={additionalFile.id}
                 index={index}
                 additionalFile={additionalFile}
                 isUploading={!!additionalFilesUploading[index]}

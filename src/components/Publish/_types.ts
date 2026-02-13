@@ -45,6 +45,7 @@ export interface FormUrlFileInfo {
 }
 
 export interface FormAdditionalLicenseFile {
+  id: string
   name: string
   sourceType: AdditionalLicenseSourceType
   url: FormUrlFileInfo[]

@@ -25,12 +25,17 @@ const ADDITIONAL_LICENSE_TEXTS = {
     'Optional extra license documents (in addition to the primary license). Upload additional license files and set their name, if needed.'
 } as const
 
+export function createAdditionalLicenseFileId(): string {
+  return `additional-license-${Math.random().toString(36).slice(2, 10)}`
+}
+
 export function createEmptyUrlFileInfo(): FormUrlFileInfo {
   return { url: '', type: 'url' }
 }
 
 export function createEmptyAdditionalLicenseFile(): FormAdditionalLicenseFile {
   return {
+    id: createAdditionalLicenseFileId(),
     name: '',
     sourceType: 'URL',
     url: [createEmptyUrlFileInfo()]
