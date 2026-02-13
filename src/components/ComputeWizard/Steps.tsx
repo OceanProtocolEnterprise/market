@@ -167,11 +167,12 @@ export default function Steps({
 
   useEffect(() => {
     if (!asset || !service) return
-    setFieldValue('dataset', [`${asset.id}|${service.id}`])
 
     const hasParams = Boolean(service.consumerParameters?.length)
 
     if (flow === 'dataset') {
+      setFieldValue('dataset', [`${asset.id}|${service.id}`])
+
       if (!hasParams) {
         setFieldValue('datasetServiceParams', [])
         return

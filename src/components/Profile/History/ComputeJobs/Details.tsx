@@ -14,6 +14,11 @@ import External from '@images/external.svg'
 import useIsMobile from '@hooks/useIsMobile'
 import Link from 'next/link'
 import Modal from '@shared/atoms/Modal'
+import { useRouter } from 'next/router'
+import {
+  ComputeRerunConfig,
+  getComputeRerunStorageKey
+} from '@utils/computeRerun'
 import { formatToFixed } from '@utils/numbers'
 
 enum JobTypeText {
@@ -234,16 +239,11 @@ export default function Details({
 }: {
   job: ComputeJobMetaData
 }): ReactElement {
+  const router = useRouter()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { approvedBaseTokens } = useMarketMetadata()
   const isMobile = useIsMobile()
   const paymentSymbol = getPaymentTokenSymbol(job?.payment, approvedBaseTokens)
-
-  useEffect(() => {
-    if (!isDialogOpen || !job) return
-    console.log('[ComputeJob Details] payment payload', job.payment)
-    console.log('[ComputeJob Details] job payload', job)
-  }, [isDialogOpen, job])
 
   function formatDuration(seconds: number): string {
     if (isNaN(seconds) || seconds < 0) return '—'
@@ -275,6 +275,45 @@ export default function Details({
 
   const jobTypeDisplay = getJobTypeDisplay(job)
   const jobCostDisplay = getJobCostDisplay(job, paymentSymbol)
+  const jobStatusDisplay = job.statusText || '—'
+  const isFinishedStatus = jobStatusDisplay.toLowerCase() === 'job finished'
+  const isFreeJob = jobTypeDisplay === JobTypeText.Free
+  const canRerunJob = Boolean(job?.algorithm?.documentId && job?.jobId)
+
+  const handleRerunJob = () => {
+    if (!canRerunJob) return
+
+    const rerunConfig: ComputeRerunConfig = {
+      jobId: job.jobId,
+      algorithmDid: job.algorithm.documentId,
+      algorithmServiceId: job.algorithm.serviceId,
+      datasets:
+        job.assets?.map((asset) => ({
+          did: asset.documentId,
+          serviceId: asset.serviceId
+        })) || [],
+      computeEnv:
+        typeof (job as any).environment === 'string'
+          ? (job as any).environment
+          : undefined
+    }
+
+    try {
+      localStorage.setItem(
+        getComputeRerunStorageKey(job.jobId),
+        JSON.stringify(rerunConfig)
+      )
+    } catch (error) {
+      console.error('Failed to cache compute rerun payload', error)
+    }
+
+    setIsDialogOpen(false)
+    router.push(
+      `/asset/${encodeURIComponent(
+        job.algorithm.documentId
+      )}?rerunJob=${encodeURIComponent(job.jobId)}`
+    )
+  }
 
   return (
     <>
@@ -295,7 +334,7 @@ export default function Details({
               <div className={styles.statusWrapper}>
                 <MetaItem
                   title="Status"
-                  content={job.statusText || '—'}
+                  content={jobStatusDisplay}
                   horizontal
                 />
               </div>
@@ -346,7 +385,7 @@ export default function Details({
                     )}
                   />
                 )}
-                {job.dateFinished && (
+                {job.dateFinished && isFinishedStatus && !isFreeJob && (
                   <MetaItem title="Job Cost" content={jobCostDisplay} />
                 )}
                 <MetaItem title="Job Type" content={jobTypeDisplay} />
@@ -354,7 +393,7 @@ export default function Details({
                 {job.dateFinished ? (
                   // When finished date exists, show JobDID on new line
                   <div style={{ flexBasis: '100%' }}>
-                    <span className={styles.jobDID}>
+                    <div className={styles.jobDID}>
                       <MetaItem
                         title="Job ID"
                         content={
@@ -366,11 +405,12 @@ export default function Details({
                           />
                         }
                       />
-                    </span>
+                      <MetaItem title="Status" content={jobStatusDisplay} />
+                    </div>
                   </div>
                 ) : (
                   // Else show it in same row
-                  <span className={styles.jobDID}>
+                  <div className={styles.jobDID}>
                     <MetaItem
                       title="Job ID"
                       content={
@@ -382,12 +422,21 @@ export default function Details({
                         />
                       }
                     />
-                  </span>
+                    <MetaItem title="Status" content={jobStatusDisplay} />
+                  </div>
                 )}
               </div>
             </div>
 
             <div className={styles.actions}>
+              <Button
+                style="outlined"
+                type="button"
+                onClick={handleRerunJob}
+                disabled={!canRerunJob}
+              >
+                Rerun Job
+              </Button>
               <Button
                 style="primary"
                 type="button"
