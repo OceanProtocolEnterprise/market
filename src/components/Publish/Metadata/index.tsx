@@ -127,18 +127,9 @@ export default function MetadataFields(): ReactElement {
               </>
             )}
           </SectionContainer>
-
-          {/* <ConsumerParametersSection
-            title="Custom Parameters"
-            fieldNamePrefix="metadata"
-            type="consumerParametersBuilder"
-          /> */}
         </>
       )}
 
-      {/*
-       Licensing and Terms
-      */}
       <SectionContainer title="License Type" required>
         <div className={styles.licenseContainer}>
           <div className={styles.licenseDropdownWrapper}>
