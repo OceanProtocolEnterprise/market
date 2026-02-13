@@ -41,6 +41,8 @@ export default function AddToken({
     await addTokenToWallet(address, symbol, decimals, logo?.url)
   }
 
+  const buttonText = text || `Add ${symbol}`
+
   return (
     <Button
       className={styleClasses}
@@ -52,13 +54,8 @@ export default function AddToken({
         <div className={styles.logo}>{logo?.image || <OceanLogo />}</div>
       </span>
 
-      <span className={styles.text}>
-        {text || (
-          <>
-            {'Add '}
-            <span className={styles.symbol}>{symbol}</span>
-          </>
-        )}
+      <span className={styles.text} data-text={buttonText}>
+        {buttonText}
       </span>
     </Button>
   )

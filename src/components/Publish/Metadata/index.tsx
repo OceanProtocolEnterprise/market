@@ -1,161 +1,38 @@
-import { BoxSelectionOption } from '@shared/FormInput/InputElement/BoxSelection'
 import Input from '@shared/FormInput'
-import { Field, FieldArray, useField, useFormikContext } from 'formik'
-import { ReactElement, useEffect } from 'react'
+import { Field } from 'formik'
+import { ReactElement } from 'react'
 import content from '../../../../content/publish/form.json'
-import { FormPublishData } from '../_types'
-import IconDataset from '@images/dataset.svg'
-import IconAlgorithm from '@images/algorithm.svg'
-import { algorithmContainerPresets } from '../_constants'
 import { getFieldContent } from '@utils/form'
-import { deleteIpfsFile, uploadFileItemToIPFS } from '@utils/ipfs'
 import { FileUpload } from '@components/@shared/FileUpload'
 import Label from '@components/@shared/FormInput/Label'
-import { FileItem } from '@utils/fileItem'
-import { License } from 'src/@types/ddo/License'
-import { RemoteObject } from 'src/@types/ddo/RemoteObject'
-import { LoggerInstance } from '@oceanprotocol/lib'
-import appConfig from 'app.config.cjs'
-import { toast } from 'react-toastify'
+import Button from '@shared/atoms/Button'
+import useMetadata from './useMetadata'
+import { LICENSE_UI } from '../_license'
+import AdditionalLicenseItem from './AdditionalLicenseItem'
 
 import SectionContainer from '../../@shared/SectionContainer/SectionContainer'
 import styles from './index.module.css'
-import Button from '@components/@shared/atoms/Button'
-import FilesInput from '@components/@shared/FormInput/InputElement/FilesInput'
-import DeleteButton from '@components/@shared/DeleteButton/DeleteButton' // Add this import
-import Tooltip from '@components/@shared/atoms/Tooltip'
-import InfoIcon from '@images/info.svg'
-
-const assetTypeOptionsTitles = getFieldContent(
-  'type',
-  content.metadata.fields
-).options
 
 export default function MetadataFields(): ReactElement {
-  // connect with Form state, use for conditional field rendering
-  const { values, setFieldValue } = useFormikContext<FormPublishData>()
-
-  const [, meta] = useField('metadata.dockerImageCustomChecksum')
-
-  // BoxSelection component is not a Formik component
-  // so we need to handle checked state manually.
-  const assetTypeOptions: BoxSelectionOption[] = [
-    {
-      name: assetTypeOptionsTitles[0].toLowerCase(),
-      title: assetTypeOptionsTitles[0],
-      checked: values.metadata.type === assetTypeOptionsTitles[0].toLowerCase(),
-      icon: <IconDataset />
-    },
-    {
-      name: assetTypeOptionsTitles[1].toLowerCase(),
-      title: assetTypeOptionsTitles[1],
-      checked: values.metadata.type === assetTypeOptionsTitles[1].toLowerCase(),
-      icon: <IconAlgorithm />
-    }
-  ]
-
-  // Populate the Docker image field with our presets in _constants,
-  // transformPublishFormToDdo will do the rest.
-  const dockerImageOptions: BoxSelectionOption[] =
-    algorithmContainerPresets.map((preset) => ({
-      name: `${preset.image}:${preset.tag}`,
-      title: `${preset.image}:${preset.tag}`,
-      checked: values.metadata.dockerImage === `${preset.image}:${preset.tag}`
-    }))
-
-  useEffect(() => {
-    setFieldValue(
-      'services[0].access',
-      values.metadata.type === 'algorithm' ? 'compute' : 'access'
-    )
-    setFieldValue(
-      'services[0].algorithmPrivacy',
-      values.metadata.type === 'algorithm'
-    )
-  }, [values.metadata.type])
-
-  dockerImageOptions.push({
-    name: 'custom',
-    title: 'Custom',
-    checked: values.metadata.dockerImage === 'custom'
-  })
-
-  async function handleLicenseFileUpload(
-    fileItem: FileItem,
-    onError: () => void
-  ) {
-    try {
-      const remoteSource = await uploadFileItemToIPFS(fileItem)
-      const remoteObject: RemoteObject = {
-        name: fileItem.name,
-        fileType: fileItem.name.split('.').pop(),
-        sha256: fileItem.checksum,
-        additionalInformation: {},
-        description: {
-          '@value': '',
-          '@direction': '',
-          '@language': ''
-        },
-        displayName: {
-          '@value': fileItem.name,
-          '@language': '',
-          '@direction': ''
-        },
-        mirrors: [remoteSource]
-      }
-
-      const license: License = {
-        name: fileItem.name,
-        licenseDocuments: [remoteObject]
-      }
-
-      setFieldValue('metadata.uploadedLicense', license)
-    } catch (err) {
-      toast.error('Could not upload file')
-      LoggerInstance.error(err)
-      setFieldValue('metadata.uploadedLicense', undefined)
-      onError()
-    }
-  }
-
-  // Resets license data after type change
-  useEffect(() => {
-    async function deleteRemoteFile() {
-      if (values.metadata.uploadedLicense) {
-        const ipfsHash =
-          values.metadata.uploadedLicense?.licenseDocuments?.[0]?.mirrors?.[0]
-            ?.ipfsCid
-        if (appConfig.ipfsUnpinFiles && ipfsHash && ipfsHash.length > 0) {
-          try {
-            await deleteIpfsFile(ipfsHash)
-          } catch (error) {
-            LoggerInstance.error("Can't delete license file")
-          }
-        }
-
-        await setFieldValue('metadata.uploadedLicense', undefined)
-      }
-    }
-
-    if (values.metadata.licenseTypeSelection === 'URL') {
-      const currentUrl = values.metadata.licenseUrl?.[0]
-      if (!currentUrl || currentUrl.type !== 'url') {
-        setFieldValue('metadata.licenseUrl', [{ url: '', type: 'url' }])
-      } else if (
-        currentUrl.type === 'url' &&
-        currentUrl.url &&
-        currentUrl.valid
-      ) {
-        deleteRemoteFile()
-      }
-    } else if (values.metadata.licenseTypeSelection === 'Upload license file') {
-      setFieldValue('metadata.licenseUrl', [])
-    } else if (values.metadata.licenseTypeSelection === '') {
-      // No selection: clear both
-      setFieldValue('metadata.licenseUrl', [])
-      deleteRemoteFile()
-    }
-  }, [values.metadata.licenseTypeSelection])
+  const {
+    values,
+    meta,
+    assetTypeOptions,
+    dockerImageOptions,
+    additionalFiles,
+    additionalFilesUploading,
+    additionalFilesDeleting,
+    additionalFileSourceOptions,
+    additionalLicenseSubtext,
+    primaryLicenseType,
+    primaryLicenseReady,
+    handleLicenseFileUpload,
+    handleAdditionalFileUpload,
+    handleNewAdditionalFile,
+    handleDeleteAdditionalFile,
+    handleAdditionalFileSourceChange,
+    handleResetPrimaryUploadedLicense
+  } = useMetadata()
 
   return (
     <>
@@ -243,18 +120,9 @@ export default function MetadataFields(): ReactElement {
               </>
             )}
           </SectionContainer>
-
-          {/* <ConsumerParametersSection
-            title="Custom Parameters"
-            fieldNamePrefix="metadata"
-            type="consumerParametersBuilder"
-          /> */}
         </>
       )}
 
-      {/*
-       Licensing and Terms
-      */}
       <SectionContainer title="License Type" required>
         <div className={styles.licenseContainer}>
           <div className={styles.licenseDropdownWrapper}>
@@ -267,96 +135,84 @@ export default function MetadataFields(): ReactElement {
               name="metadata.licenseTypeSelection"
             />
           </div>
-          {values.metadata.licenseTypeSelection === 'URL' && (
+
+          {primaryLicenseType === 'URL' && (
             <div className={styles.licenseUrlContainer}>
               <Field
                 {...getFieldContent('license', content.metadata.fields)}
                 component={Input}
                 name="metadata.licenseUrl"
               />
-              {values.metadata.additionalLicense?.length > 0 && (
-                <div className={styles.additionalLicenseHeader}>
-                  <Label htmlFor="additionalLicense">
-                    Additional License Files
-                  </Label>
-                  <span className={styles.additionalLicenseSubtext}>
-                    Add additional license files if applicable
-                  </span>
-                </div>
-              )}
-
-              <FieldArray name="metadata.additionalLicense">
-                {({ push, remove }) => (
-                  <>
-                    {values.metadata.additionalLicense?.map((_, index) => (
-                      <div key={index} className={styles.additionalLicenseItem}>
-                        <div className={styles.additionalLicenseFieldWrapper}>
-                          <div className={styles.additionalLicenseFieldHeader}>
-                            <Label
-                              htmlFor={`metadata.additionalLicense[${index}]`}
-                            >
-                              Additional License {index + 1}
-                            </Label>
-                            <Tooltip content="A SPDX identifier of the additional license applicable to this service.">
-                              <InfoIcon className={styles.infoIcon} />
-                            </Tooltip>
-                          </div>
-                          <FilesInput
-                            {...getFieldContent(
-                              'additionalLicense',
-                              content.metadata.fields
-                            )}
-                            name={`metadata.additionalLicense[${index}]`}
-                            form={{ values, setFieldValue }}
-                            onRemove={() => remove(index)}
-                            hideLabel={true}
-                          />
-                        </div>
-                        <div>
-                          <DeleteButton
-                            onClick={() => {
-                              const currentDocs =
-                                values.metadata?.license?.licenseDocuments || []
-                              if (currentDocs.length > index + 1) {
-                                const mainLicense = currentDocs[0]
-                                const additionalDocs = currentDocs.slice(1)
-                                additionalDocs.splice(index, 1)
-                                setFieldValue(
-                                  'metadata.license.licenseDocuments',
-                                  [mainLicense, ...additionalDocs]
-                                )
-                              }
-                              remove(index)
-                            }}
-                            className={styles.deleteLicenseButton}
-                          />
-                        </div>
-                      </div>
-                    ))}
-
-                    <Button
-                      style="ghost"
-                      type="button"
-                      onClick={() => push([{ url: '', type: 'url' }])}
-                      className={styles.addLicenseButton}
-                    >
-                      Add Additional License
-                    </Button>
-                  </>
-                )}
-              </FieldArray>
             </div>
           )}
 
-          {values.metadata.licenseTypeSelection === 'Upload license file' && (
+          {primaryLicenseType === 'Upload license file' && (
             <div className={styles.licenseUrlContainer}>
-              <Label htmlFor="license">License File *</Label>
+              <Label htmlFor="license">
+                License File <span className={styles.required}>*</span>
+              </Label>
               <FileUpload
                 fileName={values.metadata.uploadedLicense?.name}
+                fileSize={
+                  values.metadata.uploadedLicense?.licenseDocuments?.[0]
+                    ?.additionalInformation?.size as number | undefined
+                }
+                fileType={
+                  values.metadata.uploadedLicense?.licenseDocuments?.[0]
+                    ?.fileType
+                }
                 buttonLabel="Upload File"
                 setFileItem={handleLicenseFileUpload}
                 buttonStyle="accent"
+                disabled={
+                  !!values.metadata.uploadedLicense?.licenseDocuments?.[0]
+                }
+                onReset={handleResetPrimaryUploadedLicense}
               />
+            </div>
+          )}
+
+          {primaryLicenseReady && (
+            <div className={styles.additionalLicenseHeader}>
+              <Label htmlFor="additionalLicenseFiles">
+                {LICENSE_UI.additionalFilesHeader}
+              </Label>
+              <span className={styles.additionalLicenseSubtext}>
+                {additionalLicenseSubtext}
+              </span>
+            </div>
+          )}
+
+          {primaryLicenseReady &&
+            additionalFiles.map((additionalFile, index) => (
+              <AdditionalLicenseItem
+                key={additionalFile.id}
+                index={index}
+                additionalFile={additionalFile}
+                isUploading={!!additionalFilesUploading[index]}
+                isDeleting={!!additionalFilesDeleting[index]}
+                additionalFileSourceOptions={additionalFileSourceOptions}
+                onDelete={() => handleDeleteAdditionalFile(index)}
+                onSourceChange={(sourceType) =>
+                  handleAdditionalFileSourceChange(index, sourceType)
+                }
+                onUpload={(fileItem, onError) =>
+                  handleAdditionalFileUpload(index, fileItem, onError)
+                }
+              />
+            ))}
+
+          {primaryLicenseReady && (
+            <div className={styles.additionalFilesButtonWrapper}>
+              <Button
+                style="ghost"
+                type="button"
+                onClick={handleNewAdditionalFile}
+                className={styles.addLicenseButton}
+                disabled={!primaryLicenseReady}
+              >
+                {LICENSE_UI.addAdditionalFileButton}
+              </Button>
             </div>
           )}
         </div>

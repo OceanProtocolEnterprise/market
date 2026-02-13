@@ -89,6 +89,7 @@ export interface InputProps {
   buttonStyle?: 'primary' | 'ghost' | 'text' | 'accent' | 'ocean'
   variant?: 'default' | 'accent'
   centerError?: boolean
+  errorClassName?: string
   allResourceValues?: {
     [envId: string]: ResourceType
   }
@@ -132,9 +133,10 @@ export default function Input(props: Partial<InputProps>): ReactElement {
     field,
     disclaimer,
     disclaimerValues,
-    centerError
+    centerError,
+    errorClassName,
+    ...inputElementProps
   } = props
-  console.log('Input props:', props)
   const isFormikField = typeof field !== 'undefined'
   // TODO: this feels hacky as it assumes nested `values` store. But we can't use the
   // `useField()` hook in here to get `meta.error` so we have to match against form?.errors?
@@ -175,12 +177,20 @@ export default function Input(props: Partial<InputProps>): ReactElement {
           )}
         </Label>
       )}
-      <InputElement size={size} {...field} {...props} />
+      <InputElement
+        size={size}
+        form={form}
+        field={field}
+        {...field}
+        {...inputElementProps}
+      />
       {help && prominentHelp && <FormHelp>{help}</FormHelp>}
 
       {field?.name !== 'files' && isFormikField && hasFormikError && (
         <div
-          className={cs(styles.error, { [styles.centerError]: centerError })}
+          className={cs(styles.error, errorClassName, {
+            [styles.centerError]: centerError
+          })}
         >
           {centerError && <ErrorSVG className={styles.errorIcon} />}
           <ErrorMessage name={field.name}>

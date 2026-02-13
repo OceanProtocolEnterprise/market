@@ -80,16 +80,30 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
       if (!checkedFile || checkedFile[0].valid === false)
         throw Error('✗ No valid file detected.')
       const currentDocs = values.metadata?.license?.licenseDocuments || []
+      const checkedFileInfo = (checkedFile[0] || {}) as Partial<FileInfo> & {
+        method?: string
+        contentType?: string
+      }
+      const normalizedFileInfo = {
+        ...field.value[0],
+        ...checkedFileInfo,
+        type: storageType,
+        method: field.value?.[0]?.method || checkedFileInfo?.method || 'get',
+        url,
+        valid: true
+      }
 
       const isMainLicense = props.name.includes('licenseUrl')
-      const isAdditionalLicense = props.name.includes('additionalLicense')
+      const isAdditionalLicense =
+        props.name.includes('metadata.additionalLicense[') ||
+        props.name.startsWith('additionalLicense[')
 
       const newDoc = {
         name: url.split('/').pop() || url,
-        fileType: checkedFile[0].type,
-        sha256: checkedFile[0].checksum,
+        fileType: checkedFileInfo.contentType || checkedFileInfo.type,
+        sha256: checkedFileInfo.checksum,
         mirrors: [{ url, type: storageType, method }],
-        ...checkedFile[0]
+        ...checkedFileInfo
       }
 
       if (isMainLicense) {
@@ -108,7 +122,7 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
         ])
       }
 
-      helpers.setValue([{ ...field.value[0], valid: true }])
+      helpers.setValue([normalizedFileInfo])
     } catch (error: any) {
       helpers.setError(error.message)
       LoggerInstance.error(error.message)
@@ -180,6 +194,7 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
               storageType={storageType}
               isValidated={isValidated}
               onReset={handleClose}
+              showResetButton={!props.isAdditionalLicense}
             />
           )}
 
