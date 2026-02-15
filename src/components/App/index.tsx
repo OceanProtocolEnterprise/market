@@ -1,6 +1,6 @@
 import { ReactElement, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
-import { useAccount } from 'wagmi'
+import { useAccount, useChainId } from 'wagmi'
 import { ToastContainer, toast } from 'react-toastify'
 
 import Alert from '@shared/atoms/Alert'
@@ -24,14 +24,12 @@ export default function App({
 }): ReactElement {
   const { siteContent, appConfig } = useMarketMetadata()
   const { address } = useAccount()
+  const chainId = useChainId()
   const { isInPurgatory, purgatoryData } = useAccountPurgatory(address)
 
   const router = useRouter()
   const isRoot = router.pathname === '/'
   const isRouterReady = router.isReady
-  const chainId = isRouterReady
-    ? Number(router.query.chainId || 11155111)
-    : undefined
 
   const allowedEnvAddresses = useAllowedTokenAddresses(chainId)
   const { enterpriseFeeCollector } = useEnterpriseFeeCollector()
