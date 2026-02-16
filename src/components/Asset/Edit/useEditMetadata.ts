@@ -1,4 +1,4 @@
-import { useField, useFormikContext } from 'formik'
+import { useFormikContext } from 'formik'
 import { useEffect, useState } from 'react'
 import { MetadataEditForm, FormAdditionalLicenseFile } from './_types'
 import { deleteIpfsFile, uploadFileItemToIPFS } from '@utils/ipfs'
@@ -13,13 +13,9 @@ import {
   createEmptyUrlFileInfo,
   reindexBooleanMapAfterDeletion,
   additionalLicenseSourceOptions,
-  LICENSE_UI,
   inferNameFromUrl
 } from '@components/Publish/_license'
-import {
-  AdditionalLicenseSourceType,
-  FormUrlFileInfo
-} from '@components/Publish/_types'
+import { AdditionalLicenseSourceType } from '@components/Publish/_types'
 
 export default function useEditMetadata() {
   const { asset } = useAsset()
@@ -53,16 +49,15 @@ export default function useEditMetadata() {
       const urlDoc = values.licenseUrl[0]
       mainLicenseDoc = {
         name: urlDoc.url?.split('/').pop() || urlDoc.url || 'license',
-        fileType: urlDoc.type,
-        sha256: urlDoc.checksum,
+        fileType: urlDoc.type || 'url',
+        sha256: urlDoc.checksum || '',
         mirrors: [
           {
             url: urlDoc.url,
-            type: urlDoc.type,
+            type: urlDoc.type || 'url',
             method: urlDoc.method || 'get'
           }
-        ],
-        ...urlDoc
+        ]
       }
     }
 
@@ -83,16 +78,15 @@ export default function useEditMetadata() {
             urlDoc.url?.split('/').pop() ||
             urlDoc.url ||
             'license',
-          fileType: urlDoc.type,
-          sha256: urlDoc.checksum,
+          fileType: urlDoc.type || 'url',
+          sha256: urlDoc.checksum || '',
           mirrors: [
             {
               url: urlDoc.url,
-              type: urlDoc.type,
+              type: urlDoc.type || 'url',
               method: urlDoc.method || 'get'
             }
-          ],
-          ...urlDoc
+          ]
         })
       }
     })
@@ -126,7 +120,9 @@ export default function useEditMetadata() {
                   {
                     url: doc.mirrors?.[0]?.url || '',
                     type: 'url' as const,
-                    valid: true
+                    valid: true,
+                    checksum: doc.sha256 || '',
+                    method: doc.mirrors?.[0]?.method || 'get'
                   }
                 ]
               }
@@ -143,7 +139,6 @@ export default function useEditMetadata() {
         )
 
         await setFieldValue('additionalLicenseFiles', loadedFiles, false)
-
         await updateLicenseDocuments(loadedFiles)
       }
     }
@@ -154,6 +149,31 @@ export default function useEditMetadata() {
       loadExistingAdditionalLicenses()
     }
   }, [asset, setFieldValue])
+
+  useEffect(() => {
+    const additionalFiles = values.additionalLicenseFiles || []
+    if (!additionalFiles.length) return
+
+    const updatedFiles = additionalFiles.map((additionalFile) => {
+      if (!additionalFile || additionalFile.name?.trim()) return additionalFile
+      if (additionalFile.sourceType !== 'URL') return additionalFile
+
+      const url = additionalFile.url?.[0]?.url?.trim()
+      if (!url || !additionalFile.url?.[0]?.valid) return additionalFile
+
+      return {
+        ...additionalFile,
+        name: inferNameFromUrl(url)
+      }
+    })
+
+    const hasUpdates = updatedFiles.some(
+      (additionalFile, index) => additionalFile !== additionalFiles[index]
+    )
+    if (hasUpdates) {
+      setFieldValue('additionalLicenseFiles', updatedFiles)
+    }
+  }, [values.additionalLicenseFiles, setFieldValue])
 
   function getAdditionalFilesSnapshot(): FormAdditionalLicenseFile[] {
     return [...(values.additionalLicenseFiles || [])]
@@ -214,10 +234,7 @@ export default function useEditMetadata() {
     fileItem: FileItem,
     onError: () => void
   ) {
-    setAdditionalFilesUploading((prev) => ({
-      ...prev,
-      [index]: true
-    }))
+    setAdditionalFilesUploading((prev) => ({ ...prev, [index]: true }))
 
     try {
       const remoteSource = await uploadFileItemToIPFS(fileItem)
@@ -232,7 +249,6 @@ export default function useEditMetadata() {
         uploadedDocument: remoteObject
       }
       await setAdditionalFiles(additionalFiles)
-
       await updateLicenseDocuments(additionalFiles)
     } catch (error) {
       toast.error('Could not upload file')
@@ -282,10 +298,7 @@ export default function useEditMetadata() {
   }
 
   async function handleDeleteAdditionalFile(index: number) {
-    setAdditionalFilesDeleting((prev) => ({
-      ...prev,
-      [index]: true
-    }))
+    setAdditionalFilesDeleting((prev) => ({ ...prev, [index]: true }))
 
     try {
       const additionalFiles = getAdditionalFilesSnapshot()
@@ -294,7 +307,6 @@ export default function useEditMetadata() {
       await unpinUploadedDocument(additionalFile?.uploadedDocument)
       additionalFiles.splice(index, 1)
       await setAdditionalFiles(additionalFiles)
-
       await updateLicenseDocuments(additionalFiles)
 
       setAdditionalFilesUploading((prev) =>
@@ -352,20 +364,51 @@ export default function useEditMetadata() {
           {
             url,
             type: 'url',
-            valid: true
+            valid: true,
+            checksum: fileData.checksum,
+            method: fileData.method || 'get',
+            contentLength: fileData.contentLength,
+            contentType: fileData.contentType
           }
         ],
         name: additionalFiles[index]?.name || fileName
       }
+
       await setAdditionalFiles(additionalFiles)
+
       await updateLicenseDocuments(additionalFiles)
+
+      setFieldTouched(`additionalLicenseFiles[${index}].url`, true, false)
+    } else {
+      additionalFiles[index] = {
+        ...additionalFiles[index],
+        url: [
+          {
+            url,
+            type: 'url',
+            valid: false
+          }
+        ]
+      }
+      await setAdditionalFiles(additionalFiles)
     }
   }
 
+  async function handleResetPrimaryUploadedLicense() {
+    await unpinUploadedDocument(values.uploadedLicense?.licenseDocuments?.[0])
+
+    const additionalFiles = values.additionalLicenseFiles || []
+    await Promise.all(
+      additionalFiles.map((file) =>
+        unpinUploadedDocument(file.uploadedDocument)
+      )
+    )
+
+    await setFieldValue('additionalLicenseFiles', [])
+    await setFieldValue('uploadedLicense', undefined)
+  }
+
   const additionalFiles = values.additionalLicenseFiles || []
-  const primaryLicenseType = values.useRemoteLicense
-    ? 'Upload license file'
-    : 'URL'
   const primaryLicenseReady = isPrimaryLicenseReady()
 
   return {
@@ -375,12 +418,12 @@ export default function useEditMetadata() {
     additionalFilesUploading,
     additionalFilesDeleting,
     additionalFileSourceOptions: additionalLicenseSourceOptions,
-    primaryLicenseType,
     primaryLicenseReady,
     handleAdditionalFileUpload,
     handleNewAdditionalFile,
     handleDeleteAdditionalFile,
     handleAdditionalFileSourceChange,
-    handleAdditionalFileUrlValidate
+    handleAdditionalFileUrlValidate,
+    handleResetPrimaryUploadedLicense
   }
 }

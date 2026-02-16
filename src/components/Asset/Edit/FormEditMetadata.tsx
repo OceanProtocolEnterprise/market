@@ -26,7 +26,7 @@ import appConfig from 'app.config.cjs'
 import { toast } from 'react-toastify'
 import AccessRulesSection from '@components/Publish/AccessPolicies/AccessRulesSection'
 import useEditMetadata from './useEditMetadata'
-import AdditionalLicenseItem from '@components/Publish/Metadata/AdditionalLicenseItem'
+import EditAdditionalLicenseItem from './EditAdditionalLicenseItem'
 import Button from '@shared/atoms/Button'
 import { LICENSE_UI } from '@components/Publish/_license'
 import styles from './index.module.css'
@@ -49,7 +49,8 @@ export default function FormEditMetadata(): ReactElement {
     handleNewAdditionalFile,
     handleDeleteAdditionalFile,
     handleAdditionalFileSourceChange,
-    handleAdditionalFileUrlValidate
+    handleAdditionalFileUrlValidate,
+    handleResetPrimaryUploadedLicense
   } = useEditMetadata()
 
   // BoxSelection component is not a Formik component
@@ -76,10 +77,8 @@ export default function FormEditMetadata(): ReactElement {
       links = Object.values(asset?.credentialSubject?.metadata?.links)
     }
 
-    // if we have a sample file, we need to get the files' info before setting defaults links value
     links[0] &&
       getFileInfo(links[0], providerUrl, 'url').then((checkedFile) => {
-        // set valid false if url is using google drive
         if (isGoogleUrl(links[0])) {
           setFieldValue('links', [
             {
@@ -89,7 +88,6 @@ export default function FormEditMetadata(): ReactElement {
           ])
           return
         }
-        // initiate link with values from asset metadata
         setFieldValue('links', [
           {
             url: links[0],
@@ -142,7 +140,6 @@ export default function FormEditMetadata(): ReactElement {
     }
   }
 
-  // Resets license data after type change
   useEffect(() => {
     async function deleteRemoteFile() {
       if (values.uploadedLicense) {
@@ -156,7 +153,6 @@ export default function FormEditMetadata(): ReactElement {
           }
         }
       }
-
       await setFieldValue('uploadedLicense', undefined)
     }
 
@@ -276,6 +272,7 @@ export default function FormEditMetadata(): ReactElement {
               setFileItem={handleLicenseFileUpload}
               buttonStyle="accent"
               disabled={!!primaryUploadedLicenseDocument}
+              onReset={handleResetPrimaryUploadedLicense}
             />
           </div>
         ) : (
@@ -288,6 +285,7 @@ export default function FormEditMetadata(): ReactElement {
           </div>
         )}
 
+        {/* Additional License Files Section */}
         {primaryLicenseReady && (
           <>
             <div className={styles.additionalLicenseHeader}>
@@ -301,7 +299,7 @@ export default function FormEditMetadata(): ReactElement {
             </div>
 
             {additionalFiles.map((additionalFile, index) => (
-              <AdditionalLicenseItem
+              <EditAdditionalLicenseItem
                 key={additionalFile.id}
                 index={index}
                 additionalFile={additionalFile}
@@ -314,6 +312,9 @@ export default function FormEditMetadata(): ReactElement {
                 }
                 onUpload={(fileItem, onError) =>
                   handleAdditionalFileUpload(index, fileItem, onError)
+                }
+                onUrlValidate={(url, isValid, fileData) =>
+                  handleAdditionalFileUrlValidate(index, url, isValid, fileData)
                 }
               />
             ))}
