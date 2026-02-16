@@ -1,10 +1,22 @@
 import {
   FormAdditionalDdo,
-  FormConsumerParameter
+  FormConsumerParameter,
+  AdditionalLicenseSourceType,
+  FormUrlFileInfo
 } from '@components/Publish/_types'
 import { FileInfo } from '@oceanprotocol/lib'
 import { License } from '../../../@types/ddo/License'
 import { CredentialForm } from '@components/@shared/PolicyEditor/types'
+import { RemoteObject } from '@oceanprotocol/ddo-js'
+
+export interface FormAdditionalLicenseFile {
+  id: string
+  name: string
+  sourceType: AdditionalLicenseSourceType
+  url: FormUrlFileInfo[]
+  uploadedDocument?: RemoteObject
+}
+
 export interface MetadataEditForm {
   name: string
   description: string
@@ -20,6 +32,7 @@ export interface MetadataEditForm {
   useRemoteLicense: boolean
   licenseUrl: FileInfo[]
   uploadedLicense: License
+  additionalLicenseFiles?: FormAdditionalLicenseFile[]
   additionalDdos: FormAdditionalDdo[]
 }
 

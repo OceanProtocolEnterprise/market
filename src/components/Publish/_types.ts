@@ -42,6 +42,11 @@ export interface FormUrlFileInfo {
   url: string
   type: 'url'
   valid?: boolean
+  checksum?: string
+  method?: string
+  contentLength?: string
+  contentType?: string
+  additionalInformation?: Record<string, any>
 }
 
 export interface FormAdditionalLicenseFile {

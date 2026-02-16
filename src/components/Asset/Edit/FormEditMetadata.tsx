@@ -25,6 +25,11 @@ import { LoggerInstance } from '@oceanprotocol/lib'
 import appConfig from 'app.config.cjs'
 import { toast } from 'react-toastify'
 import AccessRulesSection from '@components/Publish/AccessPolicies/AccessRulesSection'
+import useEditMetadata from './useEditMetadata'
+import AdditionalLicenseItem from '@components/Publish/Metadata/AdditionalLicenseItem'
+import Button from '@shared/atoms/Button'
+import { LICENSE_UI } from '@components/Publish/_license'
+import styles from './index.module.css'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
@@ -33,6 +38,19 @@ export default function FormEditMetadata(): ReactElement {
   const { asset } = useAsset()
   const { values, setFieldValue } = useFormikContext<MetadataEditForm>()
   const firstPageLoad = useRef<boolean>(true)
+
+  const {
+    additionalFiles,
+    additionalFilesUploading,
+    additionalFilesDeleting,
+    additionalFileSourceOptions,
+    primaryLicenseReady,
+    handleAdditionalFileUpload,
+    handleNewAdditionalFile,
+    handleDeleteAdditionalFile,
+    handleAdditionalFileSourceChange,
+    handleAdditionalFileUrlValidate
+  } = useEditMetadata()
 
   // BoxSelection component is not a Formik component
   // so we need to handle checked state manually.
@@ -154,6 +172,9 @@ export default function FormEditMetadata(): ReactElement {
     }
   }, [values.useRemoteLicense, setFieldValue, values.uploadedLicense])
 
+  const primaryUploadedLicenseDocument =
+    values.uploadedLicense?.licenseDocuments?.[0]
+
   return (
     <Form>
       <ContainerForm style="accent">
@@ -239,21 +260,75 @@ export default function FormEditMetadata(): ReactElement {
         />
 
         {values.useRemoteLicense ? (
-          <>
-            <Label htmlFor="license">License *</Label>
+          <div className={styles.licenseUploadContainer}>
+            <Label htmlFor="license">
+              License File <span className={styles.required}>*</span>
+            </Label>
             <FileUpload
               fileName={values.uploadedLicense?.name}
-              buttonLabel="Upload"
+              fileSize={
+                primaryUploadedLicenseDocument?.additionalInformation?.size as
+                  | number
+                  | undefined
+              }
+              fileType={primaryUploadedLicenseDocument?.fileType}
+              buttonLabel="Upload File"
               setFileItem={handleLicenseFileUpload}
-            ></FileUpload>
-          </>
+              buttonStyle="accent"
+              disabled={!!primaryUploadedLicenseDocument}
+            />
+          </div>
         ) : (
-          <>
+          <div className={styles.licenseUrlContainer}>
             <Field
               {...getFieldContent('license', content.form.data)}
               component={Input}
               name="licenseUrl"
             />
+          </div>
+        )}
+
+        {primaryLicenseReady && (
+          <>
+            <div className={styles.additionalLicenseHeader}>
+              <Label htmlFor="additionalLicenseFiles">
+                {LICENSE_UI.additionalFilesHeader}
+              </Label>
+              <span className={styles.additionalLicenseSubtext}>
+                Optional extra license documents (in addition to the primary
+                license).
+              </span>
+            </div>
+
+            {additionalFiles.map((additionalFile, index) => (
+              <AdditionalLicenseItem
+                key={additionalFile.id}
+                index={index}
+                additionalFile={additionalFile}
+                isUploading={!!additionalFilesUploading[index]}
+                isDeleting={!!additionalFilesDeleting[index]}
+                additionalFileSourceOptions={additionalFileSourceOptions}
+                onDelete={() => handleDeleteAdditionalFile(index)}
+                onSourceChange={(sourceType) =>
+                  handleAdditionalFileSourceChange(index, sourceType)
+                }
+                onUpload={(fileItem, onError) =>
+                  handleAdditionalFileUpload(index, fileItem, onError)
+                }
+              />
+            ))}
+
+            <div className={styles.additionalFilesButtonWrapper}>
+              <Button
+                style="ghost"
+                type="button"
+                onClick={handleNewAdditionalFile}
+                className={styles.addLicenseButton}
+                disabled={!primaryLicenseReady}
+              >
+                {LICENSE_UI.addAdditionalFileButton}
+              </Button>
+            </div>
           </>
         )}
 
