@@ -11,6 +11,7 @@ import classNames from 'classnames/bind'
 import Pagination from '@components/@shared/Pagination'
 import { useAccount } from 'wagmi'
 import SearchSection from '@shared/SearchSection'
+import Link from 'next/link'
 
 const cx = classNames.bind(styles)
 
@@ -38,7 +39,7 @@ export interface PublisherTrustedAlgorithmService {
   serviceId: string
 }
 
-export function Empty({ message }: { message: string }) {
+function Empty({ message }: { message: string }) {
   return <div className={styles.empty}>{message}</div>
 }
 
@@ -178,14 +179,14 @@ export default function AssetSelection({
                     <div className={styles.titleRow}>
                       <h3 className={styles.title}>
                         {asset.name} - {asset.serviceName}
-                        <a
+                        <Link
                           className={styles.link}
                           href={`/asset/${asset.did}`}
                           target="_blank"
                           rel="noreferrer"
                         >
                           <External />
-                        </a>
+                        </Link>
                       </h3>
                     </div>
                     <div className={styles.didContainer}>

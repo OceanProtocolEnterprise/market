@@ -1,11 +1,19 @@
-import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react'
-import { Form, Formik } from 'formik'
+import {
+  ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
+import { Form, Formik, FormikProps } from 'formik'
 import { toast } from 'react-toastify'
 import { Decimal } from 'decimal.js'
 import { Signer } from 'ethers'
 import { useAccount } from 'wagmi'
 import {
   Datatoken,
+  ComputeEnvironment,
   FileInfo,
   LoggerInstance,
   UserCustomParameters,
@@ -33,7 +41,6 @@ import { useUserPreferences } from '@context/UserPreferences'
 import { useSsiWallet } from '@context/SsiWallet'
 import { secondsToString } from '@utils/ddo'
 import {
-  getAlgorithmAssetSelectionList,
   getAlgorithmAssetSelectionListForComputeWizard,
   getAlgorithmsForAsset
 } from '@utils/compute'
@@ -49,7 +56,9 @@ import { useComputeJobs } from './hooks/useComputeJobs'
 import { useComputeSubmission } from './hooks/useComputeSubmission'
 import { getSelectedComputeEnvAndResources } from './hooks/computeEnvSelection'
 import { resetCredentialCache } from './hooks/resetCredentialCache'
+import { useMarketMetadata } from '@context/MarketMetadata'
 import appConfig from 'app.config.cjs'
+import { ComputeRerunConfig } from '@utils/computeRerun'
 
 type ParamValue = string | number | boolean | undefined
 
@@ -72,6 +81,133 @@ interface ControllerProps {
   onClose?: () => void
   onComputeJobCreated?: () => void
   mode?: ComputeFlow
+  rerunConfig?: ComputeRerunConfig
+}
+
+function buildRerunDatasetsFromList(
+  selections: { did: string; serviceId?: string }[],
+  datasetList: AssetSelectionAsset[] | undefined
+): {
+  datasetPairs: string[]
+  datasets: FormComputeData['datasets']
+} {
+  if (!selections?.length) {
+    return { datasetPairs: [], datasets: [] }
+  }
+
+  const byDid = new Map<string, AssetSelectionAsset[]>()
+  datasetList?.forEach((entry) => {
+    const current = byDid.get(entry.did) || []
+    current.push(entry)
+    byDid.set(entry.did, current)
+  })
+
+  const datasets = selections.map((selection) => {
+    const candidates = byDid.get(selection.did) || []
+    const selectedService =
+      candidates.find((item) => item.serviceId === selection.serviceId) ||
+      candidates[0]
+    const selectedServiceId = selectedService?.serviceId || selection.serviceId
+
+    const services =
+      candidates.length > 0
+        ? candidates.map((candidate) => ({
+            id: candidate.serviceId,
+            serviceId: candidate.serviceId,
+            name: candidate.serviceName,
+            serviceName: candidate.serviceName,
+            price: String(candidate.price || 0),
+            duration: String(candidate.serviceDuration || 0),
+            serviceDuration: String(candidate.serviceDuration || 0),
+            serviceType: candidate.serviceType,
+            checked: candidate.serviceId === selectedServiceId
+          }))
+        : [
+            {
+              id: selectedServiceId || '',
+              serviceId: selectedServiceId || '',
+              name: selectedServiceId || 'Service',
+              serviceName: selectedServiceId || 'Service',
+              price: '0',
+              duration: '0',
+              serviceDuration: '0',
+              serviceType: 'compute',
+              checked: true
+            }
+          ]
+
+    return {
+      did: selection.did,
+      id: selection.did,
+      name: selectedService?.name || selection.did,
+      services
+    }
+  })
+
+  const datasetPairs = datasets.map((dataset) => {
+    const selectedService = dataset.services.find((service) => service.checked)
+    const selectedServiceId = selectedService?.serviceId || selectedService?.id
+    return selectedServiceId
+      ? `${dataset.did}|${selectedServiceId}`
+      : (dataset.did as string)
+  })
+
+  return { datasetPairs, datasets }
+}
+
+function buildRerunDatasetsFromConfig(
+  selections: { did: string; serviceId?: string }[]
+): {
+  datasetPairs: string[]
+  datasets: FormComputeData['datasets']
+} {
+  if (!selections?.length) {
+    return { datasetPairs: [], datasets: [] }
+  }
+
+  const datasets = selections.map((selection) => {
+    const serviceId = selection.serviceId || ''
+    return {
+      did: selection.did,
+      id: selection.did,
+      name: selection.did,
+      services: [
+        {
+          id: serviceId,
+          serviceId,
+          name: serviceId || 'Service',
+          serviceName: serviceId || 'Service',
+          price: '0',
+          duration: '0',
+          serviceDuration: '0',
+          serviceType: 'compute',
+          checked: true
+        }
+      ]
+    }
+  })
+
+  const datasetPairs = selections.map((selection) =>
+    selection.serviceId
+      ? `${selection.did}|${selection.serviceId}`
+      : selection.did
+  )
+
+  return { datasetPairs, datasets }
+}
+
+function resolveRerunEnvironment(
+  value: string | undefined,
+  computeEnvs: ComputeEnvironment[]
+): ComputeEnvironment | undefined {
+  if (!computeEnvs?.length) return undefined
+  if (!value) return undefined
+
+  const direct = computeEnvs.find((env) => env.id === value)
+  if (direct) return direct
+
+  const prefix = value.split('-')[0]
+  return computeEnvs.find((env) => env.id === prefix)
 }
 
 export default function ComputeWizardController({
@@ -86,7 +222,8 @@ export default function ComputeWizardController({
   consumableFeedback,
   onClose,
   onComputeJobCreated,
-  mode
+  mode,
+  rerunConfig
 }: ControllerProps): ReactElement {
   useUserPreferences()
   const { isAssetNetwork } = useAsset()
@@ -95,6 +232,7 @@ export default function ComputeWizardController({
   const { oceanTokenAddress } = config
   const newCancelToken = useCancelToken()
   const { isSupportedOceanNetwork } = useNetworkMetadata()
+  const { approvedBaseTokens } = useMarketMetadata()
   const web3Provider = signer?.provider
 
   const [isLoading, setIsLoading] = useState(true)
@@ -104,7 +242,42 @@ export default function ComputeWizardController({
       ? 'algorithm'
       : 'dataset')
   const isAlgorithmFlow = flow === 'algorithm'
-  const initialFormValues = useMemo(() => createInitialValues(flow), [flow])
+  const baseInitialFormValues = useMemo(() => createInitialValues(flow), [flow])
+  const initialFormValues = useMemo(() => {
+    if (!isAlgorithmFlow || !rerunConfig) return baseInitialFormValues
+
+    const rerunDatasets = rerunConfig.datasets || []
+    const withoutDataset = rerunDatasets.length === 0
+    const { datasetPairs, datasets } =
+      buildRerunDatasetsFromConfig(rerunDatasets)
+    const stepCurrent = withoutDataset ? 3 : 5
+
+    return {
+      ...baseInitialFormValues,
+      withoutDataset,
+      dataset: datasetPairs,
+      datasets,
+      user: {
+        ...baseInitialFormValues.user,
+        stepCurrent
+      },
+      serviceSelected: !withoutDataset,
+      step1Completed: true,
+      step2Completed: true,
+      step3Completed: true,
+      step4Completed: true
+    }
+  }, [baseInitialFormValues, isAlgorithmFlow, rerunConfig])
+  const formikRef = useRef<FormikProps<FormComputeData>>(null)
+  const hasAppliedRerunConfigRef = useRef(false)
+  const tokenSymbolMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    approvedBaseTokens?.forEach((token) => {
+      if (!token?.address || !token?.symbol) return
+      map[token.address.toLowerCase()] = token.symbol
+    })
+    return map
+  }, [approvedBaseTokens])
 
   // copied from compute
   const { address } = useAccount()
@@ -131,9 +304,10 @@ export default function ComputeWizardController({
   const [algoOrderPriceAndFees, setAlgoOrderPriceAndFees] =
     useState<OrderPriceAndFees>()
   const [isBalanceSufficient, setIsBalanceSufficient] = useState<boolean>(true)
+  const [baseTokenAddress, setBaseTokenAddress] = useState<string>()
 
   const [isConsumablePrice, setIsConsumablePrice] = useState(true)
-  const [providerFeesSymbol, setProviderFeesSymbol] = useState('OCEAN')
+  const [providerFeesSymbol, setProviderFeesSymbol] = useState('')
   const { computeEnvs, computeEnvsError } = useComputeEnvironments({
     serviceEndpoint: service?.serviceEndpoint,
     chainId: asset.credentialSubject?.chainId
@@ -142,12 +316,14 @@ export default function ComputeWizardController({
     initializePricingAndProvider,
     datasetProviderFee,
     algorithmProviderFee,
+    datasetProviderFees,
+    algorithmProviderFees,
     extraFeesLoaded,
     isInitLoading,
     initError,
     setInitError
   } = useComputeInitialization({
-    oceanTokenAddress,
+    oceanTokenAddress: baseTokenAddress,
     web3Provider
   })
   const {
@@ -158,7 +334,6 @@ export default function ComputeWizardController({
   } = useComputeJobs({
     asset,
     service,
-    accountId,
     ownerAddress: address,
     chainIds,
     cancelTokenFactory: newCancelToken
@@ -188,6 +363,63 @@ export default function ComputeWizardController({
   const [allResourceValues, setAllResourceValues] = useState<{
     [envId: string]: ResourceType
   }>({})
+
+  useEffect(() => {
+    if (!isAlgorithmFlow || !rerunConfig || hasAppliedRerunConfigRef.current)
+      return
+
+    const formik = formikRef.current
+    if (!formik) return
+    if (!computeEnvs || computeEnvs.length === 0) return
+
+    const rerunDatasets = rerunConfig.datasets || []
+    const withoutDataset = rerunDatasets.length === 0
+
+    if (!withoutDataset && (!datasetList || datasetList.length === 0)) return
+
+    const { datasetPairs, datasets } = buildRerunDatasetsFromList(
+      rerunDatasets,
+      datasetList
+    )
+    formik.setFieldValue('withoutDataset', withoutDataset)
+    formik.setFieldValue('dataset', datasetPairs)
+    formik.setFieldValue('datasets', datasets)
+    formik.setFieldValue('serviceSelected', !withoutDataset)
+    formik.setFieldValue('step1Completed', true)
+    formik.setFieldValue('step2Completed', true)
+    formik.setFieldValue('step3Completed', true)
+    formik.setFieldValue('step4Completed', true)
+    const selectedEnvironment = resolveRerunEnvironment(
+      rerunConfig.computeEnv,
+      computeEnvs
+    )
+    if (selectedEnvironment) {
+      formik.setFieldValue('computeEnv', selectedEnvironment)
+    }
+
+    formik.setFieldValue('user.stepCurrent', withoutDataset ? 3 : 5)
+
+    hasAppliedRerunConfigRef.current = true
+  }, [isAlgorithmFlow, rerunConfig, datasetList, computeEnvs])
+
+  useEffect(() => {
+    if (!isAlgorithmFlow || !rerunConfig) return
+    const formik = formikRef.current
+    if (!formik) return
+    if (!computeEnvs || computeEnvs.length === 0) return
+
+    const currentStep = Number(formik.values?.user?.stepCurrent || 1)
+    const hasComputeEnv = Boolean(formik.values?.computeEnv)
+    if (hasComputeEnv || currentStep < 5) return
+
+    const selectedEnvironment = resolveRerunEnvironment(
+      rerunConfig.computeEnv,
+      computeEnvs
+    )
+    if (!selectedEnvironment) return
+
+    formik.setFieldValue('computeEnv', selectedEnvironment)
+  }, [isAlgorithmFlow, rerunConfig, computeEnvs, isLoading])
 
   const selectEnvAndResources = useCallback(
     (formikValues: FormComputeData | Record<string, never>) =>
@@ -366,7 +598,6 @@ export default function ComputeWizardController({
           datasetParams[param.name] = param.value ?? param.default ?? ''
         })
       }
-
       const initResult = await initializePricingAndProvider({
         datasetsForProvider,
         algorithmAsset: actualAlgorithmAsset,
@@ -434,7 +665,8 @@ export default function ComputeWizardController({
             service.serviceEndpoint,
             accountId,
             asset.credentialSubject?.chainId,
-            newCancelToken()
+            newCancelToken(),
+            tokenSymbolMap
           )
           if (!cancelled) setDatasetList(datasetLists || [])
         } else {
@@ -448,7 +680,8 @@ export default function ComputeWizardController({
             await getAlgorithmAssetSelectionListForComputeWizard(
               service,
               algorithmsAssets,
-              accountId
+              accountId,
+              tokenSymbolMap
             )
           if (!cancelled) setAlgorithmList(algorithmSelectionList)
         }
@@ -541,6 +774,10 @@ export default function ComputeWizardController({
   ): Promise<void> {
     setIsSubmittingJob(true)
     try {
+      const formValuesForEscrow = formikValues || initialFormValues
+      const shouldDepositEscrow = new Decimal(
+        formValuesForEscrow?.actualPaymentAmount || 0
+      ).gt(0)
       const {
         datasetResponses,
         actualAlgorithmAsset,
@@ -549,7 +786,11 @@ export default function ComputeWizardController({
         initializedProvider,
         selectedComputeEnv,
         selectedResources
-      } = await initPriceAndFees(datasetServices, formikValues)
+      } = await initPriceAndFees(
+        datasetServices,
+        formikValues,
+        shouldDepositEscrow
+      )
 
       if (!datasetResponses || !selectedComputeEnv || !selectedResources) {
         throw new Error('Missing compute initialization data.')
@@ -571,9 +812,10 @@ export default function ComputeWizardController({
         lookupVerifierSessionId,
         algoOrderPriceAndFees,
         datasetOrderPriceAndFees,
-        paymentTokenAddress: accessDetails?.baseToken?.address,
-        oceanTokenAddress,
+        paymentTokenAddress:
+          baseTokenAddress ?? accessDetails?.baseToken?.address,
         computeServiceEndpoint: service.serviceEndpoint
+        // oceanTokenAddress --- IGNORE ---
       })
 
       await refetchComputeJobs('init')
@@ -786,6 +1028,7 @@ export default function ComputeWizardController({
 
   return (
     <Formik
+      innerRef={formikRef}
       initialValues={initialFormValues}
       validationSchema={validationSchema}
       enableReinitialize
@@ -828,11 +1071,9 @@ export default function ComputeWizardController({
         const selectedAlgoAssetForDisplay = isAlgorithmFlow
           ? asset
           : selectedAlgorithmAsset
-        const algorithmAssetChainId =
-          selectedAlgoAssetForDisplay?.credentialSubject?.chainId
         const algorithmSymbol =
           selectedAlgoAssetForDisplay?.accessDetails?.[svcIndex]?.baseToken
-            ?.symbol || (algorithmAssetChainId === 137 ? 'mOCEAN' : 'OCEAN')
+            ?.symbol || ''
         const dtSymbolSelectedComputeAsset =
           selectedAlgoAssetForDisplay?.accessDetails?.[svcIndex]?.datatoken
             ?.symbol
@@ -842,7 +1083,7 @@ export default function ComputeWizardController({
         )
         const providerSymbolForDisplay = isAlgorithmFlow
           ? providerFeesSymbol
-          : 'OCEAN'
+          : ''
 
         return (
           <div className={styles.containerOuter}>
@@ -924,24 +1165,25 @@ export default function ComputeWizardController({
                       setFieldValue={setFieldValue}
                       datasetProviderFeeProp={datasetProviderFee}
                       algorithmProviderFeeProp={algorithmProviderFee}
+                      datasetProviderFees={datasetProviderFees}
+                      algorithmProviderFees={algorithmProviderFees}
                       isBalanceSufficient={isBalanceSufficient}
                       setIsBalanceSufficient={setIsBalanceSufficient}
+                      baseTokenAddress={baseTokenAddress}
+                      setBaseTokenAddress={setBaseTokenAddress}
                     />
                   </CredentialDialogProvider>
                 )}
 
                 {!showSuccess && (
                   <WizardActions
-                    submitButtonText="Buy Compute Job"
                     rightAlignFirstStep={false}
                     isContinueDisabled={isContinueDisabled}
-                    isSubmitDisabled={isComputeButtonDisabled}
                     action="compute"
                     disabled={
                       isComputeButtonDisabled ||
                       !isAssetNetwork ||
-                      !isAccountIdWhitelisted ||
-                      !isBalanceSufficient
+                      !isAccountIdWhitelisted
                     }
                     hasPreviousOrder={!!validOrderTx}
                     hasDatatoken={hasDatatoken}
@@ -959,7 +1201,6 @@ export default function ComputeWizardController({
                     selectedComputeAssetType="algorithm"
                     stepText={computeStatusText}
                     isLoading={isOrdering || isSubmittingJob}
-                    type="submit"
                     priceType={accessDetails.type}
                     algorithmPriceType={asset?.accessDetails?.[0]?.type}
                     isBalanceSufficient={isBalanceSufficient}

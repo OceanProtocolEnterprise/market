@@ -4,7 +4,7 @@
   font-weight: 400;
   font-size: 14px;
   text-transform: uppercase;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
 }
 
 .assetType {

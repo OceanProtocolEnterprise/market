@@ -4,11 +4,11 @@ import styles from './index.module.css'
 
 const cx = classNames.bind(styles)
 
-export interface ContainerFormProps {
+interface ContainerFormProps {
   children: ReactNode
   title?: string
   className?: string
-  style?: 'default' | 'large' | 'publish'
+  style?: 'default' | 'large' | 'accent'
   border?: boolean
   gap?: string
 }
@@ -24,7 +24,7 @@ export default function ContainerForm({
   const styleClasses = cx({
     container: true,
     large: style === 'large',
-    publish: style === 'publish',
+    publish: style === 'accent',
     border,
     [className]: className
   })

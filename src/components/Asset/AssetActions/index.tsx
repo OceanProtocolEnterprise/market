@@ -1,4 +1,12 @@
-import { ReactElement, useEffect, useState } from 'react'
+import {
+  ReactElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 import Download from './Download'
 import { FileInfo, LoggerInstance, Datatoken } from '@oceanprotocol/lib'
 import { compareAsBN } from '@utils/numbers'
@@ -8,7 +16,7 @@ import { getOceanConfig } from '@utils/ocean'
 import { useCancelToken } from '@hooks/useCancelToken'
 import { useIsMounted } from '@hooks/useIsMounted'
 import styles from './index.module.css'
-import { useFormikContext } from 'formik'
+import { FormikContext, FormikContextType } from 'formik'
 import { FormPublishData } from '@components/Publish/_types'
 import { getTokenBalanceFromSymbol } from '@utils/wallet'
 import { isAddressWhitelisted } from '@utils/ddo'
@@ -26,6 +34,18 @@ import appConfig from 'app.config.cjs'
 import ComputeWizard from '@components/ComputeWizard'
 import { JsonRpcProvider } from 'ethers'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import { useRouter } from 'next/router'
+import {
+  ComputeRerunConfig,
+  getComputeRerunStorageKey,
+  isComputeRerunConfig
+} from '@utils/computeRerun'
+import { getAsset } from '@utils/aquarius'
+import { toast } from 'react-toastify'
+
+function isNftActive(state: unknown): boolean {
+  return Number(state) === 0
+}
 
 export default function AssetActions({
   asset,
@@ -44,6 +64,7 @@ export default function AssetActions({
   consumableFeedback?: string
   onComputeJobCreated?: () => void
 }): ReactElement {
+  const router = useRouter()
   const { address: accountId } = useAccount()
   const signer = useEthersSigner()
   const { balance } = useBalance()
@@ -65,12 +86,16 @@ export default function AssetActions({
     clearVerifierSessionCache
   } = useSsiWallet()
   const [isComputePopupOpen, setIsComputePopupOpen] = useState<boolean>(false)
+  const [rerunConfig, setRerunConfig] = useState<ComputeRerunConfig>()
+  const processedRerunJobRef = useRef<string | null>(null)
 
   // TODO: using this for the publish preview works fine, but produces a console warning
   // on asset details page as there is no formik context there:
   // Warning: Formik context is undefined, please verify you are calling useFormikContext()
   // as child of a <Formik> component.
-  const formikState = useFormikContext<FormPublishData>()
+  const formikState = useContext(FormikContext) as
+    | FormikContextType<FormPublishData>
+    | undefined
 
   const [isBalanceSufficient, setIsBalanceSufficient] = useState<boolean>()
   const [dtBalance, setDtBalance] = useState<string>()
@@ -80,6 +105,13 @@ export default function AssetActions({
     useState<boolean>()
 
   const isCompute = service.type === 'compute'
+  const rerunJobId = useMemo(() => {
+    if (!router.isReady) return null
+    const value = router.query.rerunJob ?? router.query.rerun
+    if (typeof value === 'string') return value
+    if (Array.isArray(value) && value.length > 0) return value[0]
+    return null
+  }, [router.isReady, router.query.rerunJob, router.query.rerun])
 
   // Get and set file info
   useEffect(() => {
@@ -222,6 +254,116 @@ export default function AssetActions({
     setIsComputePopupOpen(true)
   }
 
+  const clearRerunQueryFromUrl = useCallback(() => {
+    if (!router.isReady) return
+
+    const [pathname, search = ''] = router.asPath.split('?')
+    if (!search) return
+
+    const params = new URLSearchParams(search)
+    const hasRerunParam = params.has('rerunJob') || params.has('rerun')
+    if (!hasRerunParam) return
+
+    params.delete('rerunJob')
+    params.delete('rerun')
+    const nextUrl = params.toString()
+      ? `${pathname}?${params.toString()}`
+      : pathname
+    router
+      .replace(nextUrl, undefined, { shallow: true, scroll: false })
+      .catch((error) => {
+        console.error('Failed to clear rerun query param', error)
+      })
+  }, [router])
+
+  useEffect(() => {
+    if (rerunJobId) return
+    processedRerunJobRef.current = null
+  }, [rerunJobId])
+
+  useEffect(() => {
+    if (!router.isReady || !isCompute || !rerunJobId) return
+    if (processedRerunJobRef.current === rerunJobId) return
+
+    processedRerunJobRef.current = rerunJobId
+    let cancelled = false
+
+    async function validateAndApplyRerun() {
+      try {
+        const key = getComputeRerunStorageKey(rerunJobId)
+        const cached = localStorage.getItem(key)
+        if (!cached) {
+          clearRerunQueryFromUrl()
+          return
+        }
+
+        const parsed = JSON.parse(cached) as unknown
+        if (!isComputeRerunConfig(parsed)) {
+          clearRerunQueryFromUrl()
+          return
+        }
+
+        const algorithmDidMatchesCurrentAsset =
+          parsed.algorithmDid.toLowerCase() === asset.id.toLowerCase()
+        if (!algorithmDidMatchesCurrentAsset) {
+          toast.error('Algorithm is not available.')
+          return
+        }
+
+        const algorithmAsset = await getAsset(
+          parsed.algorithmDid,
+          newCancelToken()
+        )
+        if (
+          !algorithmAsset ||
+          !isNftActive(algorithmAsset.indexedMetadata?.nft?.state)
+        ) {
+          toast.error('Algorithm is not available.')
+          return
+        }
+
+        const datasetDids = parsed.datasets.map((dataset) => dataset.did)
+        if (datasetDids.length > 0) {
+          const fetchedDatasets = await Promise.all(
+            datasetDids.map((did) => getAsset(did, newCancelToken()))
+          )
+          if (cancelled) return
+
+          const hasUnavailableDataset = fetchedDatasets.some(
+            (dataset) =>
+              !dataset || !isNftActive(dataset.indexedMetadata?.nft?.state)
+          )
+          if (hasUnavailableDataset) {
+            toast.error('One or more datasets are not available.')
+            return
+          }
+        }
+
+        setRerunConfig(parsed)
+        localStorage.removeItem(key)
+      } catch (error) {
+        console.error('Failed to validate compute rerun payload', error)
+      }
+
+      if (cancelled) return
+      setIsComputePopupOpen(true)
+      clearRerunQueryFromUrl()
+    }
+
+    validateAndApplyRerun()
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    router.isReady,
+    rerunJobId,
+    isCompute,
+    asset.id,
+    clearRerunQueryFromUrl,
+    newCancelToken
+  ])
+
   function resetCacheWallet() {
     ssiWalletCache.clearCredentials()
     setCachedCredentials(undefined as any)
@@ -238,7 +380,9 @@ export default function AssetActions({
 
   const closeComputePopup = () => {
     resetCacheWallet()
+    setRerunConfig(undefined)
     setIsComputePopupOpen(false)
+    clearRerunQueryFromUrl()
   }
   return (
     <>
@@ -373,6 +517,7 @@ export default function AssetActions({
               consumableFeedback={consumableFeedback}
               onClose={closeComputePopup}
               onComputeJobCreated={onComputeJobCreated}
+              rerunConfig={rerunConfig}
             />
           </div>
         </div>

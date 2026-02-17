@@ -1,5 +1,6 @@
 import {
   ChangeEvent,
+  CSSProperties,
   FormEvent,
   KeyboardEvent,
   ReactElement,
@@ -18,10 +19,7 @@ import Tooltip from '@shared/atoms/Tooltip'
 import Markdown from '@shared/Markdown'
 import FormHelp from './Help'
 import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelection'
-import {
-  BoxSelectionOption,
-  BoxSelectionSize
-} from '@shared/FormInput/InputElement/BoxSelection'
+import { BoxSelectionOption } from '@shared/FormInput/InputElement/BoxSelection'
 import { getObjectPropertyByPath } from '@utils/index'
 import { ComputeEnvironment } from '@oceanprotocol/lib'
 import ErrorSVG from '@images/circle_error.svg'
@@ -79,16 +77,17 @@ export interface InputProps {
   step?: string
   defaultChecked?: boolean
   size?: 'mini' | 'small' | 'large' | 'default' | 'medium'
-  selectStyle?: 'default' | 'publish' | 'custom' | 'serviceLanguage'
+  selectStyle?: 'default' | 'accent' | 'custom' | 'serviceLanguage'
   className?: string
+  style?: CSSProperties
   checked?: boolean
   disclaimer?: string
   disclaimerValues?: string[]
   accountId?: string
   actions?: string[]
   hideLabel?: boolean
-  buttonStyle?: 'primary' | 'ghost' | 'text' | 'publish' | 'ocean'
-  variant?: 'default' | 'publish'
+  buttonStyle?: 'primary' | 'ghost' | 'text' | 'accent' | 'ocean'
+  variant?: 'default' | 'accent'
   centerError?: boolean
   allResourceValues?: {
     [envId: string]: ResourceType

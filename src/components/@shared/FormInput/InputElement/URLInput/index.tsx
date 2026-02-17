@@ -20,7 +20,7 @@ export interface URLInputProps {
   hideButton?: boolean
   hideError?: boolean
   placeholder?: string
-  buttonStyle?: 'primary' | 'ghost' | 'text' | 'publish' | 'ocean'
+  buttonStyle?: 'primary' | 'ghost' | 'text' | 'accent' | 'ocean'
   showDeleteButton?: boolean
   onDelete?: () => void
   disabled?: boolean
@@ -39,7 +39,7 @@ export default function URLInput({
   hideButton,
   hideError = false,
   placeholder,
-  buttonStyle = 'publish',
+  buttonStyle = 'accent',
   showDeleteButton = false,
   onDelete,
   disabled = false,

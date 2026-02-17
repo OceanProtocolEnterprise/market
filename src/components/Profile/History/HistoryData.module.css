@@ -1,17 +1,40 @@
 .containerHistory {
   display: flex;
-  flex-direction: row; /* Changed from column to row */
+  flex-direction: row;
   gap: calc(var(--spacer) / 4);
   width: 100%;
 }
 
 .filterContainer {
   display: flex;
-  flex-direction: column; /* Changed from row to column */
+  flex-direction: column;
   flex-wrap: wrap;
   gap: calc(var(--spacer) / 4);
-  width: 20%; /* Adjust width as needed */
+  width: 20%;
   padding-right: calc(var(--spacer) / 1.2);
+}
+
+@media screen and (max-width: 64.999rem) {
+  .containerHistory {
+    flex-direction: column;
+  }
+
+  .filterContainer {
+    width: 100%;
+    padding-right: 0;
+  }
+}
+
+@media screen and (min-width: 65rem) {
+  .filterContainer {
+    width: 16rem;
+    border-right: 1px solid var(--border-color);
+  }
+
+  .filterContainer > div {
+    padding-bottom: calc(var(--spacer) / 1.2);
+    border-bottom: 1px solid var(--border-color);
+  }
 }
 
 .tableContainer {
@@ -25,4 +48,73 @@
   color: var(--color-secondary);
   font-size: var(--font-size-small);
   font-style: italic;
+}
+
+.skeletonWrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.skeletonWrapper > div {
+  width: 100%;
+  height: 100%;
+}
+
+.skeletonHeaderRow,
+.skeletonRow {
+  display: grid;
+  grid-template-columns: 2.2fr 1.2fr 1fr 1.2fr 0.9fr 1.1fr;
+  gap: calc(var(--spacer) / 6);
+  margin-bottom: calc(var(--spacer) / 12);
+  padding: 5px;
+}
+
+.skeletonCell,
+.skeletonHeader {
+  height: 3rem;
+  border-radius: 4px;
+  background: linear-gradient(
+      90deg,
+      var(--black-alpha-6) 25%,
+      var(--black-alpha-12) 37%,
+      var(--black-alpha-6) 63%
+    ),
+    var(--background-highlight);
+  background-size: 400% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+.skeletonHeader {
+  height: 3.8rem;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.networkWrapper {
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 100%;
+}
+
+.networkWrapper > span {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.networkWrapper > span > span:last-child {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex-shrink: 1;
 }

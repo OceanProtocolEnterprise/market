@@ -3,7 +3,7 @@
 }
 
 body .radioWrap > label {
-  font-size: var(--publish-font-size);
+  font-size: var(--text-sm);
 }
 
 .radioLabel {
@@ -13,7 +13,7 @@ body .radioWrap > label {
   font-weight: 400;
   font-size: 14px;
   line-height: 157%;
-  color: rgba(0, 0, 0, 0.85);
+  color: var(--black-alpha-85);
 }
 
 /* RADIO BUTTON SPECIFIC STYLES */
@@ -35,7 +35,7 @@ body .radioWrap > label {
 }
 
 .radio:focus {
-  box-shadow: 0 0 0 2px rgba(253, 214, 85, 0.3);
+  box-shadow: 0 0 0 2px var(--yellow-alpha-30);
 }
 
 .radio::after {
@@ -114,18 +114,18 @@ body .radioWrap > label {
   opacity: 1;
 }
 
-body .publishRadio {
-  border: 1px solid var(--publish-primary) !important;
-  border-radius: var(--publish-input-border-radius);
+body .accentRadio {
+  border: 1px solid var(--clr-navy) !important;
+  border-radius: var(--radius-xl);
   background-color: var(--brand-white);
 }
 
-.publishRadio:checked {
+.accentRadio:checked {
   border-color: var(--brand-white);
   background: var(--brand-white);
 }
 
-.publishRadio:checked::after {
+.accentRadio:checked::after {
   background: var(--clr-navy);
   width: 10px;
   height: 10px;

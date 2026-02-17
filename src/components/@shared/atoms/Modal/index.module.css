@@ -4,8 +4,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--background-body-transparent);
+  background: var(--modal-overlay-background);
   backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacer);
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -16,10 +20,17 @@
 .modal {
   composes: box from '../Box.module.css';
   padding: var(--spacer);
-  margin: var(--spacer) auto;
+  margin: 0;
   max-width: var(--break-point--small);
   position: relative;
   animation: moveUp 0.2s ease-out backwards;
+  border-radius: var(--radius-xl);
+}
+
+@media (max-height: 40rem) {
+  .modalOverlay {
+    align-items: flex-start;
+  }
 }
 
 .modal:focus {
@@ -28,7 +39,7 @@
 
 @media (min-width: 40rem) {
   .modal {
-    padding: calc(var(--spacer) * 2);
+    padding: calc(var(--spacer) * 1);
   }
 }
 
@@ -43,7 +54,7 @@
 
 @media (min-width: 40rem) {
   .title {
-    font-size: var(--font-size-h2);
+    font-size: var(--font-size-h3);
   }
 }
 

@@ -11,12 +11,11 @@
 
 /* Publish flow container styling */
 .containerPublish {
-  border: var(--publish-input-border-size) solid
-    var(--publish-input-border-color);
-  border-radius: var(--publish-input-border-radius);
-  padding: var(--publish-form-container-padding-top-extended);
-  background: var(--publish-white);
-  box-shadow: var(--publish-shadow);
+  border: var(--border-size-sm) solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
+  padding: var(--form-container-padding-top-extended);
+  background: var(--brand-white);
+  box-shadow: var(--shadow-md);
   max-width: none !important;
   width: 100% !important;
 }
@@ -27,7 +26,7 @@
   width: 100%;
 }
 
-.containerPublish :global([class*='publishTabPanel']) {
+.containerPublish :global([class*='accentTabPanel']) {
   max-width: none;
   width: 100%;
 }
@@ -38,15 +37,15 @@
 }
 
 /* Publish flow styling */
-.container.publish {
+.container.accent {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   padding: 0;
-  gap: var(--publish-spacing-4xl);
-  max-width: var(--publish-container-width);
+  gap: var(--space-4xl);
+  max-width: var(--container-width);
   margin: 0 auto;
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
 }
 
 .grid {
@@ -106,33 +105,33 @@
 }
 
 /* Publish flow form styling */
-.container.publish .form {
+.container.accent .form {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   padding: 0;
-  gap: var(--publish-spacing-2xl);
+  gap: var(--sp-10);
   width: 100%;
   margin: 0;
 }
 
 /* Publish flow section styling */
-.container.publish .section {
+.container.accent .section {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   padding: 0;
-  gap: var(--publish-spacing-md);
+  gap: var(--sp-4);
   width: 100%;
 }
 
 /* Publish flow section content styling */
-.container.publish .sectionContent {
+.container.accent .sectionContent {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   padding: 0;
-  gap: var(--publish-spacing-md);
+  gap: var(--sp-4);
   width: 100%;
   align-self: stretch;
 }
@@ -153,15 +152,15 @@
 }
 
 body .addAddressButton {
-  min-height: var(--publish-input-height);
-  height: var(--publish-input-height);
+  min-height: var(--field-height);
+  height: var(--field-height);
   min-width: 105px;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   gap: 4px;
-  background: var(--publish-primary-gradient);
+  background: var(--gradient-primary);
   box-shadow: 1px 2px 8px var(--box-shadow-color);
   border-radius: 20px;
   font-family: 'Helvetica';
@@ -176,11 +175,11 @@ body .addAddressButton {
 .addAddressButton:hover,
 .addAddressButton:focus,
 .addAddressButton:focus-visible {
-  min-height: var(--publish-input-height);
-  height: var(--publish-input-height);
+  min-height: var(--field-height);
+  height: var(--field-height);
   min-width: 105px;
   transform: none;
-  background: var(--publish-primary-gradient);
+  background: var(--gradient-primary);
   opacity: 0.9;
   box-shadow: 1px 2px 8px var(--box-shadow-color);
 }
@@ -191,32 +190,31 @@ body .addAddressButton {
 
 .addressInput {
   width: 100%;
-  height: var(--publish-input-height);
-  border: var(--publish-input-border-size) solid
-    var(--publish-input-border-color);
-  border-radius: var(--publish-input-border-radius);
-  padding: var(--publish-input-padding);
-  font-family: var(--publish-font-family);
-  font-size: var(--publish-font-size);
-  font-weight: var(--publish-font-weight-normal);
-  line-height: var(--publish-line-height-base);
-  color: var(--publish-text-secondary);
-  background: var(--publish-white);
-  box-shadow: var(--publish-shadow);
+  height: var(--field-height);
+  border: var(--border-size-sm) solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
+  padding: var(--field-padding);
+  font-family: var(--font-family-base);
+  font-size: var(--text-sm);
+  font-weight: var(--text-weight-regular);
+  line-height: var(--text-line-base);
+  color: var(--clr-slate-70);
+  background: var(--brand-white);
+  box-shadow: var(--shadow-md);
   transition: 0.2s ease-out;
 }
 
 .addressInput:focus {
-  border-color: var(--publish-primary);
-  box-shadow: 0 0 0 2px rgba(10, 75, 112, 0.2);
+  border-color: var(--clr-navy);
+  box-shadow: 0 0 0 2px var(--navy-alpha-20);
   outline: 0;
 }
 
 .addressInput::placeholder {
-  font-family: var(--publish-font-family);
-  font-size: var(--publish-font-size);
-  color: var(--publish-text-secondary);
-  font-weight: var(--publish-font-weight-normal);
+  font-family: var(--font-family-base);
+  font-size: var(--text-sm);
+  color: var(--clr-slate-70);
+  font-weight: var(--text-weight-regular);
   transition: 0.2s ease-out;
   opacity: 0.7;
 }
@@ -228,27 +226,26 @@ body .addAddressButton {
 }
 
 /* Publish flow address list styling */
-.container.publish .addressListContainer {
+.container.accent .addressListContainer {
   display: flex;
   flex-direction: column;
   gap: calc(var(--spacer) * 0.5);
-  margin-top: var(--publish-spacing-sm);
+  margin-top: var(--sp-2);
 }
 
 .addressDisplay {
   flex: 1;
-  height: var(--publish-input-height);
-  border: var(--publish-input-border-size) solid
-    var(--publish-input-border-color);
-  border-radius: var(--publish-input-border-radius);
-  padding: var(--publish-input-padding);
-  font-family: var(--publish-font-family);
-  font-size: var(--publish-font-size);
-  font-weight: var(--publish-font-weight-normal);
-  line-height: var(--publish-line-height-base);
-  color: var(--publish-text-secondary);
-  background: var(--publish-neutral-light);
-  box-shadow: var(--publish-shadow);
+  height: var(--field-height);
+  border: var(--border-size-sm) solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
+  padding: var(--field-padding);
+  font-family: var(--font-family-base);
+  font-size: var(--text-sm);
+  font-weight: var(--text-weight-regular);
+  line-height: var(--text-line-base);
+  color: var(--clr-slate-70);
+  background: var(--surface-neutral);
+  box-shadow: var(--shadow-md);
 }
 
 .addressItem {
@@ -258,7 +255,7 @@ body .addAddressButton {
 }
 
 /* Publish flow address item styling */
-.container.publish .addressItem {
+.container.accent .addressItem {
   display: flex;
   gap: calc(var(--spacer) * 0.5);
   align-items: center;
@@ -273,7 +270,7 @@ body .addAddressButton {
 }
 
 /* Publish flow input container styling */
-.container.publish .inputContainer {
+.container.accent .inputContainer {
   display: flex;
   gap: calc(var(--spacer) * 0.5);
   align-items: flex-end;
@@ -301,35 +298,35 @@ body .addAddressButton {
 
 /* Publish flow responsive adjustments */
 @media (max-width: 1200px) {
-  .container.publish {
+  .container.accent {
     width: 100%;
-    padding: 0 var(--publish-spacing-lg);
+    padding: 0 var(--sp-6);
   }
 }
 
 @media (max-width: 768px) {
-  .container.publish {
-    gap: var(--publish-spacing-2xl);
+  .container.accent {
+    gap: var(--sp-10);
   }
 
-  .container.publish .form {
-    gap: var(--publish-spacing-lg);
+  .container.accent .form {
+    gap: var(--sp-6);
   }
 
-  .container.publish .section {
-    gap: var(--publish-spacing-sm);
+  .container.accent .section {
+    gap: var(--sp-2);
   }
 
-  .container.publish .sectionContent {
-    gap: var(--publish-spacing-sm);
+  .container.accent .sectionContent {
+    gap: var(--sp-2);
   }
 
-  .container.publish .inputContainer {
+  .container.accent .inputContainer {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .container.publish .addressItem {
+  .container.accent .addressItem {
     flex-direction: column;
     align-items: stretch;
   }

@@ -4,10 +4,10 @@ import AddParamIcon from '@images/add_param.svg'
 import ValidateIcon from '@images/validate.svg'
 import Button from '@shared/atoms/Button'
 
-export type IconType = 'add' | 'validate' | 'none'
-export type StyleType = 'gradient' | 'primary'
+type IconType = 'add' | 'validate' | 'none'
+type StyleType = 'gradient' | 'primary'
 
-export interface PublishButtonProps
+interface PublishButtonProps
   extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'style' | 'type'> {
   icon?: IconType
   text: string
@@ -34,7 +34,7 @@ export default function PublishButton({
     }
   }
 
-  const mappedButtonStyle = buttonStyle === 'gradient' ? 'gradient' : 'publish'
+  const mappedButtonStyle = buttonStyle === 'gradient' ? 'gradient' : 'accent'
 
   return (
     <Button

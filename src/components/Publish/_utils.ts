@@ -369,7 +369,10 @@ export function generateCredentials(
     match_deny: 'any'
   }
 
-  if (appConfig.ssiEnabled) {
+  const ssiEnabledForCredentials =
+    appConfig.ssiEnabled && updatedCredentials?.enabled !== false
+
+  if (ssiEnabledForCredentials) {
     const requestCredentials: RequestCredential[] =
       updatedCredentials?.requestCredentials?.map<RequestCredential>(
         (credential) => {
@@ -502,7 +505,8 @@ export async function transformPublishFormToDdo(
   // so we can always assume if they are not passed, we are on preview.
   datatokenAddress?: string,
   nftAddress?: string,
-  cancelToken?: CancelToken
+  cancelToken?: CancelToken,
+  signer?: Signer
 ): Promise<Asset> {
   // Omit UI-only step completion flags
   const safeValues = omit(values, [
@@ -640,7 +644,7 @@ export async function transformPublishFormToDdo(
     !isPreview &&
     files?.length &&
     files[0].valid &&
-    (await getEncryptedFiles(file, chainId, providerUrl.url))
+    (await getEncryptedFiles(file, chainId, providerUrl.url, signer))
 
   const newServiceCredentials = generateCredentials(credentials)
   const valuesCompute: ComputeEditForm = {
@@ -844,7 +848,8 @@ export async function signAssetAndUploadToIpfs(
       metadataIPFS = await ProviderInstance.encrypt(
         remoteAsset,
         asset.credentialSubject?.chainId,
-        providerUrl
+        providerUrl,
+        owner
       )
       flags = 2
     } catch (error) {
@@ -896,10 +901,10 @@ export async function createTokensAndPricing(
   switch (values.pricing.type) {
     case 'fixed': {
       const baseTokenAddress =
-        config.oceanTokenAddress ?? values.pricing.baseToken.address
+        values.pricing.baseToken.address ?? config.oceanTokenAddress
       const signer = await getDummySigner(values.user.chainId)
       const { provider } = signer
-      const tokenInfo = await getTokenInfo(config.oceanTokenAddress, provider)
+      const tokenInfo = await getTokenInfo(baseTokenAddress, provider)
       const baseTokenDecimals = tokenInfo?.decimals || 18
 
       const freParams: FreCreationParams = {
@@ -964,9 +969,4 @@ export async function createTokensAndPricing(
   }
 
   return { erc721Address, datatokenAddress, txHash }
-}
-
-export function getFormattedCodeString(parsedCodeBlock: any): string {
-  const formattedString = JSON.stringify(parsedCodeBlock, null, 2)
-  return `\`\`\`\n${formattedString}\n\`\`\``
 }

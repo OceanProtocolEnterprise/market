@@ -47,7 +47,7 @@
         "label": "New Price",
         "type": "number",
         "min": "1",
-        "step": "0.01",
+        "step": "0.000001",
         "placeholder": "1",
         "help": "Enter a new price (minimum 1, maximum 1,000,000).",
         "required": true
@@ -57,7 +57,7 @@
         "label": "Price",
         "type": "number",
         "min": "0",
-        "step": "0.01",
+        "step": "0.000001",
         "placeholder": "0",
         "help": "Enter a price (minimum 0, maximum 1,000,000).",
         "required": true
@@ -170,14 +170,7 @@
         "label": "Service State",
         "help": "Specifies whether the service is consumable. An Active state indicates it can be consumed, while any other state means it cannot.",
         "type": "select",
-        "options": [
-          "Active",
-          "EndOfLife",
-          "Deprecated",
-          "RevokedByPublisher",
-          "OrderingIsTemporaryDisabled",
-          "Unlisted"
-        ],
+        "options": ["Active", "OrderingIsTemporaryDisabled", "Unlisted"],
         "sortOptions": false,
         "required": false
       },

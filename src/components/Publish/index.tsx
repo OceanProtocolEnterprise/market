@@ -138,7 +138,9 @@ export default function PublishPage({
       const ddo: Asset = await transformPublishFormToDdo(
         values,
         datatokenAddress,
-        erc721Address
+        erc721Address,
+        null,
+        signer
       )
 
       if (!ddo) throw new Error('No DDO received. Please try again.')
@@ -327,7 +329,7 @@ export default function PublishPage({
           />
           <Form className={styles.form} ref={scrollToRef}>
             <Navigation />
-            <ContainerForm style="publish">
+            <ContainerForm style="accent">
               <Steps feedback={feedback} />
               <Actions scrollToRef={scrollToRef} did={did} />
             </ContainerForm>

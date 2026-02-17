@@ -159,8 +159,6 @@
     "label": "Type",
     "type": "select",
     "options": [
-      "VerifiableId",
-      "UniversityDegree",
       "LegalPerson",
       "LegalRegistrationNumber",
       "GaiaXTermsAndConditions",

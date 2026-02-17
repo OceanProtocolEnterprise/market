@@ -61,7 +61,7 @@
   /* font-size: 8px; */
   line-height: 100%;
   text-align: center;
-  color: rgba(48, 48, 49, 0.8);
+  color: var(--ink-alpha-80);
 }
 
 .symbol {

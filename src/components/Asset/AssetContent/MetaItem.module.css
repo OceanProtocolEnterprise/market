@@ -16,7 +16,13 @@
   font-weight: 400;
   font-size: 14px;
   line-height: 129%;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   word-wrap: break-word;
   white-space: normal;
+}
+
+.horizontal {
+  display: flex;
+  flex-direction: row;
+  gap: var(--sp-2);
 }

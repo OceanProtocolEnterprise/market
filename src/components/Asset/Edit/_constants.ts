@@ -45,7 +45,7 @@ function generateCredentials(
     credentials.allow?.forEach((policyCredential) => {
       if (isCredentialPolicyBased(policyCredential)) {
         policyCredential.values.forEach((value) => {
-          value.request_credentials.forEach((requestCredential) => {
+          value.request_credentials?.forEach((requestCredential) => {
             let policyTypes = (requestCredential?.policies ?? []).map(
               (policy) => {
                 try {
@@ -396,6 +396,7 @@ export const getServiceInitialValues = (
     service.compute || defaultServiceComputeOptions
   )
   const credentialForm = generateCredentials(service.credentials, 'edit')
+  const rawPrice = accessDetails.price
 
   return {
     name: service.name,
@@ -403,9 +404,10 @@ export const getServiceInitialValues = (
     direction: service.description?.['@direction'],
     language: service.description?.['@language'],
     access: service.type as 'access' | 'compute',
-    price: isNaN(parseFloat(accessDetails.price))
-      ? 0.000001
-      : parseFloat(accessDetails.price),
+    price:
+      typeof rawPrice === 'string' && rawPrice.trim().length > 0
+        ? rawPrice
+        : '0.000001',
     paymentCollector: accessDetails.paymentCollector,
     providerUrl: {
       url: service.serviceEndpoint,

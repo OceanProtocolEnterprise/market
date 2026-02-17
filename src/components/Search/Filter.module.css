@@ -30,7 +30,7 @@
   font-weight: 700;
   /* font-size: 14px; */
   line-height: 171%;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
 }
 
 .filterType > div:not(:last-child) {

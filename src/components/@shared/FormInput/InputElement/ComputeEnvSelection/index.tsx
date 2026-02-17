@@ -133,7 +133,11 @@ export default function ComputeEnvSelection({
         return (
           <div
             key={env.id}
-            style={{ border: '1px solid #ccc', margin: '1em', padding: '1em' }}
+            style={{
+              border: '1px solid #cccccc',
+              margin: '1em',
+              padding: '1em'
+            }}
           >
             <label title={env.id}>
               <input

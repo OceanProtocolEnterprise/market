@@ -8,7 +8,7 @@ export interface FileUploadProps {
   fileName?: string
   buttonLabel: string
   setFileItem: (fileItem: FileItem, onError: () => void) => void
-  buttonStyle?: 'default' | 'publish'
+  buttonStyle?: 'default' | 'accent'
 }
 
 export function FileUpload({

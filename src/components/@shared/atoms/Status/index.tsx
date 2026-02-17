@@ -2,7 +2,7 @@ import { ReactElement } from 'react'
 import classNames from 'classnames/bind'
 import styles from './index.module.css'
 
-export interface StatusProps {
+interface StatusProps {
   state?: string
   className?: string
 }

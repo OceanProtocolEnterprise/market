@@ -156,7 +156,7 @@ export default function FormEditMetadata(): ReactElement {
 
   return (
     <Form>
-      <ContainerForm style="publish">
+      <ContainerForm style="accent">
         <Field
           {...getFieldContent('type', data)}
           component={Input}
@@ -206,6 +206,7 @@ export default function FormEditMetadata(): ReactElement {
                 )}
                 component={Input}
                 name="consumerParameters"
+                type="consumerParametersBuilder"
               />
             )}
           </>

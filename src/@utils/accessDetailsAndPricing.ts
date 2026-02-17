@@ -1,5 +1,4 @@
 import {
-  ComputeAsset,
   Datatoken,
   FixedRateExchange,
   getErrorMessage,
@@ -10,7 +9,6 @@ import {
 } from '@oceanprotocol/lib'
 import { getFixedBuyPrice } from './ocean/fixedRateExchange'
 import {
-  consumeMarketOrderFee,
   publisherMarketOrderFee,
   customProviderUrl
 } from '../../app.config.cjs'
@@ -22,6 +20,7 @@ import { AssetExtended } from '../@types/AssetExtended'
 import { CancelToken } from 'axios'
 import { getUserOrders } from './aquarius'
 import { AssetPrice } from '../@types/AssetPrice'
+import { getConsumeMarketFeeWei } from './consumeMarketFee'
 
 /**
  * This will be used to get price including fees before ordering
@@ -36,11 +35,19 @@ export async function getOrderPriceAndFees(
   signer?: Signer,
   providerFees?: ProviderFees
 ): Promise<OrderPriceAndFees> {
+  const chainId = asset.credentialSubject.chainId.toString()
+  const tokenAddress = accessDetails.baseToken.address.toLowerCase()
+  const orderFee = getConsumeMarketFeeWei({
+    chainId,
+    baseTokenAddress: tokenAddress,
+    baseTokenDecimals: accessDetails.baseToken?.decimals || 18,
+    price: accessDetails.price || '0'
+  }).totalFeeWei
   const orderPriceAndFee = {
     price: accessDetails.price || '0',
     publisherMarketOrderFee: publisherMarketOrderFee || '0',
     publisherMarketFixedSwapFee: '0',
-    consumeMarketOrderFee: consumeMarketOrderFee || '0',
+    consumeMarketOrderFee: orderFee,
     consumeMarketFixedSwapFee: '0',
     providerFee: {
       providerFeeAmount: '0'
@@ -52,7 +59,7 @@ export async function getOrderPriceAndFees(
   try {
     let initialize = null
     if (service.type === 'compute') {
-      console.log('service type is compute')
+      console.warn('service type is compute')
     } else {
       initialize = await ProviderInstance.initialize(
         asset.id,
@@ -235,7 +242,7 @@ export async function getAccessDetails(
         }
       }
     } catch (error) {
-      console.log('Error fetching fixed rate exchange', error)
+      console.error('Error fetching fixed rate exchange', error)
       return accessDetails
     }
   }

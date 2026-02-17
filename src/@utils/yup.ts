@@ -1,10 +1,23 @@
 import { isCID } from '@utils/ipfs'
 import isUrl from 'is-url-superb'
 import * as Yup from 'yup'
-import { ethers, isAddress } from 'ethers'
+import { isAddress } from 'ethers'
 import { isGoogleUrl } from './url/index'
 
-export function testLinks(isEdit?: boolean) {
+export type YupTestContext = Yup.TestContext<Record<string, unknown>>
+
+export function getOriginalValue(
+  ctx: YupTestContext,
+  fallback: unknown
+): unknown {
+  const opts = ctx.options as unknown
+  if (opts && typeof opts === 'object' && 'originalValue' in opts) {
+    return (opts as { originalValue?: unknown }).originalValue
+  }
+  return fallback
+}
+
+export function testLinks(_isEdit?: boolean) {
   return Yup.string().test((value, context) => {
     const { type } = context.parent
     let validField

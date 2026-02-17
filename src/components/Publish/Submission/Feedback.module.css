@@ -7,7 +7,7 @@
 
 .feedback li {
   display: block;
-  margin-bottom: var(--publish-spacing-xl);
+  margin-bottom: var(--sp-8);
   counter-increment: list-number;
 }
 
@@ -22,23 +22,23 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--publish-spacing-lg);
-  height: var(--publish-spacing-lg);
-  border-radius: var(--publish-border-radius-full);
-  border: 1px solid var(--publish-primary);
-  margin-right: var(--publish-spacing-lg);
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
-  background: var(--publish-white);
-  color: var(--publish-primary);
+  width: var(--sp-6);
+  height: var(--sp-6);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--clr-navy);
+  margin-right: var(--sp-6);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  background: var(--brand-white);
+  color: var(--clr-navy);
   top: -0.15rem;
 }
 
 .feedback .active:before {
-  background: var(--publish-primary);
-  border-color: var(--publish-primary);
-  color: var(--publish-white);
+  background: var(--clr-navy);
+  border-color: var(--clr-navy);
+  color: var(--brand-white);
   animation: none;
 }
 
@@ -46,22 +46,22 @@
   content: counter(list-number);
   background: var(--brand-alert-green);
   border-color: var(--brand-alert-green);
-  color: var(--publish-white);
+  color: var(--brand-white);
 }
 
 .feedback .error:before {
   content: counter(list-number);
   background: var(--brand-alert-red);
   border-color: var(--brand-alert-red);
-  color: var(--publish-white);
+  color: var(--brand-white);
 }
 
 .title {
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size-base);
-  line-height: var(--publish-line-height-lg);
-  color: var(--publish-text);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-base);
+  line-height: var(--text-line-lg);
+  color: var(--text-ink);
   display: inline-block;
   margin-bottom: 0;
 }
@@ -69,22 +69,22 @@
 .txs {
   display: inline-flex;
   align-items: center;
-  background: var(--publish-accent);
-  border-radius: var(--publish-border-radius);
-  padding: var(--publish-spacing-xs) var(--publish-spacing-sm);
-  margin-left: var(--publish-spacing-md);
-  margin-bottom: var(--publish-spacing-sm);
+  background: var(--clr-amber);
+  border-radius: var(--radius-xl);
+  padding: var(--sp-1) var(--sp-2);
+  margin-left: var(--sp-4);
+  margin-bottom: var(--sp-2);
   white-space: nowrap;
   width: auto;
 }
 
 .txs span,
 .txs a {
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size-xs);
-  /* line-height: var(--publish-line-height-sm); */
-  color: var(--publish-white);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-xs);
+  /* line-height: var(--text-line-sm); */
+  color: var(--brand-white);
   text-decoration: none;
 }
 
@@ -93,22 +93,22 @@
 }
 
 .description {
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
-  font-size: var(--publish-font-size);
-  line-height: var(--publish-line-height-lg);
-  color: var(--publish-text-secondary);
-  margin-left: calc(var(--publish-spacing-lg) + var(--publish-spacing-lg));
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-lg);
+  color: var(--clr-slate-70);
+  margin-left: calc(var(--sp-6) + var(--sp-6));
   margin-bottom: 0;
 }
 
 .errorMessage {
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
-  font-size: var(--publish-font-size);
-  line-height: var(--publish-line-height-lg);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-lg);
   color: var(--brand-alert-red);
-  margin-left: calc(var(--publish-spacing-lg) + var(--publish-spacing-lg));
+  margin-left: calc(var(--sp-6) + var(--sp-6));
   margin-bottom: 0;
   display: block;
   white-space: nowrap;
@@ -129,9 +129,9 @@
 
 @media screen and (min-width: 40rem) {
   .title {
-    margin-bottom: var(--publish-spacing-sm);
+    margin-bottom: var(--sp-2);
   }
   .txs {
-    margin-left: var(--publish-spacing-md);
+    margin-left: var(--sp-4);
   }
 }

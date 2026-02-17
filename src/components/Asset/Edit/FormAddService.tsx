@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useMemo, useState } from 'react'
+import { ReactElement, useEffect, useMemo } from 'react'
 import { Field, Form, useFormikContext } from 'formik'
 import Input from '@shared/FormInput'
 import FormActions from './FormActions'
@@ -10,13 +10,11 @@ import IconDownload from '@images/download.svg'
 import IconCompute from '@images/compute.svg'
 import FormEditComputeService from './FormEditComputeService'
 import { defaultServiceComputeOptions } from './_constants'
-import { getDefaultPolicies } from '@components/Publish/_utils'
-import appConfig from 'app.config.cjs'
-import { LoggerInstance } from '@oceanprotocol/lib'
 import { supportedLanguages } from '../languageType'
 import ContainerForm from '@shared/atoms/ContainerForm'
 import AccessRulesSection from '@components/Publish/AccessPolicies/AccessRulesSection'
 import SSIPoliciesSection from './SSIPoliciesSection'
+import { useMarketMetadata } from '@context/MarketMetadata'
 
 export default function FormAddService({
   data,
@@ -27,8 +25,11 @@ export default function FormAddService({
   chainId: number
   assetType: string
 }): ReactElement {
+  const { approvedBaseTokens } = useMarketMetadata()
   const { values, setFieldValue } = useFormikContext<ServiceEditForm>()
-  const [defaultPolicies, setDefaultPolicies] = useState<string[]>([])
+  const baseTokenOptions = useMemo(() => {
+    return approvedBaseTokens.map((token) => token.symbol)
+  }, [approvedBaseTokens])
 
   const accessTypeOptionsTitles = getFieldContent('access', data).options
 
@@ -38,6 +39,11 @@ export default function FormAddService({
       setFieldValue('direction', 'ltr')
     }
   }, [setFieldValue, values.language])
+  useEffect(() => {
+    if (!values.baseToken && approvedBaseTokens.length > 0) {
+      setFieldValue('baseToken', approvedBaseTokens[0].address)
+    }
+  }, [approvedBaseTokens, setFieldValue, values.baseToken])
 
   const languageOptions = useMemo(() => {
     return supportedLanguages
@@ -84,24 +90,9 @@ export default function FormAddService({
     }
   ]
 
-  useEffect(() => {
-    if (appConfig.ssiEnabled) {
-      getDefaultPolicies()
-        .then((policies) => {
-          setFieldValue('credentials.vcPolicies', policies)
-          setDefaultPolicies(policies)
-        })
-        .catch((error) => {
-          LoggerInstance.error(error)
-          setFieldValue('credentials.vcPolicies', [])
-          setDefaultPolicies([])
-        })
-    }
-  }, [setFieldValue])
-
   return (
     <Form>
-      <ContainerForm style="publish">
+      <ContainerForm style="accent">
         <Field
           {...getFieldContent('name', data)}
           component={Input}
@@ -150,7 +141,28 @@ export default function FormAddService({
           component={Input}
           name="price"
           min={0}
-          step={0.01}
+          step={0.000001}
+        />
+        <Field
+          label="Price Token"
+          component={Input}
+          name="baseToken"
+          type="select"
+          options={baseTokenOptions}
+          value={
+            approvedBaseTokens.find(
+              (token) => token.address === values.baseToken
+            )?.symbol || ''
+          }
+          onChange={(e) => {
+            const selectedToken = approvedBaseTokens.find(
+              (token) => token.symbol === e.target.value
+            )
+
+            if (selectedToken) {
+              setFieldValue('baseToken', selectedToken.address)
+            }
+          }}
         />
 
         <Field
@@ -181,7 +193,7 @@ export default function FormAddService({
         <AccessRulesSection fieldPrefix="credentials" />
 
         <SSIPoliciesSection
-          defaultPolicies={defaultPolicies}
+          defaultPolicies={[]}
           isAsset={false}
           hideDefaultPolicies={true}
         />
@@ -199,6 +211,7 @@ export default function FormAddService({
             )}
             component={Input}
             name="consumerParameters"
+            type="consumerParametersBuilder"
           />
         )}
         <FormActions />

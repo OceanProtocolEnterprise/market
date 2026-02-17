@@ -12,40 +12,65 @@ export default function Accordion({
   defaultExpanded = false,
   badgeNumber,
   compact,
+  rightContent,
+  titleClassName,
   action,
   children
 }: {
-  title: string
+  title: ReactNode
   defaultExpanded?: boolean
   badgeNumber?: number
   compact?: boolean
+  rightContent?: ReactNode
+  titleClassName?: string
   action?: ReactNode
   children: ReactNode
 }): ReactElement {
   const [open, setOpen] = useState(!!defaultExpanded)
+  const headingClassName = compact ? styles.compactTitle : styles.title
+  const showSummary =
+    !open && rightContent !== undefined && rightContent !== null
 
-  async function handleClick() {
+  function handleClick() {
     setOpen(!open)
   }
 
   return (
     <div className={cx({ actions: true, open })}>
       <h3
-        className={compact ? styles.compactTitle : styles.title}
+        className={`${headingClassName} ${titleClassName || ''}`}
         onClick={handleClick}
       >
-        <span>{title}</span>
-        {badgeNumber > 0 && (
-          <Badge label={badgeNumber} className={styles.badge} />
+        <span className={styles.titleContent}>
+          <span className={styles.titleText}>{title}</span>
+          {badgeNumber > 0 && (
+            <Badge label={badgeNumber} className={styles.badge} />
+          )}
+        </span>
+        {showSummary && (
+          <span className={styles.headerLeader} aria-hidden="true" />
         )}
-        <Button
-          style="text"
-          size="small"
-          onClick={handleClick}
-          className={styles.toggle}
+        <span
+          className={`${styles.titleControls} ${
+            showSummary ? '' : styles.titleControlsRight
+          }`}
         >
-          <ArrowIcon className={cx({ arrow: true, arrowOpen: open })} />{' '}
-        </Button>
+          {showSummary && (
+            <span className={styles.titleRight}>{rightContent}</span>
+          )}
+          <Button
+            type="button"
+            style="text"
+            size="small"
+            onClick={(event) => {
+              event.stopPropagation()
+              handleClick()
+            }}
+            className={styles.toggle}
+          >
+            <ArrowIcon className={cx({ arrow: true, arrowOpen: open })} />{' '}
+          </Button>
+        </span>
       </h3>
       {action}
       <div className={cx({ content: true, compactContent: compact })}>

@@ -6,15 +6,21 @@ interface PriceDisplayProps {
   symbol?: string
   duration?: string
   valueType?: 'escrow' | 'deposit' | 'default'
+  displayValue?: string
+  valueParts?: Array<{ value: string; symbol: string }>
 }
 
 export default function PriceDisplay({
   value,
-  symbol = 'OCEAN',
+  symbol = '',
   duration,
-  valueType = 'default'
+  valueType = 'default',
+  displayValue,
+  valueParts
 }: PriceDisplayProps): ReactElement {
   const numericValue = Number(value)
+  const formattedValue = displayValue ?? Number(value).toFixed(3)
+  const hasValueParts = Boolean(valueParts && valueParts.length > 0)
 
   let colorClass = ''
   if (valueType === 'escrow' && numericValue !== 0) {
@@ -26,10 +32,47 @@ export default function PriceDisplay({
   return (
     <div className={styles.priceInfo}>
       <span className={styles.price}>
-        <span className={`${styles.priceNumber} ${styles[colorClass] || ''}`}>
-          {Number(value).toFixed(3)}
-        </span>
-        <span className={styles.priceSymbol}> {symbol}</span>
+        {hasValueParts ? (
+          valueParts.map((part, index) => (
+            <span
+              key={`${part.symbol}-${index}`}
+              className={styles.pricePairWrap}
+            >
+              {index > 0 && <span className={styles.priceSeparator}> & </span>}
+              <span className={styles.pricePair}>
+                <span
+                  className={`${styles.priceNumber} ${
+                    styles[colorClass] || ''
+                  } ${styles.pricePairNumber}`}
+                >
+                  {part.value}
+                </span>
+                <span
+                  className={`${styles.priceSymbol} ${styles.pricePairSymbol}`}
+                >
+                  {part.symbol}
+                </span>
+              </span>
+            </span>
+          ))
+        ) : (
+          <span className={styles.pricePair}>
+            <span
+              className={`${styles.priceNumber} ${styles[colorClass] || ''} ${
+                styles.pricePairNumber
+              }`}
+            >
+              {formattedValue}
+            </span>
+            {!displayValue && (
+              <span
+                className={`${styles.priceSymbol} ${styles.pricePairSymbol}`}
+              >
+                {symbol}
+              </span>
+            )}
+          </span>
+        )}
       </span>
       {duration && (
         <span className={styles.duration}>

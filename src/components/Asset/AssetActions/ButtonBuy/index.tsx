@@ -34,6 +34,7 @@ export interface ButtonBuyProps {
   hasProviderFee?: boolean
   retry?: boolean
   computeWizard?: boolean
+  insufficientSymbol?: string | null
 }
 
 function getConsumeHelpText(
@@ -48,7 +49,8 @@ function getConsumeHelpText(
   consumableFeedback: string,
   isSupportedOceanNetwork: boolean,
   isAccountConnected: boolean,
-  priceType: string
+  priceType: string,
+  insufficientSymbol: string
 ) {
   const text =
     isConsumable === false
@@ -58,7 +60,7 @@ function getConsumeHelpText(
       : hasDatatoken
       ? `You own ${dtBalance} ${dtSymbol} allowing you to use this dataset by spending 1 ${dtSymbol}, but without paying ${btSymbol} again.`
       : isBalanceSufficient === false
-      ? `You do not have enough ${btSymbol} in your wallet to purchase this asset.`
+      ? `You do not have enough ${insufficientSymbol} token in your wallet to purchase this asset.`
       : priceType === 'free'
       ? ''
       : `To use this ${assetType}, you will buy 1 ${dtSymbol} and immediately send it back to the publisher.`
@@ -119,7 +121,8 @@ function getComputeAssetHelpText(
   isAlgorithmConsumable?: boolean,
   isSupportedOceanNetwork?: boolean,
   isAccountConnected?: boolean,
-  hasProviderFee?: boolean
+  hasProviderFee?: boolean,
+  insufficientSymbol?: string | null
 ) {
   const computeAssetHelpText = getConsumeHelpText(
     btSymbol,
@@ -133,7 +136,8 @@ function getComputeAssetHelpText(
     consumableFeedback,
     isSupportedOceanNetwork,
     isAccountConnected,
-    priceType
+    priceType,
+    insufficientSymbol
   )
 
   const computeAlgoHelpText = getAlgoHelpText(
@@ -188,7 +192,8 @@ export default function ButtonBuy({
   retry,
   isSupportedOceanNetwork,
   isAccountConnected,
-  computeWizard
+  computeWizard,
+  insufficientSymbol
 }: ButtonBuyProps): ReactElement {
   const buttonText = retry
     ? 'Retry'
@@ -221,7 +226,8 @@ export default function ButtonBuy({
         consumableFeedback,
         isSupportedOceanNetwork,
         isAccountConnected,
-        priceType
+        priceType,
+        insufficientSymbol || ''
       )
     } else {
       message = getComputeAssetHelpText(
@@ -244,7 +250,8 @@ export default function ButtonBuy({
         isAlgorithmConsumable,
         isSupportedOceanNetwork,
         isAccountConnected,
-        hasProviderFee
+        hasProviderFee,
+        insufficientSymbol || ''
       )
     }
 
@@ -273,7 +280,7 @@ export default function ButtonBuy({
       ) : (
         <>
           <Button
-            style="publish"
+            style="accent"
             type={type}
             onClick={onClick}
             disabled={disabled}

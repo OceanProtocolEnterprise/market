@@ -1,18 +1,24 @@
 .assetListBox {
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(48, 48, 49, 0.1);
+  border: 1px solid var(--ink-alpha-10);
   border-radius: 20px;
   padding: 20px;
-  box-shadow: 1px 4px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 8px 0 var(--black-alpha-15);
   background: #fff;
 }
 
 .assetBox {
-  background: white;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  padding: 6px 4px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.assetBox:hover {
+  background-color: var(--background-highlight);
 }
 .assetDetails {
   display: flex;
@@ -129,70 +135,35 @@
 }
 .assetDivider {
   border: none;
-  border-top: 1px solid #ccc; /* or var(--color-border) */
+  border-top: 1px solid var(--neutral-250); /* or var(--color-border) */
   margin: 0.75rem 0;
 }
 
-/* Dialog styles */
+/* Modal content */
 
-.dialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border: none;
-  border-radius: 16px;
-  padding: 20px;
-  width: 90%;
-  max-width: 800px;
-  background: white;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-  z-index: 999;
-}
-
-.dialogContent {
-  padding: 2rem;
-  position: relative;
-}
-
-.dialogHeader {
+.content {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  max-height: min(70vh, 680px);
 }
 
-.dialogHeader h2 {
+.statusSubtitle {
   font-family: var(--font-family);
-  font-weight: 700;
-  font-size: 24px;
-  line-height: 108%;
-  color: #0a4b70;
+  font-size: 14px;
+  color: var(--color-secondary);
+  margin: 0.35rem 0 0.85rem;
 }
 
-.closeIconAbsolute {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  cursor: pointer;
-  width: 28px;
-  height: 28px;
-  fill: #0f172a;
-  transition: transform 0.2s ease;
-  z-index: 9999;
+.modal {
+  max-width: 720px;
+  width: min(92vw, 720px);
 }
 
-.closeIconAbsolute:hover {
-  transform: scale(1.1);
-  fill: #004b9e;
-}
-
-@media (max-width: 768px) {
-  .closeIconAbsolute {
-    top: 0.75rem;
-    right: 0.75rem;
-    width: 24px;
-    height: 24px;
-  }
+.scrollArea {
+  display: grid;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: calc(var(--spacer) / 4);
 }
 
 /* Meta info section */
@@ -204,45 +175,40 @@
   gap: 1.5rem;
 }
 
-.mobileCloseButton {
-  display: none;
-}
 .jobDID {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.jobIdCopy {
+  display: inline-flex;
+  align-items: center;
+}
+
+.jobIdText {
+  font-family: var(--font-family-monospace);
+  font-size: var(--font-size-small);
+  color: var(--font-color-text);
+  padding: 0 0.3rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: calc(var(--spacer) / 3);
+  position: sticky;
+  bottom: 0;
 }
 
 @media (max-width: 768px) {
-  .mobileCloseButton {
-    display: block;
-    position: fixed;
-    bottom: 1rem;
-    right: 1rem;
-    border: none;
-    z-index: 10000;
-    cursor: pointer;
-    border-radius: 20px;
-    padding: 8px 20px;
-    width: 79px;
-    height: 40px;
-    font-family: var(--font-family);
-    font-weight: 700;
-    font-size: 14px;
-    line-height: 114%;
-    text-align: center;
-    color: #0a4b70;
-    box-shadow: 1px 2px 8px 0 rgba(0, 0, 0, 0.15);
-    background: rgba(48, 48, 49, 0.12);
-    margin-bottom: 1rem;
-    margin-right: 1rem;
-  }
-
-  .mobileCloseButton:hover {
-    background-color: #003c5e;
-    color: white;
-  }
   .jobDID {
-    font-size: 14px;
-    overflow-wrap: break-word;
-    word-break: break-all;
     margin-top: 0.5rem;
+    gap: 1rem;
   }
+}
+
+.statusWrapper {
+  margin-bottom: var(--sp-2);
 }

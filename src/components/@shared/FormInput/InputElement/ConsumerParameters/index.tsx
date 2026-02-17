@@ -27,7 +27,7 @@ export const paramTypes: FormConsumerParameter['type'][] = [
 ]
 
 export function ConsumerParameters(props: InputProps): ReactElement {
-  const [field, meta, helpers] = useField<FormConsumerParameter[]>(props.name)
+  const [field, , helpers] = useField<FormConsumerParameter[]>(props.name)
 
   const [tabIndex, setTabIndex] = useState(0)
 

@@ -10,6 +10,16 @@ import { IpfsRemoteSource } from '@components/@shared/IpfsRemoteSource'
 import Label from '@components/@shared/FormInput/Label'
 import { assetStateToString } from '@utils/assetState'
 
+function truncateMiddle(
+  value?: string,
+  start = 6,
+  end = 6
+): string | undefined {
+  if (!value) return value
+  if (value.length <= start + end) return value
+  return `${value.slice(0, start)}....${value.slice(-end)}`
+}
+
 export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
   const { isInPurgatory, assetState } = useAsset()
 
@@ -20,6 +30,7 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
       : 'Active')
 
   const [paymentCollector, setPaymentCollector] = useState<string>()
+  const publisherDid = ddo?.issuer
 
   useEffect(() => {
     if (!ddo) return
@@ -51,6 +62,20 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
 
   return ddo ? (
     <>
+      <div className={styles.didContainer}>
+        <MetaItem
+          title="DID"
+          content={
+            <span className={styles.hoverReveal}>
+              <code className={styles.truncated}>
+                {truncateMiddle(ddo?.id, 12, 8)}
+              </code>
+              <span className={styles.fullValue}>{ddo?.id}</span>
+            </span>
+          }
+        />
+      </div>
+
       <div className={styles.metaFull}>
         {!isInPurgatory && (
           <span className={styles.dataAuther}>
@@ -78,7 +103,19 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
           ddo?.credentialSubject.metadata?.algorithm && (
             <MetaItem title="Docker Image" content={<DockerImage />} />
           )}
-        <MetaItem title="DID" content={<code>{ddo?.id}</code>} />
+        {publisherDid && (
+          <MetaItem
+            title="Publisher DID"
+            content={
+              <span className={styles.hoverReveal}>
+                <code className={styles.truncated}>
+                  {truncateMiddle(publisherDid, 12, 12)}
+                </code>
+                <span className={styles.fullValue}>{publisherDid}</span>
+              </span>
+            }
+          />
+        )}
       </div>
 
       <div className={styles.licenseRow}>

@@ -5,7 +5,7 @@ import styles from './index.module.css'
 
 const cx = classNames.bind(styles)
 
-export interface ButtonProps {
+interface ButtonProps {
   children: ReactNode
   className?: string
   href?: string
@@ -18,12 +18,13 @@ export interface ButtonProps {
     | 'primary'
     | 'ghost'
     | 'text'
-    | 'publish'
+    | 'accent'
     | 'ocean'
     | 'gradient'
     | 'delete'
     | 'outlined'
     | 'slim'
+    | 'secondary'
   type?: 'submit' | 'button'
   download?: boolean
   target?: string
@@ -47,12 +48,13 @@ export default function Button({
     primary: style === 'primary',
     ghost: style === 'ghost',
     text: style === 'text',
-    publish: style === 'publish',
+    accent: style === 'accent',
     ocean: style === 'ocean',
     gradient: style === 'gradient',
     delete: style === 'delete',
     outlined: style === 'outlined',
     slim: style === 'slim',
+    secondary: style === 'secondary',
     small: size === 'small',
     default: size === 'default',
     [className]: className

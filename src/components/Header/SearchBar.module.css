@@ -82,7 +82,7 @@
   border-radius: 20px;
   display: flex;
   align-items: center;
-  box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 8px var(--black-alpha-15);
   overflow: hidden;
 }
 
@@ -91,7 +91,7 @@
   border: none;
   outline: none;
   font-size: 16px;
-  color: rgba(30, 30, 30, 0.8);
+  color: var(--gray-alpha-80);
   padding: 0 20px;
   background: transparent;
   border-radius: 20px 0 0 20px;
@@ -100,7 +100,7 @@
 }
 
 .searchInput::placeholder {
-  color: rgba(30, 30, 30, 0.5);
+  color: var(--gray-alpha-50);
 }
 
 .searchButton {
@@ -118,13 +118,13 @@
 }
 
 .searchButton:hover {
-  background: #f3ce4a;
+  background: var(--yellow-350);
 }
 
 .searchIcon {
   width: 24px;
   height: 24px;
-  fill: #072d3b;
+  fill: var(--navy-750);
   transition: transform 0.2s ease;
 }
 

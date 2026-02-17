@@ -4,10 +4,10 @@
   flex-direction: column;
   align-items: flex-start;
   padding: 0;
-  gap: var(--publish-spacing-4xl);
-  max-width: var(--publish-container-width);
+  gap: var(--space-4xl);
+  max-width: var(--container-width);
   margin: 0 auto;
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
 }
 
 /* Header Section */
@@ -16,7 +16,7 @@
   flex-direction: column;
   align-items: flex-start;
   padding: 0;
-  gap: var(--publish-spacing-lg);
+  gap: var(--sp-6);
   width: 100%;
   align-self: stretch;
 }
@@ -27,17 +27,17 @@
   flex-direction: row;
   align-items: center;
   padding: 0;
-  gap: var(--publish-spacing-sm);
+  gap: var(--sp-2);
 }
 
 /* Main Title */
 .mainTitle {
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size-xl);
-  line-height: var(--publish-line-height-3xl);
-  color: var(--publish-text);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-xl);
+  line-height: var(--text-line-3xl);
+  color: var(--text-ink);
   margin: 0;
 }
 
@@ -47,7 +47,7 @@
   flex-direction: row;
   align-items: center;
   padding: 0;
-  gap: var(--publish-spacing-xs);
+  gap: var(--sp-1);
 }
 
 /* Network Details */
@@ -61,18 +61,18 @@
 
 /* Network Icon */
 .networkIcon {
-  width: var(--publish-line-height-3xl);
-  height: var(--publish-line-height-3xl);
+  width: var(--text-line-3xl);
+  height: var(--text-line-3xl);
 }
 
 /* Network Name */
 .networkName {
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size-xl);
-  line-height: var(--publish-line-height-3xl);
-  color: var(--publish-text);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-xl);
+  line-height: var(--text-line-3xl);
+  color: var(--text-ink);
   margin: 0;
 }
 
@@ -80,17 +80,17 @@
 .infoIcon {
   width: 22px;
   height: 22px;
-  color: var(--publish-neutral);
+  color: var(--text-neutral);
 }
 
 /* Description */
 .description {
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-normal);
-  font-size: var(--publish-font-size-lg);
-  line-height: var(--publish-line-height-2xl);
-  color: var(--publish-text-secondary);
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-lg);
+  line-height: var(--text-line-2xl);
+  color: var(--clr-slate-70);
   margin: 0;
   align-self: stretch;
 }
@@ -101,7 +101,7 @@
   flex-direction: column;
   align-items: flex-start;
   padding: 0;
-  gap: var(--publish-spacing-2xl);
+  gap: var(--sp-10);
   width: 100%;
   align-self: stretch;
 }
@@ -112,7 +112,7 @@
   flex-direction: column;
   align-items: flex-start;
   padding: 0;
-  gap: var(--publish-spacing-2xl);
+  gap: var(--sp-10);
   width: 100%;
 }
 
@@ -121,18 +121,18 @@
   flex-direction: column;
   align-items: flex-start;
   padding: 0;
-  gap: var(--publish-spacing-md);
+  gap: var(--sp-4);
   width: 100%;
 }
 
 /* Section Title */
 .sectionTitle {
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size-base);
-  line-height: var(--publish-line-height-lg);
-  color: var(--publish-text);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-base);
+  line-height: var(--text-line-lg);
+  color: var(--text-ink);
   margin: 0;
 }
 
@@ -142,7 +142,7 @@
   flex-direction: column;
   align-items: flex-start;
   padding: 0;
-  gap: var(--publish-spacing-md);
+  gap: var(--sp-4);
   width: 100%;
   align-self: stretch;
 }
@@ -151,33 +151,33 @@
 @media (max-width: 1200px) {
   .publish {
     width: 100%;
-    padding: 0 var(--publish-spacing-lg);
+    padding: 0 var(--sp-6);
   }
 }
 
 @media (max-width: 768px) {
   .publish {
-    gap: var(--publish-spacing-2xl);
+    gap: var(--sp-10);
   }
 
   .header {
-    gap: var(--publish-spacing-md);
+    gap: var(--sp-4);
   }
 
   .titleRow {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--publish-spacing-md);
+    gap: var(--sp-4);
   }
 
   .mainTitle,
   .networkName {
-    font-size: var(--publish-font-size-lg);
-    line-height: var(--publish-line-height-2xl);
+    font-size: var(--text-lg);
+    line-height: var(--text-line-2xl);
   }
 
   .description {
-    font-size: var(--publish-font-size-base);
-    line-height: var(--publish-line-height-xl);
+    font-size: var(--text-base);
+    line-height: var(--text-line-xl);
   }
 }

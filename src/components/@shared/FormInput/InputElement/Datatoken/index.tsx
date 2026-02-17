@@ -10,7 +10,7 @@ export default function Datatoken({
   randomize,
   ...props
 }: InputProps & { randomize?: boolean }): ReactElement {
-  const [field, meta, helpers] = useField(props?.name)
+  const [field, , helpers] = useField(props?.name)
 
   async function generateName() {
     const datatokenOptions = randomize

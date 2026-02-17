@@ -4,10 +4,11 @@ import { AssetExtended } from 'src/@types/AssetExtended'
 import { Service } from 'src/@types/ddo/Service'
 import { FileInfo } from '@oceanprotocol/lib'
 import { Signer } from 'ethers'
+import { ComputeRerunConfig } from '@utils/computeRerun'
 
 type ComputeMode = 'dataset' | 'algorithm'
 
-export interface ComputeWizardProps {
+interface ComputeWizardProps {
   accountId: string
   signer: Signer
   asset: AssetExtended
@@ -20,6 +21,7 @@ export interface ComputeWizardProps {
   onClose?: () => void
   onComputeJobCreated?: () => void
   mode?: ComputeMode
+  rerunConfig?: ComputeRerunConfig
 }
 
 export default function ComputeWizard(props: ComputeWizardProps): ReactElement {

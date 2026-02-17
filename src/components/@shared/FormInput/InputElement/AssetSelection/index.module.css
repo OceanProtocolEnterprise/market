@@ -36,8 +36,8 @@
 }
 
 .row:hover {
-  background: var(--publish-background-hover);
-  border-radius: var(--publish-border-radius);
+  background: var(--surface-hover);
+  border-radius: var(--radius-xl);
   cursor: pointer;
 }
 
@@ -85,10 +85,10 @@
 }
 
 .didContainer {
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-normal);
-  font-size: var(--publish-font-size);
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
   color: var(--clr-did-text);
 }
 
@@ -106,9 +106,9 @@
   height: 16px;
   margin: 0;
   margin-right: 0;
-  border: 1px solid var(--publish-accent);
-  border-radius: var(--publish-border-radius-sm);
-  background: var(--publish-white);
+  border: 1px solid var(--clr-amber);
+  border-radius: var(--radius-compact);
+  background: var(--brand-white);
   cursor: pointer;
   position: relative;
   flex-shrink: 0;
@@ -117,8 +117,8 @@
 }
 
 .input:checked {
-  border-color: var(--publish-accent);
-  background: var(--publish-accent);
+  border-color: var(--clr-amber);
+  background: var(--clr-amber);
 }
 
 .input:checked::after {
@@ -129,7 +129,7 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -60%) rotate(40deg);
-  border: 2px solid var(--publish-white);
+  border: 2px solid var(--brand-white);
   border-top: 0;
   border-left: 0;
   opacity: 1;
@@ -148,7 +148,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--publish-white);
+  background: var(--brand-white);
   border-radius: 50%;
   border: none;
 }
@@ -158,12 +158,12 @@
 }
 
 .title {
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
-  line-height: var(--publish-line-height-base);
-  color: var(--publish-text);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
+  color: var(--text-ink);
   margin: 0;
   display: flex;
   align-items: center;
@@ -193,26 +193,26 @@
 }
 
 .price {
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
-  line-height: var(--publish-line-height-base);
-  color: var(--publish-text);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
+  color: var(--text-ink);
   white-space: nowrap;
 }
 
 .price [class*='symbol'] {
-  font-size: var(--publish-font-size);
+  font-size: var(--text-sm);
 }
 
 .did {
   padding: 0;
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
   font-style: normal;
-  font-weight: var(--publish-font-weight-normal);
-  font-size: var(--publish-font-size);
-  line-height: var(--publish-line-height-base);
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
   display: block;
   text-align: left;
   color: var(--font-color-did);

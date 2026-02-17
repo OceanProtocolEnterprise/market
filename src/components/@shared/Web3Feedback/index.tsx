@@ -16,18 +16,10 @@ import SsiApiModal from '../../Header/Wallet/SsiApiModal'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 
-export declare type Web3Error = {
-  status: 'error' | 'warning' | 'success'
-  title: string
-  message?: string
-}
-
 export default function Web3Feedback({
-  networkId,
   accountId,
   isAssetNetwork
 }: {
-  networkId: number
   accountId: string
   isAssetNetwork?: boolean
 }): ReactElement {
@@ -36,18 +28,28 @@ export default function Web3Feedback({
   const [message, setMessage] = useState<string>()
   const [showFeedback, setShowFeedback] = useState<boolean>(false)
 
-  const { address, isConnected } = useAccount()
+  const { isConnected } = useAccount()
   const walletClient = useEthersSigner()
   const { setOpen } = useModal()
-  const { sessionToken, setSessionToken } = useSsiWallet()
+  const {
+    sessionToken,
+    setSessionToken,
+    tryAcquireSsiAutoConnectLock,
+    resetSsiAutoConnectLock
+  } = useSsiWallet()
 
   const [showInput, setShowInput] = useState(false)
   const [overrideApi, setOverrideApi] = useState(appConfig.ssiWalletApi)
 
   useEffect(() => {
+    if (!isConnected) {
+      resetSsiAutoConnectLock()
+      return
+    }
     const storedApi = sessionStorage.getItem(STORAGE_KEY)
 
     if (isConnected && walletClient && appConfig.ssiEnabled && !sessionToken) {
+      if (!tryAcquireSsiAutoConnectLock()) return
       if (storedApi) {
         connectToWallet(walletClient as any)
           .then((session) => {
@@ -58,7 +60,14 @@ export default function Web3Feedback({
         setShowInput(true)
       }
     }
-  }, [isConnected, walletClient, sessionToken, setSessionToken])
+  }, [
+    isConnected,
+    walletClient,
+    sessionToken,
+    setSessionToken,
+    tryAcquireSsiAutoConnectLock,
+    resetSsiAutoConnectLock
+  ])
 
   function handleConnectWallet() {
     setOpen(true)

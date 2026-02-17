@@ -3,7 +3,7 @@ import Button from '../../../@shared/atoms/Button'
 import styles from './index.module.css'
 import Loader from '../../../@shared/atoms/Loader'
 
-export interface CalculateButtonBuyProps {
+interface CalculateButtonBuyProps {
   isLoading?: boolean
   onClick?: (e: FormEvent<HTMLButtonElement>) => void
   stepText?: string
@@ -21,7 +21,7 @@ export default function CalculateButtonBuy({
       {isLoading ? (
         <Loader message={stepText} />
       ) : (
-        <Button style="publish" type={type} onClick={onClick}>
+        <Button style="accent" type={type} onClick={onClick}>
           Calculate Total Price
         </Button>
       )}

@@ -21,7 +21,7 @@ body .header div {
 
 .content {
   padding-left: var(--sp-4);
-  border-left: 3px solid var(--publish-accent);
+  border-left: 3px solid var(--clr-amber);
   margin-left: calc(var(--sp-4) + 3px);
 }
 
