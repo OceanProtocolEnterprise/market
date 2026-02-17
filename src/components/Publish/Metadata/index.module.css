@@ -48,6 +48,37 @@
   gap: 16px;
 }
 
+/* Local motion/shadow reduction for License section interactions only. */
+.licenseInteractionScope
+  :global(input:not([type='checkbox']):not([type='radio']):not([type='file'])),
+.licenseInteractionScope :global(select),
+.licenseInteractionScope :global(textarea) {
+  box-shadow: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.licenseInteractionScope
+  :global(
+    input:not([type='checkbox']):not([type='radio']):not([type='file']):focus
+  ),
+.licenseInteractionScope :global(select:focus),
+.licenseInteractionScope :global(textarea:focus) {
+  box-shadow: none;
+}
+
+.licenseInteractionScope :global(button) {
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    color 0.2s ease, opacity 0.2s ease;
+}
+
+.licenseInteractionScope :global(button:hover),
+.licenseInteractionScope :global(button:focus),
+.licenseInteractionScope :global(button:active) {
+  transform: none;
+  box-shadow: none;
+}
+
 .licenseDropdownWrapper {
   max-width: 300px;
   width: fit-content;
@@ -182,7 +213,7 @@
 .licenseUrlContainer {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
 }
 
 .licenseUrlWrapper {
@@ -304,13 +335,14 @@
   line-height: var(--text-line-base);
   color: var(--clr-navy);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .addLicenseButton:hover {
   background: var(--surface-neutral);
   border-color: var(--clr-navy);
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
 }
 
 .addLicenseButton:disabled {

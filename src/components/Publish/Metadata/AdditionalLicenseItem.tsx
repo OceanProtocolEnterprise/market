@@ -99,7 +99,6 @@ export default function AdditionalLicenseItem({
               {...getFieldContent('license', content.metadata.fields)}
               component={Input}
               name={`metadata.additionalLicenseFiles[${index}].url`}
-              hideLabel
               isAdditionalLicense
               errorClassName={styles.additionalLicenseError}
               onValidationLoadingChange={setIsUrlValidating}

@@ -126,7 +126,9 @@ export default function MetadataFields(): ReactElement {
       )}
 
       <SectionContainer title="License Type" required>
-        <div className={styles.licenseContainer}>
+        <div
+          className={`${styles.licenseContainer} ${styles.licenseInteractionScope}`}
+        >
           <div className={styles.licenseDropdownWrapper}>
             <Field
               {...getFieldContent(
