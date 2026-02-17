@@ -108,6 +108,9 @@ export default function Edit({
           ]
         }
       }
+      if (!license && values.useRemoteLicense) {
+        license = values.uploadedLicense
+      }
 
       const updatedMetadata: Metadata = {
         ...asset.credentialSubject?.metadata,
@@ -120,7 +123,7 @@ export default function Edit({
         links: convertLinks(linksTransformed),
         author: values.author,
         tags: values.tags,
-        license: values.useRemoteLicense ? values.uploadedLicense : license,
+        license,
         additionalInformation: {
           ...asset.credentialSubject?.metadata?.additionalInformation
         }
@@ -142,6 +145,7 @@ export default function Edit({
         ...(asset as Asset),
         credentialSubject: {
           ...(asset as Asset).credentialSubject,
+          license,
           metadata: updatedMetadata,
           credentials: updatedCredentials
         },
