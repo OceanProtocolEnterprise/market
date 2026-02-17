@@ -69,7 +69,10 @@ export default function useEditMetadata() {
 
     additionalFiles.forEach((file) => {
       if (file.sourceType === 'Upload file' && file.uploadedDocument) {
-        licenseDocs.push(file.uploadedDocument)
+        licenseDocs.push({
+          ...file.uploadedDocument,
+          name: file.name || file.uploadedDocument.name
+        })
       } else if (file.sourceType === 'URL' && file.url?.[0]?.valid) {
         const urlDoc = file.url[0]
         licenseDocs.push({
@@ -155,7 +158,7 @@ export default function useEditMetadata() {
     if (!additionalFiles.length) return
 
     const updatedFiles = additionalFiles.map((additionalFile) => {
-      if (!additionalFile || additionalFile.name?.trim()) return additionalFile
+      if (additionalFile.name?.trim()) return additionalFile
       if (additionalFile.sourceType !== 'URL') return additionalFile
 
       const url = additionalFile.url?.[0]?.url?.trim()
@@ -240,13 +243,18 @@ export default function useEditMetadata() {
       const remoteSource = await uploadFileItemToIPFS(fileItem)
       const remoteObject = getRemoteObjectFromFileItem(fileItem, remoteSource)
       const additionalFiles = getAdditionalFilesSnapshot()
-      const currentName = additionalFiles[index]?.name
+      const currentName = additionalFiles[index]?.name?.trim()
+      const finalName = currentName || fileItem.name
+      const updatedRemoteObject = {
+        ...remoteObject,
+        name: finalName
+      }
 
       additionalFiles[index] = {
         ...additionalFiles[index],
-        name: currentName?.trim() ? currentName : fileItem.name,
+        name: finalName,
         url: [],
-        uploadedDocument: remoteObject
+        uploadedDocument: updatedRemoteObject
       }
       await setAdditionalFiles(additionalFiles)
       await updateLicenseDocuments(additionalFiles)
@@ -356,7 +364,11 @@ export default function useEditMetadata() {
     const additionalFiles = getAdditionalFilesSnapshot()
 
     if (isValid && fileData) {
-      const fileName = fileData.name || inferNameFromUrl(url)
+      const currentName = additionalFiles[index]?.name?.trim()
+      let finalName = currentName
+      if (!finalName) {
+        finalName = fileData.name || inferNameFromUrl(url)
+      }
 
       additionalFiles[index] = {
         ...additionalFiles[index],
@@ -371,7 +383,7 @@ export default function useEditMetadata() {
             contentType: fileData.contentType
           }
         ],
-        name: additionalFiles[index]?.name || fileName
+        name: finalName
       }
 
       await setAdditionalFiles(additionalFiles)

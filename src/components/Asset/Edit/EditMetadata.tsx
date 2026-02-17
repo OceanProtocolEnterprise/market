@@ -88,8 +88,8 @@ export default function Edit({
       const linksTransformed = values.links?.length &&
         values.links[0].valid && [sanitizeUrl(values.links[0].url)]
 
-      let license: License
-      if (!values.useRemoteLicense && values.licenseUrl[0]) {
+      let { license } = values
+      if (!license && !values.useRemoteLicense && values.licenseUrl[0]) {
         license = {
           name: values.licenseUrl[0].url,
           licenseDocuments: [
