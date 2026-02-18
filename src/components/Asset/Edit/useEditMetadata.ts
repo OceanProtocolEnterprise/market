@@ -13,7 +13,8 @@ import {
   createEmptyUrlFileInfo,
   reindexBooleanMapAfterDeletion,
   additionalLicenseSourceOptions,
-  inferNameFromUrl
+  inferNameFromUrl,
+  getAdditionalLicenseSubtext
 } from '@components/Publish/_license'
 import { AdditionalLicenseSourceType } from '@components/Publish/_types'
 
@@ -35,6 +36,11 @@ export default function useEditMetadata() {
     return !!values.licenseUrl?.[0]?.valid
   }
 
+  function getFileSizeFromContentLength(contentLength?: string): number | null {
+    const parsed = Number(contentLength)
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : null
+  }
+
   async function updateLicenseDocuments(
     additionalFiles: FormAdditionalLicenseFile[]
   ) {
@@ -47,10 +53,16 @@ export default function useEditMetadata() {
       mainLicenseDoc = values.uploadedLicense.licenseDocuments[0]
     } else if (!values.useRemoteLicense && values.licenseUrl?.[0]?.valid) {
       const urlDoc = values.licenseUrl[0]
+      const fileSize = getFileSizeFromContentLength(urlDoc.contentLength)
       mainLicenseDoc = {
         name: urlDoc.url?.split('/').pop() || urlDoc.url || 'license',
-        fileType: urlDoc.type || 'url',
+        fileType: urlDoc.contentType || '',
         sha256: urlDoc.checksum || '',
+        ...(fileSize !== null && {
+          additionalInformation: {
+            size: fileSize
+          }
+        }),
         mirrors: [
           {
             url: urlDoc.url,
@@ -75,14 +87,20 @@ export default function useEditMetadata() {
         })
       } else if (file.sourceType === 'URL' && file.url?.[0]?.valid) {
         const urlDoc = file.url[0]
+        const fileSize = getFileSizeFromContentLength(urlDoc.contentLength)
         licenseDocs.push({
           name:
             file.name ||
             urlDoc.url?.split('/').pop() ||
             urlDoc.url ||
             'license',
-          fileType: urlDoc.type || 'url',
+          fileType: urlDoc.contentType || '',
           sha256: urlDoc.checksum || '',
+          ...(fileSize !== null && {
+            additionalInformation: {
+              size: fileSize
+            }
+          }),
           mirrors: [
             {
               url: urlDoc.url,
@@ -422,6 +440,7 @@ export default function useEditMetadata() {
 
   const additionalFiles = values.additionalLicenseFiles || []
   const primaryLicenseReady = isPrimaryLicenseReady()
+  const additionalLicenseSubtext = getAdditionalLicenseSubtext(additionalFiles)
 
   return {
     values,
@@ -430,6 +449,7 @@ export default function useEditMetadata() {
     additionalFilesUploading,
     additionalFilesDeleting,
     additionalFileSourceOptions: additionalLicenseSourceOptions,
+    additionalLicenseSubtext,
     primaryLicenseReady,
     handleAdditionalFileUpload,
     handleNewAdditionalFile,

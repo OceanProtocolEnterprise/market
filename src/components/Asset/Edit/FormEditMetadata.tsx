@@ -14,6 +14,7 @@ import IconAlgorithm from '@images/algorithm.svg'
 import { BoxSelectionOption } from '@components/@shared/FormInput/InputElement/BoxSelection'
 import { FileUpload } from '@components/@shared/FileUpload'
 import Label from '@components/@shared/FormInput/Label'
+import SectionContainer from '@shared/SectionContainer/SectionContainer'
 import { deleteIpfsFile, uploadFileItemToIPFS } from '@utils/ipfs'
 import { FileItem } from '@utils/fileItem'
 import { License } from '../../../@types/ddo/License'
@@ -21,14 +22,12 @@ import { RemoteObject } from '../../../@types/ddo/RemoteObject'
 import SSIPoliciesSection from './SSIPoliciesSection'
 import { AdditionalDdosFields } from '@components/@shared/AdditionalDdos'
 import ContainerForm from '@components/@shared/atoms/ContainerForm'
+import AdditionalLicenseSection from '@shared/AdditionalLicenseSection'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import appConfig from 'app.config.cjs'
 import { toast } from 'react-toastify'
 import AccessRulesSection from '@components/Publish/AccessPolicies/AccessRulesSection'
 import useEditMetadata from './useEditMetadata'
-import EditAdditionalLicenseItem from './EditAdditionalLicenseItem'
-import Button from '@shared/atoms/Button'
-import { LICENSE_UI } from '@components/Publish/_license'
 import styles from './index.module.css'
 
 const { data } = content.form
@@ -44,6 +43,7 @@ export default function FormEditMetadata(): ReactElement {
     additionalFilesUploading,
     additionalFilesDeleting,
     additionalFileSourceOptions,
+    additionalLicenseSubtext,
     primaryLicenseReady,
     handleAdditionalFileUpload,
     handleNewAdditionalFile,
@@ -249,89 +249,57 @@ export default function FormEditMetadata(): ReactElement {
           name="assetState"
         />
 
-        <Field
-          {...getFieldContent('licenseTypeSelection', content.form.data)}
-          component={Input}
-          name="useRemoteLicense"
-        />
+        <SectionContainer title="License" required>
+          <Field
+            {...getFieldContent('licenseTypeSelection', content.form.data)}
+            component={Input}
+            name="useRemoteLicense"
+          />
 
-        {values.useRemoteLicense ? (
-          <div className={styles.licenseUploadContainer}>
-            <Label htmlFor="license">
-              License File <span className={styles.required}>*</span>
-            </Label>
-            <FileUpload
-              fileName={values.uploadedLicense?.name}
-              fileSize={
-                primaryUploadedLicenseDocument?.additionalInformation?.size as
-                  | number
-                  | undefined
-              }
-              fileType={primaryUploadedLicenseDocument?.fileType}
-              buttonLabel="Upload File"
-              setFileItem={handleLicenseFileUpload}
-              buttonStyle="accent"
-              disabled={!!primaryUploadedLicenseDocument}
-              onReset={handleResetPrimaryUploadedLicense}
-            />
-          </div>
-        ) : (
-          <div className={styles.licenseUrlContainer}>
-            <Field
-              {...getFieldContent('license', content.form.data)}
-              component={Input}
-              name="licenseUrl"
-            />
-          </div>
-        )}
-
-        {/* Additional License Files Section */}
-        {primaryLicenseReady && (
-          <>
-            <div className={styles.additionalLicenseHeader}>
-              <Label htmlFor="additionalLicenseFiles">
-                {LICENSE_UI.additionalFilesHeader}
+          {values.useRemoteLicense ? (
+            <div className={styles.licenseUploadContainer}>
+              <Label htmlFor="license">
+                License File <span className={styles.required}>*</span>
               </Label>
-              <span className={styles.additionalLicenseSubtext}>
-                Optional extra license documents (in addition to the primary
-                license).
-              </span>
-            </div>
-
-            {additionalFiles.map((additionalFile, index) => (
-              <EditAdditionalLicenseItem
-                key={additionalFile.id}
-                index={index}
-                additionalFile={additionalFile}
-                isUploading={!!additionalFilesUploading[index]}
-                isDeleting={!!additionalFilesDeleting[index]}
-                additionalFileSourceOptions={additionalFileSourceOptions}
-                onDelete={() => handleDeleteAdditionalFile(index)}
-                onSourceChange={(sourceType) =>
-                  handleAdditionalFileSourceChange(index, sourceType)
+              <FileUpload
+                fileName={values.uploadedLicense?.name}
+                fileSize={
+                  primaryUploadedLicenseDocument?.additionalInformation
+                    ?.size as number | undefined
                 }
-                onUpload={(fileItem, onError) =>
-                  handleAdditionalFileUpload(index, fileItem, onError)
-                }
-                onUrlValidate={(url, isValid, fileData) =>
-                  handleAdditionalFileUrlValidate(index, url, isValid, fileData)
-                }
+                fileType={primaryUploadedLicenseDocument?.fileType}
+                buttonLabel="Upload File"
+                setFileItem={handleLicenseFileUpload}
+                buttonStyle="accent"
+                disabled={!!primaryUploadedLicenseDocument}
+                onReset={handleResetPrimaryUploadedLicense}
               />
-            ))}
-
-            <div className={styles.additionalFilesButtonWrapper}>
-              <Button
-                style="ghost"
-                type="button"
-                onClick={handleNewAdditionalFile}
-                className={styles.addLicenseButton}
-                disabled={!primaryLicenseReady}
-              >
-                {LICENSE_UI.addAdditionalFileButton}
-              </Button>
             </div>
-          </>
-        )}
+          ) : (
+            <div className={styles.licenseUrlContainer}>
+              <Field
+                {...getFieldContent('license', content.form.data)}
+                component={Input}
+                name="licenseUrl"
+              />
+            </div>
+          )}
+
+          <AdditionalLicenseSection
+            fieldPathPrefix="additionalLicenseFiles"
+            additionalFiles={additionalFiles}
+            additionalFilesUploading={additionalFilesUploading}
+            additionalFilesDeleting={additionalFilesDeleting}
+            additionalFileSourceOptions={additionalFileSourceOptions}
+            primaryLicenseReady={primaryLicenseReady}
+            additionalLicenseSubtext={additionalLicenseSubtext}
+            onAdd={handleNewAdditionalFile}
+            onDelete={handleDeleteAdditionalFile}
+            onSourceChange={handleAdditionalFileSourceChange}
+            onUpload={handleAdditionalFileUpload}
+            onUrlValidate={handleAdditionalFileUrlValidate}
+          />
+        </SectionContainer>
 
         <AdditionalDdosFields />
 
