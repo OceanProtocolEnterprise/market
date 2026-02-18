@@ -1,14 +1,16 @@
-import { ReactElement, useState } from 'react'
+import { ReactElement, ReactNode, useState } from 'react'
 import styles from './index.module.css'
 
 export default function DebugOutput({
   title,
   output,
-  large
+  large,
+  headerLeft
 }: {
   title?: string
   output: any
   large?: boolean
+  headerLeft?: ReactNode
 }): ReactElement {
   const jsonString = JSON.stringify(output, null, 2)
   const [copied, setCopied] = useState(false)
@@ -28,9 +30,9 @@ export default function DebugOutput({
 
   return (
     <div className={styles.debugOutput}>
-      {title && (
+      {(title || headerLeft) && (
         <div className={styles.header}>
-          <h5>{title}</h5>
+          {headerLeft || <h5>{title}</h5>}
 
           <button
             type="button"
