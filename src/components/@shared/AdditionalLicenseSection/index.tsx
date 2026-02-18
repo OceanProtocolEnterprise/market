@@ -12,6 +12,7 @@ import { getFieldContent } from '@utils/form'
 import { FileItem } from '@utils/fileItem'
 import {
   getAdditionalFileLabel,
+  hasInvalidAdditionalLicenseFiles,
   getAdditionalLicenseTooltipText,
   LICENSE_UI
 } from '@components/Publish/_license'
@@ -181,6 +182,10 @@ export default function AdditionalLicenseSection({
   onUrlValidate
 }: AdditionalLicenseSectionProps): ReactElement | null {
   if (!primaryLicenseReady) return null
+  const lastAdditionalFile = additionalFiles[additionalFiles.length - 1]
+  const isLastAdditionalFileIncomplete = hasInvalidAdditionalLicenseFiles(
+    lastAdditionalFile ? [lastAdditionalFile] : []
+  )
 
   return (
     <div className={styles.root}>
@@ -222,7 +227,7 @@ export default function AdditionalLicenseSection({
           type="button"
           onClick={onAdd}
           className={styles.addLicenseButton}
-          disabled={!primaryLicenseReady}
+          disabled={!primaryLicenseReady || isLastAdditionalFileIncomplete}
         >
           {LICENSE_UI.addAdditionalFileButton}
         </Button>
