@@ -55,6 +55,7 @@ export default function AssetContent({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [computeJobsRefetchTrigger, setComputeJobsRefetchTrigger] = useState(0)
   const [expanded, setExpanded] = useState(false)
+  const [showDdo, setShowDdo] = useState(false)
   const availableServices =
     asset.credentialSubject?.services?.filter(
       (service) => service.state === 0
@@ -286,7 +287,36 @@ export default function AssetContent({
               </>
             )}
             <MetaFull ddo={asset} />
-            {debug === true && <DebugOutput title="DDO" output={asset} />}
+            {debug === true ? (
+              <DebugOutput title="DDO" output={asset} />
+            ) : (
+              <>
+                {showDdo ? (
+                  <DebugOutput
+                    output={asset}
+                    headerLeft={
+                      <button
+                        type="button"
+                        className={`${styles.ddoToggleButton} ${styles.ddoToggleButtonInline}`}
+                        onClick={() => setShowDdo((isVisible) => !isVisible)}
+                        aria-expanded={showDdo}
+                      >
+                        DDO
+                      </button>
+                    }
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.ddoToggleButton}
+                    onClick={() => setShowDdo((isVisible) => !isVisible)}
+                    aria-expanded={showDdo}
+                  >
+                    DDO
+                  </button>
+                )}
+              </>
+            )}
           </div>
           {isPublished &&
             computeServiceIndex !== undefined &&
