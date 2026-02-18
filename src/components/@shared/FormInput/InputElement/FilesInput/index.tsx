@@ -25,10 +25,17 @@ type FilesInputProps = InputProps & {
     setFieldValue?: (field: string, value: any) => void
   }
   onRemove?: () => void
+  onValidationLoadingChange?: (loading: boolean) => void
+  onValidationComplete?: (url: string, isValid: boolean, fileData?: any) => void
 }
 
 export default function FilesInput(props: FilesInputProps): ReactElement {
-  const { form, onValidationLoadingChange, ...inputProps } = props
+  const {
+    form,
+    onValidationLoadingChange,
+    onValidationComplete,
+    ...inputProps
+  } = props
   const values = form?.values
   const setFieldValue = form?.setFieldValue
   const [field, meta, helpers] = useField(props.name)
@@ -49,6 +56,10 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
   const headers = field.value?.[0]?.headers || undefined
   const method = field.value?.[0]?.method || 'get'
   const isValidated = field?.value?.[0]?.valid === true
+
+  const isEditPage =
+    props.name?.startsWith('additionalLicenseFiles[') ||
+    props.name?.startsWith('licenseUrl')
 
   async function handleValidation(e: React.SyntheticEvent, url: string) {
     e?.preventDefault()
@@ -80,11 +91,12 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
 
       if (!checkedFile || checkedFile[0].valid === false)
         throw Error('✗ No valid file detected.')
-      const currentDocs = values.metadata?.license?.licenseDocuments || []
+
       const checkedFileInfo = (checkedFile[0] || {}) as Partial<FileInfo> & {
         method?: string
         contentType?: string
       }
+
       const normalizedFileInfo = {
         ...field.value[0],
         ...checkedFileInfo,
@@ -93,6 +105,10 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
         url,
         valid: true
       }
+      onValidationComplete?.(url, true, {
+        ...checkedFileInfo,
+        name: url.split('/').pop() || url
+      })
 
       const isMainLicense = props.name.includes('licenseUrl')
       const isAdditionalLicense =
@@ -107,25 +123,48 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
         ...checkedFileInfo
       }
 
-      if (isMainLicense) {
-        setFieldValue('metadata.license.licenseDocuments', [
-          newDoc,
-          ...currentDocs.slice(1)
-        ])
-      } else if (isAdditionalLicense) {
-        const mainLicense = currentDocs[0] || null
-        const additionalDocs = currentDocs.slice(1)
+      if (isEditPage) {
+        const currentDocs = values.license?.licenseDocuments || []
 
-        setFieldValue('metadata.license.licenseDocuments', [
-          ...(mainLicense ? [mainLicense] : []),
-          ...additionalDocs,
-          newDoc
-        ])
+        if (isMainLicense) {
+          setFieldValue('license.licenseDocuments', [
+            newDoc,
+            ...currentDocs.slice(1)
+          ])
+        } else if (isAdditionalLicense) {
+          const mainLicense = currentDocs[0] || null
+          const additionalDocs = currentDocs.slice(1)
+
+          setFieldValue('license.licenseDocuments', [
+            ...(mainLicense ? [mainLicense] : []),
+            ...additionalDocs,
+            newDoc
+          ])
+        }
+      } else {
+        const currentDocs = values.metadata?.license?.licenseDocuments || []
+
+        if (isMainLicense) {
+          setFieldValue('metadata.license.licenseDocuments', [
+            newDoc,
+            ...currentDocs.slice(1)
+          ])
+        } else if (isAdditionalLicense) {
+          const mainLicense = currentDocs[0] || null
+          const additionalDocs = currentDocs.slice(1)
+
+          setFieldValue('metadata.license.licenseDocuments', [
+            ...(mainLicense ? [mainLicense] : []),
+            ...additionalDocs,
+            newDoc
+          ])
+        }
       }
 
       helpers.setValue([normalizedFileInfo])
     } catch (error: any) {
       helpers.setError(error.message)
+      onValidationComplete?.(url, false)
       LoggerInstance.error(error.message)
     } finally {
       setIsLoading(false)

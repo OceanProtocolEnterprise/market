@@ -331,3 +331,23 @@ body .addAddressButton {
     align-items: stretch;
   }
 }
+
+.licenseUrlContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.licenseUploadContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.required {
+  color: var(--clr-alert);
+  margin-left: 4px;
+}

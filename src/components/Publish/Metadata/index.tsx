@@ -5,10 +5,8 @@ import content from '../../../../content/publish/form.json'
 import { getFieldContent } from '@utils/form'
 import { FileUpload } from '@components/@shared/FileUpload'
 import Label from '@components/@shared/FormInput/Label'
-import Button from '@shared/atoms/Button'
+import AdditionalLicenseSection from '@shared/AdditionalLicenseSection'
 import useMetadata from './useMetadata'
-import { LICENSE_UI } from '../_license'
-import AdditionalLicenseItem from './AdditionalLicenseItem'
 
 import SectionContainer from '../../@shared/SectionContainer/SectionContainer'
 import styles from './index.module.css'
@@ -126,7 +124,9 @@ export default function MetadataFields(): ReactElement {
       )}
 
       <SectionContainer title="License Type" required>
-        <div className={styles.licenseContainer}>
+        <div
+          className={`${styles.licenseContainer} ${styles.licenseInteractionScope}`}
+        >
           <div className={styles.licenseDropdownWrapper}>
             <Field
               {...getFieldContent(
@@ -150,7 +150,7 @@ export default function MetadataFields(): ReactElement {
 
           {primaryLicenseType === 'Upload license file' && (
             <div className={styles.licenseUrlContainer}>
-              <Label htmlFor="license">
+              <Label htmlFor="license" className={styles.primaryLicenseLabel}>
                 License File <span className={styles.required}>*</span>
               </Label>
               <FileUpload
@@ -169,49 +169,19 @@ export default function MetadataFields(): ReactElement {
             </div>
           )}
 
-          {primaryLicenseReady && (
-            <div className={styles.additionalLicenseHeader}>
-              <Label htmlFor="additionalLicenseFiles">
-                {LICENSE_UI.additionalFilesHeader}
-              </Label>
-              <span className={styles.additionalLicenseSubtext}>
-                {additionalLicenseSubtext}
-              </span>
-            </div>
-          )}
-
-          {primaryLicenseReady &&
-            additionalFiles.map((additionalFile, index) => (
-              <AdditionalLicenseItem
-                key={additionalFile.id}
-                index={index}
-                additionalFile={additionalFile}
-                isUploading={!!additionalFilesUploading[index]}
-                isDeleting={!!additionalFilesDeleting[index]}
-                additionalFileSourceOptions={additionalFileSourceOptions}
-                onDelete={() => handleDeleteAdditionalFile(index)}
-                onSourceChange={(sourceType) =>
-                  handleAdditionalFileSourceChange(index, sourceType)
-                }
-                onUpload={(fileItem, onError) =>
-                  handleAdditionalFileUpload(index, fileItem, onError)
-                }
-              />
-            ))}
-
-          {primaryLicenseReady && (
-            <div className={styles.additionalFilesButtonWrapper}>
-              <Button
-                style="ghost"
-                type="button"
-                onClick={handleNewAdditionalFile}
-                className={styles.addLicenseButton}
-                disabled={!primaryLicenseReady}
-              >
-                {LICENSE_UI.addAdditionalFileButton}
-              </Button>
-            </div>
-          )}
+          <AdditionalLicenseSection
+            fieldPathPrefix="metadata.additionalLicenseFiles"
+            additionalFiles={additionalFiles}
+            additionalFilesUploading={additionalFilesUploading}
+            additionalFilesDeleting={additionalFilesDeleting}
+            additionalFileSourceOptions={additionalFileSourceOptions}
+            primaryLicenseReady={primaryLicenseReady}
+            additionalLicenseSubtext={additionalLicenseSubtext}
+            onAdd={handleNewAdditionalFile}
+            onDelete={handleDeleteAdditionalFile}
+            onSourceChange={handleAdditionalFileSourceChange}
+            onUpload={handleAdditionalFileUpload}
+          />
         </div>
       </SectionContainer>
 

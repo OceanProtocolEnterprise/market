@@ -48,6 +48,37 @@
   gap: 16px;
 }
 
+/* Local motion/shadow reduction for License section interactions only. */
+.licenseInteractionScope
+  :global(input:not([type='checkbox']):not([type='radio']):not([type='file'])),
+.licenseInteractionScope :global(select),
+.licenseInteractionScope :global(textarea) {
+  box-shadow: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.licenseInteractionScope
+  :global(
+    input:not([type='checkbox']):not([type='radio']):not([type='file']):focus
+  ),
+.licenseInteractionScope :global(select:focus),
+.licenseInteractionScope :global(textarea:focus) {
+  box-shadow: none;
+}
+
+.licenseInteractionScope :global(button) {
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    color 0.2s ease, opacity 0.2s ease;
+}
+
+.licenseInteractionScope :global(button:hover),
+.licenseInteractionScope :global(button:focus),
+.licenseInteractionScope :global(button:active) {
+  transform: none;
+  box-shadow: none;
+}
+
 .licenseDropdownWrapper {
   max-width: 300px;
   width: fit-content;
@@ -57,8 +88,7 @@
   margin-bottom: 0;
 }
 
-.licenseDropdownWrapper select,
-.additionalFileSourceWrapper select {
+.licenseDropdownWrapper select {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -168,8 +198,8 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* File Label */
-.licenseContainer label {
+/* Primary license file label only (avoid overriding shared AdditionalLicenseSection labels). */
+.primaryLicenseLabel {
   font-family: var(--font-family-base);
   font-style: normal;
   font-weight: var(--text-weight-bold);
@@ -182,160 +212,12 @@
 .licenseUrlContainer {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
 }
 
 .licenseUrlWrapper {
   width: 100%;
   max-width: 90%;
-}
-
-.additionalLicenseHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  /* margin-bottom: 16px; */
-  width: 100%;
-  border-top: 1px solid var(--border-navy-soft);
-  padding-top: 16px;
-}
-
-.additionalLicenseHeader label {
-  font-family: var(--font-family-base);
-  font-style: normal;
-  font-weight: var(--text-weight-bold);
-  font-size: var(--text-base);
-  line-height: var(--text-line-base);
-  color: var(--clr-navy);
-  margin-bottom: 0;
-}
-
-.additionalLicenseSubtext {
-  font-family: var(--font-family-base);
-  font-style: normal;
-  font-weight: var(--text-weight-regular);
-  font-size: var(--text-sm);
-  line-height: var(--text-line-base);
-  color: var(--clr-slate-70);
-}
-
-.additionalLicenseItem {
-  display: block;
-  width: 100%;
-  margin-bottom: 12px;
-  padding: 14px;
-  border: 1px solid var(--border-navy-soft);
-  border-radius: var(--radius-xl);
-  background: var(--surface-neutral);
-}
-
-.additionalLicenseFieldWrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.additionalLicenseFieldHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  width: 100%;
-}
-
-.additionalLicenseTitle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.additionalLicenseTitle label {
-  margin-bottom: 0;
-  white-space: nowrap;
-}
-
-.infoIcon {
-  width: 16px;
-  height: 16px;
-  fill: var(--clr-slate-70);
-  cursor: help;
-  flex-shrink: 0;
-}
-
-.infoIcon:hover {
-  fill: var(--clr-navy);
-}
-
-.additionalFileSourceWrapper {
-  max-width: 260px;
-  margin-bottom: 0;
-}
-
-.additionalFileSourceWrapper > div {
-  margin-bottom: 0;
-}
-
-.additionalLicenseError {
-  position: static;
-  margin-top: 6px;
-  font-size: 12px;
-}
-
-.additionalFilesButtonWrapper {
-  display: flex;
-  justify-content: flex-start;
-  margin-top: 4px;
-}
-
-.addLicenseButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 9px 16px;
-  gap: 8px;
-  width: fit-content;
-  background: transparent;
-  border: 1px solid var(--border-navy-soft);
-  border-radius: var(--radius-xl);
-  font-family: var(--font-family-base);
-  font-weight: var(--text-weight-bold);
-  font-size: var(--text-sm);
-  line-height: var(--text-line-base);
-  color: var(--clr-navy);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.addLicenseButton:hover {
-  background: var(--surface-neutral);
-  border-color: var(--clr-navy);
-  box-shadow: var(--shadow-sm);
-}
-
-.addLicenseButton:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-@media (max-width: 768px) {
-  .additionalLicenseItem {
-    margin-bottom: 16px;
-    padding: 12px;
-  }
-
-  .additionalLicenseFieldHeader {
-    align-items: flex-start;
-  }
-
-  .additionalFileSourceWrapper {
-    max-width: 100%;
-  }
-
-  .additionalLicenseHeader {
-    margin-top: 16px;
-    margin-bottom: 12px;
-  }
 }
 
 .continueButton:hover,
@@ -410,10 +292,6 @@ body .customParametersContainer .actions .primary {
 .customParametersContainer .actions .primary:focus {
   background: var(--gradient-accent);
   box-shadow: var(--shadow-sm);
-}
-
-body .labelNoMargin {
-  margin: 0;
 }
 
 .required {
