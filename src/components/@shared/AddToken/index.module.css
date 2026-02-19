@@ -1,12 +1,14 @@
 .button {
-  display: inline-block;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.45rem;
   position: relative;
   min-width: auto;
 }
 
 .button:hover,
 .button:focus {
-  transform: none;
+  transform: none !important;
 }
 
 .logoWrap {
@@ -17,7 +19,7 @@
 
 .logoWrap::before {
   content: '+';
-  color: var(--color-secondary);
+  color: var(--ink-alpha-40);
   font-family: var(--font-family-base);
   font-weight: var(--font-weight-base);
   font-size: 1.25em;
@@ -33,9 +35,10 @@
   display: inline-block;
   margin-bottom: -0.35em;
   border-radius: 50%;
-  border: 0.065rem solid var(--color-secondary);
-  margin-right: calc(var(--spacer) / 10);
-  transition: 0.2s ease-out;
+  border: 0.065rem solid var(--ink-alpha-30);
+  margin-right: 0;
+  transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out,
+    background-color 0.2s ease-out;
 }
 
 .logo svg {
@@ -45,42 +48,82 @@
 
 .button:hover .logo,
 .button:focus .logo {
-  border-color: var(--color-highlight);
+  border-color: var(--clr-navy);
+  background-color: var(--navy-alpha-5);
+  box-shadow: 0 0 0 0.5px var(--navy-alpha-20);
 }
 
 .button:hover .logoWrap::before,
 .button:focus .logoWrap::before {
-  color: var(--color-highlight);
+  color: var(--clr-navy);
 }
 
 .text {
-  font-family: var(--font-family);
-  font-weight: 400;
+  font-family: var(--font-family-base);
+  font-weight: 600;
   display: inline-block;
   position: relative;
-  /* font-size: 8px; */
   line-height: 100%;
-  text-align: center;
-  color: var(--ink-alpha-80);
+  text-align: left;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+  background-image: linear-gradient(
+      90deg,
+      var(--clr-navy) 0%,
+      var(--clr-navy) 100%
+    ),
+    linear-gradient(90deg, var(--ink-alpha-80) 0%, var(--ink-alpha-80) 100%);
+  background-size: 0% 100%, 100% 100%;
+  background-position: left center, left center;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  transition: background-size 0.32s ease;
+}
+
+.button:hover .text,
+.button:focus .text {
+  background-size: 100% 100%, 100% 100%;
 }
 
 .symbol {
   text-transform: none;
 }
 
+@supports not (-webkit-background-clip: text) {
+  .text {
+    color: var(--ink-alpha-80);
+    -webkit-text-fill-color: initial;
+  }
+
+  .button:hover .text,
+  .button:focus .text {
+    color: var(--clr-navy);
+  }
+}
+
 .minimal .text {
   opacity: 0;
-  transform: translate3d(-1rem, 0, 0);
+  left: calc(100% - 1rem);
   transition: 0.2s ease-out;
   z-index: 0;
   white-space: pre;
   position: absolute;
-  left: 100%;
   top: 0.15rem;
 }
 
 .minimal:hover .text,
 .minimal:focus .text {
   opacity: 1;
-  transform: translate3d(0, 0, 0);
+  left: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo,
+  .logoWrap::before,
+  .text,
+  .minimal .text {
+    transition: none;
+  }
 }

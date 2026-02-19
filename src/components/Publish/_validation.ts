@@ -4,10 +4,81 @@ import { getMaxDecimalsValidation } from '@utils/numbers'
 import * as Yup from 'yup'
 import { getOriginalValue, testLinks } from '@utils/yup'
 import { validationConsumerParameters } from '@components/@shared/FormInput/InputElement/ConsumerParameters/_validation'
+import { FormUrlFileInfo } from './_types'
+import { additionalLicenseSourceOptions } from './_license'
 
 // TODO: conditional validation
 // e.g. when algo is selected, Docker image is required
 // hint, hint: https://github.com/jquense/yup#mixedwhenkeys-string--arraystring-builder-object--value-schema-schema-schema
+
+function getFirstUrlEntry(array: unknown): FormUrlFileInfo | undefined {
+  if (!Array.isArray(array) || array.length === 0) return undefined
+
+  const firstEntry = array[0]
+  if (!firstEntry || typeof firstEntry !== 'object') return undefined
+
+  const candidate = firstEntry as Record<string, unknown>
+  if (typeof candidate.url !== 'string') return undefined
+  if (candidate.type !== 'url') return undefined
+
+  return {
+    url: candidate.url,
+    type: 'url',
+    valid: typeof candidate.valid === 'boolean' ? candidate.valid : undefined
+  }
+}
+
+function hasPolicyString(value: unknown): value is { policy: string } {
+  if (!value || typeof value !== 'object') return false
+  return typeof (value as Record<string, unknown>).policy === 'string'
+}
+
+type VpPolicyLike = { type?: string }
+
+function getVpPolicies(parent: unknown): VpPolicyLike[] {
+  if (!parent || typeof parent !== 'object') return []
+
+  const { vpPolicies } = parent as { vpPolicies?: unknown }
+  if (!Array.isArray(vpPolicies)) return []
+
+  return vpPolicies.filter(
+    (policy): policy is VpPolicyLike => !!policy && typeof policy === 'object'
+  )
+}
+
+const validationAdditionalLicenseFile = Yup.object().shape({
+  name: Yup.string().trim().required('Required'),
+  sourceType: Yup.string()
+    .oneOf(additionalLicenseSourceOptions)
+    .required('Required'),
+  url: Yup.array().when('sourceType', {
+    is: 'URL',
+    then: Yup.array().test('urlTest', (array, context) => {
+      const firstUrlEntry = getFirstUrlEntry(array)
+      if (!firstUrlEntry) {
+        return context.createError({ message: `Need a valid url` })
+      }
+
+      const { url, valid } = firstUrlEntry
+      if (!url || url.length === 0) {
+        return context.createError({ message: `Need a valid url` })
+      }
+
+      if (valid !== undefined && !valid) {
+        return context.createError({
+          message: `Need a valid url and click Validate`
+        })
+      }
+      return true
+    }),
+    otherwise: Yup.array().nullable()
+  }),
+  uploadedDocument: Yup.object().when('sourceType', {
+    is: 'Upload file',
+    then: Yup.object().required('Need a file'),
+    otherwise: Yup.object().nullable()
+  })
+})
 
 const validationMetadata = {
   type: Yup.string()
@@ -68,14 +139,12 @@ const validationMetadata = {
   licenseUrl: Yup.array().when('useRemoteLicense', {
     is: false,
     then: Yup.array().test('urlTest', (array, context) => {
-      if (!array || !array[0]) {
+      const firstUrlEntry = getFirstUrlEntry(array)
+      if (!firstUrlEntry) {
         return context.createError({ message: `Need a valid url` })
       }
-      const { url, valid } = array[0] as {
-        url: string
-        type: 'url'
-        valid: boolean
-      }
+
+      const { url, valid } = firstUrlEntry
       if (!url || url.length === 0) {
         return context.createError({ message: `Need a valid url` })
       }
@@ -94,7 +163,8 @@ const validationMetadata = {
       }
       return true
     })
-  })
+  }),
+  additionalLicenseFiles: Yup.array().of(validationAdditionalLicenseFile)
 }
 
 const validationRequestCredentials = {
@@ -192,12 +262,8 @@ const validationVpPolicy = {
     then: (shema) =>
       shema.test('static-name', 'Required', (value) => {
         if (typeof value === 'string') return value.trim().length > 0
-        if (
-          value &&
-          typeof value === 'object' &&
-          typeof (value as any).policy === 'string'
-        ) {
-          return (value as any).policy.trim().length > 0
+        if (hasPolicyString(value)) {
+          return value.policy.trim().length > 0
         }
         return false
       })
@@ -234,9 +300,9 @@ const validationCredentials = {
     'external-evp-url',
     'Invalid URL format',
     function (value) {
-      const vpPolicies = (this.parent as any)?.vpPolicies || []
+      const vpPolicies = getVpPolicies(this.parent)
       const hasExternal = vpPolicies.some(
-        (p: any) => p?.type === 'externalEvpForwardVpPolicy'
+        (policy) => policy?.type === 'externalEvpForwardVpPolicy'
       )
       if (!hasExternal) return true
 
@@ -332,7 +398,7 @@ const validationPricing = {
 // TODO: make Yup.SchemaOf<FormPublishData> work, requires conditional validation
 // of all the custom docker image stuff.
 // export const validationSchema: Yup.SchemaOf<FormPublishData> =
-export const validationSchema: Yup.SchemaOf<any> = Yup.object().shape({
+export const validationSchema: Yup.AnyObjectSchema = Yup.object().shape({
   user: Yup.object().shape({
     stepCurrent: Yup.number(),
     chainId: Yup.number().required('Required'),

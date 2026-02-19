@@ -49,6 +49,7 @@
   max-width: 100%;
   word-break: break-word;
   overflow-wrap: break-word;
+  pointer-events: auto;
 }
 .licenseRow a {
   max-width: 100%;

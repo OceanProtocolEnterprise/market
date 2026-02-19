@@ -48,12 +48,46 @@
   gap: 16px;
 }
 
+/* Local motion/shadow reduction for License section interactions only. */
+.licenseInteractionScope
+  :global(input:not([type='checkbox']):not([type='radio']):not([type='file'])),
+.licenseInteractionScope :global(select),
+.licenseInteractionScope :global(textarea) {
+  box-shadow: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.licenseInteractionScope
+  :global(
+    input:not([type='checkbox']):not([type='radio']):not([type='file']):focus
+  ),
+.licenseInteractionScope :global(select:focus),
+.licenseInteractionScope :global(textarea:focus) {
+  box-shadow: none;
+}
+
+.licenseInteractionScope :global(button) {
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    color 0.2s ease, opacity 0.2s ease;
+}
+
+.licenseInteractionScope :global(button:hover),
+.licenseInteractionScope :global(button:focus),
+.licenseInteractionScope :global(button:active) {
+  transform: none;
+  box-shadow: none;
+}
+
 .licenseDropdownWrapper {
   max-width: 300px;
   width: fit-content;
 }
 
-/* License Type Dropdown Styling */
+.licenseDropdownWrapper > div {
+  margin-bottom: 0;
+}
+
 .licenseDropdownWrapper select {
   box-sizing: border-box;
   display: flex;
@@ -99,10 +133,10 @@
 
 .licenseContainer .inputGroup input {
   box-sizing: border-box;
-  width: 810px;
+  width: 100%;
   height: var(--field-height);
   border: 1px solid var(--border-navy-soft);
-  filter: drop-shadow(var(--shadow-md));
+  box-shadow: var(--shadow-md);
   border-radius: var(--radius-xl);
   border-top-right-radius: var(--radius-xl);
   border-bottom-right-radius: var(--radius-xl);
@@ -164,11 +198,8 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* File Label */
-.licenseContainer label {
-  width: 100%;
-  /* max-width: 903px; */
-  height: 16px;
+/* Primary license file label only (avoid overriding shared AdditionalLicenseSection labels). */
+.primaryLicenseLabel {
   font-family: var(--font-family-base);
   font-style: normal;
   font-weight: var(--text-weight-bold);
@@ -181,17 +212,12 @@
 .licenseUrlContainer {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
 }
 
 .licenseUrlWrapper {
   width: 100%;
   max-width: 90%;
-}
-
-/* Remove bottom margin from license dropdown */
-.licenseDropdownWrapper > div {
-  margin-bottom: 0;
 }
 
 .continueButton:hover,
@@ -266,4 +292,9 @@ body .customParametersContainer .actions .primary {
 .customParametersContainer .actions .primary:focus {
   background: var(--gradient-accent);
   box-shadow: var(--shadow-sm);
+}
+
+.required {
+  color: var(--input-error-text-color);
+  margin-left: 0.1rem;
 }

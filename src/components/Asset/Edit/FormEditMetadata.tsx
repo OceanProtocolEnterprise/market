@@ -14,6 +14,7 @@ import IconAlgorithm from '@images/algorithm.svg'
 import { BoxSelectionOption } from '@components/@shared/FormInput/InputElement/BoxSelection'
 import { FileUpload } from '@components/@shared/FileUpload'
 import Label from '@components/@shared/FormInput/Label'
+import SectionContainer from '@shared/SectionContainer/SectionContainer'
 import { deleteIpfsFile, uploadFileItemToIPFS } from '@utils/ipfs'
 import { FileItem } from '@utils/fileItem'
 import { License } from '../../../@types/ddo/License'
@@ -21,10 +22,13 @@ import { RemoteObject } from '../../../@types/ddo/RemoteObject'
 import SSIPoliciesSection from './SSIPoliciesSection'
 import { AdditionalDdosFields } from '@components/@shared/AdditionalDdos'
 import ContainerForm from '@components/@shared/atoms/ContainerForm'
+import AdditionalLicenseSection from '@shared/AdditionalLicenseSection'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import appConfig from 'app.config.cjs'
 import { toast } from 'react-toastify'
 import AccessRulesSection from '@components/Publish/AccessPolicies/AccessRulesSection'
+import useEditMetadata from './useEditMetadata'
+import styles from './index.module.css'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
@@ -33,6 +37,21 @@ export default function FormEditMetadata(): ReactElement {
   const { asset } = useAsset()
   const { values, setFieldValue } = useFormikContext<MetadataEditForm>()
   const firstPageLoad = useRef<boolean>(true)
+
+  const {
+    additionalFiles,
+    additionalFilesUploading,
+    additionalFilesDeleting,
+    additionalFileSourceOptions,
+    additionalLicenseSubtext,
+    primaryLicenseReady,
+    handleAdditionalFileUpload,
+    handleNewAdditionalFile,
+    handleDeleteAdditionalFile,
+    handleAdditionalFileSourceChange,
+    handleAdditionalFileUrlValidate,
+    handleResetPrimaryUploadedLicense
+  } = useEditMetadata()
 
   // BoxSelection component is not a Formik component
   // so we need to handle checked state manually.
@@ -58,10 +77,8 @@ export default function FormEditMetadata(): ReactElement {
       links = Object.values(asset?.credentialSubject?.metadata?.links)
     }
 
-    // if we have a sample file, we need to get the files' info before setting defaults links value
     links[0] &&
       getFileInfo(links[0], providerUrl, 'url').then((checkedFile) => {
-        // set valid false if url is using google drive
         if (isGoogleUrl(links[0])) {
           setFieldValue('links', [
             {
@@ -71,7 +88,6 @@ export default function FormEditMetadata(): ReactElement {
           ])
           return
         }
-        // initiate link with values from asset metadata
         setFieldValue('links', [
           {
             url: links[0],
@@ -124,7 +140,6 @@ export default function FormEditMetadata(): ReactElement {
     }
   }
 
-  // Resets license data after type change
   useEffect(() => {
     async function deleteRemoteFile() {
       if (values.uploadedLicense) {
@@ -138,7 +153,6 @@ export default function FormEditMetadata(): ReactElement {
           }
         }
       }
-
       await setFieldValue('uploadedLicense', undefined)
     }
 
@@ -153,6 +167,9 @@ export default function FormEditMetadata(): ReactElement {
       setFieldValue('licenseUrl', [{ url: '', type: 'url' }])
     }
   }, [values.useRemoteLicense, setFieldValue, values.uploadedLicense])
+
+  const primaryUploadedLicenseDocument =
+    values.uploadedLicense?.licenseDocuments?.[0]
 
   return (
     <Form>
@@ -232,30 +249,57 @@ export default function FormEditMetadata(): ReactElement {
           name="assetState"
         />
 
-        <Field
-          {...getFieldContent('licenseTypeSelection', content.form.data)}
-          component={Input}
-          name="useRemoteLicense"
-        />
+        <SectionContainer title="License" required>
+          <Field
+            {...getFieldContent('licenseTypeSelection', content.form.data)}
+            component={Input}
+            name="useRemoteLicense"
+          />
 
-        {values.useRemoteLicense ? (
-          <>
-            <Label htmlFor="license">License *</Label>
-            <FileUpload
-              fileName={values.uploadedLicense?.name}
-              buttonLabel="Upload"
-              setFileItem={handleLicenseFileUpload}
-            ></FileUpload>
-          </>
-        ) : (
-          <>
-            <Field
-              {...getFieldContent('license', content.form.data)}
-              component={Input}
-              name="licenseUrl"
-            />
-          </>
-        )}
+          {values.useRemoteLicense ? (
+            <div className={styles.licenseUploadContainer}>
+              <Label htmlFor="license">
+                License File <span className={styles.required}>*</span>
+              </Label>
+              <FileUpload
+                fileName={values.uploadedLicense?.name}
+                fileSize={
+                  primaryUploadedLicenseDocument?.additionalInformation
+                    ?.size as number | undefined
+                }
+                fileType={primaryUploadedLicenseDocument?.fileType}
+                buttonLabel="Upload File"
+                setFileItem={handleLicenseFileUpload}
+                buttonStyle="accent"
+                disabled={!!primaryUploadedLicenseDocument}
+                onReset={handleResetPrimaryUploadedLicense}
+              />
+            </div>
+          ) : (
+            <div className={styles.licenseUrlContainer}>
+              <Field
+                {...getFieldContent('license', content.form.data)}
+                component={Input}
+                name="licenseUrl"
+              />
+            </div>
+          )}
+
+          <AdditionalLicenseSection
+            fieldPathPrefix="additionalLicenseFiles"
+            additionalFiles={additionalFiles}
+            additionalFilesUploading={additionalFilesUploading}
+            additionalFilesDeleting={additionalFilesDeleting}
+            additionalFileSourceOptions={additionalFileSourceOptions}
+            primaryLicenseReady={primaryLicenseReady}
+            additionalLicenseSubtext={additionalLicenseSubtext}
+            onAdd={handleNewAdditionalFile}
+            onDelete={handleDeleteAdditionalFile}
+            onSourceChange={handleAdditionalFileSourceChange}
+            onUpload={handleAdditionalFileUpload}
+            onUrlValidate={handleAdditionalFileUrlValidate}
+          />
+        </SectionContainer>
 
         <AdditionalDdosFields />
 

@@ -9,6 +9,7 @@ import { Asset } from 'src/@types/Asset'
 import { IpfsRemoteSource } from '@components/@shared/IpfsRemoteSource'
 import Label from '@components/@shared/FormInput/Label'
 import { assetStateToString } from '@utils/assetState'
+import AdditionalLicenseFiles from './AdditionalLicenseFiles'
 
 function truncateMiddle(
   value?: string,
@@ -22,6 +23,9 @@ function truncateMiddle(
 
 export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
   const { isInPurgatory, assetState } = useAsset()
+  const license =
+    ddo?.credentialSubject?.license || ddo?.credentialSubject?.metadata?.license
+  const primaryLicenseDocument = license?.licenseDocuments?.[0]
 
   const effectiveAssetState =
     assetState ||
@@ -122,26 +126,23 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
         <Label htmlFor="license">
           <span className={styles.licenceTitle}>License</span>
         </Label>
-        {ddo.credentialSubject.metadata.license?.licenseDocuments?.[0]
-          ?.mirrors?.[0]?.type === 'url' ? (
+        {primaryLicenseDocument?.mirrors?.[0]?.type === 'url' &&
+        primaryLicenseDocument?.mirrors?.[0]?.url ? (
           <a
             target="_blank"
-            href={
-              ddo.credentialSubject.metadata.license.licenseDocuments[0]
-                .mirrors[0].url
-            }
+            href={primaryLicenseDocument.mirrors[0].url}
             rel="noreferrer"
           >
-            {ddo.credentialSubject.metadata.license.licenseDocuments[0].name}
+            {primaryLicenseDocument.name}
           </a>
         ) : (
           <IpfsRemoteSource
             noDocumentLabel="No license document available"
-            remoteSource={ddo.credentialSubject?.metadata?.license?.licenseDocuments
-              ?.at(0)
-              ?.mirrors?.at(0)}
+            remoteSource={primaryLicenseDocument?.mirrors?.at(0)}
+            name={primaryLicenseDocument?.name}
           />
         )}
+        <AdditionalLicenseFiles licenseDocuments={license?.licenseDocuments} />
       </div>
     </>
   ) : null
