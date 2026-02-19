@@ -119,8 +119,8 @@
   margin: 0;
 }
 
-.actions button,
-.actions button:hover {
+.walletActionRow button,
+.walletActionRow button:hover {
   font-size: 1rem;
   font-weight: 500;
   color: var(--navy-700);
@@ -131,7 +131,7 @@
   cursor: pointer;
 }
 
-.actions button:hover {
+.walletActionRow button:hover {
   text-decoration: underline;
 }
 
@@ -172,7 +172,7 @@
     width: 1.25rem;
   }
 
-  .actions button {
+  .walletActionRow button {
     font-size: 0.95rem;
   }
 }

@@ -24,7 +24,7 @@ export default function ContainerForm({
   const styleClasses = cx({
     container: true,
     large: style === 'large',
-    publish: style === 'accent',
+    accent: style === 'accent',
     border,
     [className]: className
   })

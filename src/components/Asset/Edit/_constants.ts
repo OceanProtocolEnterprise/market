@@ -1,7 +1,12 @@
 import { assetStateToString } from '@utils/assetState'
 import { FileInfo, LoggerInstance } from '@oceanprotocol/lib'
 import { parseConsumerParameters, secondsToString } from '@utils/ddo'
-import { ComputeEditForm, MetadataEditForm, ServiceEditForm } from './_types'
+import {
+  ComputeEditForm,
+  MetadataEditForm,
+  ServiceEditForm,
+  FormAdditionalLicenseFile
+} from './_types'
 import { Metadata } from 'src/@types/ddo/Metadata'
 import { Credential, isVpValue } from 'src/@types/ddo/Credentials'
 import { Compute, Service } from 'src/@types/ddo/Service'
@@ -276,6 +281,40 @@ export function getInitialValues(
       valid: true
     }
   }
+  const additionalLicenseFiles: FormAdditionalLicenseFile[] = []
+  const licenseDocs = metadata.license?.licenseDocuments || []
+
+  for (let i = 1; i < licenseDocs.length; i++) {
+    const doc = licenseDocs[i]
+    const isUrlSource = doc.mirrors?.[0]?.type === 'url'
+
+    if (isUrlSource) {
+      additionalLicenseFiles.push({
+        id: `existing-${i}-${Date.now()}`,
+        name: doc.name || '',
+        sourceType: 'URL',
+        url: [
+          {
+            url: doc.mirrors?.[0]?.url || '',
+            type: 'url',
+            valid: true,
+            checksum: doc.sha256 || '',
+            method: doc.mirrors?.[0]?.method || 'get',
+            contentLength: doc.additionalInformation?.size?.toString() || '',
+            contentType: doc.fileType
+          }
+        ]
+      })
+    } else {
+      additionalLicenseFiles.push({
+        id: `existing-${i}-${Date.now()}`,
+        name: doc.name || '',
+        sourceType: 'Upload file',
+        url: [],
+        uploadedDocument: doc
+      })
+    }
+  }
   const credentialForm = generateCredentials(credentials, 'edit')
   syncVpRequiredPoliciesAndCredentials(credentialForm)
 
@@ -297,6 +336,7 @@ export function getInitialValues(
     licenseUrl: !useRemoteLicense ? [fileInfo] : [{ url: '', type: 'url' }],
     uploadedLicense: useRemoteLicense ? metadata.license : undefined,
     useRemoteLicense,
+    additionalLicenseFiles,
     additionalDdos
   }
 }

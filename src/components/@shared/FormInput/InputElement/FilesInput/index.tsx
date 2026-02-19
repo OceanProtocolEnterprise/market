@@ -19,7 +19,25 @@ import MethodInput from '../MethodInput'
 import DeleteButton from '@shared/DeleteButton/DeleteButton'
 import { customProviderUrl } from 'app.config.cjs'
 
-export default function FilesInput(props: InputProps): ReactElement {
+type FilesInputProps = InputProps & {
+  form?: {
+    values?: any
+    setFieldValue?: (field: string, value: any) => void
+  }
+  onRemove?: () => void
+  onValidationLoadingChange?: (loading: boolean) => void
+  onValidationComplete?: (url: string, isValid: boolean, fileData?: any) => void
+}
+
+export default function FilesInput(props: FilesInputProps): ReactElement {
+  const {
+    form,
+    onValidationLoadingChange,
+    onValidationComplete,
+    ...inputProps
+  } = props
+  const values = form?.values
+  const setFieldValue = form?.setFieldValue
   const [field, meta, helpers] = useField(props.name)
   const [isLoading, setIsLoading] = useState(false)
   const [disabledButton, setDisabledButton] = useState(true)
@@ -39,25 +57,26 @@ export default function FilesInput(props: InputProps): ReactElement {
   const method = field.value?.[0]?.method || 'get'
   const isValidated = field?.value?.[0]?.valid === true
 
+  const isEditPage =
+    props.name?.startsWith('additionalLicenseFiles[') ||
+    props.name?.startsWith('licenseUrl')
+
   async function handleValidation(e: React.SyntheticEvent, url: string) {
-    // File example 'https://oceanprotocol.com/tech-whitepaper.pdf'
     e?.preventDefault()
+    if (!values || !setFieldValue) return
 
     try {
       setIsLoading(true)
+      onValidationLoadingChange?.(true)
 
       if (isUrl(url) && isGoogleUrl(url)) {
         throw Error(
-          'Google Drive is not a supported hosting service. Please use an alternative.'
+          'Google Drive is not supported. Use another hosting service.'
         )
       }
 
-      // Check if provider is a valid provider
       const isValid = await checkValidProvider(providerUrl)
-      if (!isValid)
-        throw Error(
-          '✗ Provider cannot be reached, please check status.oceanprotocol.com and try again later.'
-        )
+      if (!isValid) throw Error('✗ Provider cannot be reached.')
 
       const checkedFile = await getFileInfo(
         url,
@@ -70,34 +89,86 @@ export default function FilesInput(props: InputProps): ReactElement {
         method
       )
 
-      // error if something's not right from response
-      if (!checkedFile)
-        throw Error('Could not fetch file info. Is your network down?')
+      if (!checkedFile || checkedFile[0].valid === false)
+        throw Error('✗ No valid file detected.')
 
-      if (checkedFile[0].valid === false)
-        throw Error(
-          `✗ No valid file detected. Check your ${props.label} and details, and try again.`
-        )
+      const checkedFileInfo = (checkedFile[0] || {}) as Partial<FileInfo> & {
+        method?: string
+        contentType?: string
+      }
 
-      // if all good, add file to formik state
-      helpers.setValue([
-        {
-          url,
-          providerUrl,
-          type: storageType,
-          query,
-          headers,
-          abi,
-          chainId,
-          method,
-          ...checkedFile[0]
+      const normalizedFileInfo = {
+        ...field.value[0],
+        ...checkedFileInfo,
+        type: storageType,
+        method: field.value?.[0]?.method || checkedFileInfo?.method || 'get',
+        url,
+        valid: true
+      }
+      onValidationComplete?.(url, true, {
+        ...checkedFileInfo,
+        name: url.split('/').pop() || url
+      })
+
+      const isMainLicense = props.name.includes('licenseUrl')
+      const isAdditionalLicense =
+        props.name.includes('metadata.additionalLicense[') ||
+        props.name.startsWith('additionalLicense[')
+
+      const newDoc = {
+        name: url.split('/').pop() || url,
+        fileType: checkedFileInfo.contentType || checkedFileInfo.type,
+        sha256: checkedFileInfo.checksum,
+        mirrors: [{ url, type: storageType, method }],
+        ...checkedFileInfo
+      }
+
+      if (isEditPage) {
+        const currentDocs = values.license?.licenseDocuments || []
+
+        if (isMainLicense) {
+          setFieldValue('license.licenseDocuments', [
+            newDoc,
+            ...currentDocs.slice(1)
+          ])
+        } else if (isAdditionalLicense) {
+          const mainLicense = currentDocs[0] || null
+          const additionalDocs = currentDocs.slice(1)
+
+          setFieldValue('license.licenseDocuments', [
+            ...(mainLicense ? [mainLicense] : []),
+            ...additionalDocs,
+            newDoc
+          ])
         }
-      ])
-    } catch (error) {
-      props.form.setFieldError(`${field.name}[0].url`, error.message)
+      } else {
+        const currentDocs = values.metadata?.license?.licenseDocuments || []
+
+        if (isMainLicense) {
+          setFieldValue('metadata.license.licenseDocuments', [
+            newDoc,
+            ...currentDocs.slice(1)
+          ])
+        } else if (isAdditionalLicense) {
+          const mainLicense = currentDocs[0] || null
+          const additionalDocs = currentDocs.slice(1)
+
+          setFieldValue('metadata.license.licenseDocuments', [
+            ...(mainLicense ? [mainLicense] : []),
+            ...additionalDocs,
+            newDoc
+          ])
+        }
+      }
+
+      helpers.setValue([normalizedFileInfo])
+    } catch (error: any) {
+      helpers.setError(error.message)
+      onValidationComplete?.(url, false)
       LoggerInstance.error(error.message)
     } finally {
       setIsLoading(false)
+      onValidationLoadingChange?.(false)
     }
   }
 
@@ -141,7 +212,7 @@ export default function FilesInput(props: InputProps): ReactElement {
         <>
           {props.methods && storageType === 'url' ? (
             <MethodInput
-              {...props}
+              {...inputProps}
               name={`${field.name}[0].url`}
               isLoading={isLoading}
               checkUrl={true}
@@ -152,7 +223,7 @@ export default function FilesInput(props: InputProps): ReactElement {
           ) : (
             <UrlInput
               submitText="Validate"
-              {...props}
+              {...inputProps}
               name={`${field.name}[0].url`}
               isLoading={isLoading}
               hideButton={
@@ -164,6 +235,7 @@ export default function FilesInput(props: InputProps): ReactElement {
               storageType={storageType}
               isValidated={isValidated}
               onReset={handleClose}
+              showResetButton={!props.isAdditionalLicense}
             />
           )}
 

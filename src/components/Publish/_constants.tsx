@@ -15,6 +15,7 @@ import contentFeedback from '../../../content/publish/feedback.json'
 import { Compute } from 'src/@types/ddo/Service'
 import { AdditionalCredentials } from './AdditionalCredentials'
 import { AccessPolicies } from './AccessPolicies'
+import { createEmptyUrlFileInfo } from './_license'
 
 export const wizardSteps: StepContent[] = [
   {
@@ -87,12 +88,14 @@ export const initialValues: FormPublishData = {
     dockerImageCustomEntrypoint: '',
     dockerImageCustomChecksum: '',
     tags: [],
+    license: undefined,
     // usesConsumerParameters: false,
     // consumerParameters: [],
     dataSubjectConsent: false,
     licenseTypeSelection: '',
-    licenseUrl: [{ url: '', type: 'url' }],
-    uploadedLicense: undefined
+    licenseUrl: [createEmptyUrlFileInfo()],
+    uploadedLicense: undefined,
+    additionalLicenseFiles: []
   },
   services: [
     {

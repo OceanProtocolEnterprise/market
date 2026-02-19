@@ -9,7 +9,8 @@ import {
   NftFactory,
   ZERO_ADDRESS,
   getEventFromTx,
-  ProviderInstance
+  ProviderInstance,
+  FileInfo
 } from '@oceanprotocol/lib'
 import { mapTimeoutStringToSeconds, normalizeFile } from '@utils/ddo'
 import { generateNftCreateData } from '@utils/nft'
@@ -54,6 +55,7 @@ import {
 import * as VCDataModel from 'src/@types/ddo/VerifiableCredential'
 import { convertLinks } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
+import { RemoteObject } from 'src/@types/ddo/RemoteObject'
 import base64url from 'base64url'
 import { JWTHeaderParameters } from 'jose'
 import {
@@ -72,6 +74,7 @@ import { CancelToken } from 'axios'
 import { ComputeEditForm } from '@components/Asset/Edit/_types'
 import { getOceanConfig } from '@utils/ocean'
 import { getDummySigner, getTokenInfo } from '@utils/wallet'
+import { inferNameFromUrl } from './_license'
 
 function cleanupVpPolicies(value: any): void {
   if (!value.vp_policies || value.vp_policies.length === 0) {
@@ -499,6 +502,32 @@ function omit<T extends object, K extends keyof T>(
   return clone
 }
 
+function fileInfoToLicenseDocument(
+  fileInfo: FileInfo,
+  name: string
+): RemoteObject {
+  const fileSize = Number(fileInfo?.contentLength)
+  const hasValidFileSize = Number.isFinite(fileSize) && fileSize >= 0
+
+  return {
+    name,
+    fileType: fileInfo?.contentType || '',
+    sha256: fileInfo?.checksum || '',
+    ...(hasValidFileSize && {
+      additionalInformation: {
+        size: fileSize
+      }
+    }),
+    mirrors: [
+      {
+        type: fileInfo?.type || 'url',
+        method: fileInfo?.method || 'get',
+        url: fileInfo?.url
+      }
+    ]
+  }
+}
+
 export async function transformPublishFormToDdo(
   values: FormPublishData,
   // Those 2 are only passed during actual publishing process
@@ -558,27 +587,74 @@ export async function transformPublishFormToDdo(
   //   ? transformConsumerParameters(consumerParameters)
   //   : undefined
 
-  let license: License
+  const additionalLicenseDocuments: RemoteObject[] = (
+    values.metadata.additionalLicenseFiles || []
+  )
+    .map((additionalFile) => {
+      const additionalFileName = additionalFile?.name?.trim()
+
+      if (additionalFile.sourceType === 'Upload file') {
+        const { uploadedDocument } = additionalFile
+        if (!uploadedDocument) return null
+        const resolvedUploadedFileName =
+          additionalFileName || uploadedDocument.name?.trim()
+        if (!resolvedUploadedFileName) return null
+
+        const uploadedDocumentWithName = {
+          ...uploadedDocument,
+          name: resolvedUploadedFileName,
+          ...(uploadedDocument.displayName && {
+            displayName: {
+              ...uploadedDocument.displayName,
+              '@value': resolvedUploadedFileName
+            }
+          })
+        }
+        return uploadedDocumentWithName
+      }
+
+      const fileInfo = additionalFile.url?.[0]
+      if (!fileInfo?.url) return null
+      const resolvedUrlFileName =
+        additionalFileName || inferNameFromUrl(fileInfo.url)
+
+      const urlDocument = fileInfoToLicenseDocument(
+        fileInfo,
+        resolvedUrlFileName
+      )
+      return urlDocument
+    })
+    .filter(Boolean) as RemoteObject[]
+
+  let license: License | undefined
   if (
     values.metadata.licenseTypeSelection === 'URL' &&
     values.metadata.licenseUrl[0]
   ) {
+    const primaryFile = values.metadata.licenseUrl[0]
+    const primaryLicenseDocument = fileInfoToLicenseDocument(
+      primaryFile,
+      primaryFile.url
+    )
+
     license = {
-      name: values.metadata.licenseUrl[0].url,
-      licenseDocuments: [
-        {
-          name: values.metadata.licenseUrl[0].url,
-          fileType: values.metadata.licenseUrl[0].contentType,
-          sha256: values.metadata.licenseUrl[0].checksum,
-          mirrors: [
-            {
-              type: values.metadata.licenseUrl[0].type,
-              method: values.metadata.licenseUrl[0].method,
-              url: values.metadata.licenseUrl[0].url
-            }
-          ]
-        }
-      ]
+      name: primaryFile.url,
+      licenseDocuments: [primaryLicenseDocument, ...additionalLicenseDocuments]
+    }
+  }
+
+  if (values.metadata.licenseTypeSelection === 'Upload license file') {
+    const { uploadedLicense } = values.metadata
+    const primaryLicenseDocument = uploadedLicense?.licenseDocuments?.[0]
+
+    if (uploadedLicense && primaryLicenseDocument) {
+      license = {
+        ...uploadedLicense,
+        licenseDocuments: [
+          primaryLicenseDocument,
+          ...additionalLicenseDocuments
+        ]
+      }
     }
   }
 
@@ -594,10 +670,7 @@ export async function transformPublishFormToDdo(
     },
     tags: transformTags(tags),
     author,
-    license:
-      values.metadata.licenseTypeSelection === 'Upload license file'
-        ? values.metadata.uploadedLicense
-        : license,
+    license,
     links: convertLinks(linksTransformed),
     additionalInformation: {
       termsAndConditions
@@ -699,6 +772,7 @@ export async function transformPublishFormToDdo(
     version: DDOVersion.V5_0_0,
     credentialSubject: {
       chainId,
+      license,
       metadata: newMetadata,
       services: [newService],
       nftAddress,

@@ -289,6 +289,35 @@
   background: var(--teal-alpha-10);
 }
 
+.ddoToggleButton {
+  margin-top: var(--spacer);
+  border: 1px solid var(--clr-navy);
+  border-radius: var(--radius-xl);
+  padding: 9px 14px;
+  box-shadow: var(--shadow-sm);
+  background: transparent;
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  line-height: 114%;
+  text-align: center;
+  color: var(--clr-navy);
+  text-transform: none;
+  min-width: unset;
+  min-height: 36px;
+  cursor: pointer;
+}
+
+.ddoToggleButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px var(--black-alpha-10);
+}
+
+.ddoToggleButtonInline {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
 .description p {
   margin-bottom: 0;
 }
