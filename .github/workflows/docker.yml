@@ -3,8 +3,12 @@ name: Build & Push Docker image
 on:
   push:
     tags:
-      - "v*.*.*"
+      - 'v*.*.*'
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Docker tag version'
+        required: true
 
 permissions:
   contents: read
@@ -13,6 +17,32 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
+      - name: Determine version
+        id: ver
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate version format
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.version }}"
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version: $VERSION (expected vMAJOR.MINOR.PATCH, e.g. v1.1.0)"
+            exit 1
+          fi
+
+      - name: Debug refs
+        run: |
+          echo "event:     ${{ github.event_name }}"
+          echo "ref:       ${{ github.ref }}"
+          echo "ref_name:  ${{ github.ref_name }}"
+          echo "version:   ${{ steps.ver.outputs.version }}"
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -32,7 +62,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            oceanenterprise/market:${{ github.ref_name }}
+            oceanenterprise/market:${{ steps.ver.outputs.version }}
             oceanenterprise/market:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
