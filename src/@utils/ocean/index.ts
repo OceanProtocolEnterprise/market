@@ -73,17 +73,7 @@ export function getOceanConfig(network: string | number): ConfigEnterprise {
     return {} as ConfigEnterprise
   }
 
-  let config = new ConfigHelper().getConfig(
-    network,
-    network === 'polygon' ||
-      network === 'moonbeamalpha' ||
-      network === 1287 ||
-      network === 'bsc' ||
-      network === 56 ||
-      network === 8996
-      ? undefined
-      : runtimeConfig.NEXT_PUBLIC_INFURA_PROJECT_ID
-  ) as any
+  let config = new ConfigHelper().getConfig(network) as any
   if (network === 8996) {
     config = { ...config, ...sanitizeDevelopmentConfig(config) }
   }
