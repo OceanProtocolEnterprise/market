@@ -1,6 +1,6 @@
 {
   "title": "Import Custom Tokens",
   "subtitle": "Before you can claim some tokens you need to import the token's contract address to MetaMask",
-  "body": "Import supported tokens into your wallet to use them on the connected network.",
+  "body": "The demonstration marketplace currently supports the following tokens. To use the tokens on the connected network, you will need to add the tokens to your MetaMask wallet.",
   "image": "/images/onboarding/import_ocean_token.png"
 }

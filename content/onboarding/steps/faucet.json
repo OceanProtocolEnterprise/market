@@ -1,5 +1,38 @@
 {
-  "title": "Request Tokens",
-  "subtitle": "You can claim some tokens for your address once every 24 hours.",
-  "body": "Request testnet gas and payment tokens for your connected network using the faucets below. These tokens allow you to test transactions without using real funds."
+  "testnet": {
+    "title": "How to Request Tokens?",
+    "subtitle": "You can claim some tokens for your address once every 24 hours.",
+    "body": "Request testnet gas and payment tokens for your connected network using the faucets below. These tokens allow you to test transactions without using real funds."
+  },
+  "mainnet": {
+    "title": "How to Add Funds?",
+    "subtitle": "To access and/or purchase specific products and services on the market you will need to have sufficient funds of the required token in your Metamask wallet. Tokens can either be sent directly to your wallet or purchased on trusted token exchanges such as:",
+    "body": "Make sure to acquire the native gas token (ETH on Ethereum Mainnet) and any required tokens for the specific products or services you wish to access.",
+    "exchanges": [
+      {
+        "name": "Kraken",
+        "url": "https://www.kraken.com/"
+      },
+      {
+        "name": "Crypto.com",
+        "url": "https://crypto.com/"
+      },
+      {
+        "name": "ByBit",
+        "url": "https://www.bybit.com/"
+      },
+      {
+        "name": "Bitpanda",
+        "url": "https://www.bitpanda.com/"
+      },
+      {
+        "name": "OKX",
+        "url": "https://www.okx.com/"
+      },
+      {
+        "name": "Coinbase",
+        "url": "https://www.coinbase.com/"
+      }
+    ]
+  }
 }

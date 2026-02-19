@@ -8,7 +8,7 @@ import Stepper from './Stepper'
 import DownloadMetamask from './Steps/DownloadMetamask'
 import ConnectAccount from './Steps/ConnectAccount'
 import ImportCustomTokens from './Steps/ImportCustomTokens'
-import Ready from './Steps/Ready'
+import Ready from './Steps/Ready/Ready'
 import { useAccount, usePublicClient, useChainId } from 'wagmi'
 import { useUserPreferences } from '@context/UserPreferences'
 import useBalance from '@hooks/useBalance'
@@ -26,16 +26,11 @@ export interface OnboardingStep {
 }
 const isSSIEnabled = process.env.NEXT_PUBLIC_SSI_ENABLED === 'true'
 
-const steps = [
-  { shortLabel: 'MetaMask', component: <DownloadMetamask /> },
-  { shortLabel: 'Connect', component: <ConnectAccount /> },
-  { shortLabel: 'Tokens', component: <ImportCustomTokens /> },
-  { shortLabel: 'Faucet', component: <Faucet /> },
-
-  ...(isSSIEnabled ? [{ shortLabel: 'SSI', component: <SSI /> }] : []),
-
-  { shortLabel: 'Ready', component: <Ready /> }
-]
+const isMainnetChain = (chainId: number | undefined): boolean => {
+  if (!chainId) return false
+  const mainnetChains = [1, 10, 56, 137, 43114, 42161, 8453, 100]
+  return mainnetChains.includes(chainId)
+}
 
 export enum NavigationDirections {
   PREV = 'prev',
@@ -51,11 +46,27 @@ export default function OnboardingSection(): ReactElement {
   const [onboardingCompleted, setOnboardingCompleted] = useState(false)
   const [navigationDirection, setNavigationDirection] =
     useState<NavigationDirections>()
+  const faucetStepLabel = isMainnetChain(chainId) ? 'Funds' : 'Faucet'
+
+  const steps = [
+    { shortLabel: 'MetaMask', component: <DownloadMetamask /> },
+    { shortLabel: 'Connect', component: <ConnectAccount /> },
+    { shortLabel: 'Tokens', component: <ImportCustomTokens /> },
+    { shortLabel: faucetStepLabel, component: <Faucet /> },
+
+    ...((isSSIEnabled ? [{ shortLabel: 'SSI', component: <SSI /> }] : []) as {
+      shortLabel: string
+      component: ReactElement
+    }[]),
+
+    { shortLabel: 'Ready', component: <Ready /> }
+  ]
+
   const stepLabels = steps.map((step) => step.shortLabel)
 
   useEffect(() => {
     if (onboardingStep > steps.length) setOnboardingStep(0)
-  }, [onboardingStep, setOnboardingStep])
+  }, [onboardingStep, setOnboardingStep, steps.length])
 
   useEffect(() => {
     if (accountId && web3Provider && getSupportedChainIds().includes(chainId)) {

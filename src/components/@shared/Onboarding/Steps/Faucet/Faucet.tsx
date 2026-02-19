@@ -1,18 +1,32 @@
 import { ReactElement } from 'react'
 import { useChainId } from 'wagmi'
-import Image from 'next/image' // Using Next.js Image for better optimization
+import Image from 'next/image'
 
 import { OnboardingStep } from '../..'
 import content from '../../../../../../content/onboarding/steps/faucet.json'
-import StepBody from '../../StepBody'
 import StepHeader from '../../StepHeader'
 
 // SVG Icons
 import USDCIcon from '@images/USDC_Token_Logo.svg'
 import EURCIcon from '@images/EURC_Token_Logo.svg'
 import ETHIcon from '@images/eth.svg'
+import KrakenIcon from '@images/exchanges/kraken.svg'
+import CryptoComIcon from '@images/exchanges/crypto-com.svg'
+import ByBitIcon from '@images/exchanges/bybit.svg'
+import BitpandaIcon from '@images/exchanges/bitpanda.svg'
+import OKXIcon from '@images/exchanges/okx.svg'
+import CoinbaseIcon from '@images/exchanges/coinbase.svg'
 
 import styles from './index.module.css'
+
+const EXCHANGE_ICONS: Record<string, any> = {
+  Kraken: KrakenIcon,
+  'Crypto.com': CryptoComIcon,
+  ByBit: ByBitIcon,
+  Bitpanda: BitpandaIcon,
+  OKX: OKXIcon,
+  Coinbase: CoinbaseIcon
+}
 
 interface FaucetLinkType {
   label: string
@@ -61,16 +75,26 @@ const FAUCETS_BY_CHAIN: Record<number, NetworkFaucets> = {
   },
   1: {
     name: 'Ethereum Mainnet',
-    isTestnet: false,
-    productionInfo:
-      'This is a production network. Acquire ETH and tokens from major exchanges.'
+    isTestnet: false
+  },
+  10: {
+    name: 'Optimism Mainnet',
+    isTestnet: false
+  },
+  137: {
+    name: 'Polygon Mainnet',
+    isTestnet: false
+  },
+  56: {
+    name: 'BNB Smart Chain',
+    isTestnet: false
+  },
+  43114: {
+    name: 'Avalanche C-Chain',
+    isTestnet: false
   }
 }
 
-/**
- * Fixed TokenIcon component.
- * Handles the "undefined" error by checking if icon is a string or a component.
- */
 const TokenIcon = ({ icon, label }: { icon?: string | any; label: string }) => {
   if (!icon) {
     return (
@@ -82,9 +106,6 @@ const TokenIcon = ({ icon, label }: { icon?: string | any; label: string }) => {
 
   return (
     <div className={styles.iconWrapper}>
-      {/* If icon is a string, it's a URL path. 
-          If it's an object/function, it's a React component (SVGR).
-      */}
       {typeof icon === 'string' || icon?.src ? (
         <Image
           src={icon?.src || icon}
@@ -94,7 +115,40 @@ const TokenIcon = ({ icon, label }: { icon?: string | any; label: string }) => {
           className={styles.icon}
         />
       ) : (
-        /* If your SVG loader provides a component, render it directly */
+        <div className={styles.iconComponent}>
+          {typeof icon === 'function' ? icon({}) : null}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const ExchangeIcon = ({
+  icon,
+  name
+}: {
+  icon?: string | any
+  name: string
+}) => {
+  if (!icon) {
+    return (
+      <div className={styles.exchangeIconWrapper}>
+        <span className={styles.fallbackIcon}>🏦</span>
+      </div>
+    )
+  }
+
+  return (
+    <div className={styles.exchangeIconWrapper}>
+      {typeof icon === 'string' || icon?.src ? (
+        <Image
+          src={icon?.src || icon}
+          alt={name}
+          width={28}
+          height={28}
+          className={styles.exchangeIcon}
+        />
+      ) : (
         <div className={styles.iconComponent}>
           {typeof icon === 'function' ? icon({}) : null}
         </div>
@@ -125,67 +179,116 @@ const FaucetLink = ({ label, url, icon }: FaucetLinkType): ReactElement => (
   </div>
 )
 
+const ExchangeLink = ({
+  name,
+  url
+}: {
+  name: string
+  url: string
+}): ReactElement => {
+  const icon = EXCHANGE_ICONS[name]
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={styles.exchangeCard}
+    >
+      <ExchangeIcon icon={icon} name={name} />
+      <span className={styles.exchangeName}>{name}</span>
+      <span className={styles.externalLinkIcon}>↗</span>
+    </a>
+  )
+}
+
+const TestnetView = ({
+  network,
+  body
+}: {
+  network: NetworkFaucets
+  body: string
+}): ReactElement => (
+  <div className={styles.testnetContainer}>
+    <p className={styles.mainnetNote}>{body}</p>
+    <div className={styles.faucetGroups}>
+      {network.gas && (
+        <details className={styles.dropdown} open>
+          <summary className={styles.summary}>
+            <div className={styles.summaryLabel}>
+              <span className={styles.emoji}>⛽</span>
+              <span>Gas Faucets</span>
+            </div>
+            <div className={styles.chevron} />
+          </summary>
+          <div className={styles.content}>
+            {network.gas.map((faucet) => (
+              <FaucetLink key={faucet.label} {...faucet} />
+            ))}
+          </div>
+        </details>
+      )}
+
+      {network.tokens && (
+        <details className={styles.dropdown} open>
+          <summary className={styles.summary}>
+            <div className={styles.summaryLabel}>
+              <span className={styles.emoji}>🪙</span>
+              <span>Token Faucets</span>
+            </div>
+            <div className={styles.chevron} />
+          </summary>
+          <div className={styles.content}>
+            {network.tokens.map((token) => (
+              <FaucetLink key={token.label} {...token} />
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
+  </div>
+)
+
+const MainnetView = ({ content }: { content: any }): ReactElement => (
+  <div className={styles.mainnetContainer}>
+    <div className={styles.mainnetNote}>{content.body}</div>
+    <div className={styles.exchangesGrid}>
+      {content.exchanges.map((exchange: any) => (
+        <ExchangeLink
+          key={exchange.name}
+          name={exchange.name}
+          url={exchange.url}
+        />
+      ))}
+    </div>
+  </div>
+)
+
 export default function Faucet(): ReactElement {
-  const { title, subtitle, body, image }: OnboardingStep = content
   const chainId = useChainId()
   const network = chainId ? FAUCETS_BY_CHAIN[chainId] : undefined
 
+  const isMainnet = network && !network.isTestnet
+  const stepContent = isMainnet ? content.mainnet : content.testnet
+  const { title, subtitle, body } = stepContent
+
   return (
-    <div>
+    <div className={styles.wrapper}>
       <StepHeader title={title} subtitle={subtitle} />
-      <StepBody body={body} image={image}>
-        <div className={styles.container}>
-          {!network && (
+
+      <div className={styles.scrollableContent}>
+        {!network && (
+          <div className={styles.errorContainer}>
             <p className={styles.error}>
               ❌ Please connect to a supported network.
             </p>
-          )}
+          </div>
+        )}
 
-          {network?.isTestnet && (
-            <div className={styles.faucetGroups}>
-              {network.gas && (
-                <details className={styles.dropdown} open>
-                  <summary className={styles.summary}>
-                    <div className={styles.summaryLabel}>
-                      <span className={styles.emoji}>⛽</span>
-                      <span>Gas Faucets</span>
-                    </div>
-                    <div className={styles.chevron} />
-                  </summary>
-                  <div className={styles.content}>
-                    {network.gas.map((faucet) => (
-                      <FaucetLink key={faucet.label} {...faucet} />
-                    ))}
-                  </div>
-                </details>
-              )}
+        {network?.isTestnet && <TestnetView network={network} body={body} />}
 
-              {network.tokens && (
-                <details className={styles.dropdown} open>
-                  <summary className={styles.summary}>
-                    <div className={styles.summaryLabel}>
-                      <span className={styles.emoji}>🪙</span>
-                      <span>Token Faucets</span>
-                    </div>
-                    <div className={styles.chevron} />
-                  </summary>
-                  <div className={styles.content}>
-                    {network.tokens.map((token) => (
-                      <FaucetLink key={token.label} {...token} />
-                    ))}
-                  </div>
-                </details>
-              )}
-            </div>
-          )}
-
-          {!network?.isTestnet && network?.productionInfo && (
-            <div className={styles.prodBox}>
-              <strong>Notice:</strong> {network.productionInfo}
-            </div>
-          )}
-        </div>
-      </StepBody>
+        {isMainnet && <MainnetView content={content.mainnet} />}
+      </div>
     </div>
   )
 }
