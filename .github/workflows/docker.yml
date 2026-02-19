@@ -1,8 +1,9 @@
-name: Build & Push Docker image (latest)
+name: Build & Push Docker image
 
 on:
   push:
-    branches: [ "main" ]
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
 
 permissions:
@@ -11,7 +12,6 @@ permissions:
 jobs:
   docker:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,12 +25,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push (latest)
+      - name: Build and push (version + latest)
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: oceanenterprise/market:latest
+          tags: |
+            oceanenterprise/market:${{ github.ref_name }}
+            oceanenterprise/market:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
