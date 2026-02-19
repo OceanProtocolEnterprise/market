@@ -17,6 +17,28 @@ const nextConfig = () => {
 
       if (!isServer) {
         config.resolve.fallback.fs = false
+        const fallback = config.resolve.fallback || {}
+        Object.assign(fallback, {
+          http: require.resolve('stream-http'),
+          https: require.resolve('https-browserify'),
+          'react-native-async-storage': false,
+          '@react-native-async-storage/async-storage': false,
+          fs: false,
+          crypto: false,
+          os: false,
+          stream: false,
+          assert: false,
+          tls: false,
+          net: false
+        })
+        config.resolve.fallback = fallback
+
+        config.plugins = (config.plugins || []).concat([
+          new options.webpack.ProvidePlugin({
+            process: 'process/browser',
+            Buffer: ['buffer', 'Buffer']
+          })
+        ])
       }
 
       config.module.rules.push(
@@ -36,29 +58,6 @@ const nextConfig = () => {
           resourceRegExp: /^electron$/
         })
       )
-
-      const fallback = config.resolve.fallback || {}
-      Object.assign(fallback, {
-        http: require.resolve('stream-http'),
-        https: require.resolve('https-browserify'),
-        'react-native-async-storage': false,
-        '@react-native-async-storage/async-storage': false,
-        fs: false,
-        crypto: false,
-        os: false,
-        stream: false,
-        assert: false,
-        tls: false,
-        net: false
-      })
-      config.resolve.fallback = fallback
-
-      config.plugins = (config.plugins || []).concat([
-        new options.webpack.ProvidePlugin({
-          process: 'process/browser',
-          Buffer: ['buffer', 'Buffer']
-        })
-      ])
 
       return config
     },
