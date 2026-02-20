@@ -46,7 +46,7 @@
         "name": "license",
         "label": "URL",
         "placeholder": "e.g. https://file.com/license.json",
-        "help": "A SPDX identifier of the license applicable to this service.",
+        "help": "The license that governs how this dataset or its content can be used, shared, or modified. Examples include MIT, Apache 2.0, or GPL licenses.",
         "type": "files",
         "required": true
       },
@@ -152,7 +152,7 @@
         "type": "checkbox",
         "options": ["Terms and Conditions"],
         "prefixes": ["I agree to the"],
-        "actions": ["/terms"],
+        "actions": ["/privacy/en#terms-and-conditions"],
         "required": true
       },
       {
