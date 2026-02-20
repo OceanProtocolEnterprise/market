@@ -46,7 +46,7 @@
         "name": "license",
         "label": "URL",
         "placeholder": "e.g. https://file.com/license.json",
-        "help": "The license that governs how this dataset or its content can be used, shared, or modified. Examples include MIT, Apache 2.0, or GPL licenses.",
+        "help": "The license that governs how this dataset or its content can be used, shared, or modified. Examples include : https://file.com/license.json, MIT, Apache 2.0, or GPL licenses.",
         "type": "files",
         "required": true
       },
