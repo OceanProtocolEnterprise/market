@@ -6,7 +6,6 @@ import { OnboardingStep } from '../..'
 import content from '../../../../../../content/onboarding/steps/faucet.json'
 import StepHeader from '../../StepHeader'
 
-// SVG Icons
 import USDCIcon from '@images/USDC_Token_Logo.svg'
 import EURCIcon from '@images/EURC_Token_Logo.svg'
 import ETHIcon from '@images/eth.svg'
@@ -138,21 +137,27 @@ const ExchangeIcon = ({
     )
   }
 
+  if (typeof icon === 'function') {
+    return (
+      <div className={styles.exchangeIconWrapper}>
+        <div className={styles.exchangeIconContainer}>
+          {icon({ className: styles.exchangeSvg })}
+        </div>
+      </div>
+    )
+  }
   return (
     <div className={styles.exchangeIconWrapper}>
-      {typeof icon === 'string' || icon?.src ? (
+      <div className={styles.exchangeIconContainer}>
         <Image
           src={icon?.src || icon}
           alt={name}
-          width={28}
-          height={28}
-          className={styles.exchangeIcon}
+          width={40}
+          height={40}
+          className={styles.exchangeSvg}
+          style={{ objectFit: 'contain' }}
         />
-      ) : (
-        <div className={styles.iconComponent}>
-          {typeof icon === 'function' ? icon({}) : null}
-        </div>
-      )}
+      </div>
     </div>
   )
 }

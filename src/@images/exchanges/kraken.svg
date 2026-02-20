@@ -1,5 +1,37 @@
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M24 12C24 18.6274 18.6274 24 12 24C5.37258 24 0 18.6274 0 12C0 5.37258 5.37258 0 12 0C18.6274 0 24 5.37258 24 12Z" fill="#5841D8"/>
-  <path d="M16.52 17.51H14.16L11.53 13.06L8.91 17.51H6.55L10.32 11.16L6.88 5.4H9.24L11.53 9.33L13.82 5.4H16.18L12.74 11.16L16.52 17.51Z" fill="white"/>
-  <path d="M12.98 11.16L15.34 7.23V15.09L12.98 11.16Z" fill="white"/>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 1024 1024"
+  width="120"
+  height="120"
+  role="img"
+  aria-label="Kraken logo"
+>
+  <circle cx="512" cy="512" r="512" fill="#5741D9"/>
+
+  <path
+    fill="#FFFFFF"
+    d="
+      M512 232
+      c-160 0-290 130-290 290
+      v170
+      c0 44 36 80 80 80
+      h72
+      V520
+      c0-76 62-138 138-138
+      s138 62 138 138
+      v252
+      h72
+      c44 0 80-36 80-80
+      V522
+      c0-160-130-290-290-290
+      z
+    "
+  />
+
+  <g fill="#FFFFFF">
+    <rect x="340" y="712" width="64" height="80" rx="32"/>
+    <rect x="432" y="712" width="64" height="96" rx="32"/>
+    <rect x="528" y="712" width="64" height="96" rx="32"/>
+    <rect x="620" y="712" width="64" height="80" rx="32"/>
+  </g>
 </svg>
