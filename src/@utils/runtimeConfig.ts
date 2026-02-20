@@ -25,6 +25,7 @@ export type RuntimeConfig = {
   NEXT_PUBLIC_MARKET_FEE_ADDRESS?: string
   NEXT_PUBLIC_MARKET_DEVELOPMENT?: string
   NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES?: string
+  NEXT_PUBLIC_DATASPACE?: string
 }
 
 declare global {
@@ -70,7 +71,8 @@ const runtimeConfig: RuntimeConfig = (() => {
     NEXT_PUBLIC_MARKET_FEE_ADDRESS: process.env.NEXT_PUBLIC_MARKET_FEE_ADDRESS,
     NEXT_PUBLIC_MARKET_DEVELOPMENT: process.env.NEXT_PUBLIC_MARKET_DEVELOPMENT,
     NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES:
-      process.env.NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES
+      process.env.NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES,
+    NEXT_PUBLIC_DATASPACE: process.env.NEXT_PUBLIC_DATASPACE
   }
 
   if (typeof window !== 'undefined' && window.__RUNTIME_CONFIG__) {
