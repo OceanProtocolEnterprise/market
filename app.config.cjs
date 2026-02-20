@@ -177,5 +177,8 @@ module.exports = {
           getEnv('NEXT_PUBLIC_PROVIDER_URL') ||
             process.env.NEXT_PUBLIC_PROVIDER_URL ||
             'https://ocean-node-vm3.oceanenterprise.io'
-        ]
+        ],
+
+  dataspace:
+    getEnv('NEXT_PUBLIC_DATASPACE') || process.env.NEXT_PUBLIC_DATASPACE || null
 }

@@ -39,6 +39,7 @@ export interface AppConfig {
   showPreviewAlert: string
   ssiEnabled: boolean
   showOnboardingModuleByDefault: boolean
+  dataspace: string | null
 }
 export interface SiteContent {
   siteTitle: string
