@@ -4,7 +4,8 @@ import axios, { CancelToken, AxiosResponse } from 'axios'
 import {
   metadataCacheUri,
   allowDynamicPricing,
-  nodeUriIndex
+  nodeUriIndex,
+  dataspace
 } from '../../../app.config.cjs'
 import {
   SortDirectionOptions,
@@ -119,11 +120,17 @@ FilterTerm | undefined {
     : getFilterTerm('indexedMetadata.stats.prices.type', 'pool')
 }
 
+function getDataspaceFilterTerm(): FilterTerm | undefined {
+  if (!dataspace) return undefined
+  return getFilterTerm('credentialSubject.dataspace.keyword', dataspace)
+}
+
 export function generateBaseQuery(
   baseQueryParams: BaseQueryParams,
   index?: string,
   allNode?: boolean
 ): SearchQuery {
+  const dataspaceFilterTerm = getDataspaceFilterTerm()
   const generatedQuery = {
     index: index ?? 'op_ddo_v5.0.0',
     from: baseQueryParams.esPaginationOptions?.from || 0,
@@ -165,7 +172,8 @@ export function generateBaseQuery(
                   }
                 }
               ]
-            : [])
+            : []),
+          ...(dataspaceFilterTerm ? [dataspaceFilterTerm] : [])
         ]
       }
     }
