@@ -23,7 +23,6 @@ import {
   PolicyServerInitiateActionData,
   PolicyServerInitiateComputeActionData
 } from 'src/@types/PolicyServer'
-import { getOceanConfig } from '@utils/ocean'
 
 export async function initializeProviderForComputeMulti(
   datasets:
@@ -40,13 +39,11 @@ export async function initializeProviderForComputeMulti(
   computeEnv: ComputeEnvironment,
   selectedResources: ResourceType,
   svcIndexAlgo: number,
+  paymentTokenAddress: string,
   algoParams?: Record<string, any>,
   datasetParams?: Record<string, any>
 ) {
   const safeDatasets = datasets ?? []
-  const { oceanTokenAddress } = getOceanConfig(
-    algorithm.credentialSubject.chainId
-  )
   const computeAssets = safeDatasets.map(
     ({ asset, service, accessDetails }) => ({
       documentId: asset.id,
@@ -113,7 +110,7 @@ export async function initializeProviderForComputeMulti(
     computeAssets,
     computeAlgo,
     computeEnv.id,
-    oceanTokenAddress,
+    paymentTokenAddress,
     validUntil,
     providerUrl,
     accountId,

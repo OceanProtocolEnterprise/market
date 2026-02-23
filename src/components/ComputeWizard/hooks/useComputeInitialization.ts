@@ -31,6 +31,7 @@ type InitializeParams = {
   selectedComputeEnv: ComputeEnvironment
   selectedResources: ResourceType
   algoIndex: number
+  paymentTokenAddress: string
   algoParams?: Record<string, any>
   datasetParams?: Record<string, any>
   accountId?: string
@@ -105,10 +106,8 @@ async function setAlgoPrice(
 }
 
 export function useComputeInitialization({
-  oceanTokenAddress,
   web3Provider
 }: {
-  oceanTokenAddress?: string
   web3Provider?: any
 }) {
   const [initializedProviderResponse, setInitializedProviderResponse] =
@@ -140,6 +139,7 @@ export function useComputeInitialization({
       selectedComputeEnv,
       selectedResources,
       algoIndex,
+      paymentTokenAddress,
       algoParams,
       datasetParams,
       accountId,
@@ -157,9 +157,9 @@ export function useComputeInitialization({
           selectedComputeEnv,
           selectedResources,
           algoIndex,
+          paymentTokenAddress,
           algoParams,
           datasetParams
-          // oceanTokenAddress
         )
 
         if (!initializedProvider) {
@@ -191,7 +191,7 @@ export function useComputeInitialization({
           selectedResources.mode === 'paid' &&
           Number(selectedResources.price || 0) > 0
         if (Boolean(shouldDepositEscrow) && depositRequired) {
-          if (!oceanTokenAddress || !web3Provider) {
+          if (!paymentTokenAddress || !web3Provider) {
             throw new Error('Missing token or provider for escrow payment')
           }
 
@@ -199,13 +199,13 @@ export function useComputeInitialization({
             initializedProvider.payment.escrowAddress
           )
           const amountHuman = String(selectedResources.price || 0)
-          const depositKey = `${escrowAddress}:${oceanTokenAddress}:${amountHuman}`
+          const depositKey = `${escrowAddress}:${paymentTokenAddress}:${amountHuman}`
           if (lastEscrowDepositKey.current === depositKey) {
             console.log('escrow deposit skipped (already done)', depositKey)
           } else {
             lastEscrowDepositKey.current = depositKey
             const tokenDetails = await getTokenInfo(
-              oceanTokenAddress,
+              paymentTokenAddress,
               web3Provider
             )
             const amountWei = ethers.parseUnits(
@@ -219,7 +219,7 @@ export function useComputeInitialization({
             )
 
             const erc20 = new ethers.Contract(
-              oceanTokenAddress,
+              paymentTokenAddress,
               [
                 'function approve(address spender, uint256 amount) returns (bool)',
                 'function allowance(address owner, address spender) view returns (uint256)'
@@ -242,12 +242,12 @@ export function useComputeInitialization({
                 await new Promise((resolve) => setTimeout(resolve, 2000))
               }
               const depositTx = await escrow.deposit(
-                oceanTokenAddress,
+                paymentTokenAddress,
                 amountHuman
               )
               await depositTx.wait()
               await escrow.authorize(
-                oceanTokenAddress,
+                paymentTokenAddress,
                 selectedComputeEnv.consumerAddress,
                 initializedProvider.payment.amount.toString(),
                 selectedResources.jobDuration.toString(),
@@ -308,7 +308,7 @@ export function useComputeInitialization({
         setIsInitLoading(false)
       }
     },
-    [oceanTokenAddress, web3Provider]
+    [web3Provider]
   )
 
   return {
