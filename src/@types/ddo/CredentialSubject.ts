@@ -12,6 +12,7 @@ export interface CredentialSubject {
   credentials: Credential
   chainId: number
   nftAddress: string
+  dataspace?: string
   event?: Event
   datatokens?: AssetDatatoken[]
 }

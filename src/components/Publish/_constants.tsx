@@ -99,7 +99,7 @@ export const initialValues: FormPublishData = {
   },
   services: [
     {
-      files: [{ url: '', type: 'ipfs' }],
+      files: [{ url: '', type: 'url' }],
       links: [{ url: '', type: 'url' }],
       dataTokenOptions: { name: '', symbol: '' },
       timeout: '',

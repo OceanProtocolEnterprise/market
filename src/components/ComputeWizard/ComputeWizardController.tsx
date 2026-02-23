@@ -323,7 +323,6 @@ export default function ComputeWizardController({
     initError,
     setInitError
   } = useComputeInitialization({
-    oceanTokenAddress: baseTokenAddress,
     web3Provider
   })
   const {
@@ -598,6 +597,19 @@ export default function ComputeWizardController({
           datasetParams[param.name] = param.value ?? param.default ?? ''
         })
       }
+      const paymentTokenAddress =
+        formValues?.baseToken ||
+        baseTokenAddress ||
+        selectedComputeEnv.fees?.[
+          String(formValues?.user?.chainId || asset.credentialSubject.chainId)
+        ]?.[0]?.feeToken
+
+      if (!paymentTokenAddress) {
+        throw new Error(
+          'No payment token selected. Please choose a price token in C2D Environment Configuration.'
+        )
+      }
+
       const initResult = await initializePricingAndProvider({
         datasetsForProvider,
         algorithmAsset: actualAlgorithmAsset,
@@ -608,6 +620,7 @@ export default function ComputeWizardController({
         selectedComputeEnv,
         selectedResources,
         algoIndex: actualSvcIndex,
+        paymentTokenAddress,
         algoParams,
         datasetParams,
         accountId,
