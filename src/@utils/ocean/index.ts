@@ -83,10 +83,10 @@ export function getOceanConfig(network: string | number): ConfigEnterprise {
   if (erc20Map[networkKey]) {
     const validAddresses = validateAndChecksumAddresses(erc20Map[networkKey])
 
-    config.tokenAddress = validAddresses
+    config.tokenAddresses = validAddresses
   } else {
     // Fallback if no map entry exists: use the default config ocean token as a single-item array
-    config.tokenAddress = [config.oceanTokenAddress]
+    config.tokenAddresses = [config.oceanTokenAddress]
   } // Get contracts for current network
   const enterpriseContracts = getOceanArtifactsAddressesByChainId(
     Number(network)
