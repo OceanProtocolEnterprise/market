@@ -5,6 +5,18 @@
   word-break: break-word;
 }
 
+.modalContent {
+  width: min(92vw, 62rem);
+  max-width: min(92vw, 62rem);
+}
+
+.scrollArea {
+  max-height: min(72vh, 58rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+}
+
 .ownerInfoList {
   display: flex;
   flex-direction: column;
@@ -46,11 +58,11 @@
 }
 
 .providerUrlCard {
-  margin-top: -12px;
-  margin-bottom: 14px;
+  margin-top: 0;
+  margin-bottom: 16px;
   border: 1px solid var(--ink-alpha-10);
   border-radius: 14px;
-  padding: 10px 12px;
+  padding: 14px 16px;
   background: linear-gradient(
     180deg,
     var(--navy-alpha-5) 0%,
@@ -64,7 +76,7 @@
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--clr-slate-50);
-  margin-bottom: 3px;
+  margin-bottom: 6px;
 }
 
 .providerUrlValue {
