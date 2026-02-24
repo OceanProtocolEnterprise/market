@@ -34,7 +34,7 @@ function useEnterpriseFeeCollector() {
           async (tokenAddress: string) => {
             try {
               const isTokenApproved =
-                await enterpriseFeeColletor.contract.isTokenAllowed(
+                await enterpriseFeeColletor?.contract?.isTokenAllowed(
                   tokenAddress
                 )
 
