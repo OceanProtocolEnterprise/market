@@ -1,11 +1,8 @@
 import { ReactElement } from 'react'
 import { useChainId } from 'wagmi'
 import Image from 'next/image'
-
-import { OnboardingStep } from '../..'
 import content from '../../../../../../content/onboarding/steps/faucet.json'
 import StepHeader from '../../StepHeader'
-
 import USDCIcon from '@images/USDC_Token_Logo.svg'
 import EURCIcon from '@images/EURC_Token_Logo.svg'
 import ETHIcon from '@images/eth.svg'
@@ -15,7 +12,6 @@ import ByBitIcon from '@images/exchanges/bybit.svg'
 import BitpandaIcon from '@images/exchanges/bitpanda.svg'
 import OKXIcon from '@images/exchanges/okx.svg'
 import CoinbaseIcon from '@images/exchanges/coinbase.svg'
-
 import styles from './index.module.css'
 
 const EXCHANGE_ICONS: Record<string, any> = {
