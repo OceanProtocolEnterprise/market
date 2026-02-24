@@ -1,0 +1,37 @@
+.modalDescription {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--clr-slate-70);
+  word-break: break-word;
+}
+
+.ownerInfoList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ownerInfoItem {
+  font-size: 14px;
+  color: var(--clr-slate-70);
+  word-break: break-word;
+}
+
+.providerUrlRow {
+  margin-top: -30px;
+  margin-bottom: 16px;
+}
+
+.ownerInfoKey {
+  font-weight: 700;
+  color: var(--text-ink);
+}
+
+.ownerInfoValue {
+  color: var(--clr-slate-70);
+}
+
+.ownerInfoLink {
+  color: var(--ocean-blue);
+  text-decoration: underline;
+}
