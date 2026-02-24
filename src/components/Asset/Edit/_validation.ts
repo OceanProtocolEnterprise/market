@@ -3,7 +3,7 @@ import * as Yup from 'yup'
 import { isAddress } from 'ethers'
 import { MAX_DECIMALS } from '@utils/constants'
 import { getMaxDecimalsValidation } from '@utils/numbers'
-import { testLinks } from '@utils/yup'
+import { getOriginalValue, testLinks } from '@utils/yup'
 import { validationConsumerParameters } from '@shared/FormInput/InputElement/ConsumerParameters/_validation'
 
 const validationRequestCredentials = {
@@ -247,7 +247,13 @@ export const serviceValidationSchema = Yup.object().shape({
     .test(
       'maxDigitsAfterDecimal',
       `Must have maximum ${MAX_DECIMALS} decimal digits`,
-      (param) => getMaxDecimalsValidation(MAX_DECIMALS).test(param?.toString())
+      function (_value, ctx) {
+        const rawValue = getOriginalValue(ctx, _value)
+        if (rawValue === undefined || rawValue === null || rawValue === '') {
+          return true
+        }
+        return getMaxDecimalsValidation(MAX_DECIMALS).test(String(rawValue))
+      }
     ),
   files: Yup.array()
     .of(
@@ -313,6 +319,12 @@ export const newServiceValidationSchema = serviceValidationSchema.shape({
     .test(
       'maxDigitsAfterDecimal',
       `Must have maximum ${MAX_DECIMALS} decimal digits`,
-      (param) => getMaxDecimalsValidation(MAX_DECIMALS).test(param?.toString())
+      function (_value, ctx) {
+        const rawValue = getOriginalValue(ctx, _value)
+        if (rawValue === undefined || rawValue === null || rawValue === '') {
+          return true
+        }
+        return getMaxDecimalsValidation(MAX_DECIMALS).test(String(rawValue))
+      }
     )
 })

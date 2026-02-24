@@ -16,49 +16,39 @@
   width: 100%;
 }
 
-.dialogBorder {
-  border: 1px solid rgba(48, 48, 49, 0.3);
-  border-radius: 10px;
-  padding: var(--publish-spacing-lg);
-  background: var(--publish-white);
+.label {
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
+  color: var(--text-ink);
+  margin: 0 0 var(--sp-4) 0;
 }
 
-.dialogBorder h3 {
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size-lg);
-  color: var(--publish-text);
-  margin-bottom: var(--sp-8);
+.didModal {
+  width: auto;
+  max-width: 90vw;
 }
 
-.dialogBorder label {
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
-  font-size: var(--publish-font-size);
-  color: var(--publish-text);
-  margin: 0 0 var(--publish-spacing-md) 0;
+.didModalOverlay.didModalOverlay {
+  z-index: 1100;
 }
 
 .inputField {
   box-sizing: border-box;
   width: 100%;
-  border: var(--publish-input-border-size) solid var(--publish-border);
-  border-radius: var(--publish-input-border-radius);
-  padding: var(--publish-input-padding-compact);
+  border: var(--border-size-sm) solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
+  padding: var(--field-padding-compact);
   padding-bottom: 8px;
-  box-shadow: var(--publish-shadow);
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
-  font-size: var(--publish-font-size);
-  color: var(--publish-text);
-  background: var(--publish-white);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
+  color: var(--text-ink);
+  background: var(--brand-white);
   appearance: none;
-  background-image: linear-gradient(
-      45deg,
-      transparent 50%,
-      var(--publish-primary) 50%
-    ),
-    linear-gradient(135deg, var(--publish-primary) 50%, transparent 50%);
+  background-image: linear-gradient(45deg, transparent 50%, var(--clr-navy) 50%),
+    linear-gradient(135deg, var(--clr-navy) 50%, transparent 50%);
   background-position: calc(100% - 15px) calc(50% + 2px),
     calc(100% - 10px) calc(50% + 2px);
   background-size: 5px 5px, 5px 5px;
@@ -67,42 +57,42 @@
 
 .inputField:focus {
   outline: none;
-  border-color: var(--publish-primary);
-  box-shadow: var(--publish-shadow), 0 0 0 3px rgba(10, 75, 112, 0.1);
+  border-color: var(--clr-navy);
+  box-shadow: var(--shadow-md), 0 0 0 3px var(--navy-alpha-10);
 }
 
 .acceptButton {
-  border-radius: var(--publish-border-radius);
+  border-radius: var(--radius-xl);
   padding: 4px 20px;
   width: 94px;
-  height: var(--publish-input-height);
-  box-shadow: var(--publish-shadow-sm);
-  background: var(--publish-accent-gradient);
+  height: var(--field-height);
+  box-shadow: var(--shadow-sm);
+  background: var(--gradient-accent);
   border: none;
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
-  color: var(--publish-primary);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  color: var(--clr-navy);
   cursor: pointer;
 }
 
 .abortButton {
-  border-radius: var(--publish-border-radius);
+  border-radius: var(--radius-xl);
   padding: 4px 20px;
   width: 79px;
-  height: var(--publish-input-height);
-  box-shadow: var(--publish-shadow-sm);
+  height: var(--field-height);
+  box-shadow: var(--shadow-sm);
   background: var(--clr-slate-12);
   border: none;
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
-  color: var(--publish-text);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  color: var(--text-ink);
   cursor: pointer;
 }
 
 .panelRow:last-child {
   justify-content: center;
   gap: var(--sp-4);
-  margin-top: var(--publish-spacing-lg);
+  margin-top: var(--sp-6);
 }

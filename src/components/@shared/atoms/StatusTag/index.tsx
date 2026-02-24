@@ -1,7 +1,7 @@
 import { ReactElement } from 'react'
 import styles from './index.module.css'
 
-export interface StatusTagProps {
+interface StatusTagProps {
   type: 'free' | 'paid'
   children: React.ReactNode
   className?: string

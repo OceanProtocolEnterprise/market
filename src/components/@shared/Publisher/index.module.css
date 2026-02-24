@@ -8,3 +8,46 @@
     display: inline-block;
   }
 }
+
+.hoverReveal {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.truncated {
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.fullValue {
+  visibility: hidden;
+  opacity: 0;
+
+  position: absolute;
+  z-index: 9999;
+  left: 0;
+  top: 100%;
+  margin-top: 6px;
+
+  max-width: 60vw;
+  padding: 8px 10px;
+
+  background: #1f2937;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.4;
+
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+  white-space: nowrap;
+  pointer-events: none;
+
+  transition: opacity 0.15s ease;
+}
+
+.hoverReveal:hover .fullValue {
+  visibility: visible;
+  opacity: 1;
+}

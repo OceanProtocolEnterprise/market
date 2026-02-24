@@ -1,3 +1,5 @@
+import Modal from '@shared/atoms/Modal'
+import Button from '@shared/atoms/Button'
 import styles from './SsiApiModal.module.css'
 
 interface SsiApiModalProps {
@@ -14,25 +16,25 @@ export default function SsiApiModal({
   onClose
 }: SsiApiModalProps) {
   return (
-    <div className={styles.overlay}>
-      <div className={styles.modal}>
-        {onClose && (
-          <button className={styles.closeButton} onClick={onClose}>
-            ×
-          </button>
-        )}
-        <label>
-          SSI Wallet API:
-          <input
-            type="text"
-            value={apiValue}
-            onChange={(e) => onChange(e.target.value)}
-          />
-        </label>
-        <button className={styles.connectSsiButton} onClick={onConnect}>
-          Set SSI Wallet API & Connect SSI
-        </button>
-      </div>
-    </div>
+    <Modal
+      title="SSI Wallet API"
+      isOpen
+      onToggleModal={onClose}
+      shouldCloseOnOverlayClick
+      className={styles.modal}
+    >
+      <label>
+        API URL:
+        <input
+          className={styles.input}
+          type="text"
+          value={apiValue}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </label>
+      <Button type="button" style="primary" onClick={onConnect}>
+        Set SSI Wallet API & Connect SSI
+      </Button>
+    </Modal>
   )
 }

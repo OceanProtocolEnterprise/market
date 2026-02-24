@@ -67,7 +67,7 @@ export default function ServicesFields(): ReactElement {
       name: 'download',
       value: accessTypeOptionsTitles[0].toLowerCase(),
       title: 'Download',
-      icon: <IconDownload fill="var(--publish-white)" />,
+      icon: <IconDownload fill="var(--brand-white)" />,
       // BoxSelection component is not a Formik component
       // so we need to handle checked state manually.
       checked:
@@ -211,7 +211,7 @@ export default function ServicesFields(): ReactElement {
 
       <ConsumerParametersSection
         fieldNamePrefix="services[0]"
-        type="publishConsumerParameters"
+        type="consumerParametersBuilder"
       />
     </>
   )

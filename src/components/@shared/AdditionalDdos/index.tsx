@@ -56,7 +56,7 @@ export function AdditionalDdosFields(): ReactElement {
                 {...getFieldContent('ddoType', content.additionalDdos.fields)}
                 component={Input}
                 name={`additionalDdos[${index}].type`}
-                variant="publish"
+                variant="accent"
               />
               <Field
                 {...getFieldContent(
@@ -66,7 +66,7 @@ export function AdditionalDdosFields(): ReactElement {
                 component={Input}
                 name={`additionalDdos[${index}].data`}
                 rows={4}
-                variant="publish"
+                variant="accent"
               />
               {canDelete && (
                 <div className={styles.deleteButtonContainer}>

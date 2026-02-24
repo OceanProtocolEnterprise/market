@@ -60,14 +60,14 @@
   padding: 9px 14px;
   gap: 4px;
   height: 40px;
-  background: var(--publish-accent-gradient);
-  box-shadow: var(--publish-shadow-sm);
+  background: var(--gradient-accent);
+  box-shadow: var(--shadow-sm);
   border-radius: 20px;
   border: none;
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
-  color: var(--publish-primary);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  color: var(--clr-navy);
   cursor: pointer;
   text-transform: uppercase;
   min-width: auto;
@@ -79,9 +79,9 @@
 
 .pairsContainer .addButton:hover,
 .pairsContainer .addButton:focus {
-  background: var(--publish-accent-gradient);
+  background: var(--gradient-accent);
   transform: none;
-  box-shadow: var(--publish-shadow-sm);
+  box-shadow: var(--shadow-sm);
 }
 
 .pairsContainer .addButton:disabled {

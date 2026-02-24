@@ -1,0 +1,207 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.additionalLicenseHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  border-top: 1px solid var(--border-navy-soft);
+  padding-top: 16px;
+}
+
+.headerLabel {
+  font-family: var(--font-family-base);
+  font-style: normal;
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-base);
+  line-height: var(--text-line-base);
+  color: var(--clr-navy);
+  margin-bottom: 0;
+}
+
+.additionalLicenseSubtext {
+  font-family: var(--font-family-base);
+  font-style: normal;
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
+  color: var(--clr-slate-70);
+}
+
+.additionalLicenseItem {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
+  background: var(--surface-neutral);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.additionalLicenseFieldWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.additionalLicenseFieldHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.additionalLicenseTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.itemTitleLabel {
+  font-family: var(--font-family-base);
+  font-style: normal;
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
+  color: var(--clr-slate-70);
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.infoIcon {
+  width: 16px;
+  height: 16px;
+  fill: var(--clr-slate-70);
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.infoIcon:hover {
+  fill: var(--clr-navy);
+}
+
+.additionalFileSourceWrapper {
+  max-width: 260px;
+  margin-bottom: 0;
+}
+
+.additionalFileSourceWrapper > div {
+  margin-bottom: 0;
+}
+
+.additionalFileSourceWrapper select {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 6px 10px;
+  gap: 10px;
+  min-width: 190px;
+  width: fit-content;
+  height: fit-content;
+  background: var(--surface-neutral);
+  border: 1px solid var(--clr-navy);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-family-base);
+  font-style: normal;
+  font-weight: var(--text-weight-regular);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
+  color: var(--clr-navy);
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--clr-navy) 50%),
+    linear-gradient(135deg, var(--clr-navy) 50%, transparent 50%);
+  background-position: calc(100% - 15px) calc(50% + 2px),
+    calc(100% - 10px) calc(50% + 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.licenseUrlContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fileUploadField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.required {
+  color: var(--input-error-text-color);
+  margin-left: 0.1rem;
+}
+
+.additionalLicenseError {
+  position: static;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.additionalFilesButtonWrapper {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 4px;
+}
+
+.addLicenseButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 16px;
+  gap: 8px;
+  width: fit-content;
+  min-height: var(--field-height);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  line-height: var(--text-line-base);
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.addLicenseButton:hover {
+  box-shadow: none;
+}
+
+.addLicenseButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .additionalLicenseItem {
+    padding: 12px;
+  }
+
+  .items {
+    gap: 16px;
+  }
+
+  .additionalLicenseFieldHeader {
+    align-items: flex-start;
+  }
+
+  .additionalFileSourceWrapper {
+    max-width: 100%;
+  }
+
+  .additionalLicenseHeader {
+    margin-top: 16px;
+    margin-bottom: 12px;
+  }
+}

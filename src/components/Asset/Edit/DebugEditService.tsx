@@ -19,6 +19,8 @@ import { Asset } from 'src/@types/Asset'
 import { Credential } from 'src/@types/ddo/Credentials'
 import { State } from 'src/@types/ddo/State'
 import { assetStateToNumber } from '@utils/assetState'
+import { Signer } from 'ethers'
+import { useEthersSigner } from '@hooks/useEthersSigner'
 
 export default function DebugEditService({
   values,
@@ -32,7 +34,9 @@ export default function DebugEditService({
   const [valuePreview, setValuePreview] = useState({})
   const [updatedService, setUpdatedService] = useState<Service>()
   const newCancelToken = useCancelToken()
+  const walletClient = useEthersSigner()
 
+  const signer = walletClient as unknown as Signer
   useEffect(() => {
     async function transformValues() {
       let updatedFiles = service.files
@@ -53,7 +57,8 @@ export default function DebugEditService({
           const filesEncrypted = await getEncryptedFiles(
             file,
             asset.credentialSubject?.chainId,
-            service.serviceEndpoint
+            service.serviceEndpoint,
+            signer
           )
           updatedFiles = filesEncrypted
         }

@@ -15,7 +15,7 @@ import { SkeletonTable } from '../HistoryData'
 // import { getPdf } from '@utils/invoice/createInvoice'
 // import { decodeBuyComputeJob } from '../../../../@types/invoice/buyInvoice'
 
-export function Status({ children }: { children: string }): ReactElement {
+function Status({ children }: { children: string }): ReactElement {
   return <div className={styles.status}>{children}</div>
 }
 

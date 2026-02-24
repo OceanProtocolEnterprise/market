@@ -1,4 +1,4 @@
-import { FormEvent, ReactElement, RefObject, useEffect } from 'react'
+import { FormEvent, ReactElement, RefObject } from 'react'
 import Button from '@shared/atoms/Button'
 import styles from './index.module.css'
 import { FormikContextType, useFormikContext } from 'formik'
@@ -252,7 +252,7 @@ export default function Actions({
           className={styles.successConfettiWrapper}
           success="Successfully published!"
           action={
-            <Button style="publish" to={`/asset/${did}`}>
+            <Button style="accent" to={`/asset/${did}`}>
               View Asset
             </Button>
           }
@@ -267,7 +267,7 @@ export default function Actions({
 
           {values.user.stepCurrent < wizardSteps.length ? (
             <Button
-              style="publish"
+              style="accent"
               onClick={handleNext}
               disabled={isContinueDisabled}
             >
@@ -282,7 +282,7 @@ export default function Actions({
             <Tooltip content={<AvailableNetworks />}>
               <Button
                 type="submit"
-                style="publish"
+                style="accent"
                 disabled
                 className={styles.infoButton}
               >
@@ -292,7 +292,7 @@ export default function Actions({
           ) : (
             <Button
               type="submit"
-              style="publish"
+              style="accent"
               disabled={isSubmitting || !isValid}
             >
               {isSubmitting ? (

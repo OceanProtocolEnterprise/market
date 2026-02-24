@@ -20,13 +20,14 @@ export interface URLInputProps {
   hideButton?: boolean
   hideError?: boolean
   placeholder?: string
-  buttonStyle?: 'primary' | 'ghost' | 'text' | 'publish' | 'ocean'
+  buttonStyle?: 'primary' | 'ghost' | 'text' | 'accent' | 'ocean'
   showDeleteButton?: boolean
   onDelete?: () => void
   disabled?: boolean
   disableButton?: boolean
   isValidated?: boolean
   onReset?: () => void
+  showResetButton?: boolean
 }
 
 export default function URLInput({
@@ -39,13 +40,14 @@ export default function URLInput({
   hideButton,
   hideError = false,
   placeholder,
-  buttonStyle = 'publish',
+  buttonStyle = 'accent',
   showDeleteButton = false,
   onDelete,
   disabled = false,
   disableButton = false,
   isValidated = false,
   onReset,
+  showResetButton = true,
   ...props
 }: URLInputProps): ReactElement {
   const [field, meta] = useField(name)
@@ -92,18 +94,20 @@ export default function URLInput({
   return (
     <>
       <InputGroup>
-        <InputElement
-          className={inputClassName}
-          {...props}
-          {...field}
-          type="url"
-          placeholder={placeholder}
-          data-storage-type={storageType}
-          disabled={isInputDisabled}
-        />
+        <div className={styles.inputWrapper}>
+          <InputElement
+            className={inputClassName}
+            {...props}
+            {...field}
+            type="url"
+            placeholder={placeholder}
+            data-storage-type={storageType}
+            disabled={isInputDisabled}
+          />
+        </div>
 
         {!hideButton && (
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div className={styles.actions}>
             {submitText === 'Validate' ? (
               <PublishButton
                 icon="validate"
@@ -129,7 +133,7 @@ export default function URLInput({
               </Button>
             )}
 
-            {(isValidated || showDeleteButton) && (
+            {showResetButton && (isValidated || showDeleteButton) && (
               <DeleteButton onClick={handleReset} />
             )}
           </div>

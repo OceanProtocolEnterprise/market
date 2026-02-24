@@ -5,10 +5,10 @@
 }
 
 /* Publish-specific button styling */
-:global(.publish) .actions button {
-  border-radius: var(--publish-input-border-radius, 20px) !important;
-  font-family: var(--publish-font-family, 'Helvetica') !important;
-  font-weight: var(--publish-font-weight-bold, 700) !important;
+:global(.accent) .actions button {
+  border-radius: var(--radius-xl, 20px) !important;
+  font-family: var(--font-family-base, 'Helvetica') !important;
+  font-weight: var(--text-weight-bold, 700) !important;
 }
 
 /* Add Parameter Button */
@@ -29,7 +29,7 @@
       #1e2e52 100%
     ),
     #64ace0 !important;
-  box-shadow: 1px 2px 8px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 1px 2px 8px var(--black-alpha-15) !important;
   border-radius: 20px !important;
   border: none !important;
   font-family: 'Helvetica', Arial, sans-serif !important;
@@ -58,14 +58,14 @@
     ),
     #64ace0 !important;
   transform: none !important;
-  box-shadow: 1px 2px 8px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 1px 2px 8px var(--black-alpha-15) !important;
 }
 
 /* Delete Parameter Button - Publish specific styling */
-:global(.publish) .actions button[style*='ghost'] {
-  border: 1px solid var(--publish-input-border-color, var(--border-color)) !important;
+:global(.accent) .actions button[style*='ghost'] {
+  border: 1px solid var(--border-navy-soft, var(--border-color)) !important;
   background: transparent !important;
-  color: var(--publish-text-secondary, var(--color-secondary)) !important;
+  color: var(--clr-slate-70, var(--color-secondary)) !important;
   padding: 8px 16px !important;
   height: 32px !important;
 }

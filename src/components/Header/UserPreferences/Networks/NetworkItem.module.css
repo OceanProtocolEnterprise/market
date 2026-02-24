@@ -20,10 +20,10 @@
 .input:checked {
   /* background-color: yellow !important; */
   /* You might also need to override other properties */
-  border-color: rgb(13, 75, 120) !important;
+  border-color: var(--navy-630) !important;
   border-radius: 2px;
-  background: rgb(13, 75, 120) !important;
-  box-shadow: 0 0 0 1px rgb(13, 75, 120) !important;
+  background: var(--navy-630) !important;
+  box-shadow: 0 0 0 1px var(--navy-630) !important;
 }
 
 .radioLabel {

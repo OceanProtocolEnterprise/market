@@ -27,6 +27,52 @@ import CustomPolicyBlock from './PolicyBlocks/Custom'
 import AddIcon from '@images/add_param.svg'
 import { VpCredentialEntry } from './AdvancedOptions/VpRequiredCredentialsSection'
 
+function stripAdvancedVpPolicies(
+  vpPolicies: PolicyEditorProps['credentials']['vpPolicies']
+): PolicyEditorProps['credentials']['vpPolicies'] {
+  if (!Array.isArray(vpPolicies)) return []
+  return vpPolicies.filter((policy) => {
+    if (
+      policy?.type === 'staticVpPolicy' &&
+      (policy?.name === 'holder-binding' ||
+        policy?.name === 'presentation-definition')
+    ) {
+      return false
+    }
+    if (
+      policy?.type === 'argumentVpPolicy' &&
+      (policy?.policy === 'minimum-credentials' ||
+        policy?.policy === 'maximum-credentials')
+    ) {
+      return false
+    }
+    if (policy?.type === 'externalEvpForwardVpPolicy') {
+      return false
+    }
+    return true
+  })
+}
+
+function buildAdvancedToggleCredentials(
+  credentials: PolicyEditorProps['credentials'],
+  nextEnabled: boolean
+): PolicyEditorProps['credentials'] {
+  if (nextEnabled) {
+    return {
+      ...credentials,
+      advancedFeaturesEnabled: true
+    }
+  }
+
+  return {
+    ...credentials,
+    advancedFeaturesEnabled: false,
+    externalEvpForwardUrl: '',
+    vpRequiredCredentials: undefined,
+    vpPolicies: stripAdvancedVpPolicies(credentials.vpPolicies)
+  }
+}
+
 interface PolicyViewProps {
   policy: PolicyType
   name: string
@@ -41,13 +87,7 @@ function PolicyView(props: PolicyViewProps): ReactElement {
   const { policy, onDeletePolicy, ...rest }: PolicyViewProps = props
   switch (policy?.type) {
     case 'staticPolicy':
-      return (
-        <StaticPolicyBlock
-          {...rest}
-          policy={policy}
-          onDelete={onDeletePolicy}
-        />
-      )
+      return <StaticPolicyBlock {...rest} onDelete={onDeletePolicy} />
     case 'parameterizedPolicy':
       return (
         <AllowedIssuerPolicyBlock
@@ -85,12 +125,9 @@ export function PolicyEditor(props): ReactElement {
     credentials,
     setCredentials,
     name,
-    label,
-    help,
     defaultPolicies = [],
     enabledView = false,
     isAsset = false,
-    buttonStyle = 'primary',
     hideDefaultPolicies = false
   }: PolicyEditorProps = props
   const [vpRequiredCredentials, setVpRequiredCredentials] = useState<
@@ -466,7 +503,8 @@ export function PolicyEditor(props): ReactElement {
         Array.isArray(credentials.vpPolicies) &&
         credentials.vpPolicies.length === 0
       ) {
-        const { vpPolicies, ...credentialsWithoutVpPolicies } = credentials
+        const { vpPolicies: _vpPolicies, ...credentialsWithoutVpPolicies } =
+          credentials
         setCredentials(credentialsWithoutVpPolicies)
       }
       return
@@ -642,8 +680,8 @@ export function PolicyEditor(props): ReactElement {
     if (!enabled) return
 
     const selectedPolicies = Object.entries(defaultPolicyStates)
-      .filter(([_, isSelected]) => isSelected)
-      .map(([policyName, _]) => policyName)
+      .filter(([, isSelected]) => isSelected)
+      .map(([policyName]) => policyName)
 
     const currentVcPolicies = credentials.vcPolicies || []
 
@@ -664,7 +702,7 @@ export function PolicyEditor(props): ReactElement {
             Policies applied to all credentials
           </h3>
           <div className={styles.defaultPoliciesList}>
-            {allPolicies.map((policy, index) => (
+            {allPolicies.map((policy) => (
               <div key={policy} className={styles.defaultPolicyItem}>
                 <label className={styles.policyLabel}>
                   <input
@@ -696,7 +734,6 @@ export function PolicyEditor(props): ReactElement {
               <CredentialCard
                 index={index}
                 name={name}
-                credential={credential}
                 onDelete={() => handleDeleteRequestCredential(index)}
               >
                 <div className={styles.policiesRow}>
@@ -785,24 +822,31 @@ export function PolicyEditor(props): ReactElement {
               options={['Edit Advanced SSI Policy Features']}
               checked={editAdvancedFeatures}
               onChange={() => {
-                const newValue = !editAdvancedFeatures
+                const nextEnabled = !editAdvancedFeatures
                 setHasUserSetEnabled(true)
-                setEditAdvancedFeatures(newValue)
+                setEditAdvancedFeatures(nextEnabled)
 
-                // Reset to initial values when re-enabling advanced features
-                if (newValue) {
+                if (nextEnabled) {
                   setHolderBinding(true)
                   setRequireAllTypes(true)
                   setLimitMinCredentials(false)
                   setLimitMaxCredentials(false)
                   setMinimumCredentials('1')
                   setMaximumCredentials('1')
+                } else {
+                  setHolderBinding(false)
+                  setRequireAllTypes(false)
+                  setLimitMinCredentials(false)
+                  setLimitMaxCredentials(false)
+                  setExternalEvpForward(false)
+                  setExternalEvpForwardUrl('')
+                  setVpRequiredCredentialsEnabled(false)
+                  setVpRequiredCredentials([])
                 }
 
-                setCredentials({
-                  ...credentials,
-                  advancedFeaturesEnabled: newValue
-                })
+                setCredentials(
+                  buildAdvancedToggleCredentials(credentials, nextEnabled)
+                )
               }}
               hideLabel={true}
               className={styles.advancedOptionsCheckbox}

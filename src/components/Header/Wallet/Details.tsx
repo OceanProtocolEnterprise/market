@@ -9,7 +9,6 @@ import DisconnectWallet from '@images/disconnect.svg'
 import SwitchWallet from '@images/switchWallet.svg'
 import { MenuLink } from '../Menu'
 import AddTokenList from './AddTokenList'
-import AddNetwork from '@components/@shared/AddNetwork'
 import { useSsiWallet } from '@context/SsiWallet'
 import { disconnectFromWallet } from '@utils/wallet/ssiWallet'
 import { LoggerInstance } from '@oceanprotocol/lib'
@@ -68,7 +67,7 @@ export default function Details(): ReactElement {
           />
         </li>
         <li className={styles.actions}>
-          <div title="Connected provider" className={styles.walletInfo}>
+          <div className={styles.walletInfo}>
             <span className={styles.walletLogoWrap}>
               {/* <img className={styles.walletLogo} src={activeConnector?.logo} /> */}
               {activeConnector?.name}

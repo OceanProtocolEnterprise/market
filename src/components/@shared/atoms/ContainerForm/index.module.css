@@ -2,64 +2,61 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--publish-spacing-md);
+  gap: var(--sp-4);
 }
 
 .title {
-  font-size: var(--publish-font-size);
+  font-size: var(--text-sm);
   font-weight: var(--font-weight-bold);
-  margin-bottom: var(--publish-spacing-sm);
+  margin-bottom: var(--sp-2);
 }
 
 .container.large {
-  gap: var(--publish-spacing-xl);
+  gap: var(--sp-8);
 }
 
 .container.border {
-  border: var(--publish-input-border-size) solid
-    var(--publish-input-border-color);
-  border-radius: var(--publish-input-border-radius);
-  padding: var(--publish-form-container-padding);
+  border: var(--border-size-sm) solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
+  padding: var(--sp-10);
 }
 
-.container.publish {
-  border: var(--publish-input-border-size) solid
-    var(--publish-input-border-color);
-  border-radius: var(--publish-input-border-radius);
-  padding: var(--publish-form-container-padding-top-extended);
-  gap: var(--publish-spacing-xl);
+.container.accent {
+  border: var(--border-size-sm) solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
+  padding: var(--form-container-padding-top-extended);
+  gap: var(--sp-8);
 }
 
 /* Publish-specific override for form input spacing */
-.container.publish :global([class*='FormInput_field']) {
+.container.accent :global([class*='FormInput_field']) {
   margin-bottom: 0;
 }
 
 /* Override FormInput labels */
-.container.publish label {
-  font-family: var(--publish-font-family);
+.container.accent label {
+  font-family: var(--font-family-base);
 }
 
 /* Override select arrows */
-.container.publish select {
+.container.accent select {
   background-image: url('../../../../@images/chevron_down.svg');
-  border: var(--publish-input-border-size) solid
-    var(--publish-input-border-color);
-  border-radius: var(--publish-input-border-radius);
+  border: var(--border-size-sm) solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
   background-position: calc(100% - 15px) center;
   background-size: 12px 12px;
   background-repeat: no-repeat;
   padding: 6px 36px 6px 10px;
 }
 
-.container.publish
+.container.accent
   :global([class*='FormInput_field'])
   select[name='services[0].description.language'] {
   border: 1px solid rgba(10, 75, 112, 0.5);
   border-radius: 20px;
   padding: 10px 25px;
   min-height: 40px;
-  box-shadow: 1px 4px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 8px 0 var(--black-alpha-15);
 
   font-family: var(--font-family);
   font-weight: 400;
@@ -67,38 +64,37 @@
   color: #303031;
 }
 
-.container.publish input[type='checkbox']:checked {
-  border-color: var(--publish-accent);
-  background: var(--publish-accent);
+.container.accent input[type='checkbox']:checked {
+  border-color: var(--clr-amber);
+  background: var(--clr-amber);
 }
 
-.container.publish input[type='checkbox']:checked::after {
-  border-color: var(--publish-white);
+.container.accent input[type='checkbox']:checked::after {
+  border-color: var(--brand-white);
 }
 
 /* Publish-specific overrides for TagsAutoComplete (react-select) */
-.container.publish :global([class$='control']) {
-  border: var(--publish-input-border-size) solid
-    var(--publish-input-border-color);
-  border-radius: var(--publish-input-border-radius);
-  min-height: var(--publish-input-height);
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
+.container.accent :global([class$='control']) {
+  border: var(--border-size-sm) solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
+  min-height: var(--field-height);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
 }
 
-.container.publish :global([class$='control']:hover) {
-  border-color: var(--publish-input-border-color);
+.container.accent :global([class$='control']:hover) {
+  border-color: var(--border-navy-soft);
 }
 
-.container.publish :global([class$='control']:focus-within) {
-  border-color: var(--publish-input-border-color);
+.container.accent :global([class$='control']:focus-within) {
+  border-color: var(--border-navy-soft);
   box-shadow: none;
 }
 
 /* Publish-specific overrides for BoxSelection component */
-.container.publish :global(.boxSelection) {
-  border: 1px solid var(--publish-border);
-  border-radius: var(--publish-border-radius);
+.container.accent :global(.boxSelection) {
+  border: 1px solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
   padding: 8px 25px;
   height: 40px;
   min-height: 40px;
@@ -106,37 +102,37 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-normal);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-regular);
   box-shadow: none;
 }
 
 /* ADD button (accent color) - target CSS class */
-.container.publish button.primary {
-  background: var(--publish-accent-gradient);
-  color: var(--publish-primary);
+.container.accent button.primary {
+  background: var(--gradient-accent);
+  color: var(--clr-navy);
   border: none;
-  box-shadow: var(--publish-shadow-sm);
+  box-shadow: var(--shadow-sm);
 }
 
-.container.publish button.primary:hover,
-.container.publish button.primary:focus {
-  background: var(--publish-accent-gradient);
+.container.accent button.primary:hover,
+.container.accent button.primary:focus {
+  background: var(--gradient-accent);
   transform: none;
-  box-shadow: var(--publish-shadow-sm);
+  box-shadow: var(--shadow-sm);
 }
 
 /* SUBMIT URL button (primary blue) - target CSS class */
-.container.publish button.publish {
-  background: var(--publish-primary-gradient);
-  color: var(--publish-white);
+.container.accent button.accent {
+  background: var(--gradient-primary);
+  color: var(--brand-white);
   border: none;
-  box-shadow: var(--publish-shadow-sm);
+  box-shadow: var(--shadow-sm);
 }
 
-.container.publish button.publish:hover,
-.container.publish button.publish:focus {
-  background: var(--publish-primary-gradient);
+.container.accent button.accent:hover,
+.container.accent button.accent:focus {
+  background: var(--gradient-primary);
   transform: none;
-  box-shadow: var(--publish-shadow-sm);
+  box-shadow: var(--shadow-sm);
 }

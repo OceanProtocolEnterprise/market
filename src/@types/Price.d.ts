@@ -51,7 +51,7 @@ declare global {
     validProviderFees?: ProviderFees
     paymentCollector: string
   }
-  interface PricePublishOptions {
+  export interface PricePublishOptions {
     price: number
     baseToken: TokenInfo
     type: 'fixed' | 'free'

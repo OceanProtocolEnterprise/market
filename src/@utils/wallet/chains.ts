@@ -3,7 +3,7 @@ import * as wagmiChains from 'wagmi/chains'
 import { getRuntimeConfig } from '../runtimeConfig'
 
 // Custom OP Sepolia chain
-export const opSepolia: Chain = {
+const opSepolia: Chain = {
   id: 11155420,
   name: 'OP Sepolia',
   nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
@@ -21,7 +21,7 @@ export const opSepolia: Chain = {
 }
 
 // Custom Ethereum Hoodi testnet
-export const ethereumHoodi: Chain = {
+const ethereumHoodi: Chain = {
   id: 560048,
   name: 'Ethereum Hoodi',
   nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },

@@ -25,7 +25,7 @@ import { Service } from 'src/@types/ddo/Service'
 import { parseCredentialPolicies } from '@components/Publish/_utils'
 import { Purgatory } from '@oceanprotocol/ddo-js'
 
-export interface AssetProviderValue {
+interface AssetProviderValue {
   isInPurgatory: boolean
   purgatoryData: Purgatory
   asset: AssetExtended
@@ -284,5 +284,5 @@ function AssetProvider({
 // Helper hook to access the provider values
 const useAsset = (): AssetProviderValue => useContext(AssetContext)
 
-export { AssetProvider, useAsset, AssetContext }
+export { useAsset }
 export default AssetProvider

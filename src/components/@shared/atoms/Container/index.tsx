@@ -4,7 +4,7 @@ import styles from './index.module.css'
 
 const cx = classNames.bind(styles)
 
-export interface ContainerProps {
+interface ContainerProps {
   children: ReactNode
   narrow?: boolean
   className?: string

@@ -9,7 +9,7 @@ import styles from './index.module.css'
 import { getServiceByName } from '@utils/ddo'
 import { AssetExtended } from 'src/@types/AssetExtended'
 
-export declare type AssetTeaserProps = {
+declare type AssetTeaserProps = {
   asset: AssetExtended
   noPublisher?: boolean
   noDescription?: boolean

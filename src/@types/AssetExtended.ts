@@ -1,6 +1,6 @@
 import { Asset } from './Asset'
 
-export interface ServicePrice {
+interface ServicePrice {
   type: 'fixedrate' | 'dispenser'
   price: string
   contract: string
@@ -8,7 +8,7 @@ export interface ServicePrice {
   exchangeId?: string
 }
 
-export interface ServiceStat {
+interface ServiceStat {
   datatokenAddress: string
   name: string
   symbol: string

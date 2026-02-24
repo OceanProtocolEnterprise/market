@@ -1,7 +1,7 @@
 .container {
   padding: var(--sp-4);
-  border: 1px solid var(--publish-input-border-color-dark);
-  border-radius: var(--publish-input-border-radius);
+  border: 1px solid var(--field-border-color-muted);
+  border-radius: var(--radius-xl);
 }
 
 .header {
@@ -86,9 +86,9 @@
 .requiredCredentialsSection {
   width: 100%;
   padding: var(--sp-6);
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--neutral-210);
   border-radius: 20px;
-  box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 8px var(--black-alpha-15);
   background: var(--brand-white);
 }
 
@@ -116,13 +116,13 @@
   min-width: 220px;
   padding: 4px 12px;
   border-radius: 4px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--neutral-205);
   background: #fff;
   font-size: 1em;
 }
 
 .addButton {
-  background: var(--publish-primary-gradient);
+  background: var(--gradient-primary);
   color: var(--brand-white);
   border: none;
   border-radius: 20px;
@@ -130,7 +130,7 @@
 }
 
 .addButton:hover {
-  background: var(--publish-primary-gradient);
+  background: var(--gradient-primary);
   opacity: 0.9;
 }
 
@@ -149,14 +149,14 @@
 }
 
 .deleteButton:hover {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--red-100);
+  color: var(--red-800);
 }
 
 .anyOfSection {
   margin: 0.5em 0;
   padding-left: 1em;
-  border-left: 2px solid #bee3f8;
+  border-left: 2px solid var(--blue-100);
   display: flex;
   flex-direction: column;
   gap: 0.3em;

@@ -10,8 +10,9 @@ interface SectionContainerProps {
   required?: boolean
   gap?: string
   help?: string
-  variant?: 'default' | 'large' | 'publish'
+  variant?: 'default' | 'large' | 'accent'
   border?: boolean
+  borderless?: boolean
   padding?: string
 }
 
@@ -24,13 +25,15 @@ export default function SectionContainer({
   help,
   variant = 'default',
   border = false,
+  borderless = false,
   padding
 }: SectionContainerProps): ReactElement {
   const containerClass = [
     styles.container,
     variant && styles[variant],
     border && styles.border,
-    title && styles.borderNavy
+    title && !borderless && styles.borderNavy,
+    borderless && styles.borderless
   ]
     .filter(Boolean)
     .join(' ')

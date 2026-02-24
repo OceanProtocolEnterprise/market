@@ -7,12 +7,16 @@ import styles from './index.module.css'
 import { previewDebugPatch } from '@utils/ddo'
 import { Asset } from 'src/@types/Asset'
 import { useCancelToken } from '@hooks/useCancelToken'
+import { useEthersSigner } from '@hooks/useEthersSigner'
+import { Signer } from 'ethers'
 
 export default function Debug(): ReactElement {
   const { values } = useFormikContext<FormPublishData>()
   const [valuePreview, setValuePreview] = useState({})
   const [ddo, setDdo] = useState<Asset>()
   const newCancelToken = useCancelToken()
+  const walletClient = useEthersSigner()
+  const signer = walletClient as unknown as Signer
 
   useEffect(() => {
     async function makeDdo() {
@@ -20,7 +24,8 @@ export default function Debug(): ReactElement {
         values,
         null,
         null,
-        newCancelToken()
+        newCancelToken(),
+        signer
       )
       setValuePreview(previewDebugPatch(values))
       setDdo(ddo)

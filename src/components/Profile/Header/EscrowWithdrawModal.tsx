@@ -8,6 +8,7 @@ import { Signer, formatUnits, parseUnits } from 'ethers'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 import Modal from '@shared/atoms/Modal'
 import Button from '@shared/atoms/Button'
+import { formatToFixed } from '@utils/numbers'
 
 const ESCROW_WITHDRAW_TEXT = {
   invalidAmount: 'Please enter a valid withdrawal amount.',
@@ -43,9 +44,7 @@ export default function EscrowWithdrawModal({
   const availableTokens = Object.keys(escrowFundsByToken || {})
   const selectedEscrowFunds = escrowFundsByToken?.[selectedToken] || escrowFunds
   const availableAmount = Number(selectedEscrowFunds.available)
-  const availableDisplay = Number.isFinite(availableAmount)
-    ? availableAmount.toFixed(3)
-    : '0'
+  const availableDisplay = formatToFixed(availableAmount, 3)
   const availableUnits = (() => {
     try {
       return parseUnits(

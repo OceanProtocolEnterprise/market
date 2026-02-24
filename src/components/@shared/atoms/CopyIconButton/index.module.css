@@ -1,0 +1,71 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-secondary);
+  transition: border-color 0.2s ease, color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.inline {
+  gap: 5px;
+}
+
+.pill {
+  gap: 0.35rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 0.3rem 0.6rem;
+  background: var(--background-body);
+}
+
+.icon {
+  fill: currentColor;
+  transition: color 0.15s ease-out, fill 0.15s ease-out;
+  width: 10px;
+  height: 10px;
+}
+
+.pill .icon {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.button:hover {
+  color: var(--font-color-text);
+}
+
+.pill:hover {
+  border-color: var(--color-secondary);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--clr-navy);
+  outline-offset: 2px;
+}
+
+.copied {
+  color: var(--brand-alert-green);
+}
+
+.button.copied:hover {
+  color: var(--brand-alert-green);
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}

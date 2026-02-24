@@ -20,6 +20,8 @@ export function AccessPolicies(): ReactElement {
   const { values, setFieldValue } = useFormikContext<FormPublishData>()
   const [defaultPolicies, setDefaultPolicies] =
     useState<string[]>(FALLBACK_POLICIES)
+  const [defaultSelectedPolicies, setDefaultSelectedPolicies] =
+    useState<string[]>(FALLBACK_POLICIES)
 
   useEffect(() => {
     if (!appConfig.ssiEnabled) return
@@ -36,12 +38,14 @@ export function AccessPolicies(): ReactElement {
           ...apiPolicies
         ])
         setDefaultPolicies(mergedPolicies)
+        setDefaultSelectedPolicies(apiPolicies)
         if (!values.credentials?.vcPolicies?.length) {
           setFieldValue('credentials.vcPolicies', apiPolicies)
         }
       })
       .catch(() => {
         setDefaultPolicies(FALLBACK_POLICIES)
+        setDefaultSelectedPolicies(FALLBACK_POLICIES)
         if (!values.credentials?.vcPolicies?.length) {
           setFieldValue('credentials.vcPolicies', FALLBACK_POLICIES)
         }
@@ -60,7 +64,10 @@ export function AccessPolicies(): ReactElement {
   return (
     <>
       <AccessRulesSection />
-      <SSIPoliciesSection defaultPolicies={defaultPolicies} />
+      <SSIPoliciesSection
+        defaultPolicies={defaultPolicies}
+        defaultSelectedPolicies={defaultSelectedPolicies}
+      />
     </>
   )
 }

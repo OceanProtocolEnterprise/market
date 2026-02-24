@@ -1,7 +1,7 @@
 .layout {
   display: grid;
   grid-template-columns: 280px 1fr;
-  gap: var(--publish-spacing-xl);
+  gap: var(--sp-8);
   align-items: start;
   margin-top: var(--spacer);
 }
@@ -9,7 +9,7 @@
 @media (max-width: 1024px) {
   .layout {
     grid-template-columns: 1fr;
-    gap: var(--publish-spacing-md);
+    gap: var(--sp-4);
   }
 
   .sidebar {

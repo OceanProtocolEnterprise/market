@@ -1,19 +1,20 @@
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { serverSideDeleteIpfsFile, serverSideUploadToIpfs } from '@utils/ipfs'
-import appConfig from 'app.config.cjs'
 import { NextApiRequest, NextApiResponse } from 'next'
+
+const IPFS_JWT_ENV_KEY = 'IPFS_JWT'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const headerValue = req.headers['x-ipfs-jwt']
-  const headerToken = Array.isArray(headerValue) ? headerValue[0] : headerValue
-  const ipfsJWT = headerToken || appConfig.ipfsJWT
+  const ipfsJWT = process.env[IPFS_JWT_ENV_KEY]
 
   if (req.method === 'POST') {
     try {
-      const data = await serverSideUploadToIpfs(JSON.parse(req.body), ipfsJWT)
+      const body =
+        typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+      const data = await serverSideUploadToIpfs(body, ipfsJWT)
       res.status(200).json({ success: true, data })
     } catch (error) {
       LoggerInstance.error(error.message)

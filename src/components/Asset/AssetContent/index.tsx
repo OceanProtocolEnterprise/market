@@ -1,4 +1,11 @@
-import { ReactElement, useState, useEffect } from 'react'
+import {
+  ReactElement,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef
+} from 'react'
 import Markdown from '@shared/Markdown'
 import MetaFull from './MetaFull'
 import MetaSecondary from './MetaSecondary'
@@ -24,12 +31,15 @@ import MetaInfo from './MetaMain/MetaInfo'
 import EditIcon from '@images/edit.svg'
 import ComputeJobs from '@components/@shared/ComputeJobs'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
+import { toast } from 'react-toastify'
 
 export default function AssetContent({
   asset
 }: {
   asset: AssetExtended
 }): ReactElement {
+  const router = useRouter()
   const { isInPurgatory, purgatoryData, isOwner, isAssetNetwork } = useAsset()
   const { address: accountId, isConnected } = useAccount()
   const { allowExternalContent, debug } = useUserPreferences()
@@ -45,6 +55,7 @@ export default function AssetContent({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [computeJobsRefetchTrigger, setComputeJobsRefetchTrigger] = useState(0)
   const [expanded, setExpanded] = useState(false)
+  const [showDdo, setShowDdo] = useState(false)
   const availableServices =
     asset.credentialSubject?.services?.filter(
       (service) => service.state === 0
@@ -54,6 +65,68 @@ export default function AssetContent({
   const computeServiceIndex = asset.credentialSubject?.services?.findIndex(
     (service) => service.type === 'compute'
   )
+  const rerunJobQuery = useMemo(() => {
+    const value = router.query.rerunJob ?? router.query.rerun
+    if (typeof value === 'string') return value
+    if (Array.isArray(value) && value.length > 0) return value[0]
+    return null
+  }, [router.query.rerunJob, router.query.rerun])
+  const processedRerunJobRef = useRef<string | null>(null)
+
+  const clearRerunQueryFromUrl = useCallback(() => {
+    if (!router.isReady) return
+
+    const [pathname, search = ''] = router.asPath.split('?')
+    if (!search) return
+
+    const params = new URLSearchParams(search)
+    const hasRerunParam = params.has('rerunJob') || params.has('rerun')
+    if (!hasRerunParam) return
+
+    params.delete('rerunJob')
+    params.delete('rerun')
+    const nextUrl = params.toString()
+      ? `${pathname}?${params.toString()}`
+      : pathname
+    router
+      .replace(nextUrl, undefined, { shallow: true, scroll: false })
+      .catch((error) => {
+        console.error('Failed to clear rerun query param', error)
+      })
+  }, [router])
+
+  useEffect(() => {
+    if (rerunJobQuery) return
+    processedRerunJobRef.current = null
+  }, [rerunJobQuery])
+
+  useEffect(() => {
+    if (!router.isReady) return
+    if (!rerunJobQuery) return
+    if (processedRerunJobRef.current === rerunJobQuery) return
+
+    processedRerunJobRef.current = rerunJobQuery
+
+    if (Number(asset?.indexedMetadata?.nft?.state) !== 0) {
+      toast.error('Algorithm is not available.')
+      clearRerunQueryFromUrl()
+      return
+    }
+
+    if (computeServiceIndex === undefined || computeServiceIndex < 0) {
+      toast.error('Algorithm is not available.')
+      clearRerunQueryFromUrl()
+      return
+    }
+
+    setSelectedService(computeServiceIndex)
+  }, [
+    router.isReady,
+    rerunJobQuery,
+    computeServiceIndex,
+    asset?.indexedMetadata?.nft?.state,
+    clearRerunQueryFromUrl
+  ])
 
   // async function handleGeneratePdf(id: string, tx: string) {
   //   try {
@@ -132,7 +205,7 @@ export default function AssetContent({
         <div>
           <div className={styles.metaMenu}>
             {' '}
-            <MetaMain asset={asset} nftPublisher={nftPublisher} />
+            <MetaMain asset={asset} />
             <Bookmark did={asset.id} />
           </div>
           <div className={styles.content}>
@@ -214,7 +287,36 @@ export default function AssetContent({
               </>
             )}
             <MetaFull ddo={asset} />
-            {debug === true && <DebugOutput title="DDO" output={asset} />}
+            {debug === true ? (
+              <DebugOutput title="DDO" output={asset} />
+            ) : (
+              <>
+                {showDdo ? (
+                  <DebugOutput
+                    output={asset}
+                    headerLeft={
+                      <button
+                        type="button"
+                        className={`${styles.ddoToggleButton} ${styles.ddoToggleButtonInline}`}
+                        onClick={() => setShowDdo((isVisible) => !isVisible)}
+                        aria-expanded={showDdo}
+                      >
+                        DDO
+                      </button>
+                    }
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.ddoToggleButton}
+                    onClick={() => setShowDdo((isVisible) => !isVisible)}
+                    aria-expanded={showDdo}
+                  >
+                    DDO
+                  </button>
+                )}
+              </>
+            )}
           </div>
           {isPublished &&
             computeServiceIndex !== undefined &&
@@ -231,11 +333,7 @@ export default function AssetContent({
             networkId={asset.credentialSubject?.chainId}
             className={styles.network}
           />
-          <Web3Feedback
-            networkId={asset.credentialSubject?.chainId}
-            accountId={accountId}
-            isAssetNetwork={isAssetNetwork}
-          />
+          <Web3Feedback accountId={accountId} isAssetNetwork={isAssetNetwork} />
           {!asset.accessDetails ? (
             <p>Loading access details...</p>
           ) : (

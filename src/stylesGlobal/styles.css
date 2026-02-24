@@ -29,7 +29,7 @@ body {
   font-family: var(--font-family-base);
   font-weight: var(--font-weight-base);
   line-height: var(--line-height);
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -webkit-tap-highlight-color: var(--black-alpha-0);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   position: relative;
@@ -191,7 +191,7 @@ input[type='number']:focus-visible,
 input[type='url']:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 1px solid rgba(10, 75, 112, 0.4);
+  outline: 1px solid var(--navy-alpha-40);
 }
 
 select {

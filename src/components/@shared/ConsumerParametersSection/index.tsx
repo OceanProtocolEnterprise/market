@@ -10,7 +10,7 @@ import { FormPublishData } from '../../Publish/_types'
 interface ConsumerParametersSectionProps {
   title?: string
   fieldNamePrefix: string
-  type?: 'publishConsumerParameters' | 'consumerParameters'
+  type?: 'consumerParametersBuilder' | 'consumerParameters'
   help?: string
 }
 

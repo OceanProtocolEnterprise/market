@@ -1,6 +1,4 @@
 export const credentialFieldOptions: Record<string, string[]> = {
-  VerifiableId: ['id', 'type'],
-  UniversityDegree: ['id', 'type'],
   LegalPerson: [
     'id',
     'type',

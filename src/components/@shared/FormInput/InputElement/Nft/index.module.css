@@ -7,9 +7,9 @@
 }
 
 .imageWrapper {
-  border-radius: var(--publish-border-radius);
+  border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow: var(--publish-shadow-lg);
+  box-shadow: var(--shadow-lg);
   width: 90px;
   height: 90px;
 }

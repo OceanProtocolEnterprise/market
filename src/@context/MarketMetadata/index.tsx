@@ -11,7 +11,6 @@ import { MarketMetadataProviderValue, OpcFee } from './_types'
 import siteContent from '../../../content/site.json'
 import appConfig from '../../../app.config.cjs'
 import { useConnect, useChainId } from 'wagmi'
-import { getOceanConfig } from '@utils/ocean'
 import { getTokenInfo } from '@utils/wallet'
 import useEnterpriseFeeColletor from '@hooks/useEnterpriseFeeCollector'
 import { useEthersSigner } from '@hooks/useEthersSigner'
@@ -33,8 +32,6 @@ function MarketMetadataProvider({
   const [opcFees, setOpcFees] = useState<OpcFee[]>()
   const [approvedBaseTokens, setApprovedBaseTokens] = useState<TokenInfo[]>()
   const envAllowedAddresses = useAllowedTokenAddresses(chainId)
-
-  const config = getOceanConfig(chainId)
 
   // ---------------------------
   // Load OPC Fee Data
@@ -72,8 +69,6 @@ function MarketMetadataProvider({
   // ---------------------------
   // Load approved tokens metadata
   // ---------------------------
-
-  const tokenAddressesString = JSON.stringify(config?.tokenAddresses || [])
 
   useEffect(() => {
     async function fetchTokenInfoSafe() {
@@ -145,5 +140,5 @@ function MarketMetadataProvider({
 const useMarketMetadata = (): MarketMetadataProviderValue =>
   useContext(MarketMetadataContext)
 
-export { MarketMetadataProvider, useMarketMetadata, MarketMetadataContext }
+export { useMarketMetadata }
 export default MarketMetadataProvider

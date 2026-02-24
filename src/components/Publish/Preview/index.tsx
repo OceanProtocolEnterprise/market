@@ -8,15 +8,25 @@ import { ZERO_ADDRESS } from '@oceanprotocol/lib'
 import { useAccount } from 'wagmi'
 import { defaultDatatokenTemplateIndex } from 'app.config.cjs'
 import { AssetExtended } from 'src/@types/AssetExtended'
+import { useEthersSigner } from '@hooks/useEthersSigner'
+import { Signer } from 'ethers'
 
 export default function Preview(): ReactElement {
   const [asset, setAsset] = useState<AssetExtended>()
   const { address: accountId } = useAccount()
   const { values, setFieldValue } = useFormikContext<FormPublishData>()
+  const walletClient = useEthersSigner()
+  const signer = walletClient as unknown as Signer
 
   useEffect(() => {
     async function makeDdo() {
-      const asset = (await transformPublishFormToDdo(values)) as AssetExtended
+      const asset = (await transformPublishFormToDdo(
+        values,
+        null,
+        null,
+        null,
+        signer
+      )) as AssetExtended
       // dummy BestPrice to trigger certain AssetActions
       asset.accessDetails = [
         {

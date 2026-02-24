@@ -73,17 +73,7 @@ export function getOceanConfig(network: string | number): ConfigEnterprise {
     return {} as ConfigEnterprise
   }
 
-  let config = new ConfigHelper().getConfig(
-    network,
-    network === 'polygon' ||
-      network === 'moonbeamalpha' ||
-      network === 1287 ||
-      network === 'bsc' ||
-      network === 56 ||
-      network === 8996
-      ? undefined
-      : runtimeConfig.NEXT_PUBLIC_INFURA_PROJECT_ID
-  ) as any
+  let config = new ConfigHelper().getConfig(network) as any
   if (network === 8996) {
     config = { ...config, ...sanitizeDevelopmentConfig(config) }
   }
@@ -130,16 +120,4 @@ export function getOceanConfig(network: string | number): ConfigEnterprise {
       enterpriseContracts.OPFCommunityFeeCollectorCompute
   }
   return config as ConfigEnterprise
-}
-
-export function getDevelopmentConfig(): Config {
-  return {
-    // factoryAddress: contractAddresses.development?.DTFactory,
-    // poolFactoryAddress: contractAddresses.development?.BFactory,
-    // fixedRateExchangeAddress: contractAddresses.development?.FixedRateExchange,
-    // metadataContractAddress: contractAddresses.development?.Metadata,
-    // oceanTokenAddress: contractAddresses.development?.Ocean,
-    // There is no subgraph in barge so we hardcode the Sepolia one for now
-    nodeUri: 'https://v4.subgraph.sepolia.oceanprotocol.com'
-  } as Config
 }

@@ -19,16 +19,15 @@
 .tabs {
   margin-top: var(--spacer);
   background-color: var(--background-body);
-  border: var(--publish-input-border-size) solid
-    var(--publish-input-border-color);
-  border-radius: var(--publish-input-border-radius);
+  border: var(--border-size-sm) solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
   --history-tab-pill-radius: 20px;
   overflow: hidden;
-  box-shadow: var(--publish-shadow);
+  box-shadow: var(--shadow-md);
 }
 
 .tabs ul[class*='tabList'] {
-  background-color: var(--publish-white);
+  background-color: var(--brand-white);
   border: 0;
   white-space: nowrap;
   overflow-y: hidden;
@@ -41,27 +40,26 @@
 }
 
 .tabs div[class*='tabListContainer'] {
-  border-bottom: var(--publish-input-border-size) solid
-    var(--publish-input-border-color);
+  border-bottom: var(--border-size-sm) solid var(--border-navy-soft);
 }
 
 .tabs div[class*='tabContent'] {
   border: 0;
-  background-color: var(--publish-white);
+  background-color: var(--brand-white);
   padding-bottom: 0;
 }
 
 .tabs [class*='tab'][aria-selected='true'] {
-  background: var(--publish-primary-gradient);
-  color: var(--publish-white);
-  border-color: var(--publish-input-border-color);
+  background: var(--gradient-primary);
+  color: var(--brand-white);
+  border-color: var(--border-navy-soft);
 }
 
 .tabs [class*='tab'][aria-selected='true']:focus,
 .tabs [class*='tab'][aria-selected='true']:focus-visible {
   outline: none;
   box-shadow: none;
-  border-color: var(--publish-input-border-color);
+  border-color: var(--border-navy-soft);
 }
 
 .tabs li[class*='Tabs_tab']:first-child {

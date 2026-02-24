@@ -7,12 +7,6 @@ import * as Yup from 'yup'
 import { SchemaLike } from 'yup/lib/types'
 import { paramTypes } from '.'
 
-interface TestContextExtended extends Yup.TestContext {
-  from: {
-    value: FormPublishData['metadata'] | FormPublishService
-  }[]
-}
-
 export const validationConsumerParameters: {
   [key in keyof FormConsumerParameter]: SchemaLike
 } = {

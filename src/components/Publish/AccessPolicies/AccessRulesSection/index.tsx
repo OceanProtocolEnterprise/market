@@ -210,7 +210,7 @@ export default function AccessRulesSection({
           <Input
             name="allowDropdown"
             type="select"
-            selectStyle="publish"
+            selectStyle="accent"
             size="default"
             options={
               hasAllowAll
@@ -229,7 +229,7 @@ export default function AccessRulesSection({
             <div
               style={{
                 fontSize: '14px',
-                color: '#666',
+                color: '#666666',
                 fontStyle: 'italic',
                 marginTop: '8px'
               }}
@@ -295,7 +295,7 @@ export default function AccessRulesSection({
           <Input
             name="denyDropdown"
             type="select"
-            selectStyle="publish"
+            selectStyle="accent"
             options={
               hasDenyAll
                 ? ['Deny all addresses']
@@ -314,7 +314,7 @@ export default function AccessRulesSection({
             <div
               style={{
                 fontSize: '14px',
-                color: '#666',
+                color: '#666666',
                 fontStyle: 'italic',
                 marginTop: '8px'
               }}

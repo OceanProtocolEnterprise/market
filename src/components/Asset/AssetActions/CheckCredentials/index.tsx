@@ -182,11 +182,7 @@ export function AssetActionCheckCredentials({
             const { state } = searchParams
             exchangeStateData.sessionId = state
             if (service?.type === 'access' && accountId) {
-              const initializeData = await initializeProvider(
-                asset,
-                service,
-                accountId
-              )
+              await initializeProvider(asset, service, accountId)
             }
             const presentationDefinition = await getPd(state)
             const resultRequiredCredentials =
@@ -447,7 +443,7 @@ export function AssetActionCheckCredentials({
                   <Button
                     type="button"
                     onClick={handleRetry}
-                    style="publish"
+                    style="accent"
                     className={styles.retryButton}
                   >
                     Retry
@@ -484,7 +480,7 @@ export function AssetActionCheckCredentials({
                     <Button
                       type="button"
                       onClick={handleRetry}
-                      style="publish"
+                      style="accent"
                       className={styles.retryButton}
                     >
                       Retry
@@ -503,7 +499,7 @@ export function AssetActionCheckCredentials({
                       CheckCredentialState.StartCredentialExchange
                     )
                   }}
-                  style="publish"
+                  style="accent"
                   disabled={
                     !showVpDialog &&
                     !showDidDialog &&

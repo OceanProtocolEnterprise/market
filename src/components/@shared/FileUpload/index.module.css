@@ -1,5 +1,25 @@
+.fileUpload {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.actionsRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.fileMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .marginRight2 {
-  margin-right: calc(var(--spacer) / 2);
+  margin-right: 0;
 }
 
 .marginBottom4 {
@@ -7,7 +27,68 @@
 }
 
 .fileName {
-  margin-top: calc(var(--spacer) / 2);
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: var(--font-size-small);
   color: var(--color-secondary);
+}
+
+.separator {
+  display: inline-block;
+  width: 1px;
+  height: 16px;
+  background: var(--ink-alpha-30);
+  border-radius: 1px;
+}
+
+.uploadingStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-secondary);
+  font-size: var(--font-size-small);
+}
+
+.inlineLoader {
+  margin: 0;
+}
+
+.inlineLoader span {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  border-width: 2px;
+}
+
+.successIcon {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  color: var(--color-success);
+}
+
+.confirmedStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.confirmedText {
+  color: var(--color-success, #5fb359);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-base);
+  white-space: nowrap;
+}
+
+.confirmedMeta {
+  color: var(--color-secondary);
+  font-size: var(--font-size-small);
+  white-space: nowrap;
+}
+
+.deleteAction {
+  margin-left: auto;
 }

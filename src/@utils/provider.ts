@@ -1,13 +1,10 @@
 import {
   Arweave,
   ComputeAlgorithm,
-  ComputeAsset,
   ComputeEnvironment,
-  downloadFileBrowser,
   FileInfo,
   Ipfs,
   LoggerInstance,
-  ProviderComputeInitializeResults,
   ProviderInstance,
   UrlFile,
   UserCustomParameters,
@@ -26,7 +23,6 @@ import {
   PolicyServerInitiateActionData,
   PolicyServerInitiateComputeActionData
 } from 'src/@types/PolicyServer'
-import { getOceanConfig } from '@utils/ocean'
 
 export async function initializeProviderForComputeMulti(
   datasets:
@@ -43,13 +39,11 @@ export async function initializeProviderForComputeMulti(
   computeEnv: ComputeEnvironment,
   selectedResources: ResourceType,
   svcIndexAlgo: number,
+  paymentTokenAddress: string,
   algoParams?: Record<string, any>,
   datasetParams?: Record<string, any>
 ) {
   const safeDatasets = datasets ?? []
-  const { oceanTokenAddress } = getOceanConfig(
-    algorithm.credentialSubject.chainId
-  )
   const computeAssets = safeDatasets.map(
     ({ asset, service, accessDetails }) => ({
       documentId: asset.id,
@@ -116,7 +110,7 @@ export async function initializeProviderForComputeMulti(
     computeAssets,
     computeAlgo,
     computeEnv.id,
-    oceanTokenAddress,
+    paymentTokenAddress,
     validUntil,
     providerUrl,
     accountId,
@@ -126,98 +120,20 @@ export async function initializeProviderForComputeMulti(
   )
 }
 
-export async function initializeProviderForCompute(
-  dataset: AssetExtended,
-  datasetService: Service,
-  datasetAccessDetails: AccessDetails,
-  algorithm: AssetExtended,
-  accountId: Signer,
-  computeEnv: ComputeEnvironment = null,
-  selectedResources: ResourceType,
-  svcIndexAlgo: number,
-  datasetSessionId: string,
-  algoSessionId: string
-): Promise<ProviderComputeInitializeResults> {
-  const { oceanTokenAddress } = getOceanConfig(
-    algorithm.credentialSubject.chainId
-  )
-  const computeAsset: ComputeAsset = {
-    documentId: dataset.id,
-    serviceId: datasetService.id,
-    transferTxId: datasetAccessDetails.validOrderTx
-  }
-
-  const computeAlgo: ComputeAlgorithm = {
-    documentId: algorithm.id,
-    serviceId: algorithm.credentialSubject?.services[svcIndexAlgo].id,
-    transferTxId: algorithm.accessDetails?.[svcIndexAlgo]?.validOrderTx
-  }
-
-  const validUntil = getValidUntilTime(
-    selectedResources?.jobDuration,
-    datasetService.timeout,
-    algorithm.credentialSubject.services[svcIndexAlgo].timeout
-  )
-
-  const policiesServer: PolicyServerInitiateComputeActionData[] = [
-    {
-      sessionId: algoSessionId,
-      serviceId: algorithm.credentialSubject.services[svcIndexAlgo].id,
-      documentId: algorithm.id,
-      successRedirectUri: ``,
-      errorRedirectUri: ``,
-      responseRedirectUri: ``,
-      presentationDefinitionUri: ``
-    },
-    {
-      sessionId: datasetSessionId,
-      serviceId: datasetService.id,
-      documentId: dataset.id,
-      successRedirectUri: ``,
-      errorRedirectUri: ``,
-      responseRedirectUri: ``,
-      presentationDefinitionUri: ``
-    }
-  ]
-
-  try {
-    const resourceRequests = computeEnv.resources.map((res) => ({
-      id: res.id,
-      amount: selectedResources?.[res.id] || res.min
-    }))
-    return await ProviderInstance.initializeCompute(
-      [computeAsset],
-      computeAlgo,
-      computeEnv?.id,
-      oceanTokenAddress,
-      validUntil,
-      customProviderUrl || datasetService.serviceEndpoint,
-      accountId,
-      resourceRequests,
-      dataset.credentialSubject?.chainId ||
-        algorithm.credentialSubject?.chainId,
-      policiesServer
-    )
-  } catch (error) {
-    const message = getErrorMessage(error.message)
-    LoggerInstance.error('[Initialize Provider] Error:', message)
-    toast.error(message)
-    return null
-  }
-}
-
 // TODO: Why do we have these one line functions ?!?!?!
 export async function getEncryptedFiles(
   files: any,
   chainId: number,
-  providerUrl: string
+  providerUrl: string,
+  signer: Signer
 ): Promise<string> {
   try {
     // https://github.com/oceanprotocol/provider/blob/v4main/API.md#encrypt-endpoint
     const response = await ProviderInstance.encrypt(
       files,
       chainId,
-      customProviderUrl || providerUrl
+      customProviderUrl || providerUrl,
+      signer
     )
     return response
   } catch (error) {

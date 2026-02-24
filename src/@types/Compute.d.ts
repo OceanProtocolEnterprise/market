@@ -12,6 +12,7 @@ declare global {
     assets?: any
     algorithm?: any
     payment?: any
+    isFree?: boolean
   }
 
   interface AlgorithmOption {

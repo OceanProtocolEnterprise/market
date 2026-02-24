@@ -7,9 +7,9 @@
   background: linear-gradient(
     135deg,
     #1f2c50 0%,
-    rgb(13 76 113) 27.47%,
-    rgb(10 81 121) 43.49%,
-    rgb(6 68 103 / 94%) 55.43%,
+    var(--navy-640) 27.47%,
+    var(--navy-620) 43.49%,
+    var(--navy-alpha-94) 55.43%,
     #1e2e52 100%
   );
   justify-content: center;
@@ -197,7 +197,7 @@ svg.caret {
   background: white;
   border-radius: 50px;
   border: none;
-  box-shadow: 1px 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 2px 8px var(--black-alpha-15);
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -352,7 +352,7 @@ svg.caret {
   left: 0;
   width: 100%;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.9);
+  background: var(--black-alpha-90);
   z-index: 1000;
   display: flex;
   justify-content: center;
@@ -380,7 +380,7 @@ svg.caret {
   background: white;
   border-radius: 50px;
   border: none;
-  box-shadow: 1px 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 2px 8px var(--black-alpha-15);
   cursor: pointer;
   display: flex;
   justify-content: center;

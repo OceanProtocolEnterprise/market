@@ -4,7 +4,8 @@ import axios, { CancelToken, AxiosResponse } from 'axios'
 import {
   metadataCacheUri,
   allowDynamicPricing,
-  nodeUriIndex
+  nodeUriIndex,
+  dataspace
 } from '../../../app.config.cjs'
 import {
   SortDirectionOptions,
@@ -19,11 +20,6 @@ import { isValidDid } from '@utils/ddo'
 import { Filters } from '@context/Filter'
 import { filterSets } from '@components/Search/Filter'
 import { Asset } from 'src/@types/Asset'
-
-export interface UserSales {
-  id: string
-  totalSales: number
-}
 
 export const MAXIMUM_NUMBER_OF_PAGES_WITH_RESULTS = 476
 
@@ -54,10 +50,7 @@ export function getFilterTerm(
   }
 }
 
-export function getRangeFilterTerm(
-  filterField: string,
-  gteValue: string
-): FilterTerm {
+function getRangeFilterTerm(filterField: string, gteValue: string): FilterTerm {
   return {
     range: {
       [filterField]: {
@@ -111,7 +104,7 @@ export function getWhitelistShould(): FilterTerm[] {
   const { whitelists } = addressConfig
 
   const whitelistFilterTerms = Object.entries(whitelists)
-    .filter(([field, whitelist]) => whitelist?.length > 0)
+    .filter(([, whitelist]) => whitelist?.length > 0)
     .map(([field, whitelist]) =>
       whitelist.map((address) => getFilterTerm(field, address, 'match'))
     )
@@ -120,11 +113,16 @@ export function getWhitelistShould(): FilterTerm[] {
   return whitelistFilterTerms?.length > 0 ? whitelistFilterTerms : []
 }
 
-export function getDynamicPricingMustNot(): // eslint-disable-next-line camelcase
+function getDynamicPricingMustNot(): // eslint-disable-next-line camelcase
 FilterTerm | undefined {
   return allowDynamicPricing === 'true'
     ? undefined
     : getFilterTerm('indexedMetadata.stats.prices.type', 'pool')
+}
+
+function getDataspaceFilterTerm(): FilterTerm | undefined {
+  if (!dataspace) return undefined
+  return getFilterTerm('credentialSubject.dataspace.keyword', dataspace)
 }
 
 export function generateBaseQuery(
@@ -132,6 +130,7 @@ export function generateBaseQuery(
   index?: string,
   allNode?: boolean
 ): SearchQuery {
+  const dataspaceFilterTerm = getDataspaceFilterTerm()
   const generatedQuery = {
     index: index ?? 'op_ddo_v5.0.0',
     from: baseQueryParams.esPaginationOptions?.from || 0,
@@ -173,7 +172,8 @@ export function generateBaseQuery(
                   }
                 }
               ]
-            : [])
+            : []),
+          ...(dataspaceFilterTerm ? [dataspaceFilterTerm] : [])
         ]
       }
     }
@@ -207,11 +207,14 @@ export function generateBaseQuery(
   return generatedQuery
 }
 
-export function transformQueryResult(
-  queryResult,
-  from = 0,
-  size = 21
-): PagedAssets {
+function transformQueryResult(queryResult, from = 0, size = 21): PagedAssets {
+  const parsedFrom = Number(from)
+  const parsedSize = Number(size)
+  const normalizedFrom =
+    Number.isFinite(parsedFrom) && parsedFrom > 0 ? parsedFrom : 0
+  const normalizedSize =
+    Number.isFinite(parsedSize) && parsedSize > 0 ? parsedSize : 21
+
   const result: PagedAssets = {
     results: [],
     page: 0,
@@ -224,8 +227,8 @@ export function transformQueryResult(
   result.totalResults =
     queryResult.totalResults || queryResult.results?.length || 0
 
-  result.totalPages = Math.ceil(result.totalResults / size)
-  result.page = from ? from + 1 : 1
+  result.totalPages = Math.ceil(result.totalResults / normalizedSize)
+  result.page = normalizedFrom + 1
   result.aggregations = queryResult.aggregations || {}
   return result
 }
@@ -640,87 +643,6 @@ export async function getPublishedAssets(
       LoggerInstance.error(error.message)
     }
   }
-}
-
-async function getTopPublishers(
-  chainIds: number[],
-  cancelToken: CancelToken,
-  page?: number,
-  type?: string,
-  accesType?: string
-): Promise<PagedAssets> {
-  const filters: FilterTerm[] = []
-
-  accesType !== undefined &&
-    filters.push(getFilterTerm('credentialSubject.services.type', accesType))
-  type !== undefined &&
-    filters.push(getFilterTerm('credentialSubject.metadata.type', type))
-
-  const baseQueryParams = {
-    chainIds,
-    filters,
-    sortOptions: {
-      sortBy: SortTermOptions.Created,
-      sortDirection: SortDirectionOptions.Descending
-    },
-    aggs: {
-      topPublishers: {
-        terms: {
-          field: 'indexedMetadata.nft.owner.keyword',
-          order: { totalSales: 'desc' }
-        },
-        aggs: {
-          totalSales: {
-            sum: {
-              field: SortTermOptions.Orders
-            }
-          }
-        }
-      }
-    },
-    esPaginationOptions: {
-      from: page || 0,
-      size: 9
-    }
-  } as BaseQueryParams
-
-  const query = generateBaseQuery(baseQueryParams)
-
-  try {
-    const result = await queryMetadata(query, cancelToken)
-    return result
-  } catch (error) {
-    if (axios.isCancel(error)) {
-      LoggerInstance.log(error.message)
-    } else {
-      LoggerInstance.error(error.message)
-    }
-  }
-}
-
-export async function getTopAssetsPublishers(
-  chainIds: number[],
-  nrItems = 9
-): Promise<UserSales[]> {
-  const publishers: UserSales[] = []
-
-  const result = await getTopPublishers(chainIds, null)
-  const { topPublishers } = result.aggregations
-
-  if (!topPublishers?.buckets) {
-    return []
-  }
-
-  for (let i = 0; i < topPublishers.buckets?.length; i++) {
-    publishers.push({
-      id: topPublishers.buckets[i].key,
-      totalSales: parseInt(topPublishers.buckets[i].totalSales.value)
-    })
-  }
-
-  publishers.sort((a, b) => b.totalSales - a.totalSales)
-
-  return publishers.slice(0, nrItems)
 }
 
 export async function getUserSalesAndRevenue(

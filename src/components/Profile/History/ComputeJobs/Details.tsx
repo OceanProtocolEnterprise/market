@@ -14,6 +14,17 @@ import External from '@images/external.svg'
 import useIsMobile from '@hooks/useIsMobile'
 import Link from 'next/link'
 import Modal from '@shared/atoms/Modal'
+import { useRouter } from 'next/router'
+import {
+  ComputeRerunConfig,
+  getComputeRerunStorageKey
+} from '@utils/computeRerun'
+import { formatToFixed } from '@utils/numbers'
+
+enum JobTypeText {
+  Free = 'Free',
+  Paid = 'Paid'
+}
 
 const extractString = (
   value: string | { '@value': string } | undefined
@@ -22,11 +33,6 @@ const extractString = (
   if (value && typeof value === 'object' && '@value' in value)
     return value['@value']
   return ''
-}
-
-const formatJobCost = (value: number | string): string => {
-  const numeric = Number(value)
-  return Number.isFinite(numeric) ? numeric.toFixed(3) : String(value)
 }
 
 const getPaymentTokenSymbol = (
@@ -39,6 +45,33 @@ const getPaymentTokenSymbol = (
   return approvedBaseTokens.find(
     (token) => token.address?.toLowerCase() === tokenAddress.toLowerCase()
   )?.symbol
+}
+
+const getJobTypeDisplay = (job: ComputeJobMetaData): string => {
+  if (typeof job?.isFree === 'boolean') {
+    return job.isFree ? JobTypeText.Free : JobTypeText.Paid
+  }
+
+  const rawCost = job?.payment?.cost
+  if (rawCost != null && rawCost !== '') {
+    const cost = Number(rawCost)
+    if (!Number.isNaN(cost)) {
+      return cost > 0 ? JobTypeText.Paid : JobTypeText.Free
+    }
+  }
+
+  return '—'
+}
+
+const getJobCostDisplay = (
+  job: ComputeJobMetaData,
+  paymentSymbol?: string
+): string => {
+  const rawCost = job?.payment?.cost
+  if (rawCost == null || rawCost === '') return '—'
+
+  const formatted = formatToFixed(rawCost, 3)
+  return paymentSymbol ? `${formatted} ${paymentSymbol}` : formatted
 }
 
 function Asset({
@@ -206,16 +239,11 @@ export default function Details({
 }: {
   job: ComputeJobMetaData
 }): ReactElement {
+  const router = useRouter()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { approvedBaseTokens } = useMarketMetadata()
   const isMobile = useIsMobile()
   const paymentSymbol = getPaymentTokenSymbol(job?.payment, approvedBaseTokens)
-
-  useEffect(() => {
-    if (!isDialogOpen || !job) return
-    console.log('[ComputeJob Details] payment payload', job.payment)
-    console.log('[ComputeJob Details] job payload', job)
-  }, [isDialogOpen, job])
 
   function formatDuration(seconds: number): string {
     if (isNaN(seconds) || seconds < 0) return '—'
@@ -245,6 +273,48 @@ export default function Details({
     return parts.slice(0, 3).join(' ')
   }
 
+  const jobTypeDisplay = getJobTypeDisplay(job)
+  const jobCostDisplay = getJobCostDisplay(job, paymentSymbol)
+  const jobStatusDisplay = job.statusText || '—'
+  const isFinishedStatus = jobStatusDisplay.toLowerCase() === 'job finished'
+  const isFreeJob = jobTypeDisplay === JobTypeText.Free
+  const canRerunJob = Boolean(job?.algorithm?.documentId && job?.jobId)
+
+  const handleRerunJob = () => {
+    if (!canRerunJob) return
+
+    const rerunConfig: ComputeRerunConfig = {
+      jobId: job.jobId,
+      algorithmDid: job.algorithm.documentId,
+      algorithmServiceId: job.algorithm.serviceId,
+      datasets:
+        job.assets?.map((asset) => ({
+          did: asset.documentId,
+          serviceId: asset.serviceId
+        })) || [],
+      computeEnv:
+        typeof (job as any).environment === 'string'
+          ? (job as any).environment
+          : undefined
+    }
+
+    try {
+      localStorage.setItem(
+        getComputeRerunStorageKey(job.jobId),
+        JSON.stringify(rerunConfig)
+      )
+    } catch (error) {
+      console.error('Failed to cache compute rerun payload', error)
+    }
+
+    setIsDialogOpen(false)
+    router.push(
+      `/asset/${encodeURIComponent(
+        job.algorithm.documentId
+      )}?rerunJob=${encodeURIComponent(job.jobId)}`
+    )
+  }
+
   return (
     <>
       <Button style="text" size="small" onClick={() => setIsDialogOpen(true)}>
@@ -253,13 +323,21 @@ export default function Details({
 
       {isDialogOpen && (
         <Modal
-          title={job.statusText}
+          title="Job Details"
           isOpen
           onToggleModal={() => setIsDialogOpen(false)}
           shouldCloseOnOverlayClick
+          className={styles.modal}
         >
           <div className={styles.content}>
             <div className={styles.scrollArea}>
+              <div className={styles.statusWrapper}>
+                <MetaItem
+                  title="Status"
+                  content={jobStatusDisplay}
+                  horizontal
+                />
+              </div>
               <DetailsAssets job={job} isMobile={isMobile} />
               <Results job={job} />
 
@@ -307,23 +385,15 @@ export default function Details({
                     )}
                   />
                 )}
-                {job.dateFinished && (
-                  <MetaItem
-                    title="Job Cost"
-                    content={
-                      job?.payment?.cost
-                        ? `${formatJobCost(job.payment.cost)}${
-                            paymentSymbol ? ` ${paymentSymbol}` : ''
-                          }`
-                        : 'FREE'
-                    }
-                  />
+                {job.dateFinished && isFinishedStatus && !isFreeJob && (
+                  <MetaItem title="Job Cost" content={jobCostDisplay} />
                 )}
+                <MetaItem title="Job Type" content={jobTypeDisplay} />
 
                 {job.dateFinished ? (
                   // When finished date exists, show JobDID on new line
                   <div style={{ flexBasis: '100%' }}>
-                    <span className={styles.jobDID}>
+                    <div className={styles.jobDID}>
                       <MetaItem
                         title="Job ID"
                         content={
@@ -335,11 +405,12 @@ export default function Details({
                           />
                         }
                       />
-                    </span>
+                      <MetaItem title="Status" content={jobStatusDisplay} />
+                    </div>
                   </div>
                 ) : (
                   // Else show it in same row
-                  <span className={styles.jobDID}>
+                  <div className={styles.jobDID}>
                     <MetaItem
                       title="Job ID"
                       content={
@@ -351,12 +422,21 @@ export default function Details({
                         />
                       }
                     />
-                  </span>
+                    <MetaItem title="Status" content={jobStatusDisplay} />
+                  </div>
                 )}
               </div>
             </div>
 
             <div className={styles.actions}>
+              <Button
+                style="outlined"
+                type="button"
+                onClick={handleRerunJob}
+                disabled={!canRerunJob}
+              >
+                Rerun Job
+              </Button>
               <Button
                 style="primary"
                 type="button"

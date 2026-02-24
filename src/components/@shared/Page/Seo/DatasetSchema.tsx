@@ -36,10 +36,6 @@ const DatasetSchema = (): object => {
     }
   }
 
-  const description = asset?.credentialSubject?.metadata?.description?.[
-    '@value'
-  ]?.substring(0, 5000)
-
   // https://developers.google.com/search/docs/advanced/structured-data/dataset
   const datasetSchema = {
     '@context': 'https://schema.org/',

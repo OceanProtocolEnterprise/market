@@ -6,7 +6,7 @@ import { EnterpriseFeeCollectorContract } from '@oceanprotocol/lib'
  * @param enterpriseFeeCollector - The initialized contract instance
  * @param tokenAddresses - List of token addresses to check
  */
-export function useTokenApproval(
+function useTokenApproval(
   enterpriseFeeCollector: EnterpriseFeeCollectorContract | undefined,
   tokenAddresses: string[] | undefined
 ) {

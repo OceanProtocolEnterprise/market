@@ -3,29 +3,29 @@
   justify-content: center;
   align-items: center;
   padding: 0;
-  margin-top: var(--publish-spacing-2xl);
+  margin-top: var(--sp-10);
 }
 
 .actions a,
 .actions button {
   margin: 0 calc(var(--spacer) / 2);
   min-height: 40px;
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-bold);
-  border-radius: var(--publish-input-border-radius);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  border-radius: var(--radius-xl);
 }
 
 .actions a {
   padding: calc(var(--spacer) / 3);
-  font-weight: var(--publish-font-weight-bold);
+  font-weight: var(--text-weight-bold);
   text-transform: uppercase;
   transition: 0.2s ease-out;
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   text-decoration: none;
 }
 
 .actions a:hover {
   transform: translate3d(0, -0.05rem, 0);
   text-decoration: none;
-  color: var(--publish-primary);
+  color: var(--clr-navy);
 }

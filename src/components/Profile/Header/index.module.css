@@ -1,13 +1,12 @@
 .grid {
   composes: box from '@shared/atoms/Box.module.css';
-  background: var(--publish-white);
-  border: var(--publish-input-border-size) solid
-    var(--publish-input-border-color);
+  background: var(--brand-white);
+  border: var(--border-size-sm) solid var(--border-navy-soft);
   border-top: 0;
-  border-radius: var(--publish-input-border-radius);
+  border-radius: var(--radius-xl);
   border-top-left-radius: 0;
   border-top-right-radius: 0;
-  box-shadow: var(--publish-shadow);
+  box-shadow: var(--shadow-md);
   backdrop-filter: none;
   position: relative;
 }
@@ -113,5 +112,5 @@
   font-size: var(--font-size-label);
   color: var(--font-color-label);
   line-height: 1.2;
-  font-family: var(--publish-font-family);
+  font-family: var(--font-family-base);
 }

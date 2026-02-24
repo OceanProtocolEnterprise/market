@@ -30,7 +30,7 @@ export function updateQueryStringParameter(
   }
 }
 
-export function getSearchQuery(
+function getSearchQuery(
   chainIds: number[],
   text?: string,
   owner?: string,
@@ -155,12 +155,15 @@ export function getSearchQuery(
     ['accessType', 'serviceType', 'filterSet']
   )
   parseFilters(filtersList, filterSets).forEach((term) => filters.push(term))
+  const parsedPage = Number(page)
+  const normalizedPage =
+    Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1
 
   const baseQueryParams = {
     chainIds,
     nestedQuery,
     esPaginationOptions: {
-      from: page || 0,
+      from: normalizedPage - 1,
       size: Number(offset) || 21
     },
     sortOptions: { sortBy: sort, sortDirection },

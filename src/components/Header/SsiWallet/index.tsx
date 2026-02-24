@@ -1,4 +1,4 @@
-import { ReactElement, useCallback, useEffect, useRef, useState } from 'react'
+import { ReactElement, useCallback, useEffect, useState } from 'react'
 import styles from './index.module.css'
 import { SsiKeyDesc, SsiWalletDesc, SsiWalletDid } from 'src/@types/SsiWallet'
 import {
@@ -17,6 +17,7 @@ import { toast } from 'react-toastify'
 import ConnectedIcon from '@images/connected.svg'
 import DisconnectedIcon from '@images/disconnected.svg'
 import Button from '@components/@shared/atoms/Button'
+import Modal from '@shared/atoms/Modal'
 import Loader from '@components/@shared/atoms/Loader'
 import { useSsiWallet } from '@context/SsiWallet'
 import { useEthersSigner } from '@hooks/useEthersSigner'
@@ -42,7 +43,7 @@ export function SsiWallet(): ReactElement {
 
   const [walletDids, setWalletDids] = useState<SsiWalletDid[]>([])
 
-  const selectorDialog = useRef<HTMLDialogElement>(null)
+  const [showDialog, setShowDialog] = useState(false)
 
   const { isConnected } = useAccount()
   const walletClient = useEthersSigner()
@@ -156,7 +157,7 @@ export function SsiWallet(): ReactElement {
       await fetchWallets()
       await fetchDids()
       await fetchKeys()
-      selectorDialog.current?.showModal()
+      setShowDialog(true)
     } catch (error) {
       LoggerInstance.error(error)
       toast.error('Failed to load SSI data')
@@ -207,14 +208,14 @@ export function SsiWallet(): ReactElement {
     <>
       {appConfig.ssiEnabled ? (
         <>
-          <dialog
-            id="ssiWallet"
-            ref={selectorDialog}
+          <Modal
+            title="SSI Wallets & Keys"
+            isOpen={showDialog}
+            onToggleModal={() => setShowDialog(false)}
+            shouldCloseOnOverlayClick={false}
             className={styles.dialogBorder}
           >
             <div className={styles.panelColumn}>
-              <h3>SSI Wallets & Keys</h3>
-
               <div className={`${styles.marginBottom1}`}>
                 <label>SSI Wallet URL:</label>
                 <div className={styles.inputField}>{getSsiWalletApi()}</div>
@@ -295,7 +296,7 @@ export function SsiWallet(): ReactElement {
                   style="primary"
                   size="small"
                   className={`${styles.width100p} ${styles.closeButton}`}
-                  onClick={() => selectorDialog.current.close()}
+                  onClick={() => setShowDialog(false)}
                 >
                   Close
                 </Button>
@@ -309,7 +310,7 @@ export function SsiWallet(): ReactElement {
                 </Button>
               </div>
             </div>
-          </dialog>
+          </Modal>
 
           <button
             type="button"

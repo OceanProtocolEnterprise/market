@@ -3,7 +3,7 @@
 }
 .EmojiPickerReact.epr-dark-theme {
   --epr-bg-color: var(--background-content) !important;
-  --epr-category-label-bg-color: #141414e6 !important;
+  --epr-category-label-bg-color: var(--overlay-dark-90) !important;
 }
 .EmojiPickerReact {
   --epr-emoji-size: 24px !important;

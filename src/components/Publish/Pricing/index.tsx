@@ -91,7 +91,7 @@ export default function PricingFields(): ReactElement {
       onIndexSelected={setTabIndex}
       className={styles.pricing}
       showRadio
-      variant="publish"
+      variant="accent"
     />
   )
 }

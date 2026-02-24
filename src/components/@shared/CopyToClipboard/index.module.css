@@ -7,7 +7,7 @@
 .textButton {
   border: none;
   background: transparent;
-  color: rgba(76, 163, 211, 0.9);
+  color: var(--ocean-bright-alpha-90);
   font-family: var(--font-family);
   font-size: 14px;
   cursor: pointer;
@@ -39,11 +39,11 @@
 }
 
 .copyButton:hover {
-  background: #ececec;
+  background: var(--neutral-150);
 }
 
 .badge {
-  color: #4caf50;
+  color: var(--green-600);
   font-size: 11px;
   display: inline-flex;
   align-items: center;
@@ -58,7 +58,7 @@
 
 .circle {
   fill: none;
-  stroke: #4caf50;
+  stroke: var(--green-600);
   stroke-width: 4px;
   stroke-dasharray: 62.83;
   stroke-dashoffset: 62.83;

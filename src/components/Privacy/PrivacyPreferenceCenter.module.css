@@ -27,7 +27,7 @@
   border-bottom: 1px solid var(--brand-grey-lighter);
 }
 .banner button {
-  background: #fad14d;
+  background: var(--yellow-500);
   color: var(--brand-blue);
 }
 
@@ -69,6 +69,7 @@
   max-width: 42rem;
   overflow: hidden;
   height: auto;
+  border-radius: var(--radius-xl);
 }
 
 .small .banner {

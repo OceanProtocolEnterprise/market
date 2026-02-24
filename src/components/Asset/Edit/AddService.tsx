@@ -185,7 +185,7 @@ export default function AddService({
       const datatoken = new Datatoken(signer)
 
       let pricingTransactionReceipt
-      if (values.price > 0) {
+      if (Number(values.price) > 0) {
         LoggerInstance.log(
           `Creating fixed rate exchange with price ${values.price} for datatoken ${datatokenAddress}`
         )
@@ -246,7 +246,8 @@ export default function AddService({
         const filesEncrypted = await getEncryptedFiles(
           file,
           asset.credentialSubject?.chainId,
-          values.providerUrl.url
+          values.providerUrl.url,
+          signer
         )
         newFiles = filesEncrypted
       }
@@ -375,7 +376,6 @@ export default function AddService({
             />
 
             <Web3Feedback
-              networkId={asset?.credentialSubject?.chainId}
               accountId={accountId}
               isAssetNetwork={isAssetNetwork}
             />

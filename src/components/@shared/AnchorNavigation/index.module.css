@@ -17,30 +17,30 @@
   border: 1px solid var(--clr-navy);
   border-radius: 20px;
   color: var(--clr-navy);
-  font-size: var(--publish-font-size);
-  font-weight: var(--publish-font-weight-bold);
-  font-family: var(--publish-font-family);
+  font-size: var(--text-sm);
+  font-weight: var(--text-weight-bold);
+  font-family: var(--font-family-base);
   cursor: pointer;
   transition: all 0.3s ease;
   text-decoration: none;
   text-transform: none;
-  box-shadow: var(--publish-shadow-sm);
+  box-shadow: var(--shadow-sm);
   min-width: unset;
 }
 
 .button:hover,
 .button:focus {
-  border-color: var(--clr-navy-darker, #001f3f);
-  color: var(--clr-navy-darker, #001f3f);
+  border-color: var(--clr-navy-darker, var(--navy-900));
+  color: var(--clr-navy-darker, var(--navy-900));
   background: transparent;
   transform: scale(1.02);
   box-shadow: 1px 2px 8px var(--box-shadow-color);
 }
 
 .number {
-  font-weight: var(--publish-font-weight-bold);
+  font-weight: var(--text-weight-bold);
 }
 
 .label {
-  font-weight: var(--publish-font-weight-normal);
+  font-weight: var(--text-weight-regular);
 }

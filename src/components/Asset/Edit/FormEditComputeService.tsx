@@ -261,7 +261,7 @@ export default function FormEditComputeService({
           {...getFieldContent('allowAllPublishedAlgorithms', content.form.data)}
           component={Input}
           name="allowAllPublishedAlgorithms"
-          selectStyle="publish"
+          selectStyle="accent"
           onChange={handleAllowAlgorithmsChange}
         />
 
@@ -287,7 +287,7 @@ export default function FormEditComputeService({
           )}
           component={Input}
           name="publisherTrustedAlgorithmPublishers"
-          selectStyle="publish"
+          selectStyle="accent"
           className={styles.publisherTrustedAlgorithmPublishersInput}
           disabled={isAllowAnyPublishedAlgorithms(
             allowAllPublishedAlgorithmsStr

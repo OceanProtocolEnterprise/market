@@ -92,7 +92,7 @@ export default function FormAddService({
 
   return (
     <Form>
-      <ContainerForm style="publish">
+      <ContainerForm style="accent">
         <Field
           {...getFieldContent('name', data)}
           component={Input}
@@ -141,7 +141,7 @@ export default function FormAddService({
           component={Input}
           name="price"
           min={0}
-          step={0.01}
+          step={0.000001}
         />
         <Field
           label="Price Token"
@@ -211,6 +211,7 @@ export default function FormAddService({
             )}
             component={Input}
             name="consumerParameters"
+            type="consumerParametersBuilder"
           />
         )}
         <FormActions />

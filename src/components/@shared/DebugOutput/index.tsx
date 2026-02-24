@@ -1,47 +1,26 @@
-import { ReactElement, useState } from 'react'
+import { ReactElement, ReactNode } from 'react'
+import CopyIconButton from '@shared/atoms/CopyIconButton'
 import styles from './index.module.css'
 
 export default function DebugOutput({
   title,
   output,
-  large
+  large,
+  headerLeft
 }: {
   title?: string
-  output: any
+  output: unknown
   large?: boolean
+  headerLeft?: ReactNode
 }): ReactElement {
   const jsonString = JSON.stringify(output, null, 2)
-  const [copied, setCopied] = useState(false)
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(jsonString)
-      setCopied(true)
-
-      setTimeout(() => {
-        setCopied(false)
-      }, 2000)
-    } catch (e) {
-      console.error('Failed to copy output', e)
-    }
-  }
 
   return (
     <div className={styles.debugOutput}>
-      {title && (
+      {(title || headerLeft) && (
         <div className={styles.header}>
-          <h5>{title}</h5>
-
-          <button
-            type="button"
-            className={styles.copyButton}
-            onClick={handleCopy}
-            aria-label={copied ? 'Copied' : 'Copy'}
-          >
-            <span className={styles.icon}>{copied ? '✔' : '📋'}</span>
-
-            <span className={styles.tooltip}>{copied ? 'Copied' : 'Copy'}</span>
-          </button>
+          {headerLeft || <h5>{title}</h5>}
+          <CopyIconButton text={jsonString} variant="pill" />
         </div>
       )}
 

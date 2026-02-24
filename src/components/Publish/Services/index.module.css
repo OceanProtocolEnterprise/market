@@ -1,6 +1,6 @@
 .consumerParametersContainer {
-  border: 1px solid var(--publish-input-border-color);
-  border-radius: var(--publish-input-border-radius);
+  border: 1px solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
   padding: 24px 16px;
   margin-bottom: var(--spacer);
   display: flex;
@@ -19,21 +19,21 @@
 }
 
 body .consumerParametersContainer .actions .primary {
-  background: var(--publish-accent-gradient);
-  box-shadow: var(--publish-shadow-sm);
-  border-top-right-radius: var(--publish-input-border-radius) !important;
-  border-top-left-radius: var(--publish-input-border-radius) !important;
-  border-bottom-left-radius: var(--publish-input-border-radius) !important;
-  border-bottom-right-radius: var(--publish-input-border-radius) !important;
-  font-family: var(--publish-font-family);
-  font-weight: var(--publish-font-weight-bold);
-  font-size: var(--publish-font-size);
-  line-height: var(--publish-font-size);
-  color: var(--publish-primary);
+  background: var(--gradient-accent);
+  box-shadow: var(--shadow-sm);
+  border-top-right-radius: var(--radius-xl) !important;
+  border-top-left-radius: var(--radius-xl) !important;
+  border-bottom-left-radius: var(--radius-xl) !important;
+  border-bottom-right-radius: var(--radius-xl) !important;
+  font-family: var(--font-family-base);
+  font-weight: var(--text-weight-bold);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm);
+  color: var(--clr-navy);
 }
 
 .consumerParametersContainer .actions .primary:hover,
 .consumerParametersContainer .actions .primary:focus {
-  background: var(--publish-accent-gradient);
-  box-shadow: var(--publish-shadow-sm);
+  background: var(--gradient-accent);
+  box-shadow: var(--shadow-sm);
 }

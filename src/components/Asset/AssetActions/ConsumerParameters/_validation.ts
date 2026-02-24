@@ -1,7 +1,6 @@
 import * as Yup from 'yup'
 import { SchemaLike } from 'yup/lib/types'
 import { Option } from 'src/@types/ddo/Option'
-import { parseConsumerParameterValues } from '.'
 
 export function getUserCustomParameterValidationSchema(
   consumerParameters: Record<string, string | number | boolean | Option[]>[]

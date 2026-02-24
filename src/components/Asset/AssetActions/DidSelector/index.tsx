@@ -1,5 +1,6 @@
 import Button from '@components/@shared/atoms/Button'
-import { ReactElement, useEffect, useRef, useState } from 'react'
+import Modal from '@shared/atoms/Modal'
+import { ReactElement, useEffect, useState } from 'react'
 import styles from './index.module.css'
 import { SsiWalletDid } from 'src/@types/SsiWallet'
 
@@ -14,15 +15,9 @@ export interface DidSelectorProps {
 export function DidSelector(props: DidSelectorProps): ReactElement {
   const { showDialog, setShowDialog, acceptSelection, abortSelection, dids } =
     props
-
-  const selectorDialog = useRef<HTMLDialogElement>(null)
   const [selectedDid, setSelectedDid] = useState<SsiWalletDid>()
 
   function handleAcceptSelection() {
-    // const selecteDids = dids
-    //  .filter((did, index) => selections[index])
-    //   .map((did) => did.keyId)
-    //
     setShowDialog(false)
     acceptSelection(selectedDid)
   }
@@ -32,23 +27,11 @@ export function DidSelector(props: DidSelectorProps): ReactElement {
     abortSelection()
   }
   useEffect(() => {
-    if (showDialog) {
-      if (dids?.length > 0) {
-        setSelectedDid(dids[0])
-      }
-      try {
-        selectorDialog.current.showModal()
-      } catch (e) {
-        console.error('dialog showModal error', e)
-      }
-    } else {
-      try {
-        selectorDialog.current.close()
-      } catch (e) {
-        console.error('dialog close error', e)
-      }
+    if (!showDialog) return
+    if (dids?.length > 0) {
+      setSelectedDid(dids[0])
     }
-  }, [showDialog, setShowDialog])
+  }, [showDialog, dids])
 
   function handleDidSelection(event: any) {
     const selectedDid = dids.find(
@@ -60,15 +43,19 @@ export function DidSelector(props: DidSelectorProps): ReactElement {
   const maxLength = 100
 
   return (
-    <dialog
-      id="didSelector"
-      ref={selectorDialog}
-      className={styles.dialogBorder}
+    <Modal
+      title="DID Selector"
+      isOpen={showDialog}
+      onToggleModal={handleAbortSelection}
+      shouldCloseOnOverlayClick
+      className={styles.didModal}
+      overlayClassName={styles.didModalOverlay}
     >
       <div className={`${styles.panelColumn} ${styles.width100p}`}>
-        <h3>DID Selector</h3>
-
-        <label htmlFor="dids" className={styles.marginBottom2}>
+        <label
+          htmlFor="dids"
+          className={`${styles.label} ${styles.marginBottom2}`}
+        >
           Choose your DID:
         </label>
 
@@ -110,6 +97,6 @@ export function DidSelector(props: DidSelectorProps): ReactElement {
           </Button>
         </div>
       </div>
-    </dialog>
+    </Modal>
   )
 }

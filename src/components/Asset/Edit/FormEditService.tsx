@@ -103,7 +103,7 @@ export default function FormEditService({
 
   return (
     <Form>
-      <ContainerForm style="publish">
+      <ContainerForm style="accent">
         <Field
           {...getFieldContent('name', data)}
           component={Input}
@@ -220,6 +220,7 @@ export default function FormEditService({
             )}
             component={Input}
             name="consumerParameters"
+            type="consumerParametersBuilder"
           />
         )}
         <FormActions />

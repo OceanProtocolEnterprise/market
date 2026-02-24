@@ -2,6 +2,18 @@
   composes: input from '@shared/FormInput/InputElement/index.module.css';
 }
 
+.inputWrapper {
+  flex: 1 1 auto !important;
+  min-width: 0;
+}
+
+.actions {
+  flex: 0 0 auto !important;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .hasError {
   color: var(--brand-alert-red);
   border-color: var(--brand-alert-red);

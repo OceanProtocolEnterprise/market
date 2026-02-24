@@ -1,7 +1,7 @@
 import { ReactElement, useEffect, useState } from 'react'
 import { format, formatDistance } from 'date-fns'
 
-export interface TimeProps {
+interface TimeProps {
   date: string
   relative?: boolean
   isUnix?: boolean

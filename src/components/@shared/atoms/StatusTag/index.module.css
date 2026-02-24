@@ -8,8 +8,8 @@
   padding: 2px 8px;
   width: fit-content;
   height: fit-content;
-  box-shadow: 1px 2px 8px 0 rgba(0, 0, 0, 0.15);
-  background: rgba(0, 173, 178, 0.01);
+  box-shadow: 1px 2px 8px 0 var(--black-alpha-15);
+  background: var(--cyan-alpha-1);
   font-weight: 700;
   font-size: 12px;
   line-height: 100%;
@@ -18,16 +18,16 @@
 }
 
 .paid {
-  border: 1px solid #45c01f;
+  border: 1px solid var(--green-700);
   border-radius: 20px;
   padding: 2px 8px;
   width: fit-content;
   height: fit-content;
-  box-shadow: 1px 2px 8px 0 rgba(0, 0, 0, 0.15);
-  background: rgba(69, 192, 31, 0.01);
+  box-shadow: 1px 2px 8px 0 var(--black-alpha-15);
+  background: var(--green-alpha-1);
   font-weight: 700;
   font-size: 12px;
   line-height: 100%;
   text-align: center;
-  color: #45c01f;
+  color: var(--green-700);
 }

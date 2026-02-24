@@ -12,7 +12,7 @@
 
 .datasetName {
   font-weight: 500;
-  color: var(--publish-text);
+  color: var(--text-ink);
 }
 
 .credentialStatus {
@@ -46,7 +46,7 @@
 }
 
 .serviceItem {
-  color: var(--publish-text-secondary);
+  color: var(--clr-slate-70);
   font-size: 14px;
   margin-bottom: 0.25rem;
 }

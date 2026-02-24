@@ -5,7 +5,6 @@ import {
   PolicyArgument,
   PolicyRule,
   PolicyRuleLeftValuePrefix,
-  PolicyRuleRightValuePrefix,
   PolicyType,
   StaticPolicy
 } from './types'
