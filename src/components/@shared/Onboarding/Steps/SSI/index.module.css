@@ -136,10 +136,24 @@
 .image:hover {
   transform: scale(1.03);
   box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.2),
-    0 10px 15px -5px rgba(0, 0, 0, 0.1); /* Same shadow, no change */
+    0 10px 15px -5px rgba(0, 0, 0, 0.1);
 }
 
-/* Responsive adjustments */
+.clickableContainer {
+  cursor: pointer;
+}
+
+.clickableContainer:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 35px;
+}
+
+.staticImage {
+  cursor: default;
+  pointer-events: none;
+}
+
 @media (max-width: 1024px) {
   .textSection {
     margin-left: 40px;

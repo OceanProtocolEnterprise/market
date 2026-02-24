@@ -91,8 +91,7 @@ export default function SSIWallet(): ReactElement {
         {image && (
           <div className={styles.imageWrapper}>
             <div
-              className={styles.imageContainer}
-              onClick={handleImageClick}
+              onClick={isValidUrl ? handleImageClick : undefined}
               role={isValidUrl ? 'button' : 'presentation'}
               tabIndex={isValidUrl ? 0 : -1}
               onKeyDown={(e) => {
@@ -101,13 +100,16 @@ export default function SSIWallet(): ReactElement {
                   handleImageClick()
                 }
               }}
+              className={isValidUrl ? styles.clickableContainer : undefined}
             >
               <Image
                 src={image}
                 alt="SSI Wallet"
                 width={420}
                 height={320}
-                className={styles.image}
+                className={`${styles.image} ${
+                  !isValidUrl ? styles.staticImage : ''
+                }`}
                 priority
               />
             </div>
