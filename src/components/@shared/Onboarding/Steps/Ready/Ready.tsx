@@ -31,7 +31,7 @@ export default function Ready(): ReactElement {
         <h3 className={styles.title}>{title}</h3>
 
         <div className={styles.buttonsWrapper}>
-          <Button onClick={handlePublish} style="publish" size="small">
+          <Button onClick={handlePublish} style="primary" size="small">
             Publish New Asset
           </Button>
 
