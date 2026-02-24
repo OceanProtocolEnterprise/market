@@ -8,9 +8,24 @@ type OwnerInfoEntry = {
   value?: string
 }
 
+export type NodeOwnerInfoSection = {
+  url: string
+  [key: string]: unknown
+}
+
+export type NodeOwnerInfo = {
+  imprint?: NodeOwnerInfoSection & {
+    legalName: string
+    email: string
+  }
+  termsAndConditions?: NodeOwnerInfoSection
+  privacyPolicy?: NodeOwnerInfoSection
+  [key: string]: NodeOwnerInfoSection | undefined
+}
+
 type ProviderEndpointsResponse = {
-  ownerInfo?: Record<string, OwnerInfoEntry>
-  onwerInfo?: Record<string, OwnerInfoEntry>
+  ownerInfo?: NodeOwnerInfo | Record<string, OwnerInfoEntry>
+  onwerInfo?: NodeOwnerInfo | Record<string, OwnerInfoEntry>
 }
 
 export default function ProviderOwnerInfoModal({
@@ -28,8 +43,24 @@ export default function ProviderOwnerInfoModal({
   overlayClassName?: string
   className?: string
 }): JSX.Element {
-  const [ownerInfo, setOwnerInfo] = useState<Record<string, OwnerInfoEntry>>()
+  const [ownerInfo, setOwnerInfo] = useState<
+    NodeOwnerInfo | Record<string, OwnerInfoEntry>
+  >()
   const [isOwnerInfoLoading, setIsOwnerInfoLoading] = useState(false)
+
+  const formatLabel = (key: string): string =>
+    key
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase())
+
+  const isLegacyEntry = (entry: unknown): entry is OwnerInfoEntry => {
+    if (!entry || typeof entry !== 'object') return false
+    return 'type' in entry || 'value' in entry
+  }
+
+  const isOwnerInfoSection = (entry: unknown): entry is NodeOwnerInfoSection =>
+    Boolean(entry && typeof entry === 'object' && !isLegacyEntry(entry))
 
   useEffect(() => {
     if (!isOpen) return
@@ -81,9 +112,9 @@ export default function ProviderOwnerInfoModal({
       className={className}
     >
       {providerUrl && (
-        <div className={`${styles.ownerInfoItem} ${styles.providerUrlRow}`}>
-          <span className={styles.ownerInfoKey}>Provider URL: </span>
-          <span className={styles.ownerInfoValue}>{providerUrl}</span>
+        <div className={styles.providerUrlCard}>
+          <div className={styles.providerUrlLabel}>Provider URL</div>
+          <div className={styles.providerUrlValue}>{providerUrl}</div>
         </div>
       )}
 
@@ -91,25 +122,77 @@ export default function ProviderOwnerInfoModal({
         <p className={styles.modalDescription}>Loading owner info...</p>
       ) : ownerInfo && Object.keys(ownerInfo).length > 0 ? (
         <div className={styles.ownerInfoList}>
-          {Object.entries(ownerInfo).map(([key, entry]) => (
-            <div key={key} className={styles.ownerInfoItem}>
-              <span className={styles.ownerInfoKey}>{key}: </span>
-              {entry?.type === 'url' ? (
-                <a
-                  href={entry.value}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={styles.ownerInfoLink}
-                >
-                  {entry.value}
-                </a>
-              ) : (
-                <span className={styles.ownerInfoValue}>
-                  {entry?.value || '-'}
-                </span>
-              )}
-            </div>
-          ))}
+          {Object.entries(ownerInfo).map(([key, rawEntry]) => {
+            if (isLegacyEntry(rawEntry)) {
+              return (
+                <div key={key} className={styles.ownerInfoItem}>
+                  <span className={styles.ownerInfoKey}>
+                    {formatLabel(key)}:{' '}
+                  </span>
+                  {rawEntry?.type === 'url' ? (
+                    <a
+                      href={rawEntry.value}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={styles.ownerInfoLink}
+                    >
+                      {rawEntry.value}
+                    </a>
+                  ) : (
+                    <span className={styles.ownerInfoValue}>
+                      {rawEntry?.value || '-'}
+                    </span>
+                  )}
+                </div>
+              )
+            }
+
+            if (!isOwnerInfoSection(rawEntry)) return null
+
+            return (
+              <div key={key} className={styles.ownerInfoSection}>
+                <div className={styles.ownerInfoSectionTitle}>
+                  {formatLabel(key)}
+                </div>
+                <div className={styles.ownerInfoSectionBody}>
+                  {Object.entries(rawEntry).map(
+                    ([sectionField, sectionValue]) => {
+                      const stringValue =
+                        typeof sectionValue === 'string'
+                          ? sectionValue
+                          : String(sectionValue || '')
+                      const isUrlField = sectionField.toLowerCase() === 'url'
+
+                      return (
+                        <div
+                          key={`${key}-${sectionField}`}
+                          className={styles.ownerInfoItem}
+                        >
+                          <span className={styles.ownerInfoKey}>
+                            {formatLabel(sectionField)}:{' '}
+                          </span>
+                          {isUrlField ? (
+                            <a
+                              href={stringValue}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={styles.ownerInfoLink}
+                            >
+                              {stringValue}
+                            </a>
+                          ) : (
+                            <span className={styles.ownerInfoValue}>
+                              {stringValue || '-'}
+                            </span>
+                          )}
+                        </div>
+                      )
+                    }
+                  )}
+                </div>
+              </div>
+            )
+          })}
         </div>
       ) : (
         <p className={styles.modalDescription}>No owner info available.</p>

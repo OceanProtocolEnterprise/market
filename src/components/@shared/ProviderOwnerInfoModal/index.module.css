@@ -1,6 +1,6 @@
 .modalDescription {
   margin: 0 0 8px;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--clr-slate-70);
   word-break: break-word;
 }
@@ -8,18 +8,71 @@
 .ownerInfoList {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+.ownerInfoSection {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+  border: 1px solid var(--ink-alpha-10);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: var(--brand-white);
+  box-shadow: 0 2px 8px var(--black-alpha-10);
+}
+
+.ownerInfoSectionTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--clr-slate-50);
+  line-height: 1.2;
+}
+
+.ownerInfoSectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .ownerInfoItem {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--clr-slate-70);
+  line-height: 1.35;
   word-break: break-word;
 }
 
-.providerUrlRow {
-  margin-top: -30px;
-  margin-bottom: 16px;
+.providerUrlCard {
+  margin-top: -12px;
+  margin-bottom: 14px;
+  border: 1px solid var(--ink-alpha-10);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: linear-gradient(
+    180deg,
+    var(--navy-alpha-5) 0%,
+    rgba(10, 75, 112, 0.02) 100%
+  );
+}
+
+.providerUrlLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--clr-slate-50);
+  margin-bottom: 3px;
+}
+
+.providerUrlValue {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text-ink);
+  word-break: break-word;
 }
 
 .ownerInfoKey {
@@ -28,10 +81,12 @@
 }
 
 .ownerInfoValue {
-  color: var(--clr-slate-70);
+  color: var(--text-ink);
+  opacity: 0.75;
 }
 
 .ownerInfoLink {
-  color: var(--ocean-blue);
+  color: var(--ocean-blue-dark, var(--ocean-blue));
   text-decoration: underline;
+  text-underline-offset: 2px;
 }
