@@ -113,7 +113,7 @@ export default function ProviderOwnerInfoModal({
     >
       {providerUrl && (
         <div className={styles.providerUrlCard}>
-          <div className={styles.providerUrlLabel}>Provider URL</div>
+          <div className={styles.providerUrlLabel}>NODE URL</div>
           <div className={styles.providerUrlValue}>{providerUrl}</div>
         </div>
       )}
