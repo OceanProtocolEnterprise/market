@@ -8,24 +8,14 @@ type OwnerInfoEntry = {
   value?: string
 }
 
-export type NodeOwnerInfoSection = {
-  url: string
-  [key: string]: unknown
-}
+type JsonValue = string | number | boolean | null | JsonObject | JsonValue[]
 
-export type NodeOwnerInfo = {
-  imprint?: NodeOwnerInfoSection & {
-    legalName: string
-    email: string
-  }
-  termsAndConditions?: NodeOwnerInfoSection
-  privacyPolicy?: NodeOwnerInfoSection
-  [key: string]: NodeOwnerInfoSection | undefined
+type JsonObject = {
+  [key: string]: JsonValue
 }
 
 type ProviderEndpointsResponse = {
-  ownerInfo?: NodeOwnerInfo | Record<string, OwnerInfoEntry>
-  onwerInfo?: NodeOwnerInfo | Record<string, OwnerInfoEntry>
+  ownerInfo?: JsonObject
 }
 
 export default function ProviderOwnerInfoModal({
@@ -47,9 +37,7 @@ export default function ProviderOwnerInfoModal({
     .filter(Boolean)
     .join(' ')
 
-  const [ownerInfo, setOwnerInfo] = useState<
-    NodeOwnerInfo | Record<string, OwnerInfoEntry>
-  >()
+  const [ownerInfo, setOwnerInfo] = useState<JsonObject>()
   const [isOwnerInfoLoading, setIsOwnerInfoLoading] = useState(false)
 
   const formatLabel = (key: string): string =>
@@ -63,7 +51,7 @@ export default function ProviderOwnerInfoModal({
     return 'type' in entry || 'value' in entry
   }
 
-  const isOwnerInfoSection = (entry: unknown): entry is NodeOwnerInfoSection =>
+  const isOwnerInfoSection = (entry: unknown): entry is JsonObject =>
     Boolean(entry && typeof entry === 'object' && !isLegacyEntry(entry))
 
   useEffect(() => {
@@ -86,9 +74,8 @@ export default function ProviderOwnerInfoModal({
         const endpoints = (await ProviderInstance.getEndpoints(
           providerUrl
         )) as ProviderEndpointsResponse
-        console.log('[ProviderOwnerInfoModal] Provider endpoints:', endpoints)
         if (!cancelled) {
-          setOwnerInfo(endpoints?.ownerInfo || endpoints?.onwerInfo || {})
+          setOwnerInfo(endpoints?.ownerInfo || {})
         }
       } catch (error) {
         console.log('[ProviderOwnerInfoModal] Failed to fetch provider info:', {
