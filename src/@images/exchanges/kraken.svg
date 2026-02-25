@@ -1,0 +1,37 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 1024 1024"
+  width="120"
+  height="120"
+  role="img"
+  aria-label="Kraken logo"
+>
+  <circle cx="512" cy="512" r="512" fill="#5741D9"/>
+
+  <path
+    fill="#FFFFFF"
+    d="
+      M512 232
+      c-160 0-290 130-290 290
+      v170
+      c0 44 36 80 80 80
+      h72
+      V520
+      c0-76 62-138 138-138
+      s138 62 138 138
+      v252
+      h72
+      c44 0 80-36 80-80
+      V522
+      c0-160-130-290-290-290
+      z
+    "
+  />
+
+  <g fill="#FFFFFF">
+    <rect x="340" y="712" width="64" height="80" rx="32"/>
+    <rect x="432" y="712" width="64" height="96" rx="32"/>
+    <rect x="528" y="712" width="64" height="96" rx="32"/>
+    <rect x="620" y="712" width="64" height="80" rx="32"/>
+  </g>
+</svg>

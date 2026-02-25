@@ -1,0 +1,6 @@
+{
+  "title": "Set up your SSI Wallet",
+  "subtitle": "Self-Sovereign Identity (SSI) is a digital framework that gives individuals and organizations full ownership and control over their data.",
+  "body": "Access your company’s SSI Wallet interface to configure the DIDs and Verifiable Credentials.",
+  "image": "/images/onboarding/ssi_wallet.png"
+}
