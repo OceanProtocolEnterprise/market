@@ -51,6 +51,12 @@
   gap: 6px;
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .title {
   font-family: var(--font-family-base);
   font-weight: 700;
@@ -70,6 +76,13 @@
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+  align-items: center;
+}
+
+.infoButton {
+  min-width: auto;
+  padding: 2px 8px;
+  font-size: 12px;
 }
 
 .freeTag {
@@ -139,4 +152,12 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+}
+
+.infoModalOverlay {
+  z-index: 2001;
+}
+
+.infoModalContent {
+  max-width: 36rem;
 }

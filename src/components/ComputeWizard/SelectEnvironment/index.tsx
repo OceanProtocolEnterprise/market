@@ -48,6 +48,7 @@ export default function SelectEnvironment({
         <EnvironmentSelection
           environments={computeEnvs}
           selected={selectedEnvId}
+          nodeUrl={customProviderUrl}
           onChange={handleEnvironmentSelect}
         />
       </div>
