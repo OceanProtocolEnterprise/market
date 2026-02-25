@@ -22,7 +22,7 @@
 .image {
   object-fit: contain;
   width: 100%;
-  max-height: 25rem;
+  max-height: 20rem;
 }
 
 .footer {
@@ -33,4 +33,24 @@
 .title {
   text-align: center;
   margin-bottom: 0;
+}
+
+.buttonsWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 50px;
+  margin: 50px 0 4px;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .buttonsWrapper {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .buttonsWrapper button {
+    width: 100%;
+  }
 }

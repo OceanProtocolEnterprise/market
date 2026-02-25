@@ -2,6 +2,9 @@
 // see: https://github.com/oceanprotocol/ocean.js/blob/e07a7cb6ecea12b39ed96f994b4abe37806799a1/src/utils/ConfigHelper.ts#L8
 
 const chains = [
+  // ───────────────────────────
+  // Ethereum Sepolia
+  // ───────────────────────────
   {
     chainId: 11155111,
     isDefault: false,
@@ -25,6 +28,10 @@ const chains = [
     subgraphUri: 'https://subgraph.dev.pontus-x.eu',
     explorerUri: 'https://explorer.pontus-x.eu/devnet/pontusx'
   },
+
+  // ───────────────────────────
+  // Optimism Sepolia
+  // ───────────────────────────
   {
     chainId: 11155420,
     isDefault: false,
@@ -51,6 +58,10 @@ const chains = [
     subgraphUri: 'https://subgraph.dev.pontus-x.eu',
     explorerUri: 'https://explorer.pontus-x.eu/devnet/pontusx'
   },
+
+  // ───────────────────────────
+  // Pontus-X Testnet (default)
+  // ───────────────────────────
   {
     chainId: 8996,
     isDefault: true,
@@ -73,6 +84,42 @@ const chains = [
     nodeUri: 'https://rpc.test.pontus-x.eu',
     subgraphUri: 'https://subgraph.test.pontus-x.eu',
     explorerUri: 'https://explorer.pontus-x.eu/testnet/pontusx'
+  },
+
+  // ───────────────────────────
+  // Ethereum Mainnet
+  // ───────────────────────────
+  {
+    chainId: 1,
+    isDefault: false,
+    isCustom: false,
+    network: 'ethereum',
+    oceanTokenSymbol: 'OCEAN',
+    startBlock: 0,
+    transactionBlockTimeout: 50,
+    transactionConfirmationBlocks: 1,
+    transactionPollingTimeout: 750,
+    gasFeeMultiplier: 1.1,
+    nodeUri: 'https://rpc.ankr.com/eth',
+    explorerUri: 'https://etherscan.io'
+  },
+
+  // ───────────────────────────
+  // Optimism Mainnet
+  // ───────────────────────────
+  {
+    chainId: 10,
+    isDefault: false,
+    isCustom: false,
+    network: 'optimism',
+    oceanTokenSymbol: 'OCEAN',
+    startBlock: 0,
+    transactionBlockTimeout: 50,
+    transactionConfirmationBlocks: 1,
+    transactionPollingTimeout: 750,
+    gasFeeMultiplier: 1.1,
+    nodeUri: 'https://mainnet.optimism.io',
+    explorerUri: 'https://optimistic.etherscan.io'
   }
 ]
 
