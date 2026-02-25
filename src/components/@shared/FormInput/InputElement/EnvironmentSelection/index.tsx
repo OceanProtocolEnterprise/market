@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from 'react'
+import { ChangeEvent, useState, useMemo } from 'react'
 import { ComputeEnvironment } from '@oceanprotocol/lib'
 import Loader from '@shared/atoms/Loader'
 import { truncateDid } from '@utils/string'
@@ -6,6 +6,7 @@ import styles from './index.module.css'
 import SearchSection from '@shared/SearchSection'
 import StatusTag from '../../../atoms/StatusTag'
 import Button from '../../../atoms/Button'
+import ProviderOwnerInfoModal from '@shared/ProviderOwnerInfoModal'
 
 export interface EnvironmentSelectionEnvironment extends ComputeEnvironment {
   checked?: boolean
@@ -18,41 +19,37 @@ function Empty({ message }: { message: string }) {
 export default function EnvironmentSelection({
   environments,
   selected,
+  nodeUrl,
   disabled,
   onChange
 }: {
   environments: EnvironmentSelectionEnvironment[]
   selected?: string
+  nodeUrl?: string
   disabled?: boolean
   onChange?:
     | ((value: string) => void)
     | ((e: ChangeEvent<HTMLInputElement>) => void)
 }): JSX.Element {
   const [searchValue, setSearchValue] = useState('')
-  const [filteredEnvironments, setFilteredEnvironments] = useState<
-    EnvironmentSelectionEnvironment[]
-  >([])
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false)
 
-  useEffect(() => {
-    // Combine real environments with mock data
+  const filteredEnvironments = useMemo(() => {
     const realEnvs =
       environments && Array.isArray(environments) ? environments : []
     const allEnvironments = [...realEnvs]
 
     if (!allEnvironments || allEnvironments.length === 0) {
-      setFilteredEnvironments([])
-      return
+      return []
     }
 
-    const result = allEnvironments.filter((env) =>
+    return allEnvironments.filter((env) =>
       searchValue !== ''
         ? env.id.toLowerCase().includes(searchValue.toLowerCase()) ||
           (env.description &&
             env.description.toLowerCase().includes(searchValue.toLowerCase()))
         : true
     )
-
-    setFilteredEnvironments(result)
   }, [environments, searchValue])
 
   const handleEnvironmentSelect = (envId: string) => {
@@ -64,6 +61,10 @@ export default function EnvironmentSelection({
         onChange(firstParam as any)
       }
     }
+  }
+
+  const handleOpenInfo = () => {
+    setIsInfoModalOpen(true)
   }
 
   return (
@@ -97,9 +98,22 @@ export default function EnvironmentSelection({
                   >
                     <div className={styles.cardHeader}>
                       <div className={styles.titleSection}>
-                        <h3 className={styles.title}>
-                          Environment {index + 1}
-                        </h3>
+                        <div className={styles.titleRow}>
+                          <h3 className={styles.title}>
+                            Environment {index + 1}
+                          </h3>
+                          <Button
+                            style="outlined"
+                            size="small"
+                            className={styles.infoButton}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleOpenInfo()
+                            }}
+                          >
+                            Info
+                          </Button>
+                        </div>
                         <div className={styles.envId}>
                           {truncateDid(env.id)}
                         </div>
@@ -133,6 +147,15 @@ export default function EnvironmentSelection({
           </>
         )}
       </div>
+
+      <ProviderOwnerInfoModal
+        title="Node Owner Info"
+        isOpen={isInfoModalOpen}
+        providerUrl={nodeUrl}
+        overlayClassName={styles.infoModalOverlay}
+        className={styles.infoModalContent}
+        onClose={() => setIsInfoModalOpen(false)}
+      />
     </div>
   )
 }

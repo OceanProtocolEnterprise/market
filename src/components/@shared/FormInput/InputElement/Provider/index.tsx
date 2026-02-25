@@ -17,6 +17,7 @@ import { useChainId } from 'wagmi'
 import { customProviderUrl } from 'app.config.cjs'
 import CircleErrorIcon from '@images/circle_error.svg'
 import CircleCheckIcon from '@images/circle_check.svg'
+import ProviderOwnerInfoModal from '@shared/ProviderOwnerInfoModal'
 
 export default function CustomProvider(props: InputProps): ReactElement {
   const chainId = useChainId()
@@ -24,6 +25,7 @@ export default function CustomProvider(props: InputProps): ReactElement {
   const { initialValues, setFieldError } = useFormikContext<FormPublishData>()
   const [field, , helpers] = useField(props.name)
   const [isLoading, setIsLoading] = useState(false)
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false)
 
   useEffect(() => {
     helpers.setValue({ url: customProviderUrl, valid: true, custom: true })
@@ -119,13 +121,37 @@ export default function CustomProvider(props: InputProps): ReactElement {
         handleButtonClick={handleValidation}
         isValidated={field?.value?.valid === true}
         onReset={handleClear}
+        additionalAction={
+          field?.value?.valid === true ? (
+            <Button
+              style="outlined"
+              size="small"
+              type="button"
+              className={styles.infoButton}
+              onClick={(e) => {
+                e.preventDefault()
+                setIsInfoModalOpen(true)
+              }}
+            >
+              Info
+            </Button>
+          ) : null
+        }
       />
 
       {field?.value?.valid === true ? (
-        <div className={styles.defaultContainer}>
-          <CircleCheckIcon />
-          <div className={styles.confirmed}>File confirmed</div>
-        </div>
+        <>
+          <div className={styles.defaultContainer}>
+            <CircleCheckIcon />
+            <div className={styles.confirmed}>File confirmed</div>
+          </div>
+          <ProviderOwnerInfoModal
+            title="Node Owner Info"
+            isOpen={isInfoModalOpen}
+            providerUrl={field?.value?.url}
+            onClose={() => setIsInfoModalOpen(false)}
+          />
+        </>
       ) : (
         <Button
           style="text"

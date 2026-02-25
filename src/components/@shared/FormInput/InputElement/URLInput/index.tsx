@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState } from 'react'
+import { ReactElement, ReactNode, useEffect, useState } from 'react'
 import Button from '@shared/atoms/Button'
 import PublishButton from '@shared/PublishButton'
 import DeleteButton from '@shared/DeleteButton/DeleteButton'
@@ -28,6 +28,7 @@ export interface URLInputProps {
   isValidated?: boolean
   onReset?: () => void
   showResetButton?: boolean
+  additionalAction?: ReactNode
 }
 
 export default function URLInput({
@@ -48,6 +49,7 @@ export default function URLInput({
   isValidated = false,
   onReset,
   showResetButton = true,
+  additionalAction,
   ...props
 }: URLInputProps): ReactElement {
   const [field, meta] = useField(name)
@@ -136,6 +138,8 @@ export default function URLInput({
             {showResetButton && (isValidated || showDeleteButton) && (
               <DeleteButton onClick={handleReset} />
             )}
+
+            {additionalAction}
           </div>
         )}
       </InputGroup>
