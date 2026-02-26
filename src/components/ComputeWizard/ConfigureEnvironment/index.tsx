@@ -413,6 +413,12 @@ export default function ConfigureEnvironment({
   const [paidValues, setPaidValues] = useState<ResourceValues>(() =>
     getEnvResourceValues(false)
   )
+
+  const isGpuSelected = useMemo(() => {
+    const currentValues = mode === 'free' ? freeValues : paidValues
+    return currentValues.gpu > 0
+  }, [mode, freeValues.gpu, paidValues.gpu])
+
   const round3 = (v: number) => Math.round((v + Number.EPSILON) * 1000) / 1000
   const roundUp3 = (v: number) =>
     new Decimal(v).toDecimalPlaces(3, Decimal.ROUND_UP).toNumber()
@@ -985,13 +991,13 @@ export default function ConfigureEnvironment({
         </div>
       </div>
 
-      {gpuAvailable && (
+      {isGpuSelected && (
         <div className={styles.gpuWarning}>
           <div className={styles.gpuWarningIcon}>⚠️</div>
           <div className={styles.gpuWarningContent}>
             <strong>Please Attention!.</strong> You selected an environment with
-            GPU units allocated. Make sure the GPU type is compatible with the
-            selected algorithm.
+            allocated GPU units. Ensure the GPU type is compatible with the GPU
+            libraries used in the algorithm’s Docker image.
           </div>
         </div>
       )}
