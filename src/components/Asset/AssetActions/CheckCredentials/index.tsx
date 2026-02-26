@@ -3,6 +3,7 @@ import { useSsiWallet } from '@context/SsiWallet'
 import { toast } from 'react-toastify'
 import {
   getPd,
+  isPolicyServerRedirectMessage,
   requestCredentialPresentation
 } from '@utils/wallet/policyServer'
 import {
@@ -29,6 +30,11 @@ import VerifiedPatch from '@images/circle_check.svg'
 import { useCredentialDialog } from '../Compute/CredentialDialogProvider'
 import Alert from '@shared/atoms/Alert'
 import { useUserPreferences } from '@context/UserPreferences'
+import {
+  buildSsiValidationErrorMessage,
+  extractSsiErrorDetails,
+  getSsiVerificationFailureDetails
+} from './errorUtils'
 
 enum CheckCredentialState {
   Stop = 'Stop',
@@ -137,16 +143,13 @@ export function AssetActionCheckCredentials({
               accountId,
               service.id
             )
+            const openid4vcMessage = presentationResult.openid4vc
             if (
-              presentationResult.openid4vc &&
-              typeof presentationResult.openid4vc === 'object' &&
-              (presentationResult.openid4vc as any).redirectUri &&
-              (presentationResult.openid4vc as any).redirectUri.includes(
-                'success'
-              )
+              isPolicyServerRedirectMessage(openid4vcMessage) &&
+              openid4vcMessage.redirectUri.includes('success')
             ) {
               const { id } = extractURLSearchParams(
-                (presentationResult.openid4vc as any).redirectUri
+                openid4vcMessage.redirectUri
               )
               cacheVerifierSessionId(asset.id, service.id, id, true)
               if (typeof window !== 'undefined' && window.localStorage) {
@@ -170,8 +173,16 @@ export function AssetActionCheckCredentials({
               setCheckCredentialState(CheckCredentialState.Stop)
               break
             }
+            if (typeof openid4vcMessage !== 'string') {
+              toast.error(
+                openid4vcMessage.errorMessage ||
+                  'Invalid presentation request response from policy server'
+              )
+              setCheckCredentialState(CheckCredentialState.Stop)
+              break
+            }
 
-            exchangeStateData.openid4vp = presentationResult.openid4vc
+            exchangeStateData.openid4vp = openid4vcMessage
             exchangeStateData.poliyServerData =
               presentationResult.policyServerData
 
@@ -292,8 +303,16 @@ export function AssetActionCheckCredentials({
                 'errorMessage' in result ||
                 result.redirectUri.includes('error')
               ) {
-                toast.error('Validation was not successful as use presentation')
+                const details = await getSsiVerificationFailureDetails(
+                  { status: 400, data: result },
+                  exchangeStateData.sessionId,
+                  (message, err) => LoggerInstance.error(message, err)
+                )
+                const errorMessage = buildSsiValidationErrorMessage(details)
+                setError(errorMessage)
                 handleResetWalletCache()
+                toast.error(errorMessage)
+                onError?.()
               } else {
                 cacheVerifierSessionId(
                   asset.id,
@@ -303,8 +322,16 @@ export function AssetActionCheckCredentials({
                 onVerified?.()
               }
             } catch (error) {
+              const details = await getSsiVerificationFailureDetails(
+                error,
+                exchangeStateData.sessionId,
+                (message, err) => LoggerInstance.error(message, err)
+              )
+              const errorMessage = buildSsiValidationErrorMessage(details)
+              setError(errorMessage)
               handleResetWalletCache()
-              toast.error('Validation was not successful')
+              toast.error(errorMessage)
+              onError?.()
             }
             setExchangeStateData(newExchangeStateData())
             setCheckCredentialState(CheckCredentialState.Stop)
@@ -318,15 +345,13 @@ export function AssetActionCheckCredentials({
           }
         }
       } catch (error) {
-        let details = ''
-        if (typeof error?.message === 'string') details = error.message
-        else if (error?.message?.error) details = error.message.error
-        else if (error?.data?.message?.error) details = error.data.message.error
-        else if (typeof error?.data?.message === 'string')
-          details = error.data.message
-        else details = 'Unknown error'
+        const details = await getSsiVerificationFailureDetails(
+          error,
+          exchangeStateData.sessionId,
+          (message, err) => LoggerInstance.error(message, err)
+        )
 
-        const errorMessage = `SSI credential validation was not successful: ${details}`
+        const errorMessage = buildSsiValidationErrorMessage(details)
         setError(errorMessage)
         setCheckCredentialState(CheckCredentialState.Stop)
         handleResetWalletCache()
@@ -334,23 +359,24 @@ export function AssetActionCheckCredentials({
       }
     }
 
-    handleCredentialExchange().catch((error) => {
+    handleCredentialExchange().catch(async (error) => {
       setExchangeStateData(newExchangeStateData())
       setCheckCredentialState(CheckCredentialState.Stop)
 
-      let details = ''
-      if (error?.data?.message?.error) details = error.data.message.error
-      else if (typeof error?.data?.message === 'string')
-        details = error.data.message
-      else if (typeof error?.message === 'string') details = error.message
-      else details = 'An error occurred'
-
-      setError(details)
+      const details = await getSsiVerificationFailureDetails(
+        error,
+        exchangeStateData.sessionId,
+        (message, err) => LoggerInstance.error(message, err)
+      )
+      const errorMessage = buildSsiValidationErrorMessage(details)
+      setError(errorMessage)
 
       if (error?.data?.message) {
         LoggerInstance.error(error?.data?.message)
       } else if (error?.message) {
         LoggerInstance.error(error?.message)
+      } else {
+        LoggerInstance.error(extractSsiErrorDetails(error))
       }
 
       onError?.()
