@@ -534,30 +534,62 @@ body .inputSmall {
   display: flex;
   flex-direction: row;
 }
+
+.messagesContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  margin: 16px 0 8px 0;
+}
+
+.messagesContainer:has(:first-child:last-child) {
+  grid-template-columns: 1fr;
+}
 .escrowValidation {
   border-radius: 8px;
   align-self: center;
+  height: fit-content;
 }
 
 .insufficientEscrow {
   background-color: var(--yellow-150);
   border: 1px solid var(--yellow-180);
   color: var(--yellow-900);
-  padding: 15px;
-  border-radius: 8px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .sufficientEscrow {
   background-color: var(--blue-80);
   border: 1px solid var(--blue-90);
   color: var(--teal-700);
-  padding: 15px;
-  border-radius: 8px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.insufficientEscrow p,
+.sufficientEscrow p {
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
+.insufficientEscrow p:last-child,
+.sufficientEscrow p:last-child {
+  margin-bottom: 0;
 }
 
 .escrowBreakdown {
   font-size: 0.9em;
-  margin-top: 8px;
+  margin-top: 4px;
   opacity: 0.8;
 }
 
@@ -566,11 +598,12 @@ body .inputSmall {
   align-items: flex-start;
   gap: 12px;
   padding: 16px 18px;
-  margin: 16px 0 8px 0;
   background-color: #fffbeb;
   border: 1px solid #fbbf24;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
+  height: fit-content;
+  animation: slideDown 0.3s ease-out;
 }
 
 .gpuWarningIcon {
@@ -593,9 +626,6 @@ body .inputSmall {
   margin-bottom: 4px;
 }
 
-.gpuWarning {
-  animation: slideDown 0.3s ease-out;
-}
 .labelContainer {
   display: flex;
   align-items: center;
@@ -673,6 +703,7 @@ body .inputSmall {
   border-right: 6px solid transparent;
   border-top: 6px solid #1e293b;
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -709,6 +740,7 @@ body .inputSmall {
     font-size: 13px;
   }
 }
+
 /* Tablet View (768px – 1024px) */
 @media screen and (max-width: 1024px) {
   .container {
@@ -879,5 +911,10 @@ body .inputSmall {
 
   .actions button {
     width: 100%;
+  }
+
+  .messagesContainer {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 }

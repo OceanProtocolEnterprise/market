@@ -991,55 +991,63 @@ export default function ConfigureEnvironment({
         </div>
       </div>
 
-      {isGpuSelected && (
-        <div className={styles.gpuWarning}>
-          <div className={styles.gpuWarningIcon}>⚠️</div>
-          <div className={styles.gpuWarningContent}>
-            <strong>Please Attention!.</strong> You selected an environment with
-            allocated GPU units. Ensure the GPU type is compatible with the GPU
-            libraries used in the algorithm’s Docker image.
-          </div>
-        </div>
-      )}
-
-      {mode === 'paid' && (
-        <div className={styles.escrowValidation}>
-          {(() => {
-            const jobPrice = new Decimal(calculatePrice())
-            const availableEscrow = new Decimal(escrowAvailableFunds)
-            if (jobPrice.gt(availableEscrow)) {
-              const deltaAmount = jobPrice.minus(availableEscrow)
-              const deltaDisplay = deltaAmount.lt(0.001)
-                ? '<0.001'
-                : deltaAmount.toDecimalPlaces(3, Decimal.ROUND_UP).toFixed(3)
-              return (
-                <div className={styles.insufficientEscrow}>
-                  <p>
-                    Insufficient escrow balance. An additional{' '}
-                    <strong>
-                      {deltaDisplay} {displaySymbol}
-                    </strong>{' '}
-                    will be added to your escrow account to cover this job.
-                  </p>
-                  <p className={styles.escrowBreakdown}>
-                    Job cost: {jobPrice.toFixed(3)} {displaySymbol} | Available
-                    escrow: {escrowAvailableFundsDisplay} {displaySymbol} |
-                    Additional needed: {deltaDisplay} {displaySymbol}
-                  </p>
-                </div>
-              )
-            }
-
-            return (
-              <div className={styles.sufficientEscrow}>
-                <p>Sufficient escrow balance available for this job.</p>
-                <p className={styles.escrowBreakdown}>
-                  Job cost: {jobPrice.toFixed(3)} {displaySymbol} | Available
-                  escrow: {escrowAvailableFundsDisplay} {displaySymbol}
-                </p>
+      {(isGpuSelected || mode === 'paid') && (
+        <div className={styles.messagesContainer}>
+          {isGpuSelected && (
+            <div className={styles.gpuWarning}>
+              <div className={styles.gpuWarningIcon}>⚠️</div>
+              <div className={styles.gpuWarningContent}>
+                <strong>Please Attention!.</strong> You selected an environment
+                with allocated GPU units. Ensure the GPU type is compatible with
+                the GPU libraries used in the algorithm`s Docker image.
               </div>
-            )
-          })()}
+            </div>
+          )}
+
+          {mode === 'paid' && (
+            <div className={styles.escrowValidation}>
+              {(() => {
+                const jobPrice = new Decimal(calculatePrice())
+                const availableEscrow = new Decimal(escrowAvailableFunds)
+                if (jobPrice.gt(availableEscrow)) {
+                  const deltaAmount = jobPrice.minus(availableEscrow)
+                  const deltaDisplay = deltaAmount.lt(0.001)
+                    ? '<0.001'
+                    : deltaAmount
+                        .toDecimalPlaces(3, Decimal.ROUND_UP)
+                        .toFixed(3)
+                  return (
+                    <div className={styles.insufficientEscrow}>
+                      <p>
+                        Insufficient escrow balance. An additional{' '}
+                        <strong>
+                          {deltaDisplay} {displaySymbol}
+                        </strong>{' '}
+                        will be added to your escrow account to cover this job.
+                      </p>
+                      <p className={styles.escrowBreakdown}>
+                        Job cost: {jobPrice.toFixed(3)} {displaySymbol} |
+                        Available escrow: {escrowAvailableFundsDisplay}{' '}
+                        {displaySymbol} | Additional needed: {deltaDisplay}{' '}
+                        {displaySymbol}
+                      </p>
+                    </div>
+                  )
+                }
+
+                return (
+                  <div className={styles.sufficientEscrow}>
+                    <p>Sufficient escrow balance available for this job.</p>
+                    <p className={styles.escrowBreakdown}>
+                      Job cost: {jobPrice.toFixed(3)} {displaySymbol} |
+                      Available escrow: {escrowAvailableFundsDisplay}{' '}
+                      {displaySymbol}
+                    </p>
+                  </div>
+                )
+              })()}
+            </div>
+          )}
         </div>
       )}
     </div>
