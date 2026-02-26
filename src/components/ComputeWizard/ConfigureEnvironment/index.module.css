@@ -534,32 +534,213 @@ body .inputSmall {
   display: flex;
   flex-direction: row;
 }
+
+.messagesContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  margin: 16px 0 8px 0;
+}
+
+.messagesContainer:has(:first-child:last-child) {
+  grid-template-columns: 1fr;
+}
 .escrowValidation {
   border-radius: 8px;
   align-self: center;
+  height: fit-content;
 }
 
 .insufficientEscrow {
   background-color: var(--yellow-150);
   border: 1px solid var(--yellow-180);
   color: var(--yellow-900);
-  padding: 15px;
-  border-radius: 8px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .sufficientEscrow {
   background-color: var(--blue-80);
   border: 1px solid var(--blue-90);
   color: var(--teal-700);
-  padding: 15px;
-  border-radius: 8px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.insufficientEscrow p,
+.sufficientEscrow p {
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
+.insufficientEscrow p:last-child,
+.sufficientEscrow p:last-child {
+  margin-bottom: 0;
 }
 
 .escrowBreakdown {
   font-size: 0.9em;
-  margin-top: 8px;
+  margin-top: 4px;
   opacity: 0.8;
 }
+
+.gpuWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  background-color: #fffbeb;
+  border: 1px solid #fbbf24;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
+  height: fit-content;
+  animation: slideDown 0.3s ease-out;
+}
+
+.gpuWarningIcon {
+  font-size: 20px;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.gpuWarningContent {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #92400e;
+  flex: 1;
+}
+
+.gpuWarningContent strong {
+  color: #78350f;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.labelContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  width: fit-content;
+  cursor: help;
+  width: 106px;
+}
+
+.labelText {
+  font-family: var(--font-family-base);
+  font-style: normal;
+  font-weight: var(--text-weight-bold);
+  font-size: 14px;
+  line-height: 16px;
+  text-transform: uppercase;
+  color: var(--text-ink);
+}
+
+.infoIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 10px;
+  color: #94a3b8;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  line-height: 1;
+  margin-left: 0;
+  transform: translateY(-1px);
+}
+
+.infoIcon:hover {
+  color: #8b5cf6;
+  background-color: rgba(139, 92, 246, 0.1);
+}
+
+.resourceTooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  min-width: 200px;
+  max-width: 300px;
+  animation: fadeIn 0.2s ease-out;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.resourceTooltipContent {
+  background: #1e293b;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 1px solid #334155;
+  word-wrap: break-word;
+}
+
+.resourceTooltipArrow {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #1e293b;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .gpuWarning {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .gpuWarningIcon {
+    font-size: 18px;
+  }
+
+  .gpuWarningContent {
+    font-size: 13px;
+  }
+}
+
 /* Tablet View (768px – 1024px) */
 @media screen and (max-width: 1024px) {
   .container {
@@ -730,5 +911,10 @@ body .inputSmall {
 
   .actions button {
     width: 100%;
+  }
+
+  .messagesContainer {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 }

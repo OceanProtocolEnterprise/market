@@ -1,4 +1,11 @@
-import { ReactElement, useState, useEffect, useCallback, useMemo } from 'react'
+import {
+  ReactElement,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef
+} from 'react'
 import { Field, useFormikContext } from 'formik'
 import { Datatoken } from '@oceanprotocol/lib'
 import { ResourceType } from 'src/@types/ResourceType'
@@ -16,6 +23,7 @@ interface ResourceValues {
   cpu: number
   ram: number
   disk: number
+  gpu: number
   jobDuration: number
 }
 
@@ -31,13 +39,51 @@ interface ResourceRowProps {
     isFree: boolean
   ) => { minValue: number; maxValue: number; step?: number }
   updateResource: (
-    type: 'cpu' | 'ram' | 'disk' | 'jobDuration',
+    type: 'cpu' | 'ram' | 'disk' | 'gpu' | 'jobDuration',
     value: number | string,
     isFree: boolean
   ) => void
   fee?: { prices?: { id: string; price: number }[] }
+  tooltip?: string
 }
-// initilal commit for multi token support
+
+const hasGPUResource = (env: any): boolean => {
+  if (!env) return false
+
+  if (
+    env.resources?.some(
+      (r: any) => r.type === 'gpu' || r.id?.toLowerCase().includes('gpu')
+    )
+  ) {
+    return true
+  }
+
+  if (
+    env.free?.resources?.some(
+      (r: any) => r.type === 'gpu' || r.id?.toLowerCase().includes('gpu')
+    )
+  ) {
+    return true
+  }
+
+  if (env.fees) {
+    for (const chainId in env.fees) {
+      const feeConfigs = env.fees[chainId]
+      for (const feeConfig of feeConfigs) {
+        if (
+          feeConfig.prices?.some((p: any) =>
+            p.id?.toLowerCase().includes('gpu')
+          )
+        ) {
+          return true
+        }
+      }
+    }
+  }
+
+  return false
+}
+
 function ResourceRow({
   resourceId,
   label,
@@ -47,7 +93,8 @@ function ResourceRow({
   paidValues,
   getLimits,
   updateResource,
-  fee
+  fee,
+  tooltip
 }: ResourceRowProps): ReactElement {
   const { minValue, maxValue, step = 1 } = getLimits(resourceId, isFree)
   const currentValue = isFree
@@ -55,6 +102,8 @@ function ResourceRow({
     : paidValues[resourceId as keyof ResourceValues]
   const [inputValue, setInputValue] = useState<string | number>(currentValue)
   const [error, setError] = useState<string | null>(null)
+  const [showTooltip, setShowTooltip] = useState(false)
+  const labelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setInputValue(currentValue)
@@ -86,7 +135,7 @@ function ResourceRow({
     }
 
     updateResource(
-      resourceId as 'cpu' | 'ram' | 'disk' | 'jobDuration',
+      resourceId as 'cpu' | 'ram' | 'disk' | 'gpu' | 'jobDuration',
       numValue,
       isFree
     )
@@ -103,7 +152,21 @@ function ResourceRow({
       key={`${resourceId}-${isFree ? 'free' : 'paid'}`}
       className={styles.resourceRow}
     >
-      <div className={styles.resourceLabel}>{label}</div>
+      <div
+        className={styles.labelContainer}
+        ref={labelRef}
+        onMouseEnter={() => tooltip && setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
+        <span className={styles.labelText}>{label}</span>
+        {tooltip && <span className={styles.infoIcon}>ⓘ</span>}
+        {showTooltip && tooltip && (
+          <div className={styles.resourceTooltip}>
+            <div className={styles.resourceTooltipContent}>{tooltip}</div>
+            <div className={styles.resourceTooltipArrow} />
+          </div>
+        )}
+      </div>
       <div className={styles.sliderSection}>
         <span className={styles.minLabel}>min</span>
         <div className={styles.sliderContainer}>
@@ -115,7 +178,7 @@ function ResourceRow({
             value={currentValue}
             onChange={(e) =>
               updateResource(
-                resourceId as 'cpu' | 'ram' | 'disk' | 'jobDuration',
+                resourceId as 'cpu' | 'ram' | 'disk' | 'gpu' | 'jobDuration',
                 Number(e.target.value),
                 isFree
               )
@@ -188,10 +251,20 @@ export default function ConfigureEnvironment({
   setBaseTokenAddress: React.Dispatch<React.SetStateAction<string>>
 }): ReactElement {
   const { values, setFieldValue } = useFormikContext<FormComputeData>()
+  console.log(
+    'computeEnvs in config env',
+    JSON.stringify(values.computeEnv, null, 2)
+  )
   const chainId = useChainId()
   const { escrowFundsByToken } = useProfile()
   const walletClient = useEthersSigner()
   const [symbolMap, setSymbolMap] = useState<Record<string, string>>({})
+
+  const gpuAvailable = useMemo(
+    () => hasGPUResource(values.computeEnv),
+    [values.computeEnv]
+  )
+
   const fetchSymbol = useCallback(
     async (address: string) => {
       if (symbolMap[address]) return symbolMap[address]
@@ -285,14 +358,17 @@ export default function ConfigureEnvironment({
     if (!values.baseToken || values.baseToken === baseTokenAddress) return
     setBaseTokenAddress(values.baseToken)
   }, [values.baseToken, baseTokenAddress, setBaseTokenAddress])
+
   const getEnvResourceValues = useCallback(
     (isFree = true): ResourceValues => {
       const env = values.computeEnv
-      if (!env) return { cpu: 0, ram: 0, disk: 0, jobDuration: 0 }
+      if (!env) return { cpu: 0, ram: 0, disk: 0, gpu: 0, jobDuration: 0 }
 
       const envId = typeof env === 'string' ? env : env.id
       const modeKey = isFree ? 'free' : 'paid'
       const envResourceValues = allResourceValues?.[`${envId}_${modeKey}`]
+
+      const resourceSource = isFree ? env.free?.resources : env.resources
 
       return {
         cpu: isFree
@@ -310,6 +386,17 @@ export default function ConfigureEnvironment({
           : envResourceValues?.disk && envResourceValues.disk > 0
           ? envResourceValues.disk
           : env.resources?.find((r) => r.id === 'disk')?.min ?? 0,
+        gpu: isFree
+          ? envResourceValues?.gpu ?? 0
+          : envResourceValues?.gpu && envResourceValues.gpu > 0
+          ? envResourceValues.gpu
+          : (() => {
+              const source = isFree ? env.free?.resources : env.resources
+              const gpuResource = source?.find(
+                (r) => r.type === 'gpu' || r.id?.toLowerCase().includes('gpu')
+              )
+              return gpuResource?.min ?? 0
+            })(),
         jobDuration: isFree
           ? envResourceValues?.jobDuration ?? 0
           : envResourceValues?.jobDuration && envResourceValues.jobDuration > 0
@@ -326,6 +413,12 @@ export default function ConfigureEnvironment({
   const [paidValues, setPaidValues] = useState<ResourceValues>(() =>
     getEnvResourceValues(false)
   )
+
+  const isGpuSelected = useMemo(() => {
+    const currentValues = mode === 'free' ? freeValues : paidValues
+    return currentValues.gpu > 0
+  }, [mode, freeValues.gpu, paidValues.gpu])
+
   const round3 = (v: number) => Math.round((v + Number.EPSILON) * 1000) / 1000
   const roundUp3 = (v: number) =>
     new Decimal(v).toDecimalPlaces(3, Decimal.ROUND_UP).toNumber()
@@ -344,10 +437,23 @@ export default function ConfigureEnvironment({
     }
 
     const resourceLimits = isFree ? env.free?.resources : env.resources
-    const resource = resourceLimits?.find((r) => r.id === id)
+    if (!resourceLimits) return { minValue: 0, maxValue: 0 }
+
+    let resource
+    if (id === 'gpu') {
+      resource = resourceLimits.find(
+        (r) => r.type === 'gpu' || r.id?.toLowerCase().includes('gpu')
+      )
+    } else {
+      resource = resourceLimits.find((r) => r.id === id)
+    }
+
     if (!resource) return { minValue: 0, maxValue: 0 }
 
-    const available = Math.max(0, (resource.max ?? 0) - (resource.inUse ?? 0))
+    const available = Math.max(
+      0,
+      ((resource.max || resource.total) ?? 0) - (resource.inUse ?? 0)
+    )
 
     return {
       minValue: resource.min ?? 0,
@@ -378,6 +484,8 @@ export default function ConfigureEnvironment({
           ? paidValues.ram
           : p.id === 'disk'
           ? paidValues.disk
+          : p.id === 'gpu' || p.id?.toLowerCase().includes('gpu')
+          ? paidValues.gpu
           : 0
       totalPrice += units * p.price
     }
@@ -395,18 +503,24 @@ export default function ConfigureEnvironment({
     setFieldValue('cpu', currentValues.cpu)
     setFieldValue('ram', currentValues.ram)
     setFieldValue('disk', currentValues.disk)
+    if (gpuAvailable) {
+      setFieldValue('gpu', currentValues.gpu)
+    }
     setFieldValue('jobDuration', currentValues.jobDuration)
   }, [
     mode,
     freeValues.cpu,
     freeValues.ram,
     freeValues.disk,
+    freeValues.gpu,
     freeValues.jobDuration,
     paidValues.cpu,
     paidValues.ram,
     paidValues.disk,
+    paidValues.gpu,
     paidValues.jobDuration,
-    setFieldValue
+    setFieldValue,
+    gpuAvailable
   ])
 
   useEffect(() => {
@@ -454,6 +568,8 @@ export default function ConfigureEnvironment({
               ? currentValues.ram
               : p.id === 'disk'
               ? currentValues.disk
+              : p.id === 'gpu' || p.id?.toLowerCase().includes('gpu')
+              ? currentValues.gpu
               : 0
           totalPrice += units * p.price
         }
@@ -466,20 +582,25 @@ export default function ConfigureEnvironment({
       }
     }
 
+    const resourceValues: any = {
+      cpu: currentValues.cpu,
+      ram: currentValues.ram,
+      disk: currentValues.disk,
+      jobDuration: currentValues.jobDuration,
+      mode,
+      price: actualPaymentAmount.toString(),
+      fullJobPrice: currentPrice.toString(),
+      actualPaymentAmount: actualPaymentAmount.toString(),
+      escrowCoveredAmount: escrowCoveredAmount.toString()
+    }
+
+    if (gpuAvailable) {
+      resourceValues.gpu = currentValues.gpu
+    }
+
     setAllResourceValues((prev) => ({
       ...prev,
-      [`${envId}_${modeKey}`]: {
-        ...prev[`${envId}_${modeKey}`],
-        cpu: currentValues.cpu,
-        ram: currentValues.ram,
-        disk: currentValues.disk,
-        jobDuration: currentValues.jobDuration,
-        mode,
-        price: actualPaymentAmount.toString(),
-        fullJobPrice: currentPrice.toString(),
-        actualPaymentAmount: actualPaymentAmount.toString(),
-        escrowCoveredAmount: escrowCoveredAmount.toString()
-      }
+      [`${envId}_${modeKey}`]: resourceValues
     }))
   }, [
     mode,
@@ -488,14 +609,17 @@ export default function ConfigureEnvironment({
     freeValues.cpu,
     freeValues.ram,
     freeValues.disk,
+    freeValues.gpu,
     freeValues.jobDuration,
     paidValues.cpu,
     paidValues.ram,
     paidValues.disk,
+    paidValues.gpu,
     paidValues.jobDuration,
     setAllResourceValues,
     escrowAvailableFunds,
-    values.baseToken
+    values.baseToken,
+    gpuAvailable
   ])
 
   useEffect(() => {
@@ -522,6 +646,10 @@ export default function ConfigureEnvironment({
         freeExistingValues?.disk && freeExistingValues.disk > 0
           ? freeExistingValues.disk
           : freeEnvValues.disk,
+      gpu:
+        freeExistingValues?.gpu && freeExistingValues.gpu > 0
+          ? freeExistingValues.gpu
+          : freeEnvValues.gpu,
       jobDuration:
         freeExistingValues?.jobDuration && freeExistingValues.jobDuration > 0
           ? freeExistingValues.jobDuration
@@ -541,6 +669,10 @@ export default function ConfigureEnvironment({
         paidExistingValues?.disk && paidExistingValues.disk > 0
           ? paidExistingValues.disk
           : paidEnvValues.disk,
+      gpu:
+        paidExistingValues?.gpu && paidExistingValues.gpu > 0
+          ? paidExistingValues.gpu
+          : paidEnvValues.gpu,
       jobDuration:
         paidExistingValues?.jobDuration && paidExistingValues.jobDuration > 0
           ? paidExistingValues.jobDuration
@@ -551,6 +683,7 @@ export default function ConfigureEnvironment({
       cpu: getLimits('cpu', true),
       ram: getLimits('ram', true),
       disk: getLimits('disk', true),
+      gpu: getLimits('gpu', true),
       jobDuration: getLimits('jobDuration', true)
     }
 
@@ -558,6 +691,7 @@ export default function ConfigureEnvironment({
       cpu: getLimits('cpu', false),
       ram: getLimits('ram', false),
       disk: getLimits('disk', false),
+      gpu: getLimits('gpu', false),
       jobDuration: getLimits('jobDuration', false)
     }
 
@@ -569,6 +703,7 @@ export default function ConfigureEnvironment({
         freeLimits.disk.minValue,
         freeLimits.disk.maxValue
       ),
+      gpu: clamp(freeRaw.gpu, freeLimits.gpu.minValue, freeLimits.gpu.maxValue),
       jobDuration: clamp(
         freeRaw.jobDuration,
         freeLimits.jobDuration.minValue,
@@ -584,6 +719,7 @@ export default function ConfigureEnvironment({
         paidLimits.disk.minValue,
         paidLimits.disk.maxValue
       ),
+      gpu: clamp(paidRaw.gpu, paidLimits.gpu.minValue, paidLimits.gpu.maxValue),
       jobDuration: clamp(
         paidRaw.jobDuration,
         paidLimits.jobDuration.minValue,
@@ -610,7 +746,7 @@ export default function ConfigureEnvironment({
   const freeAvailable = !!env.free
 
   const updateResource = (
-    type: 'cpu' | 'ram' | 'disk' | 'jobDuration',
+    type: 'cpu' | 'ram' | 'disk' | 'gpu' | 'jobDuration',
     value: number | string,
     isFree: boolean
   ) => {
@@ -621,7 +757,7 @@ export default function ConfigureEnvironment({
     const validatedValue = clamp(Number(value), minValue, maxValue)
 
     const adjustedValue =
-      step && (type === 'ram' || type === 'disk')
+      step && (type === 'ram' || type === 'disk' || type === 'gpu')
         ? Number(validatedValue.toFixed(1))
         : Math.floor(validatedValue)
 
@@ -630,6 +766,27 @@ export default function ConfigureEnvironment({
     } else {
       setPaidValues((prev) => ({ ...prev, [type]: adjustedValue }))
     }
+  }
+
+  const getResourceDescription = (resourceId: string): string | undefined => {
+    const env = values.computeEnv
+    if (!env) return undefined
+
+    const resource = env.resources?.find((r) =>
+      resourceId === 'gpu'
+        ? r.type === 'gpu' || r.id?.toLowerCase().includes('gpu')
+        : r.id === resourceId
+    )
+    if (resource?.description) {
+      return resource.description
+    }
+    const freeResource = env.free?.resources?.find((r) =>
+      resourceId === 'gpu'
+        ? r.type === 'gpu' || r.id?.toLowerCase().includes('gpu')
+        : r.id === resourceId
+    )
+
+    return freeResource?.description
   }
 
   return (
@@ -685,7 +842,22 @@ export default function ConfigureEnvironment({
               getLimits={getLimits}
               updateResource={updateResource}
               fee={fee}
+              tooltip={getResourceDescription('cpu')}
             />
+            {gpuAvailable && (
+              <ResourceRow
+                resourceId="gpu"
+                label="GPU"
+                unit="Units"
+                isFree={true}
+                freeValues={freeValues}
+                paidValues={paidValues}
+                getLimits={getLimits}
+                updateResource={updateResource}
+                fee={fee}
+                tooltip={getResourceDescription('gpu')}
+              />
+            )}
             <ResourceRow
               resourceId="ram"
               label="RAM"
@@ -748,7 +920,22 @@ export default function ConfigureEnvironment({
             getLimits={getLimits}
             updateResource={updateResource}
             fee={fee}
+            tooltip={getResourceDescription('cpu')}
           />
+          {gpuAvailable && (
+            <ResourceRow
+              resourceId="gpu"
+              label="GPU"
+              unit="Units"
+              isFree={false}
+              freeValues={freeValues}
+              paidValues={paidValues}
+              getLimits={getLimits}
+              updateResource={updateResource}
+              fee={fee}
+              tooltip={getResourceDescription('gpu')}
+            />
+          )}
           <ResourceRow
             resourceId="ram"
             label="RAM"
@@ -804,44 +991,63 @@ export default function ConfigureEnvironment({
         </div>
       </div>
 
-      {mode === 'paid' && (
-        <div className={styles.escrowValidation}>
-          {(() => {
-            const jobPrice = new Decimal(calculatePrice())
-            const availableEscrow = new Decimal(escrowAvailableFunds)
-            if (jobPrice.gt(availableEscrow)) {
-              const deltaAmount = jobPrice.minus(availableEscrow)
-              const deltaDisplay = deltaAmount.lt(0.001)
-                ? '<0.001'
-                : deltaAmount.toDecimalPlaces(3, Decimal.ROUND_UP).toFixed(3)
-              return (
-                <div className={styles.insufficientEscrow}>
-                  <p>
-                    Insufficient escrow balance. An additional{' '}
-                    <strong>
-                      {deltaDisplay} {displaySymbol}
-                    </strong>{' '}
-                    will be added to your escrow account to cover this job.
-                  </p>
-                  <p className={styles.escrowBreakdown}>
-                    Job cost: {jobPrice.toFixed(3)} {displaySymbol} | Available
-                    escrow: {escrowAvailableFundsDisplay} {displaySymbol} |
-                    Additional needed: {deltaDisplay} {displaySymbol}
-                  </p>
-                </div>
-              )
-            }
-
-            return (
-              <div className={styles.sufficientEscrow}>
-                <p>Sufficient escrow balance available for this job.</p>
-                <p className={styles.escrowBreakdown}>
-                  Job cost: {jobPrice.toFixed(3)} {displaySymbol} | Available
-                  escrow: {escrowAvailableFundsDisplay} {displaySymbol}
-                </p>
+      {(isGpuSelected || mode === 'paid') && (
+        <div className={styles.messagesContainer}>
+          {isGpuSelected && (
+            <div className={styles.gpuWarning}>
+              <div className={styles.gpuWarningIcon}>⚠️</div>
+              <div className={styles.gpuWarningContent}>
+                <strong>Please Attention!.</strong> You selected an environment
+                with allocated GPU units. Ensure the GPU type is compatible with
+                the GPU libraries used in the algorithm`s Docker image.
               </div>
-            )
-          })()}
+            </div>
+          )}
+
+          {mode === 'paid' && (
+            <div className={styles.escrowValidation}>
+              {(() => {
+                const jobPrice = new Decimal(calculatePrice())
+                const availableEscrow = new Decimal(escrowAvailableFunds)
+                if (jobPrice.gt(availableEscrow)) {
+                  const deltaAmount = jobPrice.minus(availableEscrow)
+                  const deltaDisplay = deltaAmount.lt(0.001)
+                    ? '<0.001'
+                    : deltaAmount
+                        .toDecimalPlaces(3, Decimal.ROUND_UP)
+                        .toFixed(3)
+                  return (
+                    <div className={styles.insufficientEscrow}>
+                      <p>
+                        Insufficient escrow balance. An additional{' '}
+                        <strong>
+                          {deltaDisplay} {displaySymbol}
+                        </strong>{' '}
+                        will be added to your escrow account to cover this job.
+                      </p>
+                      <p className={styles.escrowBreakdown}>
+                        Job cost: {jobPrice.toFixed(3)} {displaySymbol} |
+                        Available escrow: {escrowAvailableFundsDisplay}{' '}
+                        {displaySymbol} | Additional needed: {deltaDisplay}{' '}
+                        {displaySymbol}
+                      </p>
+                    </div>
+                  )
+                }
+
+                return (
+                  <div className={styles.sufficientEscrow}>
+                    <p>Sufficient escrow balance available for this job.</p>
+                    <p className={styles.escrowBreakdown}>
+                      Job cost: {jobPrice.toFixed(3)} {displaySymbol} |
+                      Available escrow: {escrowAvailableFundsDisplay}{' '}
+                      {displaySymbol}
+                    </p>
+                  </div>
+                )
+              })()}
+            </div>
+          )}
         </div>
       )}
     </div>
