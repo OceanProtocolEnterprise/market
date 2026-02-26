@@ -120,9 +120,10 @@ export function AssetActionCheckCredentialsAlgo({
               accountId,
               service.id
             )
-            const openid4vcMessage = presentationResult.openid4vc
+            const openid4vcMessage = presentationResult?.openid4vc
 
             if (
+              openid4vcMessage &&
               isPolicyServerRedirectMessage(openid4vcMessage) &&
               openid4vcMessage.redirectUri.includes('success')
             ) {
