@@ -596,6 +596,93 @@ body .inputSmall {
 .gpuWarning {
   animation: slideDown 0.3s ease-out;
 }
+.labelContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  width: fit-content;
+  cursor: help;
+  width: 106px;
+}
+
+.labelText {
+  font-family: var(--font-family-base);
+  font-style: normal;
+  font-weight: var(--text-weight-bold);
+  font-size: 14px;
+  line-height: 16px;
+  text-transform: uppercase;
+  color: var(--text-ink);
+}
+
+.infoIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 10px;
+  color: #94a3b8;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  line-height: 1;
+  margin-left: 0;
+  transform: translateY(-1px);
+}
+
+.infoIcon:hover {
+  color: #8b5cf6;
+  background-color: rgba(139, 92, 246, 0.1);
+}
+
+.resourceTooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  min-width: 200px;
+  max-width: 300px;
+  animation: fadeIn 0.2s ease-out;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.resourceTooltipContent {
+  background: #1e293b;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 1px solid #334155;
+  word-wrap: break-word;
+}
+
+.resourceTooltipArrow {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #1e293b;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
 
 @keyframes slideDown {
   from {

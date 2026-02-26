@@ -1,4 +1,11 @@
-import { ReactElement, useState, useEffect, useCallback, useMemo } from 'react'
+import {
+  ReactElement,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef
+} from 'react'
 import { Field, useFormikContext } from 'formik'
 import { Datatoken } from '@oceanprotocol/lib'
 import { ResourceType } from 'src/@types/ResourceType'
@@ -37,6 +44,7 @@ interface ResourceRowProps {
     isFree: boolean
   ) => void
   fee?: { prices?: { id: string; price: number }[] }
+  tooltip?: string
 }
 
 const hasGPUResource = (env: any): boolean => {
@@ -85,7 +93,8 @@ function ResourceRow({
   paidValues,
   getLimits,
   updateResource,
-  fee
+  fee,
+  tooltip
 }: ResourceRowProps): ReactElement {
   const { minValue, maxValue, step = 1 } = getLimits(resourceId, isFree)
   const currentValue = isFree
@@ -93,6 +102,8 @@ function ResourceRow({
     : paidValues[resourceId as keyof ResourceValues]
   const [inputValue, setInputValue] = useState<string | number>(currentValue)
   const [error, setError] = useState<string | null>(null)
+  const [showTooltip, setShowTooltip] = useState(false)
+  const labelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setInputValue(currentValue)
@@ -141,7 +152,21 @@ function ResourceRow({
       key={`${resourceId}-${isFree ? 'free' : 'paid'}`}
       className={styles.resourceRow}
     >
-      <div className={styles.resourceLabel}>{label}</div>
+      <div
+        className={styles.labelContainer}
+        ref={labelRef}
+        onMouseEnter={() => tooltip && setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
+        <span className={styles.labelText}>{label}</span>
+        {tooltip && <span className={styles.infoIcon}>ⓘ</span>}
+        {showTooltip && tooltip && (
+          <div className={styles.resourceTooltip}>
+            <div className={styles.resourceTooltipContent}>{tooltip}</div>
+            <div className={styles.resourceTooltipArrow} />
+          </div>
+        )}
+      </div>
       <div className={styles.sliderSection}>
         <span className={styles.minLabel}>min</span>
         <div className={styles.sliderContainer}>
@@ -737,6 +762,27 @@ export default function ConfigureEnvironment({
     }
   }
 
+  const getResourceDescription = (resourceId: string): string | undefined => {
+    const env = values.computeEnv
+    if (!env) return undefined
+
+    const resource = env.resources?.find((r) =>
+      resourceId === 'gpu'
+        ? r.type === 'gpu' || r.id?.toLowerCase().includes('gpu')
+        : r.id === resourceId
+    )
+    if (resource?.description) {
+      return resource.description
+    }
+    const freeResource = env.free?.resources?.find((r) =>
+      resourceId === 'gpu'
+        ? r.type === 'gpu' || r.id?.toLowerCase().includes('gpu')
+        : r.id === resourceId
+    )
+
+    return freeResource?.description
+  }
+
   return (
     <div className={styles.container}>
       <StepTitle title="C2D Environment Configuration" />
@@ -790,6 +836,7 @@ export default function ConfigureEnvironment({
               getLimits={getLimits}
               updateResource={updateResource}
               fee={fee}
+              tooltip={getResourceDescription('cpu')}
             />
             {gpuAvailable && (
               <ResourceRow
@@ -802,6 +849,7 @@ export default function ConfigureEnvironment({
                 getLimits={getLimits}
                 updateResource={updateResource}
                 fee={fee}
+                tooltip={getResourceDescription('gpu')}
               />
             )}
             <ResourceRow
@@ -866,6 +914,7 @@ export default function ConfigureEnvironment({
             getLimits={getLimits}
             updateResource={updateResource}
             fee={fee}
+            tooltip={getResourceDescription('cpu')}
           />
           {gpuAvailable && (
             <ResourceRow
@@ -878,6 +927,7 @@ export default function ConfigureEnvironment({
               getLimits={getLimits}
               updateResource={updateResource}
               fee={fee}
+              tooltip={getResourceDescription('gpu')}
             />
           )}
           <ResourceRow
