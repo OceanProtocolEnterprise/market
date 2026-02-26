@@ -31,3 +31,17 @@
   text-align: center;
   color: var(--green-700);
 }
+.gpu {
+  border: 1px solid #8b5cf6;
+  border-radius: 20px;
+  padding: 2px 8px;
+  width: fit-content;
+  height: fit-content;
+  box-shadow: 1px 2px 8px 0 var(--black-alpha-15);
+  background: rgba(139, 92, 246, 0.1);
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 100%;
+  text-align: center;
+  color: #8b5cf6;
+}

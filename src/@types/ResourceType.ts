@@ -5,4 +5,5 @@ export interface ResourceType {
   jobDuration: number
   price: number
   mode: string
+  gpu?: number
 }

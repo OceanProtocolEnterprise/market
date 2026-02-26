@@ -2,7 +2,7 @@ import { ReactElement } from 'react'
 import styles from './index.module.css'
 
 interface StatusTagProps {
-  type: 'free' | 'paid'
+  type: 'free' | 'paid' | 'gpu'
   children: React.ReactNode
   className?: string
 }
