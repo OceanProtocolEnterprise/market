@@ -935,6 +935,17 @@ export default function ConfigureEnvironment({
         </div>
       </div>
 
+      {gpuAvailable && (
+        <div className={styles.gpuWarning}>
+          <div className={styles.gpuWarningIcon}>⚠️</div>
+          <div className={styles.gpuWarningContent}>
+            <strong>Please Attention!.</strong> You selected an environment with
+            GPU units allocated. Make sure the GPU type is compatible with the
+            selected algorithm.
+          </div>
+        </div>
+      )}
+
       {mode === 'paid' && (
         <div className={styles.escrowValidation}>
           {(() => {

@@ -56,6 +56,24 @@ const hasGPUResource = (env: ComputeEnvironment): boolean => {
   return false
 }
 
+const getGPUDescription = (env: ComputeEnvironment): string | undefined => {
+  const gpuResource = env.resources?.find(
+    (r) => r.type === 'gpu' || r.id?.toLowerCase().includes('gpu')
+  )
+  if (gpuResource?.description) {
+    return gpuResource.description
+  }
+
+  const freeGpuResource = env.free?.resources?.find(
+    (r) => r.type === 'gpu' || r.id?.toLowerCase().includes('gpu')
+  )
+  if (freeGpuResource?.description) {
+    return freeGpuResource.description
+  }
+
+  return undefined
+}
+
 export default function EnvironmentSelection({
   environments,
   selected,
@@ -73,8 +91,6 @@ export default function EnvironmentSelection({
 }): JSX.Element {
   const [searchValue, setSearchValue] = useState('')
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false)
-  // console.log('environments', JSON.stringify(environments, null, 2))
-  // console.log('selected ', selected)
 
   const filteredEnvironments = useMemo(() => {
     const realEnvs =
@@ -130,6 +146,7 @@ export default function EnvironmentSelection({
                 const freeAvailable = !!env.free
                 const hasPaid = env.fees && Object.keys(env.fees).length > 0
                 const gpuAvailable = hasGPUResource(env)
+                const gpuDescription = getGPUDescription(env)
 
                 return (
                   <div
@@ -166,7 +183,16 @@ export default function EnvironmentSelection({
                           <StatusTag type="free">Free</StatusTag>
                         )}
                         {hasPaid && <StatusTag type="paid">Paid</StatusTag>}
-                        {gpuAvailable && <StatusTag type="gpu">GPU</StatusTag>}
+                        {gpuAvailable && (
+                          <StatusTag
+                            type="gpu"
+                            tooltip={
+                              gpuDescription || 'GPU accelerated environment'
+                            }
+                          >
+                            GPU
+                          </StatusTag>
+                        )}
                       </div>
                     </div>
 

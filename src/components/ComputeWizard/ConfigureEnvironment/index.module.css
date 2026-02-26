@@ -560,6 +560,68 @@ body .inputSmall {
   margin-top: 8px;
   opacity: 0.8;
 }
+
+.gpuWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  margin: 16px 0 8px 0;
+  background-color: #fffbeb;
+  border: 1px solid #fbbf24;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
+}
+
+.gpuWarningIcon {
+  font-size: 20px;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.gpuWarningContent {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #92400e;
+  flex: 1;
+}
+
+.gpuWarningContent strong {
+  color: #78350f;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.gpuWarning {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .gpuWarning {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .gpuWarningIcon {
+    font-size: 18px;
+  }
+
+  .gpuWarningContent {
+    font-size: 13px;
+  }
+}
 /* Tablet View (768px – 1024px) */
 @media screen and (max-width: 1024px) {
   .container {
