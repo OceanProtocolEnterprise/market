@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState
 } from 'react'
 import { MarketMetadataProviderValue, OpcFee } from './_types'
@@ -15,6 +16,7 @@ import { getTokenInfo } from '@utils/wallet'
 import useEnterpriseFeeColletor from '@hooks/useEnterpriseFeeCollector'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 import useAllowedTokenAddresses from '@hooks/useAllowedTokenAddresses'
+import { getAllowedChainIdsFromNodeUriMap } from '@utils/allowedChains'
 
 const MarketMetadataContext = createContext({} as MarketMetadataProviderValue)
 
@@ -27,6 +29,7 @@ function MarketMetadataProvider({
   const isLoading = status === 'pending'
   const chainId = useChainId()
   const signer = useEthersSigner()
+  const allowedChainIds = useMemo(() => getAllowedChainIdsFromNodeUriMap(), [])
 
   const { getOpcData, enterpriseFeeCollector } = useEnterpriseFeeColletor()
   const [opcFees, setOpcFees] = useState<OpcFee[]>()
@@ -41,14 +44,14 @@ function MarketMetadataProvider({
       // Safety check: Don't run if we don't have a signer yet
       if (!signer) return
 
-      const opcData = await getOpcData(appConfig.chainIdsSupported)
+      const opcData = await getOpcData(allowedChainIds)
       setOpcFees(opcData)
     }
 
     if (!opcFees && signer && enterpriseFeeCollector) {
       fetchData()
     }
-  }, [signer, getOpcData, enterpriseFeeCollector])
+  }, [signer, getOpcData, enterpriseFeeCollector, allowedChainIds])
 
   // ---------------------------
   // Get OPC fee for given token

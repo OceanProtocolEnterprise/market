@@ -4,13 +4,13 @@ import loadable from '@loadable/component'
 import Logo from '@shared/atoms/Logo'
 import Networks from '../../Header/UserPreferences/Networks'
 import styles from './index.module.css'
-import { useMarketMetadata } from '@context/MarketMetadata'
 import UserPreferences from '../../Header/UserPreferences'
 import { SsiWallet } from './SsiWallet'
+import { getAllowedChainIdsFromNodeUriMap } from '@utils/allowedChains'
 const Wallet = loadable(() => import('../../Header/Wallet'))
 
 export default function Menu(): ReactElement {
-  const { appConfig } = useMarketMetadata()
+  const allowedChainIds = getAllowedChainIdsFromNodeUriMap()
 
   return (
     <nav className={styles.menu}>
@@ -19,7 +19,7 @@ export default function Menu(): ReactElement {
       </Link>
       <div className={styles.demoText}>Demonstration MarketPlace</div>
       <div className={styles.actions}>
-        {appConfig.chainIdsSupported.length > 1 && <Networks />}
+        {allowedChainIds.length > 1 && <Networks />}
         <UserPreferences />
         <Wallet />
         <SsiWallet />

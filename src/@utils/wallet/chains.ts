@@ -1,5 +1,6 @@
 import { Chain } from 'wagmi/chains'
 import * as wagmiChains from 'wagmi/chains'
+import { getAllowedChainIdsFromNodeUriMap } from '../allowedChains'
 import { getRuntimeConfig } from '../runtimeConfig'
 
 // Custom OP Sepolia chain
@@ -41,7 +42,9 @@ const ethereumHoodi: Chain = {
 /**
  * Returns wagmi-compatible chains filtered by allowed chain IDs
  */
-export const getSupportedChains = (chainIdsSupported: number[]): Chain[] => {
+export const getSupportedChains = (): Chain[] => {
+  const chainIdsSupported = getAllowedChainIdsFromNodeUriMap()
+
   // Convert wagmiChains module to array of Chain objects
   const baseChains: Chain[] = Object.values(wagmiChains)
 

@@ -5,21 +5,21 @@ import useNetworkMetadata, {
   filterNetworksByType
 } from '@hooks/useNetworkMetadata'
 import content from '../../../../content/publish/index.json'
-import { useMarketMetadata } from '@context/MarketMetadata'
+import { getAllowedChainIdsFromNodeUriMap } from '@utils/allowedChains'
 
 export default function AvailableNetworks(): ReactElement {
   const { networksList } = useNetworkMetadata()
-  const { appConfig } = useMarketMetadata()
+  const allowedChainIds = getAllowedChainIdsFromNodeUriMap()
 
   const networksMain = filterNetworksByType(
     'mainnet',
-    appConfig.chainIdsSupported,
+    allowedChainIds,
     networksList
   )
 
   const networksTest = filterNetworksByType(
     'testnet',
-    appConfig.chainIdsSupported,
+    allowedChainIds,
     networksList
   )
   const networkCategories = [

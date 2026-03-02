@@ -4,7 +4,7 @@ import { OnChangeValue } from 'react-select'
 import { useField } from 'formik'
 import { InputProps } from '../..'
 import { getTagsList } from '@utils/aquarius'
-import { chainIds } from '../../../../../../app.config.cjs'
+import { getAllowedChainIdsFromNodeUriMap } from '@utils/allowedChains'
 import { useCancelToken } from '@hooks/useCancelToken'
 import styles from './index.module.css'
 import { matchSorter } from 'match-sorter'
@@ -42,7 +42,8 @@ export default function TagsAutoComplete({
 
   useEffect(() => {
     const generateTagsList = async () => {
-      const tags = await getTagsList(chainIds, newCancelToken())
+      const allowedChainIds = getAllowedChainIdsFromNodeUriMap()
+      const tags = await getTagsList(allowedChainIds, newCancelToken())
       const autocompleteOptions = generateAutocompleteOptions(tags)
       setTagsList(autocompleteOptions)
     }

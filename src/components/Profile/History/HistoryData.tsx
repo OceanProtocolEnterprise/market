@@ -29,6 +29,7 @@ import useNetworkMetadata, {
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { getAccessDetails } from '@utils/accessDetailsAndPricing'
 import { getBaseTokenSymbol } from '@utils/getBaseTokenSymbol'
+import { getAllowedChainIdsFromNodeUriMap } from '@utils/allowedChains'
 
 function HistorySkeleton(): ReactElement {
   const rows = Array.from({ length: 9 })
@@ -132,7 +133,7 @@ export default function HistoryData({
 }: {
   accountId: string
 }): ReactElement {
-  const { appConfig } = useMarketMetadata()
+  const allowedChainIds = useMemo(() => getAllowedChainIdsFromNodeUriMap(), [])
   const { chainIds } = useUserPreferences()
   const { approvedBaseTokens } = useMarketMetadata()
   const { ownAccount } = useProfile()
@@ -203,11 +204,8 @@ export default function HistoryData({
     [networksList]
   )
   const activeChainIds = useMemo(
-    () =>
-      (chainIds && chainIds.length > 0
-        ? chainIds
-        : appConfig?.chainIdsSupported) || [],
-    [chainIds, appConfig?.chainIdsSupported]
+    () => (chainIds && chainIds.length > 0 ? chainIds : allowedChainIds) || [],
+    [chainIds, allowedChainIds]
   )
   const filtersKey = useMemo(() => JSON.stringify(filters || {}), [filters])
   const [queryResult, setQueryResult] = useState<PagedAssets>()

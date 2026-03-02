@@ -6,7 +6,6 @@ import Logo from '@shared/atoms/Logo'
 import Networks from './UserPreferences/Networks'
 import styles from './Menu.module.css'
 import { useRouter } from 'next/router'
-import { useMarketMetadata } from '@context/MarketMetadata'
 import classNames from 'classnames/bind'
 import Button from '@components/@shared/atoms/Button'
 import UserPreferences from './UserPreferences'
@@ -14,6 +13,7 @@ import { SsiWallet } from '@components/Header/SsiWallet'
 import Upload from '@images/publish.svg'
 import BurgerIcon from '@images/burgerIcon.svg' // You'll need to add a burger icon
 import CloseIcon from '@images/closeIcon.svg' // You'll need to add a close icon
+import { getAllowedChainIdsFromNodeUriMap } from '@utils/allowedChains'
 
 const Wallet = loadable(() => import('./Wallet'))
 
@@ -52,7 +52,7 @@ export function MenuLink({ name, link, className }: MenuItem) {
 }
 
 export default function Menu(): ReactElement {
-  const { appConfig } = useMarketMetadata()
+  const allowedChainIds = getAllowedChainIdsFromNodeUriMap()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const router = useRouter()
@@ -108,7 +108,7 @@ export default function Menu(): ReactElement {
 
         <div className={styles.actions}>
           {/* <SearchButton /> */}
-          {appConfig.chainIdsSupported.length > 1 && <Networks />}
+          {allowedChainIds.length > 1 && <Networks />}
           <UserPreferences />
           <Wallet />
           {/* Desktop view - show SSiWallet and buttons normally */}

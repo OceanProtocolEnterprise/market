@@ -4,11 +4,13 @@ import {
   ReactElement,
   ReactNode,
   useState,
-  useEffect
+  useEffect,
+  useMemo
 } from 'react'
 import { LoggerInstance, LogLevel } from '@oceanprotocol/lib'
 import { isBrowser } from '@utils/index'
 import { useMarketMetadata } from './MarketMetadata'
+import { getAllowedChainIdsFromNodeUriMap } from '@utils/allowedChains'
 interface UserPreferencesValue {
   debug: boolean
   setDebug: (value: boolean) => void
@@ -57,6 +59,7 @@ function UserPreferencesProvider({
   children: ReactNode
 }): ReactElement {
   const { appConfig } = useMarketMetadata()
+  const allowedChainIds = useMemo(() => getAllowedChainIdsFromNodeUriMap(), [])
   const localStorage = getLocalStorage()
   // Set default values from localStorage
   const [debug, setDebug] = useState<boolean>(localStorage?.debug || false)
@@ -66,7 +69,7 @@ function UserPreferencesProvider({
   const [locale, setLocale] = useState<string>()
   const [bookmarks, setBookmarks] = useState(localStorage?.bookmarks || [])
   const [chainIds, setChainIds] = useState(
-    localStorage?.chainIds || appConfig.chainIds
+    localStorage?.chainIds || allowedChainIds
   )
   const { defaultPrivacyPolicySlug, showOnboardingModuleByDefault } = appConfig
   const [showOnboardingModule, setShowOnboardingModule] = useState<boolean>(
@@ -148,13 +151,11 @@ function UserPreferencesProvider({
     setBookmarks(newPinned)
   }, [bookmarks])
 
-  // chainIds old data migration
-  // remove deprecated networks from user-saved chainIds
   useEffect(() => {
-    if (!chainIds.includes(3) && !chainIds.includes(4)) return
-    const newChainIds = chainIds.filter((id) => id !== 3 && id !== 4)
+    const newChainIds = chainIds.filter((id) => allowedChainIds.includes(id))
+    if (newChainIds.length === chainIds.length) return
     setChainIds(newChainIds)
-  }, [chainIds])
+  }, [chainIds, allowedChainIds])
 
   return (
     <UserPreferencesContext.Provider

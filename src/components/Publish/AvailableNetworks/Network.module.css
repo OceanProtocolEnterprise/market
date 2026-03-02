@@ -1,4 +1,8 @@
 .button {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  justify-content: flex-start;
   font-family: var(--font-family-base);
   font-weight: var(--font-weight-base);
   line-height: var(--line-height);
