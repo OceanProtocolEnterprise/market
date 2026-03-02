@@ -14,7 +14,8 @@ export function isCID(value: string) {
 
 export async function serverSideUploadToIpfs(
   data: any,
-  ipfsJWT: string
+  ipfsJWT: string,
+  ipfsUploadUrl: string
 ): Promise<string> {
   if (typeof window !== 'undefined') {
     throw new Error(
@@ -26,21 +27,21 @@ export async function serverSideUploadToIpfs(
     throw new Error('[serverSideUploadToIpfs] Set IPFS_JWT')
   }
 
+  if (!ipfsUploadUrl) {
+    throw new Error('[serverSideUploadToIpfs] Set NEXT_PUBLIC_IPFS_UPLOAD_URL')
+  }
+
   try {
-    const pinataContent = {
+    const ipfsContent = {
       pinataContent: data
     }
-    const response = await axios.post(
-      'https://api.pinata.cloud/pinning/pinJSONToIPFS',
-      pinataContent,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          // 🔑 Use the API Key and Secret Key in the headers for authentication
-          Authorization: `Bearer ${ipfsJWT}`
-        }
+    const response = await axios.post(ipfsUploadUrl, ipfsContent, {
+      headers: {
+        'Content-Type': 'application/json',
+        // 🔑 Use the API Key and Secret Key in the headers for authentication
+        Authorization: `Bearer ${ipfsJWT}`
       }
-    )
+    })
 
     return response.data.IpfsHash
   } catch (error) {
@@ -67,7 +68,8 @@ export async function uploadToIPFS(data: any): Promise<string> {
 
 export async function serverSideDeleteIpfsFile(
   ipfsHash: string,
-  ipfsJWT: string
+  ipfsJWT: string,
+  ipfsDeleteUrl: string
 ) {
   if (typeof window !== 'undefined') {
     throw new Error(
@@ -79,8 +81,14 @@ export async function serverSideDeleteIpfsFile(
     throw new Error('[serverSideDeleteIpfsFile] Set IPFS_JWT')
   }
 
+  if (!ipfsDeleteUrl) {
+    throw new Error(
+      '[serverSideDeleteIpfsFile] Set NEXT_PUBLIC_IPFS_DELETE_URL'
+    )
+  }
+
   try {
-    await axios.delete(`https://api.pinata.cloud/pinning/unpin/${ipfsHash}`, {
+    await axios.delete(`${ipfsDeleteUrl}/${ipfsHash}`, {
       headers: {
         // 🔑 Use the JWT as the Bearer Token for authorization
         Authorization: `Bearer ${ipfsJWT}`

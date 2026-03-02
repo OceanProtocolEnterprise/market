@@ -1,5 +1,6 @@
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { serverSideDeleteIpfsFile, serverSideUploadToIpfs } from '@utils/ipfs'
+import { getRuntimeConfig } from '@utils/runtimeConfig'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 const IPFS_JWT_ENV_KEY = 'IPFS_JWT'
@@ -9,12 +10,15 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const ipfsJWT = process.env[IPFS_JWT_ENV_KEY]
+  const runtimeConfig = getRuntimeConfig()
+  const ipfsUploadUrl = runtimeConfig.NEXT_PUBLIC_IPFS_UPLOAD_URL
+  const ipfsDeleteUrl = runtimeConfig.NEXT_PUBLIC_IPFS_DELETE_URL
 
   if (req.method === 'POST') {
     try {
       const body =
         typeof req.body === 'string' ? JSON.parse(req.body) : req.body
-      const data = await serverSideUploadToIpfs(body, ipfsJWT)
+      const data = await serverSideUploadToIpfs(body, ipfsJWT, ipfsUploadUrl)
       res.status(200).json({ success: true, data })
     } catch (error) {
       LoggerInstance.error(error.message)
@@ -25,7 +29,7 @@ export default async function handler(
     }
   } else if (req.method === 'DELETE') {
     try {
-      await serverSideDeleteIpfsFile(req.body, ipfsJWT)
+      await serverSideDeleteIpfsFile(req.body, ipfsJWT, ipfsDeleteUrl)
       res.status(200).json({ success: true })
     } catch (error) {
       LoggerInstance.error(error.message)

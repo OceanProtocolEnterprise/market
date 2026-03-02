@@ -153,6 +153,12 @@ module.exports = {
 
   ipfsGateway:
     getEnv('NEXT_PUBLIC_IPFS_GATEWAY') || process.env.NEXT_PUBLIC_IPFS_GATEWAY,
+  ipfsUploadUrl:
+    getEnv('NEXT_PUBLIC_IPFS_UPLOAD_URL') ||
+    process.env.NEXT_PUBLIC_IPFS_UPLOAD_URL,
+  ipfsDeleteUrl:
+    getEnv('NEXT_PUBLIC_IPFS_DELETE_URL') ||
+    process.env.NEXT_PUBLIC_IPFS_DELETE_URL,
   ipfsUnpinFiles:
     getEnv('NEXT_PUBLIC_IPFS_UNPIN_FILES') ||
     process.env.NEXT_PUBLIC_IPFS_UNPIN_FILES
