@@ -251,10 +251,6 @@ export default function ConfigureEnvironment({
   setBaseTokenAddress: React.Dispatch<React.SetStateAction<string>>
 }): ReactElement {
   const { values, setFieldValue } = useFormikContext<FormComputeData>()
-  console.log(
-    'computeEnvs in config env',
-    JSON.stringify(values.computeEnv, null, 2)
-  )
   const chainId = useChainId()
   const { escrowFundsByToken } = useProfile()
   const walletClient = useEthersSigner()
