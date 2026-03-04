@@ -2,6 +2,72 @@
   composes: error from '@shared/FormInput/index.module.css';
 }
 
+.selectWrapper {
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.select :global(.provider-select__control) {
+  border: var(--border-size-sm) solid var(--border-navy-soft);
+  border-radius: var(--radius-xl);
+  min-height: var(--field-height);
+  box-shadow: var(--shadow-md);
+  background: var(--brand-white);
+  font-family: var(--font-family-base);
+}
+
+.select :global(.provider-select__control:hover),
+.select :global(.provider-select__control--is-focused) {
+  border-color: var(--clr-navy);
+  box-shadow: 0 0 0 2px var(--navy-alpha-20);
+}
+
+.select :global(.provider-select__value-container) {
+  padding: 0 16px;
+}
+
+.select :global(.provider-select__single-value),
+.select :global(.provider-select__input-container),
+.select :global(.provider-select__placeholder),
+.select :global(.provider-select__option) {
+  font-size: var(--text-sm);
+  color: var(--clr-slate-70);
+}
+
+.select :global(.provider-select__placeholder) {
+  opacity: 0.7;
+}
+
+.select :global(.provider-select__menu) {
+  z-index: 20;
+  overflow: hidden;
+  border: 1px solid var(--border-navy-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.select :global(.provider-select__option--is-focused) {
+  background: var(--background-highlight);
+}
+
+.select :global(.provider-select__option--is-selected) {
+  background: var(--clr-navy);
+  color: var(--brand-white);
+}
+
+.select :global(.provider-select__dropdown-indicator) {
+  color: var(--clr-slate-70);
+}
+
+.select :global(.provider-select__dropdown-indicator:hover) {
+  color: var(--clr-navy);
+}
+
+.select :global(.provider-select__control--is-disabled) {
+  background-color: var(--background-highlight);
+  cursor: not-allowed;
+}
+
 .default {
   font-family: var(--font-family-base);
   text-transform: none;

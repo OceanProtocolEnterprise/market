@@ -19,6 +19,7 @@ export function Steps({
     useFormikContext<FormPublishData>()
 
   const isCustomProviderUrl = values?.services?.[0]?.providerUrl.custom
+  const isProviderUrlTouched = touched?.services?.[0]?.providerUrl?.url === true
 
   // auto-sync user chain?.id & account into form data values
   useEffect(() => {
@@ -62,7 +63,12 @@ export function Steps({
 
   // Auto-change default providerUrl on user network change
   useEffect(() => {
-    if (!values?.user?.chainId || isCustomProviderUrl === true) return
+    if (
+      !values?.user?.chainId ||
+      isCustomProviderUrl === true ||
+      isProviderUrlTouched
+    )
+      return
 
     const config = getOceanConfig(values.user.chainId)
     const providerUrl = customProviderUrl || config?.oceanNodeUri
@@ -81,6 +87,7 @@ export function Steps({
   }, [
     values?.user?.chainId,
     isCustomProviderUrl,
+    isProviderUrlTouched,
     setFieldValue,
     setTouched,
     touched

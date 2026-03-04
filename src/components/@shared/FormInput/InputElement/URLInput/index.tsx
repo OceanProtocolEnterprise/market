@@ -15,6 +15,9 @@ export interface URLInputProps {
   handleButtonClick(e: React.SyntheticEvent, data: string): void
   isLoading: boolean
   name: string
+  list?: string
+  inputAdornment?: ReactNode
+  inputDropdown?: ReactNode
   checkUrl?: boolean
   storageType?: string
   hideButton?: boolean
@@ -50,6 +53,8 @@ export default function URLInput({
   onReset,
   showResetButton = true,
   additionalAction,
+  inputAdornment,
+  inputDropdown,
   ...props
 }: URLInputProps): ReactElement {
   const [field, meta] = useField(name)
@@ -98,7 +103,9 @@ export default function URLInput({
       <InputGroup>
         <div className={styles.inputWrapper}>
           <InputElement
-            className={inputClassName}
+            className={`${inputClassName} ${
+              inputAdornment ? styles.withAdornment : ''
+            }`}
             {...props}
             {...field}
             type="url"
@@ -106,6 +113,10 @@ export default function URLInput({
             data-storage-type={storageType}
             disabled={isInputDisabled}
           />
+          {inputAdornment && (
+            <div className={styles.inputAdornment}>{inputAdornment}</div>
+          )}
+          {inputDropdown}
         </div>
 
         {!hideButton && (

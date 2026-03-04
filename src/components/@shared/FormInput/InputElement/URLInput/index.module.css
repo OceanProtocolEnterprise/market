@@ -5,6 +5,20 @@
 .inputWrapper {
   flex: 1 1 auto !important;
   min-width: 0;
+  position: relative;
+}
+
+.withAdornment {
+  padding-right: 52px;
+}
+
+.inputAdornment {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
 }
 
 .actions {

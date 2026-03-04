@@ -170,16 +170,7 @@ export default function ServicesFields(): ReactElement {
         required
         help="Configure essential settings for your service here. Upload relevant files using the appropriate field. Enter your service provider's URL and any associated links, and specify the timeout duration as needed. Ensure all details are accurately entered for optimal service performance."
       >
-        {/* Card 1: File Upload Card */}
-        <SectionContainer border padding="16px">
-          <Field
-            {...getFieldContent('files', content.services.fields)}
-            component={Input}
-            name="services[0].files"
-          />
-        </SectionContainer>
-
-        {/* Card 2: Provider URL Card */}
+        {/* Card 1: Provider URL Card */}
         <SectionContainer border padding="16px">
           <Field
             {...getFieldContent('providerUrl', content.services.fields)}
@@ -195,6 +186,15 @@ export default function ServicesFields(): ReactElement {
             {...getFieldContent('timeout', content.services.fields)}
             component={Input}
             name="services[0].timeout"
+          />
+        </SectionContainer>
+
+        {/* Card 2: File Upload Card */}
+        <SectionContainer border padding="16px">
+          <Field
+            {...getFieldContent('files', content.services.fields)}
+            component={Input}
+            name="services[0].files"
           />
         </SectionContainer>
       </SectionContainer>

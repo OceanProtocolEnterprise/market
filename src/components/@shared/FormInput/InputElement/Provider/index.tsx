@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useRef, useState } from 'react'
+import { ReactElement, useEffect, useMemo, useRef, useState } from 'react'
 import { useField, useFormikContext } from 'formik'
 import UrlInput from '../URLInput'
 import { InputProps } from '@shared/FormInput'
@@ -13,10 +13,12 @@ import { FormPublishData } from '@components/Publish/_types'
 import axios from 'axios'
 import { useCancelToken } from '@hooks/useCancelToken'
 import { useChainId } from 'wagmi'
-import { customProviderUrl } from 'app.config.cjs'
+import { customProviderUrl, nodeUriIndex } from 'app.config.cjs'
 import CircleErrorIcon from '@images/circle_error.svg'
 import CircleCheckIcon from '@images/circle_check.svg'
 import ProviderOwnerInfoModal from '@shared/ProviderOwnerInfoModal'
+
+const CUSTOM_PROVIDER_OPTION = '__custom_provider__'
 
 function getServiceFiles(
   values: FormPublishData,
@@ -45,13 +47,36 @@ function invalidateServiceFile(
 export default function CustomProvider(props: InputProps): ReactElement {
   const chainId = useChainId()
   const newCancelToken = useCancelToken()
-  const { initialValues, setFieldError, values, setFieldValue } =
-    useFormikContext<FormPublishData>()
+  const {
+    initialValues,
+    setFieldError,
+    setFieldTouched,
+    values,
+    setFieldValue
+  } = useFormikContext<FormPublishData>()
   const [field, , helpers] = useField(props.name)
   const [isLoading, setIsLoading] = useState(false)
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false)
   const didInitializeDefaultProviderRef = useRef(false)
   const previousProviderUrlRef = useRef<string>()
+
+  const indexedProviders = useMemo(() => {
+    const configuredProviders = Array.isArray(nodeUriIndex) ? nodeUriIndex : []
+    const defaultProviderUrl =
+      customProviderUrl || initialValues.services[0].providerUrl.url
+
+    return [
+      ...new Set([defaultProviderUrl, ...configuredProviders].filter(Boolean))
+    ]
+  }, [initialValues.services])
+
+  const selectedProviderOption =
+    !field.value?.custom &&
+    field.value?.url &&
+    indexedProviders.includes(field.value.url)
+      ? field.value.url
+      : CUSTOM_PROVIDER_OPTION
+  const showProviderSelector = props.name.startsWith('services[')
 
   useEffect(() => {
     if (didInitializeDefaultProviderRef.current) return
@@ -98,12 +123,8 @@ export default function CustomProvider(props: InputProps): ReactElement {
     try {
       setIsLoading(true)
 
-      // Check if provider is a valid provider
       const isValid = await ProviderInstance.isValidProvider(field.value.url)
 
-      // No way to detect a failed request with ProviderInstance.isValidProvider,
-      // making this error show up for multiple cases it shouldn't, like network
-      // down.
       if (!isValid) {
         setFieldError(
           `${field.name}.url`,
@@ -116,7 +137,6 @@ export default function CustomProvider(props: InputProps): ReactElement {
         return
       }
 
-      // Check if valid provider is for same chain user is on
       const providerResponse = await axios.get(field.value.url, {
         cancelToken: newCancelToken()
       })
@@ -146,8 +166,11 @@ export default function CustomProvider(props: InputProps): ReactElement {
         return
       }
 
-      // if all good, add provider to formik state
-      helpers.setValue({ url: field.value.url, valid: isValid, custom: true })
+      helpers.setValue({
+        url: field.value.url,
+        valid: isValid,
+        custom: field.value?.custom ?? true
+      })
     } catch (error) {
       const message = getErrorMessage(error.message)
       setFieldError(`${field.name}.url`, message)
@@ -161,7 +184,11 @@ export default function CustomProvider(props: InputProps): ReactElement {
     e.preventDefault()
     const providerUrl =
       customProviderUrl || initialValues.services[0].providerUrl.url
-    helpers.setValue({ url: providerUrl, valid: true, custom: true })
+    helpers.setValue({
+      url: providerUrl,
+      valid: true,
+      custom: true
+    })
   }
 
   function handleClear() {
@@ -169,14 +196,54 @@ export default function CustomProvider(props: InputProps): ReactElement {
     helpers.setTouched(false)
   }
 
+  function handleProviderSelection(providerUrl: string) {
+    if (providerUrl === CUSTOM_PROVIDER_OPTION) {
+      helpers.setValue({
+        url: '',
+        valid: false,
+        custom: true
+      })
+      setFieldTouched(`${field.name}.url`, true, false)
+      setFieldError(`${field.name}.url`, undefined)
+      return
+    }
+
+    helpers.setValue({
+      url: providerUrl,
+      valid: false,
+      custom: false
+    })
+    setFieldTouched(`${field.name}.url`, true, false)
+    setFieldError(`${field.name}.url`, undefined)
+  }
+
   return (
     <>
+      {showProviderSelector && indexedProviders.length > 0 && (
+        <div className={styles.selectWrapper}>
+          <select
+            className={styles.select}
+            value={selectedProviderOption}
+            onChange={(e) => handleProviderSelection(e.target.value)}
+            disabled={props.disabled || field?.value?.valid === true}
+          >
+            {indexedProviders.map((providerUrl) => (
+              <option key={providerUrl} value={providerUrl}>
+                {providerUrl}
+              </option>
+            ))}
+            <option value={CUSTOM_PROVIDER_OPTION}>Custom provider URL</option>
+          </select>
+        </div>
+      )}
+
       <UrlInput
         submitText="Validate"
         {...props}
         name={`${field.name}.url`}
         isLoading={isLoading}
         handleButtonClick={handleValidation}
+        disabled={props.disabled || !field.value?.custom}
         disableButton={props.disabled}
         isValidated={field?.value?.valid === true}
         onReset={handleClear}
