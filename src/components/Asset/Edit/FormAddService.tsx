@@ -19,11 +19,13 @@ import { useMarketMetadata } from '@context/MarketMetadata'
 export default function FormAddService({
   data,
   chainId,
-  assetType
+  assetType,
+  serviceEndpoint
 }: {
   data: FormFieldContent[]
   chainId: number
   assetType: string
+  serviceEndpoint: string
 }): ReactElement {
   const { approvedBaseTokens } = useMarketMetadata()
   const { values, setFieldValue } = useFormikContext<ServiceEditForm>()
@@ -131,7 +133,7 @@ export default function FormAddService({
         {values.access === 'compute' && assetType === 'dataset' && (
           <FormEditComputeService
             chainId={chainId}
-            serviceEndpoint={values.providerUrl.url}
+            serviceEndpoint={serviceEndpoint}
             serviceCompute={defaultServiceComputeOptions}
           />
         )}

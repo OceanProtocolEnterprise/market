@@ -83,6 +83,7 @@ export default function AddService({
   const [success, setSuccess] = useState<string>()
   const [error, setError] = useState<string>()
   const hasFeedback = error || success
+  const serviceEndpoint = asset.credentialSubject?.services[0]?.serviceEndpoint
 
   // add new service
   async function handleSubmit(values: ServiceEditForm, resetForm: () => void) {
@@ -246,7 +247,7 @@ export default function AddService({
         const filesEncrypted = await getEncryptedFiles(
           file,
           asset.credentialSubject?.chainId,
-          values.providerUrl.url,
+          serviceEndpoint,
           signer
         )
         newFiles = filesEncrypted
@@ -269,7 +270,7 @@ export default function AddService({
         },
         files: newFiles || '',
         datatokenAddress,
-        serviceEndpoint: values.providerUrl.url,
+        serviceEndpoint,
         timeout: mapTimeoutStringToSeconds(values.timeout),
         credentials,
         ...(values.access === 'compute' &&
@@ -304,8 +305,8 @@ export default function AddService({
         updatedAsset,
         signer,
         encryptAsset,
-        customProviderUrl ||
-          updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+        updatedAsset?.credentialSubject?.services[0]?.serviceEndpoint ||
+          customProviderUrl,
         ssiWalletContext
       )
 
@@ -316,8 +317,8 @@ export default function AddService({
           updatedAsset.credentialSubject.nftAddress,
           await signer.getAddress(),
           0,
-          customProviderUrl ||
-            updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+          updatedAsset?.credentialSubject?.services[0]?.serviceEndpoint ||
+            customProviderUrl,
           '',
           toBeHex(ipfsUpload.flags),
           ipfsUpload.metadataIPFS,
@@ -373,6 +374,7 @@ export default function AddService({
               data={content.form.data}
               chainId={asset.credentialSubject?.chainId}
               assetType={asset.credentialSubject?.metadata?.type}
+              serviceEndpoint={serviceEndpoint}
             />
 
             <Web3Feedback

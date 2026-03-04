@@ -17,7 +17,6 @@ import { isGoogleUrl } from '@utils/url/index'
 import isUrl from 'is-url-superb'
 import MethodInput from '../MethodInput'
 import DeleteButton from '@shared/DeleteButton/DeleteButton'
-import { customProviderUrl } from 'app.config.cjs'
 
 type FilesInputProps = InputProps & {
   form?: {
@@ -45,10 +44,8 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
   const chainId = useChainId()
 
   const providerUrl =
-    customProviderUrl ||
     props.form?.values?.services?.[0]?.providerUrl?.url ||
-    asset.credentialSubject?.services?.[0]?.serviceEndpoint
-
+    asset?.credentialSubject?.services?.[0]?.serviceEndpoint
   const storageType = field.value?.[0]?.type
   const urlValue = field.value?.[0]?.url?.toString().trim() || ''
   const query = field.value?.[0]?.query || undefined

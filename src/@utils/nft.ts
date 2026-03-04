@@ -112,7 +112,8 @@ export async function setNftMetadata(
     encryptedDdo = await ProviderInstance.encrypt(
       asset,
       asset.credentialSubject?.chainId,
-      customProviderUrl || asset.credentialSubject?.services[0].serviceEndpoint,
+      asset?.credentialSubject?.services[0]?.serviceEndpoint ||
+        customProviderUrl,
       signer
     )
   } catch (err: any) {
@@ -152,7 +153,8 @@ export async function setNFTMetadataAndTokenURI(
     encryptedDdo = await ProviderInstance.encrypt(
       asset,
       asset.credentialSubject?.chainId,
-      customProviderUrl || asset.credentialSubject?.services[0].serviceEndpoint,
+      asset.credentialSubject?.services[0]?.serviceEndpoint ||
+        customProviderUrl,
       signer
     )
   } catch (err: any) {

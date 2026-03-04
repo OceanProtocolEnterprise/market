@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState } from 'react'
+import { ReactElement, useEffect, useRef, useState } from 'react'
 import { useField, useFormikContext } from 'formik'
 import UrlInput from '../URLInput'
 import { InputProps } from '@shared/FormInput'
@@ -10,7 +10,6 @@ import {
   getErrorMessage
 } from '@oceanprotocol/lib'
 import { FormPublishData } from '@components/Publish/_types'
-import { getOceanConfig } from '@utils/ocean'
 import axios from 'axios'
 import { useCancelToken } from '@hooks/useCancelToken'
 import { useChainId } from 'wagmi'
@@ -19,17 +18,79 @@ import CircleErrorIcon from '@images/circle_error.svg'
 import CircleCheckIcon from '@images/circle_check.svg'
 import ProviderOwnerInfoModal from '@shared/ProviderOwnerInfoModal'
 
+function getServiceFiles(
+  values: FormPublishData,
+  servicePath: string
+): FormPublishData['services'][number]['files'] | undefined {
+  const match = servicePath.match(/^services\[(\d+)\]$/)
+  if (!match) return undefined
+
+  const serviceIndex = Number(match[1])
+  return values.services?.[serviceIndex]?.files
+}
+
+function invalidateServiceFile(
+  file: FormPublishData['services'][number]['files'][number] | undefined
+) {
+  if (!file) {
+    return { url: '', type: 'url', valid: false }
+  }
+
+  return {
+    ...file,
+    valid: false
+  }
+}
+
 export default function CustomProvider(props: InputProps): ReactElement {
   const chainId = useChainId()
   const newCancelToken = useCancelToken()
-  const { initialValues, setFieldError } = useFormikContext<FormPublishData>()
+  const { initialValues, setFieldError, values, setFieldValue } =
+    useFormikContext<FormPublishData>()
   const [field, , helpers] = useField(props.name)
   const [isLoading, setIsLoading] = useState(false)
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false)
+  const didInitializeDefaultProviderRef = useRef(false)
+  const previousProviderUrlRef = useRef<string>()
 
   useEffect(() => {
-    helpers.setValue({ url: customProviderUrl, valid: true, custom: true })
-  }, [])
+    if (didInitializeDefaultProviderRef.current) return
+    if (field.value && typeof field.value.url !== 'undefined') {
+      didInitializeDefaultProviderRef.current = true
+      return
+    }
+
+    const providerUrl =
+      customProviderUrl || initialValues.services[0].providerUrl.url
+
+    if (!providerUrl) return
+
+    didInitializeDefaultProviderRef.current = true
+    helpers.setValue({ url: providerUrl, valid: true, custom: true })
+  }, [chainId, field.value, helpers, initialValues.services])
+
+  useEffect(() => {
+    const previousProviderUrl = previousProviderUrlRef.current
+    const currentProviderUrl = field.value?.url
+
+    previousProviderUrlRef.current = currentProviderUrl
+
+    if (!previousProviderUrl || previousProviderUrl === currentProviderUrl) {
+      return
+    }
+
+    if (!props.name.startsWith('services[')) return
+
+    const servicePath = props.name.replace(/\.providerUrl$/, '')
+    const currentFiles = getServiceFiles(values, servicePath)
+    const hasValidatedFile = currentFiles?.[0]?.valid || currentFiles?.[0]?.url
+
+    if (!hasValidatedFile) return
+
+    setFieldValue(`${servicePath}.files`, [
+      invalidateServiceFile(currentFiles?.[0])
+    ])
+  }, [field.value?.url, props.name, setFieldValue, values])
 
   async function handleValidation(e: React.SyntheticEvent) {
     e.preventDefault()
@@ -98,11 +159,8 @@ export default function CustomProvider(props: InputProps): ReactElement {
 
   function handleDefault(e: React.SyntheticEvent) {
     e.preventDefault()
-    const oceanConfig = getOceanConfig(chainId || 100)
     const providerUrl =
-      customProviderUrl ||
-      oceanConfig?.nodeUri ||
-      initialValues.services[0].providerUrl.url
+      customProviderUrl || initialValues.services[0].providerUrl.url
     helpers.setValue({ url: providerUrl, valid: true, custom: true })
   }
 
@@ -119,8 +177,10 @@ export default function CustomProvider(props: InputProps): ReactElement {
         name={`${field.name}.url`}
         isLoading={isLoading}
         handleButtonClick={handleValidation}
+        disableButton={props.disabled}
         isValidated={field?.value?.valid === true}
         onReset={handleClear}
+        showResetButton={!props.disabled}
         additionalAction={
           field?.value?.valid === true ? (
             <Button
@@ -152,7 +212,7 @@ export default function CustomProvider(props: InputProps): ReactElement {
             onClose={() => setIsInfoModalOpen(false)}
           />
         </>
-      ) : (
+      ) : !props.disabled ? (
         <Button
           style="text"
           size="small"
@@ -164,7 +224,7 @@ export default function CustomProvider(props: InputProps): ReactElement {
             Use Default Provider
           </div>
         </Button>
-      )}
+      ) : null}
     </>
   )
 }

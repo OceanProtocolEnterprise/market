@@ -5,6 +5,7 @@ import { FormPublishData, PublishFeedback } from './_types'
 import { getOceanConfig } from '@utils/ocean'
 import { useAccount, useChainId } from 'wagmi'
 import { useMarketMetadata } from '@context/MarketMetadata'
+import { customProviderUrl } from '../../../app.config.cjs'
 
 export function Steps({
   feedback
@@ -40,7 +41,7 @@ export function Steps({
     if (isBaseTokenSet) return
 
     setFieldValue('pricing.baseToken', defaultBaseToken)
-  }, [approvedBaseTokens, values?.pricing?.baseToken?.address])
+  }, [approvedBaseTokens, setFieldValue, values?.pricing?.baseToken?.address])
 
   // auto-sync publish feedback into form data values
   useEffect(() => {
@@ -64,16 +65,26 @@ export function Steps({
     if (!values?.user?.chainId || isCustomProviderUrl === true) return
 
     const config = getOceanConfig(values.user.chainId)
+    const providerUrl = customProviderUrl || config?.oceanNodeUri
+
+    if (!providerUrl) return
+
     if (config) {
       setFieldValue('services[0].providerUrl', {
-        url: config.oceanNodeUri,
+        url: providerUrl,
         valid: true,
-        custom: false
+        custom: Boolean(customProviderUrl)
       })
     }
 
     setTouched({ ...touched, services: [{ providerUrl: { url: true } }] })
-  }, [values?.user?.chainId, isCustomProviderUrl, setFieldValue, setTouched])
+  }, [
+    values?.user?.chainId,
+    isCustomProviderUrl,
+    setFieldValue,
+    setTouched,
+    touched
+  ])
 
   const { component } = wizardSteps.filter((stepContent) => {
     return stepContent.step === values.user.stepCurrent

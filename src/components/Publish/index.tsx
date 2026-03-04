@@ -152,7 +152,7 @@ export default function PublishPage({
         ddo,
         signer,
         appConfig.encryptAsset,
-        customProviderUrl || values.services[0].providerUrl.url,
+        values?.services[0]?.providerUrl?.url || customProviderUrl,
         ssiWalletContext
       )
 
@@ -233,7 +233,7 @@ export default function PublishPage({
         erc721Address,
         userAddress,
         0,
-        customProviderUrl || values.services[0].providerUrl.url,
+        values?.services[0]?.providerUrl?.url || customProviderUrl,
         '',
         toBeHex(ipfsUpload.flags),
         ipfsUpload.metadataIPFS,

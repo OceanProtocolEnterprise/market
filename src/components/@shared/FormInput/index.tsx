@@ -100,6 +100,16 @@ export interface InputProps {
   >
   priceOnRight?: boolean
   computeHelp?: string
+  checkUrl?: boolean
+  hideButton?: boolean
+  hideError?: boolean
+  disableButton?: boolean
+  isValidated?: boolean
+  onReset?: () => void
+  showResetButton?: boolean
+  additionalAction?: ReactNode
+  showDeleteButton?: boolean
+  onDelete?: () => void
   activeFileType?: string
   existingFilePlaceholder?: string
   showExistingFileNotice?: boolean
