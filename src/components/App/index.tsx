@@ -14,6 +14,7 @@ import useEnterpriseFeeCollector from '@hooks/useEnterpriseFeeCollector'
 import useTokenApproval from '@hooks/useTokenApproval'
 import useAllowedTokenAddresses from '@hooks/useAllowedTokenAddresses'
 import NetworkWarningModal from './NetworkWarningModal'
+import { getAllowedErc20ChainIds } from '@utils/runtimeConfig'
 
 import contentPurgatory from '../../../content/purgatory.json'
 import styles from './index.module.css'
@@ -48,30 +49,8 @@ export default function App({
   const toastShownRef = useRef(false)
 
   useEffect(() => {
-    try {
-      const allowedErc20Env =
-        process.env.NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES ||
-        (typeof window !== 'undefined' &&
-          window.__RUNTIME_CONFIG__?.NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES)
-
-      if (allowedErc20Env) {
-        const parsed = JSON.parse(allowedErc20Env)
-        const chains = Object.keys(parsed)
-          .filter(
-            (chainId) =>
-              Array.isArray(parsed[chainId]) && parsed[chainId].length > 0
-          )
-          .map(Number)
-        setSupportedChains(chains)
-      }
-    } catch (error) {
-      console.error(
-        'Failed to parse NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES:',
-        error
-      )
-    } finally {
-      setSupportedChainsLoaded(true)
-    }
+    setSupportedChains(getAllowedErc20ChainIds([]))
+    setSupportedChainsLoaded(true)
   }, [])
 
   let isNetworkSupported = true

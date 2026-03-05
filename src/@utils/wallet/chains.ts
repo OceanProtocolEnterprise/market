@@ -1,6 +1,6 @@
 import { Chain } from 'wagmi/chains'
 import * as wagmiChains from 'wagmi/chains'
-import { getRuntimeConfig } from '../runtimeConfig'
+import { getNodeUriMap } from '../runtimeConfig'
 
 // Custom OP Sepolia chain
 const opSepolia: Chain = {
@@ -48,11 +48,7 @@ export const getSupportedChains = (chainIdsSupported: number[]): Chain[] => {
   // Include custom chains
   const allChains = [...baseChains, opSepolia, ethereumHoodi]
 
-  // Load RPC map from .env
-  const runtimeConfig = getRuntimeConfig()
-  const rpcMap: Record<string, string> = runtimeConfig.NEXT_PUBLIC_NODE_URI_MAP
-    ? JSON.parse(runtimeConfig.NEXT_PUBLIC_NODE_URI_MAP)
-    : {}
+  const rpcMap = getNodeUriMap()
 
   // Filter chains by allowed IDs and override RPCs if set in env
   const filteredChains = allChains

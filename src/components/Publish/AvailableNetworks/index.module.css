@@ -1,5 +1,10 @@
 .networks {
-  column-count: 2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacer) / 6);
 }
 .title {
   font-size: var(--font-size-small);

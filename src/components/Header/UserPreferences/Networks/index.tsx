@@ -12,21 +12,25 @@ import useNetworkMetadata, {
 } from '@hooks/useNetworkMetadata'
 import { useUserPreferences } from '@context/UserPreferences'
 import { useMarketMetadata } from '@context/MarketMetadata'
+import { getAllowedErc20ChainIds } from '@utils/runtimeConfig'
 
-export default function Networks(): ReactElement {
+export default function Networks(): ReactElement | null {
   const { appConfig } = useMarketMetadata()
   const { networksList } = useNetworkMetadata()
   const { chainIds } = useUserPreferences()
+  const supportedChainIds = getAllowedErc20ChainIds(appConfig.chainIdsSupported)
+
+  if (supportedChainIds.length <= 1) return null
 
   const networksMain = filterNetworksByType(
     'mainnet',
-    appConfig.chainIdsSupported,
+    supportedChainIds,
     networksList
   )
 
   const networksTest = filterNetworksByType(
     'testnet',
-    appConfig.chainIdsSupported,
+    supportedChainIds,
     networksList
   )
 

@@ -3,7 +3,11 @@ import {
   Config,
   getOceanArtifactsAddressesByChainId
 } from '@oceanprotocol/lib'
-import { getRuntimeConfig } from '../runtimeConfig'
+import {
+  getAllowedErc20Map,
+  getNodeUriMap,
+  getRuntimeConfig
+} from '../runtimeConfig'
 import { getAddress } from 'ethers'
 
 export interface ConfigEnterprise extends Config {
@@ -59,22 +63,13 @@ function validateAndChecksumAddresses(addresses: string[]): string[] {
 export function getOceanConfig(
   network: string | number
 ): ConfigEnterprise | null {
-  const runtimeConfig = getRuntimeConfig()
-
   if (!network) {
     console.warn('[getOceanConfig] No network provided yet.')
     return null
   }
 
-  // Load the RPC map from .env
-  const rpcMap: Record<string, string> = runtimeConfig.NEXT_PUBLIC_NODE_URI_MAP
-    ? JSON.parse(runtimeConfig.NEXT_PUBLIC_NODE_URI_MAP)
-    : {}
-
-  const erc20Map: Record<string, string[]> =
-    runtimeConfig.NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES
-      ? JSON.parse(runtimeConfig.NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES)
-      : {}
+  const rpcMap = getNodeUriMap()
+  const erc20Map = getAllowedErc20Map()
 
   let config = new ConfigHelper().getConfig(network) as any
 
