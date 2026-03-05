@@ -407,7 +407,7 @@ export const getNewServiceInitialValues = (
     paymentCollector: accountId,
     providerUrl: {
       url: firstService.serviceEndpoint,
-      valid: false,
+      valid: true,
       custom: false
     },
     files: [{ url: '', type: 'url' }],

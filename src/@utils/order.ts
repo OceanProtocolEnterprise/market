@@ -53,7 +53,7 @@ export async function initializeProvider(
       }
 
       const initializePs = await ProviderInstance.initializePSVerification(
-        customProviderUrl || service.serviceEndpoint,
+        service.serviceEndpoint || customProviderUrl,
         command
       )
 
@@ -63,7 +63,7 @@ export async function initializeProvider(
           service.id,
           0,
           accountId,
-          customProviderUrl || service.serviceEndpoint
+          service.serviceEndpoint || customProviderUrl
         )
       }
 
@@ -74,7 +74,7 @@ export async function initializeProvider(
       service.id,
       0,
       accountId,
-      customProviderUrl || service.serviceEndpoint
+      service.serviceEndpoint || customProviderUrl
     )
   } catch (error: any) {
     const message = getErrorMessage(error.message)

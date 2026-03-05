@@ -19,7 +19,11 @@ export default function MethodInput({
   handleButtonClick,
   isLoading,
   name,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  checkUrl: _checkUrl,
   disabled = false,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  storageType: _storageType,
   ...props
 }: MethodInputProps): ReactElement {
   const [field, meta] = useField(name)

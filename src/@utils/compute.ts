@@ -16,10 +16,7 @@ import {
 import { getServiceById } from './ddo'
 import { SortTermOptions } from '../@types/aquarius/SearchQuery'
 import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelection'
-import {
-  transformAssetToAssetSelection,
-  transformAssetToAssetSelectionForComputeWizard
-} from './assetConverter'
+import { transformAssetToAssetSelectionForComputeWizard } from './assetConverter'
 import { getFileDidInfo } from './provider'
 import { toast } from 'react-toastify'
 import { Asset } from 'src/@types/Asset'
@@ -29,7 +26,7 @@ import {
   PublisherTrustedAlgorithms
 } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
-import { customProviderUrl } from 'app.config.cjs'
+import { customProviderUrl, nodeUriIndex } from 'app.config.cjs'
 import { ServiceComputeOptions } from '@oceanprotocol/ddo-js'
 // Local form shape needed by compute transform
 type ComputeFormLike = {
@@ -339,7 +336,9 @@ export async function getAllComputeJobs(
     isLoaded: false
   }
 
-  const providerUrls = [customProviderUrl]
+  const providerUrls = Array.isArray(nodeUriIndex)
+    ? nodeUriIndex
+    : [customProviderUrl]
   computeResult.computeJobs = await getJobs(
     providerUrls,
     accountId,

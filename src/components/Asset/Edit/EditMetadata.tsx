@@ -27,7 +27,6 @@ import { AssetExtended } from 'src/@types/AssetExtended'
 import { customProviderUrl, encryptAsset } from '../../../../app.config.cjs'
 import { isAddress, Signer, toBeHex } from 'ethers'
 import { convertLinks } from '@utils/links'
-import { License } from 'src/@types/ddo/License'
 import { AdditionalVerifiableCredentials } from 'src/@types/ddo/AdditionalVerifiableCredentials'
 import { useSsiWallet } from '@context/SsiWallet'
 import { State } from 'src/@types/ddo/State'
@@ -177,8 +176,8 @@ export default function Edit({
         updatedAsset,
         signer,
         encryptAsset,
-        customProviderUrl ||
-          updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+        updatedAsset?.credentialSubject?.services[0]?.serviceEndpoint ||
+          customProviderUrl,
         ssiWalletContext
       )
 
@@ -188,8 +187,8 @@ export default function Edit({
           updatedAsset.credentialSubject.nftAddress,
           await signer.getAddress(),
           updatedNft.state,
-          customProviderUrl ||
-            updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+          updatedAsset?.credentialSubject?.services[0]?.serviceEndpoint ||
+            customProviderUrl,
           '',
           toBeHex(ipfsUpload.flags as any),
           ipfsUpload.metadataIPFS,

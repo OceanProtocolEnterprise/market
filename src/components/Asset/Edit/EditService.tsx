@@ -79,7 +79,7 @@ export default function EditService({
         const fileInfo = await getFileDidInfo(
           asset.id,
           service.id,
-          customProviderUrl || service.serviceEndpoint
+          service?.serviceEndpoint || customProviderUrl
         )
         if (fileInfo && fileInfo.length > 0 && fileInfo[0]?.type) {
           setDetectedFileType(fileInfo[0].type)
@@ -252,8 +252,8 @@ export default function EditService({
         updatedAsset,
         signer,
         encryptAsset,
-        customProviderUrl ||
-          updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+        updatedAsset?.credentialSubject?.services[0]?.serviceEndpoint ||
+          customProviderUrl,
         ssiWalletContext
       )
 
@@ -264,8 +264,9 @@ export default function EditService({
           updatedAsset.credentialSubject.nftAddress,
           await signer.getAddress(),
           0,
-          customProviderUrl ||
-            updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+          updatedAsset?.credentialSubject?.services[0]?.serviceEndpoint ||
+            updatedAsset?.credentialSubject?.services[0]?.serviceEndpoint ||
+            customProviderUrl,
           '',
           toBeHex(ipfsUpload.flags),
           ipfsUpload.metadataIPFS,

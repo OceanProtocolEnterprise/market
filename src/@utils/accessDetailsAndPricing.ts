@@ -66,7 +66,7 @@ export async function getOrderPriceAndFees(
         service.id,
         0,
         accountId,
-        customProviderUrl || service.serviceEndpoint
+        service?.serviceEndpoint || customProviderUrl
       )
     }
     initializeData = !providerFees && initialize

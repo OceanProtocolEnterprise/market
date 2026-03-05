@@ -41,6 +41,7 @@ type NormalizedService = {
   name: string
   description: string
   type: string
+  serviceEndpoint?: string
   duration: number
   price: number
   symbol: string
@@ -84,6 +85,7 @@ type AlgorithmServiceForm = {
   title: string
   serviceDescription?: string
   type: string
+  serviceEndpoint?: string
   duration: number
   price: number
   symbol: string
@@ -557,6 +559,7 @@ export default function SelectServicesStep({
           description:
             extractString(svc.description) || `Service for ${svc.type}`,
           type: svc.type,
+          serviceEndpoint: svc.serviceEndpoint,
           duration: Number(svc.timeout ?? 0),
           price: Number(assetDdo.indexedMetadata.stats[idx]?.prices[0]?.price),
           symbol: getServiceTokenSymbol(assetDdo, idx, svc.id, tokenSymbolMap),
@@ -594,6 +597,7 @@ export default function SelectServicesStep({
             title: svc.title,
             serviceDescription: svc.description,
             type: svc.type,
+            serviceEndpoint: svc.serviceEndpoint,
             duration: svc.duration,
             price: svc.price,
             symbol: svc.symbol,
@@ -700,6 +704,7 @@ export default function SelectServicesStep({
       title: svc.title,
       serviceDescription: svc.description,
       type: svc.type,
+      serviceEndpoint: svc.serviceEndpoint,
       duration: svc.duration,
       price: svc.price,
       symbol: svc.symbol,

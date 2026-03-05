@@ -9,15 +9,18 @@ import appConfig from 'app.config.cjs'
 
 interface SelectEnvironmentProps {
   computeEnvs: ComputeEnvironment[]
+  providerUrl?: string
 }
 
 const { customProviderUrl } = appConfig
 
 export default function SelectEnvironment({
-  computeEnvs
+  computeEnvs,
+  providerUrl
 }: SelectEnvironmentProps): ReactElement {
   const { values, setFieldValue } = useFormikContext<FormComputeData>()
   const [selectedEnvId, setSelectedEnvId] = useState<string>()
+  const providerUrlForNodeInfo = providerUrl || customProviderUrl
 
   useEffect(() => {
     if (values.computeEnv?.id) {
@@ -31,13 +34,15 @@ export default function SelectEnvironment({
       const availableEnvs =
         computeEnvs?.length > 0
           ? computeEnvs
-          : await ProviderInstance.getComputeEnvironments(customProviderUrl)
+          : await ProviderInstance.getComputeEnvironments(
+              providerUrlForNodeInfo
+            )
       const selectedEnv = availableEnvs.find((env) => env.id === envId)
       if (selectedEnv) {
         setFieldValue('computeEnv', selectedEnv)
       }
     },
-    [computeEnvs, setFieldValue]
+    [computeEnvs, providerUrlForNodeInfo, setFieldValue]
   )
 
   return (
@@ -48,7 +53,7 @@ export default function SelectEnvironment({
         <EnvironmentSelection
           environments={computeEnvs}
           selected={selectedEnvId}
-          nodeUrl={customProviderUrl}
+          nodeUrl={providerUrlForNodeInfo}
           onChange={handleEnvironmentSelect}
         />
       </div>
