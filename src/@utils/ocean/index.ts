@@ -56,8 +56,16 @@ function validateAndChecksumAddresses(addresses: string[]): string[] {
   }, [])
 }
 
-export function getOceanConfig(network: string | number): ConfigEnterprise {
+export function getOceanConfig(
+  network: string | number
+): ConfigEnterprise | null {
   const runtimeConfig = getRuntimeConfig()
+
+  if (!network) {
+    console.warn('[getOceanConfig] No network provided yet.')
+    return null
+  }
+
   // Load the RPC map from .env
   const rpcMap: Record<string, string> = runtimeConfig.NEXT_PUBLIC_NODE_URI_MAP
     ? JSON.parse(runtimeConfig.NEXT_PUBLIC_NODE_URI_MAP)
@@ -68,12 +76,13 @@ export function getOceanConfig(network: string | number): ConfigEnterprise {
       ? JSON.parse(runtimeConfig.NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES)
       : {}
 
-  if (!network) {
-    console.warn('[getOceanConfig] No network provided yet.')
-    return {} as ConfigEnterprise
+  let config = new ConfigHelper().getConfig(network) as any
+
+  if (!config) {
+    console.warn(`[getOceanConfig] No config found for network: ${network}`)
+    return null
   }
 
-  let config = new ConfigHelper().getConfig(network) as any
   if (network === 8996) {
     config = { ...config, ...sanitizeDevelopmentConfig(config) }
   }
@@ -86,8 +95,10 @@ export function getOceanConfig(network: string | number): ConfigEnterprise {
     config.tokenAddresses = validAddresses
   } else {
     // Fallback if no map entry exists: use the default config ocean token as a single-item array
-    config.tokenAddresses = [config.oceanTokenAddress]
-  } // Get contracts for current network
+    config.tokenAddresses = config?.oceanTokenAddress
+      ? [config.oceanTokenAddress]
+      : []
+  }
   const enterpriseContracts = getOceanArtifactsAddressesByChainId(
     Number(network)
   )
