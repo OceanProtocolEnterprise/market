@@ -8,6 +8,12 @@ import { Fees } from 'src/@types/feeCollector/FeeCollector.type'
 import { OpcFee } from '@context/MarketMetadata/_types'
 import { useEthersSigner } from './useEthersSigner'
 
+function isNetworkChangedError(error: any): boolean {
+  if (!error) return false
+  const message = String(error?.message || '').toLowerCase()
+  return error?.code === 'NETWORK_ERROR' || message.includes('network changed')
+}
+
 function useEnterpriseFeeCollector() {
   const chainId = useChainId()
   const signer = useEthersSigner()
@@ -64,6 +70,16 @@ function useEnterpriseFeeCollector() {
                 } as Fees
               }
             } catch (innerError) {
+              if (isNetworkChangedError(innerError)) {
+                return {
+                  approved: false,
+                  feePercentage: '0',
+                  maxFee: '0',
+                  minFee: '0',
+                  tokenAddress
+                } as Fees
+              }
+
               console.error(
                 `Error fetching fees for token ${tokenAddress}:`,
                 innerError
@@ -82,6 +98,7 @@ function useEnterpriseFeeCollector() {
         const results = await Promise.all(feesPromises)
         return results
       } catch (error: any) {
+        if (isNetworkChangedError(error)) return []
         console.error('Error fetching fees:', error)
         return []
       }
@@ -90,7 +107,12 @@ function useEnterpriseFeeCollector() {
   )
 
   useEffect(() => {
-    if (!signer || !chainId) return
+    if (!signer || !chainId) {
+      setEnterpriseFeeCollector(undefined)
+      setFees(undefined)
+      return
+    }
+
     const config = getOceanConfig(chainId)
     if (!config || !config.EnterpriseFeeCollector) return
 
@@ -109,11 +131,19 @@ function useEnterpriseFeeCollector() {
 
   useEffect(() => {
     if (!enterpriseFeeCollector) return
+    let cancelled = false
+
     const fetchData = async () => {
       const result = await fetchFees(enterpriseFeeCollector)
+      if (cancelled) return
       setFees(result)
     }
+
     fetchData()
+
+    return () => {
+      cancelled = true
+    }
   }, [enterpriseFeeCollector, fetchFees]) // Added fetchFees to deps
 
   // 2. Wrap getOpcData in useCallback

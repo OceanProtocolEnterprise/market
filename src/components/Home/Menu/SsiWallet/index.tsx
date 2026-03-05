@@ -72,11 +72,6 @@ export function SsiWallet(): ReactElement {
       setWalletDids(dids)
       // Always set selected DID to the first from current wallet to avoid stale selection after API change
       setSelectedDid(dids[0]?.did)
-      LoggerInstance.log(
-        '[SSI] fetched DIDs for wallet',
-        selectedWallet?.id,
-        dids
-      )
     } catch (error) {
       LoggerInstance.error(error)
     }
@@ -90,11 +85,6 @@ export function SsiWallet(): ReactElement {
       const keys = await getWalletKeys(selectedWallet, sessionToken.token)
       setSsiKey(keys)
       setSelectedKey(selectedKey || keys[0])
-      LoggerInstance.log(
-        '[SSI] fetched keys for wallet',
-        selectedWallet?.id,
-        keys
-      )
     } catch (error) {
       setSessionToken(undefined)
       LoggerInstance.error(error)
