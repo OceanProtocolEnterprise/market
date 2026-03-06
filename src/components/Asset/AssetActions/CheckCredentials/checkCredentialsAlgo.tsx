@@ -5,6 +5,7 @@ import { useSsiWallet } from '@context/SsiWallet'
 import { toast } from 'react-toastify'
 import {
   getPd,
+  isPolicyServerRedirectMessage,
   requestCredentialPresentation
 } from '@utils/wallet/policyServer'
 import {
@@ -24,6 +25,10 @@ import { useAccount } from 'wagmi'
 import { CheckCredentialState, ExchangeStateData } from '@hooks/useCredentials'
 import { useCredentialDialog } from '../Compute/CredentialDialogProvider'
 import { parseCredentialPolicies } from '@components/Publish/_utils'
+import {
+  buildSsiValidationErrorMessage,
+  getSsiVerificationFailureDetails
+} from './errorUtils'
 
 function newExchangeStateData(): ExchangeStateData {
   return {
@@ -115,17 +120,15 @@ export function AssetActionCheckCredentialsAlgo({
               accountId,
               service.id
             )
+            const openid4vcMessage = presentationResult?.openid4vc
 
             if (
-              presentationResult.openid4vc &&
-              typeof presentationResult.openid4vc === 'object' &&
-              (presentationResult.openid4vc as any).redirectUri &&
-              (presentationResult.openid4vc as any).redirectUri.includes(
-                'success'
-              )
+              openid4vcMessage &&
+              isPolicyServerRedirectMessage(openid4vcMessage) &&
+              openid4vcMessage.redirectUri.includes('success')
             ) {
               const { id } = extractURLSearchParams(
-                (presentationResult.openid4vc as any).redirectUri
+                openid4vcMessage.redirectUri
               )
               cacheVerifierSessionId(asset.id, service.id, id, true)
               if (typeof window !== 'undefined' && window.localStorage) {
@@ -141,8 +144,16 @@ export function AssetActionCheckCredentialsAlgo({
               onVerified?.()
               break
             }
+            if (typeof openid4vcMessage !== 'string') {
+              toast.error(
+                openid4vcMessage.errorMessage ||
+                  'Invalid presentation request response from policy server'
+              )
+              setCheckCredentialState(CheckCredentialState.Stop)
+              break
+            }
 
-            exchangeStateData.openid4vp = presentationResult.openid4vc
+            exchangeStateData.openid4vp = openid4vcMessage
             exchangeStateData.poliyServerData =
               presentationResult.policyServerData
 
@@ -274,12 +285,17 @@ export function AssetActionCheckCredentialsAlgo({
                 'errorMessage' in result ||
                 result.redirectUri.includes('error')
               ) {
-                console.error(
-                  'Algorithm credential verification failed:',
-                  result
+                const details = await getSsiVerificationFailureDetails(
+                  { status: 400, data: result },
+                  exchangeStateData.sessionId,
+                  (message, err) => console.error(message, err)
                 )
-                toast.error('Validation was not successful as use presentation')
+                const errorMessage = buildSsiValidationErrorMessage(details)
+                setError(errorMessage)
+                setCredentialError(errorMessage)
                 handleResetWalletCache()
+                toast.error(errorMessage)
+                onError?.()
               } else {
                 cacheVerifierSessionId(
                   asset.id,
@@ -289,9 +305,18 @@ export function AssetActionCheckCredentialsAlgo({
                 onVerified?.() // ✅ Verification successful → move to next
               }
             } catch (error) {
+              const details = await getSsiVerificationFailureDetails(
+                error,
+                exchangeStateData.sessionId,
+                (message, err) => console.error(message, err)
+              )
+              const errorMessage = buildSsiValidationErrorMessage(details)
               console.error('Algorithm credential verification error:', error)
-              setError('Validation was not successful')
+              setError(errorMessage)
+              setCredentialError(errorMessage)
+              toast.error(errorMessage)
               handleResetWalletCache()
+              onError?.()
             }
             setExchangeStateData({
               ...exchangeStateData,
@@ -310,9 +335,12 @@ export function AssetActionCheckCredentialsAlgo({
           }
         }
       } catch (error: any) {
-        const errorMessage = error?.message
-          ? `SSI credential validation was not successful: ${error.message}`
-          : 'An error occurred during SSI credential validation. Please check the console'
+        const details = await getSsiVerificationFailureDetails(
+          error,
+          exchangeStateData.sessionId,
+          (message, err) => console.error(message, err)
+        )
+        const errorMessage = buildSsiValidationErrorMessage(details)
 
         setError(errorMessage)
         setCredentialError(errorMessage)

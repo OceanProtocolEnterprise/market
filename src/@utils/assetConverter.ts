@@ -17,6 +17,16 @@ type StatsEntry = {
   }>
 }
 
+function safeNormalizeUrl(url?: string): string | null {
+  if (!url?.trim()) return null
+
+  try {
+    return normalizeUrl(url)
+  } catch {
+    return null
+  }
+}
+
 const resolveBaseTokenSymbolFromStats = (
   asset: Asset,
   serviceIndex: number,
@@ -62,8 +72,8 @@ export async function transformAssetToAssetSelection(
       getServiceByName(asset, 'compute') || getServiceByName(asset, 'access')
     if (
       Number(asset.indexedMetadata.stats[0]?.prices[0]?.price) >= 0 &&
-      normalizeUrl(algoService?.serviceEndpoint) ===
-        normalizeUrl(datasetProviderEndpoint)
+      safeNormalizeUrl(algoService?.serviceEndpoint) ===
+        safeNormalizeUrl(datasetProviderEndpoint)
     ) {
       const isAllAlgorithmsAllowed =
         selectedAlgorithms?.some(
@@ -84,8 +94,8 @@ export async function transformAssetToAssetSelection(
         if (service?.type !== 'compute') return
         // enforce same provider as datasetProviderEndpoint
         if (
-          normalizeUrl(service?.serviceEndpoint) !==
-          normalizeUrl(datasetProviderEndpoint)
+          safeNormalizeUrl(service?.serviceEndpoint) !==
+          safeNormalizeUrl(datasetProviderEndpoint)
         )
           return
         const key = `${asset.id}|${service.id}`
@@ -149,8 +159,8 @@ export async function transformAssetToAssetSelectionDataset(
       getServiceByName(asset, 'compute') || getServiceByName(asset, 'access')
     if (
       Number(asset.indexedMetadata.stats[0]?.prices[0]?.price) >= 0 &&
-      normalizeUrl(algoService?.serviceEndpoint) ===
-        normalizeUrl(datasetProviderEndpoint)
+      safeNormalizeUrl(algoService?.serviceEndpoint) ===
+        safeNormalizeUrl(datasetProviderEndpoint)
     ) {
       const isAllAlgorithmsAllowed =
         selectedAlgorithms?.some(
@@ -173,8 +183,8 @@ export async function transformAssetToAssetSelectionDataset(
         if (service?.type !== 'compute') return
         // enforce same provider as datasetProviderEndpoint
         if (
-          normalizeUrl(service?.serviceEndpoint) !==
-          normalizeUrl(datasetProviderEndpoint)
+          safeNormalizeUrl(service?.serviceEndpoint) !==
+          safeNormalizeUrl(datasetProviderEndpoint)
         )
           return
 
@@ -293,8 +303,8 @@ export async function transformAssetToAssetSelectionEdit(
 
     if (
       Number(asset.indexedMetadata.stats[0]?.prices[0]?.price) >= 0 &&
-      normalizeUrl(algoService?.serviceEndpoint) ===
-        normalizeUrl(datasetProviderEndpoint)
+      safeNormalizeUrl(algoService?.serviceEndpoint) ===
+        safeNormalizeUrl(datasetProviderEndpoint)
     ) {
       const { services } = asset.credentialSubject
 
@@ -348,8 +358,8 @@ export async function transformAssetToAssetSelectionForComputeWizard(
       getServiceByName(asset, 'compute') || getServiceByName(asset, 'access')
     if (
       Number(asset.indexedMetadata.stats[0]?.prices[0]?.price) >= 0 &&
-      normalizeUrl(algoService?.serviceEndpoint) ===
-        normalizeUrl(datasetProviderEndpoint)
+      safeNormalizeUrl(algoService?.serviceEndpoint) ===
+        safeNormalizeUrl(datasetProviderEndpoint)
     ) {
       const isAllAlgorithmsAllowed =
         selectedAlgorithms?.some(

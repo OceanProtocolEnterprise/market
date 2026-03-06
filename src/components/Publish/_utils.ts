@@ -580,8 +580,8 @@ export async function transformPublishFormToDdo(
   // Transform from files[0].url to string[] assuming only 1 file
   const filesTransformed = files?.length &&
     files[0].valid && [sanitizeUrl(files[0].url)]
-  const linksTransformed = links?.length &&
-    links[0].valid && [sanitizeUrl(links[0].url)]
+  const linksTransformed =
+    links?.length && links[0].valid && convertLinks([sanitizeUrl(links[0].url)])
 
   // const consumerParametersTransformed = usesConsumerParameters
   //   ? transformConsumerParameters(consumerParameters)
@@ -671,7 +671,7 @@ export async function transformPublishFormToDdo(
     tags: transformTags(tags),
     author,
     license,
-    links: convertLinks(linksTransformed),
+    // links: convertLinks(linksTransformed),
     additionalInformation: {
       termsAndConditions
     },
@@ -741,6 +741,7 @@ export async function transformPublishFormToDdo(
     datatokenAddress,
     serviceEndpoint: providerUrl.url,
     timeout: mapTimeoutStringToSeconds(timeout),
+    links: linksTransformed,
     ...(access === 'compute' && {
       compute: values.services[0].computeOptions
     }),

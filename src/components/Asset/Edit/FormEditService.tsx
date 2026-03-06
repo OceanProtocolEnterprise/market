@@ -100,6 +100,16 @@ export default function FormEditService({
     )
     return language?.name || ''
   }
+  useEffect(() => {
+    if (values && 'links' in values) {
+      const { links } = values as any
+      if (!links || links.length === 0) {
+        setFieldValue('links', [{ url: '', type: 'url' }])
+      }
+    } else {
+      setFieldValue('links', [{ url: '', type: 'url' }])
+    }
+  }, [values, setFieldValue])
 
   return (
     <Form>
@@ -186,7 +196,11 @@ export default function FormEditService({
           }
           showExistingFileNotice={showExistingFileNotice}
         />
-
+        <Field
+          {...getFieldContent('links', content.services.fields)}
+          component={Input}
+          name="links"
+        />
         <Field
           {...getFieldContent('timeout', data)}
           component={Input}

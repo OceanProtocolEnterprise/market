@@ -28,6 +28,8 @@ import EditFeedback from './EditFeedback'
 import { useAsset } from '@context/Asset'
 import { getEncryptedFiles } from '@utils/provider'
 import { useAccount, useChainId, usePublicClient } from 'wagmi'
+import { convertLinks } from '@utils/links'
+import { sanitizeUrl } from '@utils/url'
 import {
   generateCredentials,
   IpfsUpload,
@@ -83,6 +85,7 @@ export default function AddService({
   const [success, setSuccess] = useState<string>()
   const [error, setError] = useState<string>()
   const hasFeedback = error || success
+  const serviceEndpoint = asset.credentialSubject?.services[0]?.serviceEndpoint
 
   // add new service
   async function handleSubmit(values: ServiceEditForm, resetForm: () => void) {
@@ -246,11 +249,16 @@ export default function AddService({
         const filesEncrypted = await getEncryptedFiles(
           file,
           asset.credentialSubject?.chainId,
-          values.providerUrl.url,
+          serviceEndpoint,
           signer
         )
         newFiles = filesEncrypted
       }
+
+      const linksTransformed =
+        values.links?.length && values.links[0].valid && values.links[0].url
+          ? convertLinks([sanitizeUrl(values.links[0].url)])
+          : undefined
 
       const serviceCredentials = {
         ...(values.credentials || {}),
@@ -268,8 +276,9 @@ export default function AddService({
           '@language': values.language
         },
         files: newFiles || '',
+        links: linksTransformed,
         datatokenAddress,
-        serviceEndpoint: values.providerUrl.url,
+        serviceEndpoint,
         timeout: mapTimeoutStringToSeconds(values.timeout),
         credentials,
         ...(values.access === 'compute' &&
@@ -304,8 +313,8 @@ export default function AddService({
         updatedAsset,
         signer,
         encryptAsset,
-        customProviderUrl ||
-          updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+        updatedAsset?.credentialSubject?.services[0]?.serviceEndpoint ||
+          customProviderUrl,
         ssiWalletContext
       )
 
@@ -316,8 +325,8 @@ export default function AddService({
           updatedAsset.credentialSubject.nftAddress,
           await signer.getAddress(),
           0,
-          customProviderUrl ||
-            updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+          updatedAsset?.credentialSubject?.services[0]?.serviceEndpoint ||
+            customProviderUrl,
           '',
           toBeHex(ipfsUpload.flags),
           ipfsUpload.metadataIPFS,
@@ -373,6 +382,7 @@ export default function AddService({
               data={content.form.data}
               chainId={asset.credentialSubject?.chainId}
               assetType={asset.credentialSubject?.metadata?.type}
+              serviceEndpoint={serviceEndpoint}
             />
 
             <Web3Feedback
@@ -389,17 +399,25 @@ export default function AddService({
                     id: 'WILL BE CALCULATED AFTER SUBMIT',
                     type: 'access',
                     datatokenAddress: 'WILL BE FILLED AFTER SUBMIT',
-                    name: '',
+                    name: values.name,
                     description: {
-                      '@value': '',
-                      '@direction': '',
-                      '@language': ''
+                      '@value': values.description,
+                      '@direction': values.direction,
+                      '@language': values.language
                     },
                     files: asset.credentialSubject?.services[0].files,
+                    links:
+                      values.links?.length &&
+                      values.links[0].valid &&
+                      values.links[0].url
+                        ? convertLinks([sanitizeUrl(values.links[0].url)])
+                        : undefined,
                     serviceEndpoint:
                       asset.credentialSubject?.services[0].serviceEndpoint,
-                    timeout: 0,
-                    consumerParameters: [],
+                    timeout: mapTimeoutStringToSeconds(values.timeout),
+                    consumerParameters: transformConsumerParameters(
+                      values.consumerParameters
+                    ),
                     credentials: {
                       match_deny: 'any',
                       allow: [],

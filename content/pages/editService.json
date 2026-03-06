@@ -157,6 +157,15 @@
         "required": true
       },
       {
+        "name": "links",
+        "label": "Sample file",
+        "placeholder": "e.g. https://file.com/file.json",
+        "help": "This URL will be stored encrypted after publishing. Please make sure that the endpoint is accessible over the internet and is not protected by a firewall or by credentials.",
+        "prominentHelp": false,
+        "type": "files",
+        "required": false
+      },
+      {
         "name": "timeout",
         "label": "Timeout",
         "help": "Define how long buyers should be able to download the dataset again after the initial purchase.",

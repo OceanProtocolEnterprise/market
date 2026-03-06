@@ -41,6 +41,7 @@ export interface InputProps {
     | AssetSelectionAsset[]
     | BoxSelectionOption[]
     | ComputeEnvironment[]
+  optionTitles?: string[]
   sortOptions?: boolean
   fields?: FieldInputProps<any>[]
   methods?: boolean
@@ -100,6 +101,16 @@ export interface InputProps {
   >
   priceOnRight?: boolean
   computeHelp?: string
+  checkUrl?: boolean
+  hideButton?: boolean
+  hideError?: boolean
+  disableButton?: boolean
+  isValidated?: boolean
+  onReset?: () => void
+  showResetButton?: boolean
+  additionalAction?: ReactNode
+  showDeleteButton?: boolean
+  onDelete?: () => void
   activeFileType?: string
   existingFilePlaceholder?: string
   showExistingFileNotice?: boolean

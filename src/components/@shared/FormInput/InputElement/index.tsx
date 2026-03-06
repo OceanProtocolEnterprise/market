@@ -39,6 +39,21 @@ const DefaultInput = forwardRef(
       selectStyle,
       hideLabel,
       computeHelp,
+      methods,
+      innerFields,
+      checkUrl,
+      hideButton,
+      hideError,
+      disableButton,
+      isValidated,
+      onReset,
+      showResetButton,
+      additionalAction,
+      showDeleteButton,
+      onDelete,
+      activeFileType,
+      existingFilePlaceholder,
+      showExistingFileNotice,
       /* eslint-enable @typescript-eslint/no-unused-vars */
       ...props
     }: InputProps,
@@ -63,6 +78,7 @@ const InputElement = forwardRef(
   (
     {
       options,
+      optionTitles,
       sortOptions,
       size,
       field,
@@ -87,6 +103,21 @@ const InputElement = forwardRef(
       selectStyle,
       hideLabel,
       computeHelp,
+      methods,
+      innerFields,
+      checkUrl,
+      hideButton,
+      hideError,
+      disableButton,
+      isValidated,
+      onReset,
+      showResetButton,
+      additionalAction,
+      showDeleteButton,
+      onDelete,
+      activeFileType,
+      existingFilePlaceholder,
+      showExistingFileNotice,
       /* eslint-enable @typescript-eslint/no-unused-vars */
       ...props
     }: InputProps,
@@ -162,9 +193,9 @@ const InputElement = forwardRef(
             items={tabs}
             key={`tabFile_${props.name}`}
             className={styles.pricing}
-            activeFileType={props.activeFileType}
-            existingFilePlaceholder={props.existingFilePlaceholder}
-            showExistingFileNotice={props.showExistingFileNotice}
+            activeFileType={activeFileType}
+            existingFilePlaceholder={existingFilePlaceholder}
+            showExistingFileNotice={showExistingFileNotice}
           />
         )
       }
@@ -202,6 +233,7 @@ const InputElement = forwardRef(
         return (
           <InputRadio
             options={options as string[]}
+            optionTitles={optionTitles}
             inputSize={size}
             prefixes={prefixes}
             postfixes={postfixes}

@@ -1,6 +1,5 @@
 import { ReactElement } from 'react'
 import Link from 'next/link'
-import Dotdotdot from 'react-dotdotdot'
 import removeMarkdown from 'remove-markdown'
 import Publisher from '@shared/Publisher'
 import AssetType from '@shared/AssetType'
@@ -38,9 +37,7 @@ export default function AssetTeaser({
           />
         </aside>
         <header className={styles.header}>
-          <Dotdotdot tagName="h1" clamp={3} className={styles.title}>
-            {name.slice(0, 200)}
-          </Dotdotdot>
+          <h1 className={styles.title}>{name.slice(0, 200)}</h1>
 
           {!noPublisher && (
             <span className={styles.owner}>
@@ -50,9 +47,9 @@ export default function AssetTeaser({
         </header>
         {!noDescription && (
           <div className={styles.content}>
-            <Dotdotdot tagName="p" clamp={3}>
+            <p className={styles.description}>
               {removeMarkdown(description?.['@value']?.substring(0, 300) || '')}
-            </Dotdotdot>
+            </p>
           </div>
         )}
         <footer className={styles.footer}>

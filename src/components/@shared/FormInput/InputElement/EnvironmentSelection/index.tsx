@@ -15,6 +15,64 @@ export interface EnvironmentSelectionEnvironment extends ComputeEnvironment {
 function Empty({ message }: { message: string }) {
   return <div className={styles.empty}>{message}</div>
 }
+const hasGPUResource = (env: ComputeEnvironment): boolean => {
+  if (
+    env.resources?.some(
+      (resource) =>
+        resource.type === 'gpu' ||
+        resource.id?.toLowerCase().includes('gpu') ||
+        resource.description?.toLowerCase().includes('gpu')
+    )
+  ) {
+    return true
+  }
+
+  if (
+    env.free?.resources?.some(
+      (resource) =>
+        resource.type === 'gpu' ||
+        resource.id?.toLowerCase().includes('gpu') ||
+        resource.description?.toLowerCase().includes('gpu')
+    )
+  ) {
+    return true
+  }
+
+  if (env.fees) {
+    for (const chainId in env.fees) {
+      const feeConfigs = env.fees[chainId]
+      for (const feeConfig of feeConfigs) {
+        if (
+          feeConfig.prices?.some((price) =>
+            price.id?.toLowerCase().includes('gpu')
+          )
+        ) {
+          return true
+        }
+      }
+    }
+  }
+
+  return false
+}
+
+const getGPUDescription = (env: ComputeEnvironment): string | undefined => {
+  const gpuResource = env.resources?.find(
+    (r) => r.type === 'gpu' || r.id?.toLowerCase().includes('gpu')
+  )
+  if (gpuResource?.description) {
+    return gpuResource.description
+  }
+
+  const freeGpuResource = env.free?.resources?.find(
+    (r) => r.type === 'gpu' || r.id?.toLowerCase().includes('gpu')
+  )
+  if (freeGpuResource?.description) {
+    return freeGpuResource.description
+  }
+
+  return undefined
+}
 
 export default function EnvironmentSelection({
   environments,
@@ -87,6 +145,8 @@ export default function EnvironmentSelection({
                 const isSelected = selected === env.id
                 const freeAvailable = !!env.free
                 const hasPaid = env.fees && Object.keys(env.fees).length > 0
+                const gpuAvailable = hasGPUResource(env)
+                const gpuDescription = getGPUDescription(env)
 
                 return (
                   <div
@@ -123,6 +183,16 @@ export default function EnvironmentSelection({
                           <StatusTag type="free">Free</StatusTag>
                         )}
                         {hasPaid && <StatusTag type="paid">Paid</StatusTag>}
+                        {gpuAvailable && (
+                          <StatusTag
+                            type="gpu"
+                            tooltip={
+                              gpuDescription || 'GPU accelerated environment'
+                            }
+                          >
+                            GPU
+                          </StatusTag>
+                        )}
                       </div>
                     </div>
 

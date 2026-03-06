@@ -15,8 +15,20 @@ import Input from '@components/@shared/FormInput'
 import Accordion from '@components/@shared/Accordion'
 import customFilters from '../../../filters.config.cjs'
 import { State } from 'src/@types/ddo/State'
+import { nodeUriIndex } from '../../../app.config.cjs'
 
 const cx = classNames.bind(styles)
+
+function formatProviderLabel(providerUrl: string): string {
+  const providerWithoutProtocol = providerUrl.replace(/^https?:\/\//, '')
+  const firstDotIndex = providerWithoutProtocol.indexOf('.')
+
+  if (firstDotIndex > 0) {
+    return providerWithoutProtocol.slice(0, firstDotIndex)
+  }
+
+  return providerWithoutProtocol.slice(0, 10)
+}
 
 interface FilterStructure {
   id: string
@@ -25,6 +37,7 @@ interface FilterStructure {
   options: {
     label: string
     value: any
+    title?: string
   }[]
 }
 
@@ -178,6 +191,20 @@ export default function Filter({
           }
         ]
       : []),
+    ...(Array.isArray(nodeUriIndex) && nodeUriIndex.length > 1
+      ? [
+          {
+            id: 'nodeUriIndex',
+            label: 'Provider URL',
+            type: 'filterList',
+            options: nodeUriIndex.map((nodeUri: string) => ({
+              label: formatProviderLabel(nodeUri),
+              value: nodeUri,
+              title: nodeUri
+            }))
+          }
+        ]
+      : []),
     ...(Array.isArray(customFilters?.filters) &&
     customFilters?.filters?.length > 0 &&
     customFilters?.filters.some((filter) => filter !== undefined)
@@ -229,6 +256,7 @@ export default function Filter({
                       name={option.label}
                       type="checkbox"
                       options={[option.label]}
+                      optionTitles={[option.title || option.label]}
                       checked={isSelected}
                       onChange={async () => {
                         handleSelectedFilter(option.value, filter.id)
@@ -272,6 +300,7 @@ export default function Filter({
                       name={option.label}
                       type="checkbox"
                       options={[option.label]}
+                      optionTitles={[option.title || option.label]}
                       checked={isSelected}
                       onChange={async () => {
                         handleSelectedFilter(option.value, filter.id)

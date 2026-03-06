@@ -273,11 +273,17 @@ export default function Steps({
         return hasUserParamsStep ? (
           <UserParametersStep flow={flow} asset={asset} service={service} />
         ) : (
-          <SelectEnvironment computeEnvs={computeEnvs} />
+          <SelectEnvironment
+            computeEnvs={computeEnvs}
+            providerUrl={service?.serviceEndpoint}
+          />
         )
       case 5:
         return hasUserParamsStep ? (
-          <SelectEnvironment computeEnvs={computeEnvs} />
+          <SelectEnvironment
+            computeEnvs={computeEnvs}
+            providerUrl={service?.serviceEndpoint}
+          />
         ) : (
           <ConfigureEnvironment
             allResourceValues={allResourceValues}
@@ -411,11 +417,17 @@ export default function Steps({
           return hasUserParamsStep ? (
             <UserParametersStep flow={flow} asset={asset} service={service} />
           ) : (
-            <SelectEnvironment computeEnvs={computeEnvs} />
+            <SelectEnvironment
+              computeEnvs={computeEnvs}
+              providerUrl={service?.serviceEndpoint}
+            />
           )
         case 3:
           return hasUserParamsStep ? (
-            <SelectEnvironment computeEnvs={computeEnvs} />
+            <SelectEnvironment
+              computeEnvs={computeEnvs}
+              providerUrl={service?.serviceEndpoint}
+            />
           ) : (
             <ConfigureEnvironment
               allResourceValues={allResourceValues}
@@ -559,11 +571,17 @@ export default function Steps({
         return hasUserParamsStep ? (
           <UserParametersStep flow={flow} asset={asset} service={service} />
         ) : (
-          <SelectEnvironment computeEnvs={computeEnvs} />
+          <SelectEnvironment
+            computeEnvs={computeEnvs}
+            providerUrl={service?.serviceEndpoint}
+          />
         )
       case 5:
         return hasUserParamsStep ? (
-          <SelectEnvironment computeEnvs={computeEnvs} />
+          <SelectEnvironment
+            computeEnvs={computeEnvs}
+            providerUrl={service?.serviceEndpoint}
+          />
         ) : (
           <ConfigureEnvironment
             allResourceValues={allResourceValues}

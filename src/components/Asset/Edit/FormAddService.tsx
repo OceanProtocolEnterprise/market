@@ -19,11 +19,13 @@ import { useMarketMetadata } from '@context/MarketMetadata'
 export default function FormAddService({
   data,
   chainId,
-  assetType
+  assetType,
+  serviceEndpoint
 }: {
   data: FormFieldContent[]
   chainId: number
   assetType: string
+  serviceEndpoint: string
 }): ReactElement {
   const { approvedBaseTokens } = useMarketMetadata()
   const { values, setFieldValue } = useFormikContext<ServiceEditForm>()
@@ -89,6 +91,16 @@ export default function FormAddService({
       checked: values.access === 'compute'
     }
   ]
+  useEffect(() => {
+    if (values && 'links' in values) {
+      const { links } = values as any
+      if (!links || links.length === 0) {
+        setFieldValue('links', [{ url: '', type: 'url' }])
+      }
+    } else {
+      setFieldValue('links', [{ url: '', type: 'url' }])
+    }
+  }, [values, setFieldValue])
 
   return (
     <Form>
@@ -131,7 +143,7 @@ export default function FormAddService({
         {values.access === 'compute' && assetType === 'dataset' && (
           <FormEditComputeService
             chainId={chainId}
-            serviceEndpoint={values.providerUrl.url}
+            serviceEndpoint={serviceEndpoint}
             serviceCompute={defaultServiceComputeOptions}
           />
         )}
@@ -182,6 +194,11 @@ export default function FormAddService({
           {...getFieldContent('files', content.services.fields)}
           component={Input}
           name="files"
+        />
+        <Field
+          {...getFieldContent('links', content.services.fields)}
+          component={Input}
+          name="links"
         />
 
         <Field

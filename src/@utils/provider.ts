@@ -88,10 +88,9 @@ export async function initializeProviderForComputeMulti(
   )
 
   const providerUrl =
-    customProviderUrl ||
     safeDatasets[0]?.service.serviceEndpoint ||
-    algorithm.credentialSubject.services[svcIndexAlgo].serviceEndpoint
-
+    algorithm.credentialSubject.services[svcIndexAlgo].serviceEndpoint ||
+    customProviderUrl
   const chainId =
     safeDatasets[0]?.asset.credentialSubject.chainId ??
     algorithm.credentialSubject.chainId
@@ -132,7 +131,7 @@ export async function getEncryptedFiles(
     const response = await ProviderInstance.encrypt(
       files,
       chainId,
-      customProviderUrl || providerUrl,
+      providerUrl,
       signer
     )
     return response
@@ -153,7 +152,7 @@ export async function getFileDidInfo(
     const response = await ProviderInstance.checkDidFiles(
       did,
       serviceId,
-      customProviderUrl || providerUrl,
+      providerUrl,
       withChecksum
     )
     return response
@@ -194,7 +193,7 @@ export async function getFileInfo(
       try {
         response = await ProviderInstance.getFileInfo(
           fileIPFS,
-          customProviderUrl || providerUrl,
+          providerUrl,
           withChecksum
         )
       } catch (error) {
@@ -212,7 +211,7 @@ export async function getFileInfo(
       try {
         response = await ProviderInstance.getFileInfo(
           fileArweave,
-          customProviderUrl || providerUrl,
+          providerUrl,
           withChecksum
         )
       } catch (error) {
@@ -233,7 +232,7 @@ export async function getFileInfo(
       try {
         response = await ProviderInstance.getFileInfo(
           fileUrl,
-          customProviderUrl || providerUrl,
+          providerUrl,
           withChecksum
         )
       } catch (error) {
@@ -274,7 +273,7 @@ export async function downloadFile(
       service.id,
       0,
       validOrderTx || accessDetails.validOrderTx,
-      customProviderUrl || service.serviceEndpoint,
+      service.serviceEndpoint || customProviderUrl,
       signer,
       policyServer,
       userCustomParameters
@@ -282,7 +281,7 @@ export async function downloadFile(
     const fileInfo: any = await getFileDidInfo(
       asset.id,
       service.id,
-      customProviderUrl || service.serviceEndpoint
+      service.serviceEndpoint || customProviderUrl
     )
     const mimeExtensionMap: Record<string, string> = {
       'application/json': 'json',

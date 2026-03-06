@@ -99,6 +99,12 @@ export const initialValues: FormPublishData = {
   },
   services: [
     {
+      name: '',
+      description: {
+        value: '',
+        language: 'en',
+        direction: 'ltr'
+      },
       files: [{ url: '', type: 'url' }],
       links: [{ url: '', type: 'url' }],
       dataTokenOptions: { name: '', symbol: '' },
@@ -115,6 +121,8 @@ export const initialValues: FormPublishData = {
       credentials: {
         allow: [],
         deny: [],
+        allowInputValue: '',
+        denyInputValue: '',
         requestCredentials: [],
         vcPolicies: [],
         enabled: false

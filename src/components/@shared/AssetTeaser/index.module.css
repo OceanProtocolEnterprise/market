@@ -56,6 +56,17 @@ a.link:focus {
   margin: 0;
   padding-bottom: calc(var(--spacer) / 6);
   overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.description {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .owner {
   font-family: var(--font-family);

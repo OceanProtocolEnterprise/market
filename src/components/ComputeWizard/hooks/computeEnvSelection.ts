@@ -34,6 +34,7 @@ export function getSelectedComputeEnvAndResources(
         if (
           paidResources &&
           (paidResources.cpu > 0 ||
+            paidResources.gpu > 0 ||
             paidResources.ram > 0 ||
             paidResources.disk > 0)
         ) {

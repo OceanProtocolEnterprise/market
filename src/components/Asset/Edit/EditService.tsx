@@ -18,6 +18,8 @@ import EditFeedback from './EditFeedback'
 import { useAsset } from '@context/Asset'
 import { getEncryptedFiles, getFileDidInfo } from '@utils/provider'
 import { useAccount, useChainId, usePublicClient } from 'wagmi'
+import { convertLinks } from '@utils/links'
+import { sanitizeUrl } from '@utils/url'
 import {
   generateCredentials,
   IpfsUpload,
@@ -79,7 +81,7 @@ export default function EditService({
         const fileInfo = await getFileDidInfo(
           asset.id,
           service.id,
-          customProviderUrl || service.serviceEndpoint
+          service?.serviceEndpoint || customProviderUrl
         )
         if (fileInfo && fileInfo.length > 0 && fileInfo[0]?.type) {
           setDetectedFileType(fileInfo[0].type)
@@ -193,6 +195,11 @@ export default function EditService({
         updatedFiles = filesEncrypted
       }
 
+      const linksTransformed =
+        values.links?.length && values.links[0].valid && values.links[0].url
+          ? convertLinks([sanitizeUrl(values.links[0].url)])
+          : undefined
+
       const serviceCredentials = {
         ...(values.credentials || {}),
         vcPolicies: []
@@ -212,6 +219,7 @@ export default function EditService({
             ? State.Active
             : assetStateToNumber(values.state),
         files: updatedFiles,
+        links: linksTransformed,
         credentials: updatedCredentials,
         ...(values.access === 'compute' &&
           asset.credentialSubject?.metadata?.type === 'dataset' && {
@@ -252,8 +260,8 @@ export default function EditService({
         updatedAsset,
         signer,
         encryptAsset,
-        customProviderUrl ||
-          updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+        updatedAsset?.credentialSubject?.services[0]?.serviceEndpoint ||
+          customProviderUrl,
         ssiWalletContext
       )
 
@@ -264,8 +272,9 @@ export default function EditService({
           updatedAsset.credentialSubject.nftAddress,
           await signer.getAddress(),
           0,
-          customProviderUrl ||
-            updatedAsset.credentialSubject.services[0]?.serviceEndpoint,
+          updatedAsset?.credentialSubject?.services[0]?.serviceEndpoint ||
+            updatedAsset?.credentialSubject?.services[0]?.serviceEndpoint ||
+            customProviderUrl,
           '',
           toBeHex(ipfsUpload.flags),
           ipfsUpload.metadataIPFS,
@@ -338,7 +347,39 @@ export default function EditService({
                 <DebugEditService
                   values={values}
                   asset={asset}
-                  service={service}
+                  service={{
+                    ...service,
+                    name: values.name,
+                    description: {
+                      '@value': values.description,
+                      '@language': values.language,
+                      '@direction': values.direction
+                    },
+                    timeout: mapTimeoutStringToSeconds(values.timeout),
+                    state:
+                      values.state === undefined
+                        ? State.Active
+                        : assetStateToNumber(values.state),
+                    files: values.files[0]?.url
+                      ? values.files[0].url
+                      : service.files,
+                    links:
+                      values.links?.length &&
+                      values.links[0].valid &&
+                      values.links[0].url
+                        ? convertLinks([sanitizeUrl(values.links[0].url)])
+                        : service.links,
+                    credentials: generateCredentials({
+                      ...(values.credentials || {}),
+                      vcPolicies: []
+                    }),
+                    ...(values.access === 'compute' && {
+                      compute: service.compute
+                    }),
+                    consumerParameters: values.consumerParameters
+                      ? transformConsumerParameters(values.consumerParameters)
+                      : service.consumerParameters
+                  }}
                 />
               </div>
             )}

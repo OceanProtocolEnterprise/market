@@ -36,7 +36,8 @@ function FilterProvider({ children }: { children: ReactNode }): ReactElement {
     serviceType: [],
     filterSet: [],
     filterTime: [],
-    assetState: []
+    assetState: [],
+    nodeUriIndex: []
   })
   const [ignorePurgatory, setIgnorePurgatory] = useState<boolean>(true)
   const [sort, setSort] = useState<Sort>({
