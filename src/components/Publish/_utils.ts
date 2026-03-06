@@ -581,7 +581,7 @@ export async function transformPublishFormToDdo(
   const filesTransformed = files?.length &&
     files[0].valid && [sanitizeUrl(files[0].url)]
   const linksTransformed =
-    links?.length && links[0].valid && convertLinks([sanitizeUrl(links[0].url)]) // 👈 Keep this
+    links?.length && links[0].valid && convertLinks([sanitizeUrl(links[0].url)])
 
   // const consumerParametersTransformed = usesConsumerParameters
   //   ? transformConsumerParameters(consumerParameters)
