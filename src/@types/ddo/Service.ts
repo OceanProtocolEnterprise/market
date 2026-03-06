@@ -33,6 +33,7 @@ export interface Service {
   datatokenAddress: string
   serviceEndpoint: string
   files: string
+  links?: Record<string, string>
   timeout: number
   // required for type compute
   compute?: Compute

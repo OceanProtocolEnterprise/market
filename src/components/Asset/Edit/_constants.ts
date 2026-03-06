@@ -437,6 +437,20 @@ export const getServiceInitialValues = (
   )
   const credentialForm = generateCredentials(service.credentials, 'edit')
   const rawPrice = accessDetails.price
+  let linksFormValue: FileInfo[] = [{ url: '', type: 'url' }]
+  if (service.links) {
+    const linkEntries = Object.entries(service.links)
+    if (linkEntries.length > 0) {
+      const [key, url] = linkEntries[0]
+      linksFormValue = [
+        {
+          url,
+          type: 'url',
+          valid: true
+        }
+      ]
+    }
+  }
 
   return {
     name: service.name,
@@ -458,6 +472,7 @@ export const getServiceInitialValues = (
       Array.isArray(service.files) && service.files.length > 0
         ? service.files.map((f: FileInfo) => ({ ...f, valid: true }))
         : [{ url: '', type: 'hidden', valid: true } as FileInfo],
+    links: linksFormValue,
     state: assetStateToString(service.state),
     timeout: secondsToString(service.timeout),
     usesConsumerParameters: service.consumerParameters

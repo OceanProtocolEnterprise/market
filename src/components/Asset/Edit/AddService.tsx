@@ -28,6 +28,8 @@ import EditFeedback from './EditFeedback'
 import { useAsset } from '@context/Asset'
 import { getEncryptedFiles } from '@utils/provider'
 import { useAccount, useChainId, usePublicClient } from 'wagmi'
+import { convertLinks } from '@utils/links'
+import { sanitizeUrl } from '@utils/url'
 import {
   generateCredentials,
   IpfsUpload,
@@ -253,6 +255,11 @@ export default function AddService({
         newFiles = filesEncrypted
       }
 
+      const linksTransformed =
+        values.links?.length && values.links[0].valid && values.links[0].url
+          ? convertLinks([sanitizeUrl(values.links[0].url)])
+          : undefined
+
       const serviceCredentials = {
         ...(values.credentials || {}),
         vcPolicies: []
@@ -269,6 +276,7 @@ export default function AddService({
           '@language': values.language
         },
         files: newFiles || '',
+        links: linksTransformed,
         datatokenAddress,
         serviceEndpoint,
         timeout: mapTimeoutStringToSeconds(values.timeout),
@@ -391,17 +399,25 @@ export default function AddService({
                     id: 'WILL BE CALCULATED AFTER SUBMIT',
                     type: 'access',
                     datatokenAddress: 'WILL BE FILLED AFTER SUBMIT',
-                    name: '',
+                    name: values.name,
                     description: {
-                      '@value': '',
-                      '@direction': '',
-                      '@language': ''
+                      '@value': values.description,
+                      '@direction': values.direction,
+                      '@language': values.language
                     },
                     files: asset.credentialSubject?.services[0].files,
+                    links:
+                      values.links?.length &&
+                      values.links[0].valid &&
+                      values.links[0].url
+                        ? convertLinks([sanitizeUrl(values.links[0].url)])
+                        : undefined,
                     serviceEndpoint:
                       asset.credentialSubject?.services[0].serviceEndpoint,
-                    timeout: 0,
-                    consumerParameters: [],
+                    timeout: mapTimeoutStringToSeconds(values.timeout),
+                    consumerParameters: transformConsumerParameters(
+                      values.consumerParameters
+                    ),
                     credentials: {
                       match_deny: 'any',
                       allow: [],
