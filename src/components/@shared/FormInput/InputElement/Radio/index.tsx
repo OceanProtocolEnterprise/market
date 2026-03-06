@@ -8,6 +8,7 @@ const cx = classNames.bind(styles)
 
 interface InputRadioProps extends InputHTMLAttributes<HTMLInputElement> {
   options: string[]
+  optionTitles?: string[]
   inputSize?: string
   prefixes?: string[]
   postfixes?: string[]
@@ -17,6 +18,7 @@ interface InputRadioProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export default function InputRadio({
   options,
+  optionTitles,
   inputSize,
   prefixes,
   postfixes,
@@ -35,6 +37,7 @@ export default function InputRadio({
                 variant === 'accent' ? styles.accentRadio : ''
               }`}
               id={slugify(option)}
+              title={optionTitles?.[index] || option}
             />
             <label
               className={cx({
@@ -42,6 +45,7 @@ export default function InputRadio({
                 [inputSize]: inputSize
               })}
               htmlFor={slugify(option)}
+              title={optionTitles?.[index] || option}
             >
               <Option
                 option={option}
