@@ -11,9 +11,10 @@ import {
 import { useAccount } from 'wagmi'
 import appConfig from 'app.config.cjs'
 import { useEthersSigner } from '@hooks/useEthersSigner'
-import { connectToWallet, disconnectFromWallet } from '@utils/wallet/ssiWallet'
+import { disconnectFromWallet } from '@utils/wallet/ssiWallet'
 import useAllowedWalletChain from '@hooks/useAllowedWalletChain'
 import { LoggerInstance } from '@oceanprotocol/lib'
+import { useUserPreferences } from './UserPreferences'
 import {
   SsiKeyDesc,
   SsiVerifiableCredential,
@@ -60,6 +61,7 @@ export function SsiWalletProvider({
   children: ReactNode
 }): ReactElement {
   const { address, isConnected } = useAccount()
+  const { setShowSsiWalletModule } = useUserPreferences()
   const { chainId, isAllowedChain } = useAllowedWalletChain()
   const walletClient = useEthersSigner()
   const [sessionToken, setSessionToken] = useState<SsiWalletSession>()
@@ -166,12 +168,7 @@ export function SsiWalletProvider({
 
       if (!walletClient || !isConnected || !isAllowedChain) return
 
-      try {
-        const session = await connectToWallet(walletClient)
-        setSessionToken(session)
-      } catch (error) {
-        LoggerInstance.error(error)
-      }
+      setShowSsiWalletModule(true)
     }
 
     reconnectAfterDisconnect().finally(() => {
@@ -185,7 +182,8 @@ export function SsiWalletProvider({
     sessionToken,
     walletClient,
     ssiWalletCache,
-    clearSsiSessionState
+    clearSsiSessionState,
+    setShowSsiWalletModule
   ])
 
   function lookupVerifierSessionId(did: string, serviceId: string): string {

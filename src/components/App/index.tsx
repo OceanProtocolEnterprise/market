@@ -15,6 +15,7 @@ import useTokenApproval from '@hooks/useTokenApproval'
 import useAllowedTokenAddresses from '@hooks/useAllowedTokenAddresses'
 import NetworkWarningModal from './NetworkWarningModal'
 import { getAllowedErc20ChainIds } from '@utils/runtimeConfig'
+import SsiWalletManager from '@components/Header/SsiWallet/SsiWalletManager'
 
 import contentPurgatory from '../../../content/purgatory.json'
 import styles from './index.module.css'
@@ -198,6 +199,8 @@ export default function App({
       <main className={styles.main}>{children}</main>
 
       <Footer />
+
+      <SsiWalletManager />
 
       {appConfig?.privacyPreferenceCenter === 'true' && (
         <PrivacyPreferenceCenter style="small" />

@@ -39,6 +39,7 @@ export default function SsiWalletManager() {
       setSelectedWallet(wallets[0])
       return wallets[0]
     } catch (error) {
+      LoggerInstance.error(error)
       return selectedWallet
     }
   }
@@ -64,11 +65,11 @@ export default function SsiWalletManager() {
       }
 
       ssiWalletCache.clearCredentials()
-      setCachedCredentials(undefined)
+      setCachedCredentials([])
       clearVerifierSessionCache()
       setSsiWalletApiOverride(overrideApi)
 
-      const session = await connectToWallet(walletClient as any)
+      const session = await connectToWallet(walletClient)
       setSessionToken(session)
       setSelectedDid(undefined)
       setSelectedKey(undefined)

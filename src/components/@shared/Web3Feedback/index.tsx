@@ -4,18 +4,7 @@ import styles from './index.module.css'
 import WalletNetworkSwitcher from '../WalletNetworkSwitcher'
 import Warning from '@images/warning.svg'
 import { useModal } from 'connectkit'
-import { useAccount } from 'wagmi'
-import { useSsiWallet } from '@context/SsiWallet'
-import {
-  connectToWallet,
-  setSsiWalletApiOverride,
-  STORAGE_KEY
-} from '@utils/wallet/ssiWallet'
-import appConfig from 'app.config.cjs'
-import SsiApiModal from '../../Header/Wallet/SsiApiModal'
-import { LoggerInstance } from '@oceanprotocol/lib'
-import { useEthersSigner } from '@hooks/useEthersSigner'
-import useAllowedWalletChain from '@hooks/useAllowedWalletChain'
+import useSsiAutoConnectPrompt from '@hooks/useSsiAutoConnectPrompt'
 
 export default function Web3Feedback({
   accountId,
@@ -29,68 +18,11 @@ export default function Web3Feedback({
   const [message, setMessage] = useState<string>()
   const [showFeedback, setShowFeedback] = useState<boolean>(false)
 
-  const { isConnected } = useAccount()
-  const { isAllowedChain } = useAllowedWalletChain()
-  const walletClient = useEthersSigner()
   const { setOpen } = useModal()
-  const {
-    sessionToken,
-    setSessionToken,
-    tryAcquireSsiAutoConnectLock,
-    resetSsiAutoConnectLock
-  } = useSsiWallet()
-
-  const [showInput, setShowInput] = useState(false)
-  const [overrideApi, setOverrideApi] = useState(appConfig.ssiWalletApi)
-
-  useEffect(() => {
-    if (!isConnected || !isAllowedChain) {
-      resetSsiAutoConnectLock()
-      setShowInput(false)
-      return
-    }
-
-    const storedApi = sessionStorage.getItem(STORAGE_KEY)
-
-    if (isConnected && walletClient && appConfig.ssiEnabled && !sessionToken) {
-      if (!tryAcquireSsiAutoConnectLock()) return
-      if (storedApi) {
-        connectToWallet(walletClient)
-          .then((session) => {
-            setSessionToken(session)
-          })
-          .catch((error) => LoggerInstance.error(error))
-      } else {
-        setShowInput(true)
-      }
-    }
-  }, [
-    isConnected,
-    isAllowedChain,
-    walletClient,
-    sessionToken,
-    setSessionToken,
-    tryAcquireSsiAutoConnectLock,
-    resetSsiAutoConnectLock
-  ])
+  useSsiAutoConnectPrompt()
 
   function handleConnectWallet() {
     setOpen(true)
-  }
-
-  async function handleSsiConnect() {
-    try {
-      if (!walletClient) {
-        LoggerInstance.error('Wallet Client not available for SSI connection.')
-        return
-      }
-      setSsiWalletApiOverride(overrideApi)
-      const session = await connectToWallet(walletClient)
-      setSessionToken(session)
-      setShowInput(false)
-    } catch (error) {
-      LoggerInstance.error(error)
-    }
   }
 
   useEffect(() => {
@@ -130,14 +62,6 @@ export default function Web3Feedback({
             )
           )}
         </section>
-      )}
-
-      {showInput && (
-        <SsiApiModal
-          apiValue={overrideApi}
-          onChange={setOverrideApi}
-          onConnect={handleSsiConnect}
-        />
       )}
     </>
   )
