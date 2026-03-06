@@ -91,6 +91,16 @@ export default function FormAddService({
       checked: values.access === 'compute'
     }
   ]
+  useEffect(() => {
+    if (values && 'links' in values) {
+      const { links } = values as any
+      if (!links || links.length === 0) {
+        setFieldValue('links', [{ url: '', type: 'url' }])
+      }
+    } else {
+      setFieldValue('links', [{ url: '', type: 'url' }])
+    }
+  }, [values, setFieldValue])
 
   return (
     <Form>
@@ -184,6 +194,11 @@ export default function FormAddService({
           {...getFieldContent('files', content.services.fields)}
           component={Input}
           name="files"
+        />
+        <Field
+          {...getFieldContent('links', content.services.fields)}
+          component={Input}
+          name="links"
         />
 
         <Field

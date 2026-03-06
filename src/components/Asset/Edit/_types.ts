@@ -47,6 +47,7 @@ export interface ServiceEditForm {
   baseToken?: string
   paymentCollector?: string
   files?: FileInfo[]
+  links?: FileInfo[]
   timeout?: string
   usesConsumerParameters?: boolean
   consumerParameters?: FormConsumerParameter[]

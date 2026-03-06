@@ -191,11 +191,11 @@ export default function FormEditMetadata(): ReactElement {
           component={Input}
           name="description"
         />
-        <Field
+        {/* <Field
           {...getFieldContent('links', data)}
           component={Input}
           name="links"
-        />
+        /> */}
 
         <Field
           {...getFieldContent('tags', data)}
