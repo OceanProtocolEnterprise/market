@@ -42,7 +42,8 @@ function getSearchQuery(
   serviceType?: string | string[],
   accessType?: string | string[],
   filterSet?: string | string[],
-  assetState?: string | string[]
+  assetState?: string | string[],
+  nodeUriIndex?: string | string[]
 ): SearchQuery {
   text = escapeEsReservedCharacters(text)
   const emptySearchTerm = text === undefined || text === ''
@@ -151,8 +152,8 @@ function getSearchQuery(
   }
 
   const filtersList = getInitialFilters(
-    { accessType, serviceType, filterSet },
-    ['accessType', 'serviceType', 'filterSet']
+    { accessType, serviceType, filterSet, nodeUriIndex },
+    ['accessType', 'serviceType', 'filterSet', 'nodeUriIndex']
   )
   parseFilters(filtersList, filterSets).forEach((term) => filters.push(term))
   const parsedPage = Number(page)
@@ -188,6 +189,7 @@ export async function getResults(
     accessType?: string | string[]
     filterSet?: string[]
     assetState?: string | string[]
+    nodeUriIndex?: string | string[]
   },
   chainIds: number[],
   cancelToken?: CancelToken
@@ -203,7 +205,8 @@ export async function getResults(
     serviceType,
     accessType,
     filterSet,
-    assetState
+    assetState,
+    nodeUriIndex
   } = params
 
   const searchQuery = getSearchQuery(
@@ -218,7 +221,8 @@ export async function getResults(
     serviceType,
     accessType,
     filterSet,
-    assetState
+    assetState,
+    nodeUriIndex
   )
   const queryResult = await queryMetadata(searchQuery, cancelToken)
   return queryResult?.results?.length === 0

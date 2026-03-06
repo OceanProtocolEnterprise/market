@@ -78,6 +78,7 @@ const InputElement = forwardRef(
   (
     {
       options,
+      optionTitles,
       sortOptions,
       size,
       field,
@@ -232,6 +233,7 @@ const InputElement = forwardRef(
         return (
           <InputRadio
             options={options as string[]}
+            optionTitles={optionTitles}
             inputSize={size}
             prefixes={prefixes}
             postfixes={postfixes}

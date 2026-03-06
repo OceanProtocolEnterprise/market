@@ -41,6 +41,7 @@ export interface InputProps {
     | AssetSelectionAsset[]
     | BoxSelectionOption[]
     | ComputeEnvironment[]
+  optionTitles?: string[]
   sortOptions?: boolean
   fields?: FieldInputProps<any>[]
   methods?: boolean

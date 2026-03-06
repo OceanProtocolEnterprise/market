@@ -69,7 +69,8 @@ export function parseFilters(
     serviceType: 'credentialSubject.metadata.type',
     filterSet: 'credentialSubject.metadata.tags.keyword',
     filterTime: 'credentialSubject.metadata.created',
-    assetState: 'indexedMetadata.nft.state'
+    assetState: 'indexedMetadata.nft.state',
+    nodeUriIndex: 'credentialSubject.services.serviceEndpoint.keyword'
   }
   if (filtersList) {
     const filterTerms = Object.keys(filtersList)?.map((key) => {
