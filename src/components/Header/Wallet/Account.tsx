@@ -15,14 +15,16 @@ import { LoggerInstance } from '@oceanprotocol/lib'
 import appConfig from 'app.config.cjs'
 import SsiApiModal from './SsiApiModal'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import useAllowedWalletChain from '@hooks/useAllowedWalletChain'
 
 interface AccountProps {
   onSsiModalOpenChange?: (isOpen: boolean) => void
 }
 
-const Account = forwardRef(
-  ({ onSsiModalOpenChange }: AccountProps, ref: any) => {
+const Account = forwardRef<HTMLButtonElement, AccountProps>(
+  ({ onSsiModalOpenChange }, ref) => {
     const { address: accountId, isConnected } = useAccount()
+    const { isAllowedChain } = useAllowedWalletChain()
     const walletClient = useEthersSigner()
     const { setOpen } = useModal()
     const {
@@ -40,10 +42,12 @@ const Account = forwardRef(
     }, [onSsiModalOpenChange, showInput])
 
     useEffect(() => {
-      if (!isConnected) {
+      if (!isConnected || !isAllowedChain) {
         resetSsiAutoConnectLock()
+        setShowInput(false)
         return
       }
+
       const storedApi = sessionStorage.getItem(STORAGE_KEY)
 
       if (
@@ -54,7 +58,7 @@ const Account = forwardRef(
       ) {
         if (!tryAcquireSsiAutoConnectLock()) return
         if (storedApi) {
-          connectToWallet(walletClient as any)
+          connectToWallet(walletClient)
             .then((session) => {
               setSessionToken(session)
             })
@@ -65,6 +69,7 @@ const Account = forwardRef(
       }
     }, [
       isConnected,
+      isAllowedChain,
       walletClient,
       sessionToken,
       setSessionToken,
@@ -86,7 +91,7 @@ const Account = forwardRef(
         }
 
         setSsiWalletApiOverride(overrideApi)
-        const session = await connectToWallet(walletClient as any)
+        const session = await connectToWallet(walletClient)
         setSessionToken(session)
         setShowInput(false)
       } catch (error) {

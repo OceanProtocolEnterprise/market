@@ -4,6 +4,10 @@ import stylesTooltip from './index.module.css'
 import Info from '@images/info.svg'
 import Tippy, { TippyProps } from '@tippyjs/react/headless'
 
+interface TooltipProps extends TippyProps {
+  contentClassName?: string
+}
+
 const animation = {
   config: { tension: 400, friction: 20 },
   from: { transform: 'scale(0.5) translateY(-3rem)' },
@@ -16,8 +20,8 @@ const DefaultTrigger = forwardRef((props, ref: any) => {
   return <Info className={stylesTooltip.icon} ref={ref} />
 })
 
-export default function Tooltip(props: TippyProps): ReactElement {
-  const { className, ...restProps } = props
+export default function Tooltip(props: TooltipProps): ReactElement {
+  const { className, contentClassName, ...restProps } = props
   const { content, children, trigger, disabled, placement } = props
   const [styles, api] = useSpring(() => animation.from)
 
@@ -38,6 +42,7 @@ export default function Tooltip(props: TippyProps): ReactElement {
   }
 
   const styleClasses = `${stylesTooltip.tooltip} ${className || ''}`
+  const contentClasses = `${stylesTooltip.content} ${contentClassName || ''}`
 
   return (
     <Tippy
@@ -49,7 +54,7 @@ export default function Tooltip(props: TippyProps): ReactElement {
       placement={placement || 'auto'}
       render={(attrs) => (
         <animated.div style={styles}>
-          <div className={stylesTooltip.content} {...attrs}>
+          <div className={contentClasses} {...attrs}>
             {content}
             <div className={stylesTooltip.arrow} data-popper-arrow />
           </div>

@@ -1,42 +1,69 @@
-.radioWrap {
-  composes: radioWrap from '@shared/FormInput/InputElement/Radio/index.module.css';
-  padding: calc(var(--spacer) / 4) calc(var(--spacer) / 3);
+.row {
+  padding: calc(var(--spacer) / 4) 0;
   border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--spacer) / 4);
 }
 
-.radioWrap:last-child {
+.row:last-child {
   border-bottom: none;
 }
 
-/* Your custom input styling */
-.input {
-  composes: checkbox from '@shared/FormInput/InputElement/Radio/index.module.css';
-  vertical-align: baseline;
-  margin-right: calc(var(--spacer) / 3);
-  margin-top: 0;
+.networkName {
+  flex: 1;
+  min-width: 0;
 }
 
-/* Override the checked state */
-.input:checked {
-  /* background-color: yellow !important; */
-  /* You might also need to override other properties */
-  border-color: var(--navy-630) !important;
-  border-radius: 2px;
-  background: var(--navy-630) !important;
-  box-shadow: 0 0 0 1px var(--navy-630) !important;
+.networkName > * {
+  max-width: 100%;
 }
 
-.radioLabel {
-  composes: radioLabel from '@shared/FormInput/InputElement/Radio/index.module.css';
-  font-weight: var(--font-weight-base);
-  display: flex;
-  align-items: center;
-  margin: 0;
-  padding: 0;
-  width: 100%;
+.connectButton {
+  min-width: calc(var(--spacer) * 2.5);
+  flex-shrink: 0;
 }
 
-.input:checked + span {
-  color: var(--font-color-text);
-  font-weight: var(--font-weight-bold);
+.connectButton.connectButton.connectButton,
+.connectButton.connectButton.connectButton:hover,
+.connectButton.connectButton.connectButton:focus,
+.connectButton.connectButton.connectButton:focus-visible,
+.connectButton.connectButton.connectButton:active {
+  padding: var(--sp-1) var(--sp-2_5);
+  height: auto;
+  font-size: var(--font-size-mini);
+}
+
+.connectButton.connectButton.connectButton {
+  line-height: 1.2;
+  transition: transform 0.15s ease-out;
+}
+
+.connectButton.connectButton.connectButton:hover,
+.connectButton.connectButton.connectButton:focus,
+.connectButton.connectButton.connectButton:focus-visible {
+  opacity: 1;
+  box-shadow: var(--shadow-sm);
+  background: transparent;
+  color: var(--clr-navy);
+  transform: translate3d(0, calc(var(--sp-0_5) * -1), 0);
+}
+
+.connectButton.connectButton.connectButton:active {
+  opacity: 1;
+  box-shadow: var(--shadow-sm);
+  background: transparent;
+  color: var(--clr-navy);
+  transform: none;
+}
+
+.connectButton.connectButton.connectButton:disabled:hover,
+.connectButton.connectButton.connectButton:disabled:focus,
+.connectButton.connectButton.connectButton:disabled:active {
+  transform: none;
+}
+
+.connectedButton.connectedButton {
+  text-transform: uppercase;
 }

@@ -15,6 +15,7 @@ import appConfig from 'app.config.cjs'
 import SsiApiModal from '../../Header/Wallet/SsiApiModal'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import useAllowedWalletChain from '@hooks/useAllowedWalletChain'
 
 export default function Web3Feedback({
   accountId,
@@ -29,6 +30,7 @@ export default function Web3Feedback({
   const [showFeedback, setShowFeedback] = useState<boolean>(false)
 
   const { isConnected } = useAccount()
+  const { isAllowedChain } = useAllowedWalletChain()
   const walletClient = useEthersSigner()
   const { setOpen } = useModal()
   const {
@@ -42,16 +44,18 @@ export default function Web3Feedback({
   const [overrideApi, setOverrideApi] = useState(appConfig.ssiWalletApi)
 
   useEffect(() => {
-    if (!isConnected) {
+    if (!isConnected || !isAllowedChain) {
       resetSsiAutoConnectLock()
+      setShowInput(false)
       return
     }
+
     const storedApi = sessionStorage.getItem(STORAGE_KEY)
 
     if (isConnected && walletClient && appConfig.ssiEnabled && !sessionToken) {
       if (!tryAcquireSsiAutoConnectLock()) return
       if (storedApi) {
-        connectToWallet(walletClient as any)
+        connectToWallet(walletClient)
           .then((session) => {
             setSessionToken(session)
           })
@@ -62,6 +66,7 @@ export default function Web3Feedback({
     }
   }, [
     isConnected,
+    isAllowedChain,
     walletClient,
     sessionToken,
     setSessionToken,
@@ -75,8 +80,12 @@ export default function Web3Feedback({
 
   async function handleSsiConnect() {
     try {
+      if (!walletClient) {
+        LoggerInstance.error('Wallet Client not available for SSI connection.')
+        return
+      }
       setSsiWalletApiOverride(overrideApi)
-      const session = await connectToWallet(walletClient as any)
+      const session = await connectToWallet(walletClient)
       setSessionToken(session)
       setShowInput(false)
     } catch (error) {

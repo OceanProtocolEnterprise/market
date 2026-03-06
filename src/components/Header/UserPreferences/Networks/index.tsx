@@ -37,7 +37,9 @@ export default function Networks(): ReactElement | null {
   return (
     <Tooltip
       content={
-        <ul className={stylesIndex.preferencesDetails}>
+        <ul
+          className={`${stylesIndex.preferencesDetails} ${styles.preferencesDetails}`}
+        >
           <li>
             <Label htmlFor="chains">Networks</Label>
             <FormHelp>Switch the data source for the interface.</FormHelp>
@@ -48,6 +50,7 @@ export default function Networks(): ReactElement | null {
         </ul>
       }
       trigger="click focus mouseenter"
+      contentClassName={styles.tooltipContent}
       className={`${stylesIndex.preferences} ${styles.networks}`}
     >
       <>

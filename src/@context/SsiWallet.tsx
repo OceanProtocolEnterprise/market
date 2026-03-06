@@ -1,4 +1,5 @@
 import {
+  useCallback,
   createContext,
   ReactElement,
   ReactNode,
@@ -7,6 +8,12 @@ import {
   useRef,
   useState
 } from 'react'
+import { useAccount } from 'wagmi'
+import appConfig from 'app.config.cjs'
+import { useEthersSigner } from '@hooks/useEthersSigner'
+import { connectToWallet, disconnectFromWallet } from '@utils/wallet/ssiWallet'
+import useAllowedWalletChain from '@hooks/useAllowedWalletChain'
+import { LoggerInstance } from '@oceanprotocol/lib'
 import {
   SsiKeyDesc,
   SsiVerifiableCredential,
@@ -52,6 +59,9 @@ export function SsiWalletProvider({
 }: {
   children: ReactNode
 }): ReactElement {
+  const { address, isConnected } = useAccount()
+  const { chainId, isAllowedChain } = useAllowedWalletChain()
+  const walletClient = useEthersSigner()
   const [sessionToken, setSessionToken] = useState<SsiWalletSession>()
   const [selectedWallet, setSelectedWallet] = useState<SsiWalletDesc>()
   const [selectedKey, setSelectedKey] = useState<SsiKeyDesc>()
@@ -68,6 +78,9 @@ export function SsiWalletProvider({
 
   const [selectedDid, setSelectedDid] = useState<string>()
   const ssiAutoConnectLockRef = useRef(false)
+  const previousChainIdRef = useRef<number>()
+  const previousAddressRef = useRef<string>()
+  const ssiReconnectInProgressRef = useRef(false)
 
   function tryAcquireSsiAutoConnectLock(): boolean {
     if (ssiAutoConnectLockRef.current) return false
@@ -108,6 +121,72 @@ export function SsiWalletProvider({
     }
     localStorage.setItem(SessionTokenStorage, JSON.stringify(sessionToken))
   }, [sessionToken])
+
+  const clearSsiSessionState = useCallback(() => {
+    ssiWalletCache.clearCredentials()
+    setCachedCredentials([])
+    localStorage.removeItem(VerifierSessionIdStorage)
+    setVerifierSessionCache({})
+    setSessionToken(undefined)
+  }, [ssiWalletCache])
+
+  useEffect(() => {
+    if (!appConfig.ssiEnabled) return
+
+    const previousChainId = previousChainIdRef.current
+    const previousAddress = previousAddressRef.current
+
+    previousChainIdRef.current = chainId
+    previousAddressRef.current = address
+
+    if (!sessionToken) return
+
+    const chainChanged =
+      previousChainId !== undefined && previousChainId !== chainId
+    const accountChanged =
+      previousAddress &&
+      address &&
+      previousAddress.toLowerCase() !== address.toLowerCase()
+    const shouldDisconnect =
+      !isConnected || !isAllowedChain || chainChanged || accountChanged
+
+    if (!shouldDisconnect) return
+    if (ssiReconnectInProgressRef.current) return
+
+    ssiReconnectInProgressRef.current = true
+
+    async function reconnectAfterDisconnect() {
+      try {
+        await disconnectFromWallet()
+      } catch (error) {
+        LoggerInstance.error(error)
+      }
+
+      clearSsiSessionState()
+
+      if (!walletClient || !isConnected || !isAllowedChain) return
+
+      try {
+        const session = await connectToWallet(walletClient)
+        setSessionToken(session)
+      } catch (error) {
+        LoggerInstance.error(error)
+      }
+    }
+
+    reconnectAfterDisconnect().finally(() => {
+      ssiReconnectInProgressRef.current = false
+    })
+  }, [
+    address,
+    chainId,
+    isConnected,
+    isAllowedChain,
+    sessionToken,
+    walletClient,
+    ssiWalletCache,
+    clearSsiSessionState
+  ])
 
   function lookupVerifierSessionId(did: string, serviceId: string): string {
     return verifierSessionCache?.[`${did}_${serviceId}`]
