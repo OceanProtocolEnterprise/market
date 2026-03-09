@@ -3,6 +3,11 @@ import Alert from '@shared/atoms/Alert'
 import Button from '@shared/atoms/Button'
 import Loader from '@shared/atoms/Loader'
 import Modal from '@shared/atoms/Modal'
+import networkdata from '../../../content/networks-metadata.json'
+import {
+  getNetworkDataById,
+  getNetworkDisplayName
+} from '@hooks/useNetworkMetadata'
 import styles from './NetworkWarningModal.module.css'
 
 const MODAL_TITLE = 'Network Not Supported'
@@ -26,6 +31,21 @@ const CHAIN_NAMES: Record<number, string> = {
   137: 'Polygon',
   42161: 'Arbitrum',
   43114: 'Avalanche'
+}
+
+const networksList: EthereumListsChain[] = networkdata
+
+function getReadableNetworkName(chainId: number): string {
+  if (CHAIN_NAMES[chainId]) return `${CHAIN_NAMES[chainId]} (${chainId})`
+
+  const networkData = getNetworkDataById(networksList, chainId)
+  const metadataDisplayName = getNetworkDisplayName(networkData)
+
+  if (metadataDisplayName && metadataDisplayName !== 'Unknown') {
+    return `${metadataDisplayName} (${chainId})`
+  }
+
+  return `Chain ID: ${chainId}`
 }
 
 interface NetworkWarningModalProps {
@@ -60,7 +80,7 @@ export default function NetworkWarningModal({
 
   const hasSupportedChains = supportedChains.length > 0
   const connectedNetworkName = chainId
-    ? CHAIN_NAMES[chainId] || `Chain ID: ${chainId}`
+    ? getReadableNetworkName(chainId)
     : 'an unknown network'
   const alertTitle = hasSupportedChains ? ALERT_TITLE : CONFIG_ALERT_TITLE
   const alertText = hasSupportedChains
@@ -112,7 +132,7 @@ export default function NetworkWarningModal({
                       className={styles.buttonLoader}
                     />
                   ) : (
-                    CHAIN_NAMES[id] || `Chain ${id}`
+                    getReadableNetworkName(id)
                   )}
                 </Button>
               ))}

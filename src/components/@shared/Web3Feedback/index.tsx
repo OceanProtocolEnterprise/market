@@ -4,7 +4,6 @@ import styles from './index.module.css'
 import WalletNetworkSwitcher from '../WalletNetworkSwitcher'
 import Warning from '@images/warning.svg'
 import { useModal } from 'connectkit'
-import useSsiAutoConnectPrompt from '@hooks/useSsiAutoConnectPrompt'
 
 export default function Web3Feedback({
   accountId,
@@ -19,7 +18,6 @@ export default function Web3Feedback({
   const [showFeedback, setShowFeedback] = useState<boolean>(false)
 
   const { setOpen } = useModal()
-  useSsiAutoConnectPrompt()
 
   function handleConnectWallet() {
     setOpen(true)

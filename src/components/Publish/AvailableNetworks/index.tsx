@@ -6,12 +6,11 @@ import useNetworkMetadata, {
 } from '@hooks/useNetworkMetadata'
 import content from '../../../../content/publish/index.json'
 import { useMarketMetadata } from '@context/MarketMetadata'
-import { getAllowedErc20ChainIds } from '@utils/runtimeConfig'
 
 export default function AvailableNetworks(): ReactElement {
   const { networksList } = useNetworkMetadata()
-  const { appConfig } = useMarketMetadata()
-  const supportedChainIds = getAllowedErc20ChainIds(appConfig.chainIdsSupported)
+  const { validatedSupportedChains } = useMarketMetadata()
+  const supportedChainIds = validatedSupportedChains
 
   const networksMain = filterNetworksByType(
     'mainnet',

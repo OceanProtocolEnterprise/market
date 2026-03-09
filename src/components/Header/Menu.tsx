@@ -1,9 +1,9 @@
 import { ReactElement, useState } from 'react'
 import type { MouseEvent } from 'react'
 import Link from 'next/link'
-import loadable from '@loadable/component'
 import Logo from '@shared/atoms/Logo'
 import Networks from './UserPreferences/Networks'
+import Wallet from './Wallet'
 import styles from './Menu.module.css'
 import { useRouter } from 'next/router'
 import { useMarketMetadata } from '@context/MarketMetadata'
@@ -14,8 +14,6 @@ import { SsiWallet } from '@components/Header/SsiWallet'
 import Upload from '@images/publish.svg'
 import BurgerIcon from '@images/burgerIcon.svg' // You'll need to add a burger icon
 import CloseIcon from '@images/closeIcon.svg' // You'll need to add a close icon
-
-const Wallet = loadable(() => import('./Wallet'))
 
 const cx = classNames.bind(styles)
 

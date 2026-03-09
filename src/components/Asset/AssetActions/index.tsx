@@ -366,7 +366,7 @@ export default function AssetActions({
 
   function resetCacheWallet() {
     ssiWalletCache.clearCredentials()
-    setCachedCredentials(undefined as any)
+    setCachedCredentials([])
     clearVerifierSessionCache()
     try {
       for (let i = localStorage.length - 1; i >= 0; i--) {

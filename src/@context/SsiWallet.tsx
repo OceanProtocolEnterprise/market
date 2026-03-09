@@ -12,7 +12,7 @@ import { useAccount } from 'wagmi'
 import appConfig from 'app.config.cjs'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 import { disconnectFromWallet } from '@utils/wallet/ssiWallet'
-import useAllowedWalletChain from '@hooks/useAllowedWalletChain'
+import useSsiAllowedChain from '@hooks/useSsiAllowedChain'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { useUserPreferences } from './UserPreferences'
 import {
@@ -48,6 +48,9 @@ export interface SsiWalletContext {
   setSelectedDid: (did?: string) => void
   tryAcquireSsiAutoConnectLock: () => boolean
   resetSsiAutoConnectLock: () => void
+  isSsiSessionHydrating: boolean
+  setIsSsiSessionHydrating: (value: boolean) => void
+  isSsiStateHydrated: boolean
 }
 
 const SessionTokenStorage = 'sessionToken'
@@ -62,7 +65,7 @@ export function SsiWalletProvider({
 }): ReactElement {
   const { address, isConnected } = useAccount()
   const { setShowSsiWalletModule } = useUserPreferences()
-  const { chainId, isAllowedChain } = useAllowedWalletChain()
+  const { chainId, isSsiChainAllowed, isSsiChainReady } = useSsiAllowedChain()
   const walletClient = useEthersSigner()
   const [sessionToken, setSessionToken] = useState<SsiWalletSession>()
   const [selectedWallet, setSelectedWallet] = useState<SsiWalletDesc>()
@@ -70,15 +73,24 @@ export function SsiWalletProvider({
   const [ssiWalletCache, setSsiWalletCache] = useState<SsiWalletCache>(
     new SsiWalletCache()
   )
-  const [cachedCredentials, setCachedCredentials] = useState<
+  const [cachedCredentials, setCachedCredentialsState] = useState<
     SsiVerifiableCredential[]
   >([])
+  const setCachedCredentials = useCallback(
+    (credentials: SsiVerifiableCredential[]) => {
+      setCachedCredentialsState(Array.isArray(credentials) ? credentials : [])
+    },
+    []
+  )
 
   const [verifierSessionCache, setVerifierSessionCache] = useState<
     Record<string, string>
   >({})
 
   const [selectedDid, setSelectedDid] = useState<string>()
+  const [isSsiSessionHydrating, setIsSsiSessionHydrating] =
+    useState<boolean>(false)
+  const [isSsiStateHydrated, setIsSsiStateHydrated] = useState<boolean>(false)
   const ssiAutoConnectLockRef = useRef(false)
   const previousChainIdRef = useRef<number>()
   const previousAddressRef = useRef<string>()
@@ -96,8 +108,12 @@ export function SsiWalletProvider({
 
   useEffect(() => {
     try {
-      const token = localStorage.getItem(SessionTokenStorage)
-      setSessionToken(JSON.parse(token))
+      const storedToken = localStorage.getItem(SessionTokenStorage)
+      if (!storedToken || storedToken === 'undefined') {
+        setSessionToken(undefined)
+      } else {
+        setSessionToken(JSON.parse(storedToken))
+      }
     } catch (error) {
       setSessionToken(undefined)
     }
@@ -111,6 +127,8 @@ export function SsiWalletProvider({
       setVerifierSessionCache(sessions)
     } catch (error) {
       setVerifierSessionCache({})
+    } finally {
+      setIsSsiStateHydrated(true)
     }
   }, [])
 
@@ -119,7 +137,10 @@ export function SsiWalletProvider({
       setSelectedWallet(undefined)
       setSelectedKey(undefined)
       setSelectedDid(undefined)
+      setIsSsiSessionHydrating(false)
       resetSsiAutoConnectLock()
+      localStorage.removeItem(SessionTokenStorage)
+      return
     }
     localStorage.setItem(SessionTokenStorage, JSON.stringify(sessionToken))
   }, [sessionToken])
@@ -130,10 +151,11 @@ export function SsiWalletProvider({
     localStorage.removeItem(VerifierSessionIdStorage)
     setVerifierSessionCache({})
     setSessionToken(undefined)
-  }, [ssiWalletCache])
+  }, [ssiWalletCache, setCachedCredentials])
 
   useEffect(() => {
     if (!appConfig.ssiEnabled) return
+    if (!isSsiChainReady) return
 
     const previousChainId = previousChainIdRef.current
     const previousAddress = previousAddressRef.current
@@ -150,7 +172,7 @@ export function SsiWalletProvider({
       address &&
       previousAddress.toLowerCase() !== address.toLowerCase()
     const shouldDisconnect =
-      !isConnected || !isAllowedChain || chainChanged || accountChanged
+      !isConnected || !isSsiChainAllowed || chainChanged || accountChanged
 
     if (!shouldDisconnect) return
     if (ssiReconnectInProgressRef.current) return
@@ -166,7 +188,7 @@ export function SsiWalletProvider({
 
       clearSsiSessionState()
 
-      if (!walletClient || !isConnected || !isAllowedChain) return
+      if (!walletClient || !isConnected || !isSsiChainAllowed) return
 
       setShowSsiWalletModule(true)
     }
@@ -178,7 +200,8 @@ export function SsiWalletProvider({
     address,
     chainId,
     isConnected,
-    isAllowedChain,
+    isSsiChainAllowed,
+    isSsiChainReady,
     sessionToken,
     walletClient,
     ssiWalletCache,
@@ -241,7 +264,10 @@ export function SsiWalletProvider({
           selectedDid,
           setSelectedDid,
           tryAcquireSsiAutoConnectLock,
-          resetSsiAutoConnectLock
+          resetSsiAutoConnectLock,
+          isSsiSessionHydrating,
+          setIsSsiSessionHydrating,
+          isSsiStateHydrated
         } as SsiWalletContext
       }
     >

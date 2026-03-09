@@ -92,4 +92,7 @@ export interface MarketMetadataProviderValue {
   appConfig: AppConfig
   getOpcFeeForToken: (tokenAddress: string, chainId: number) => string
   approvedBaseTokens: TokenInfo[]
+  validatedSupportedChains: number[]
+  isValidatingSupportedChains: boolean
+  supportedChainsValidationError?: string
 }

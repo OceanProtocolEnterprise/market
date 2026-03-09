@@ -14,7 +14,6 @@ import useEnterpriseFeeCollector from '@hooks/useEnterpriseFeeCollector'
 import useTokenApproval from '@hooks/useTokenApproval'
 import useAllowedTokenAddresses from '@hooks/useAllowedTokenAddresses'
 import NetworkWarningModal from './NetworkWarningModal'
-import { getAllowedErc20ChainIds } from '@utils/runtimeConfig'
 import SsiWalletManager from '@components/Header/SsiWallet/SsiWalletManager'
 
 import contentPurgatory from '../../../content/purgatory.json'
@@ -25,7 +24,12 @@ export default function App({
 }: {
   children: ReactElement
 }): ReactElement {
-  const { siteContent, appConfig } = useMarketMetadata()
+  const {
+    siteContent,
+    appConfig,
+    validatedSupportedChains,
+    isValidatingSupportedChains
+  } = useMarketMetadata()
   const { address, isConnected, chainId } = useAccount()
   const { switchChain, isPending } = useSwitchChain()
   const { isInPurgatory, purgatoryData } = useAccountPurgatory(address)
@@ -43,16 +47,11 @@ export default function App({
   )
   const [showNoAllowedMessage, setShowNoAllowedMessage] = useState(false)
   const [showNetworkWarning, setShowNetworkWarning] = useState(false)
-  const [supportedChains, setSupportedChains] = useState<number[]>([])
-  const [supportedChainsLoaded, setSupportedChainsLoaded] = useState(false)
+  const supportedChains = validatedSupportedChains
+  const supportedChainsLoaded = !isValidatingSupportedChains
 
   const decisionLockedRef = useRef(false)
   const toastShownRef = useRef(false)
-
-  useEffect(() => {
-    setSupportedChains(getAllowedErc20ChainIds([]))
-    setSupportedChainsLoaded(true)
-  }, [])
 
   let isNetworkSupported = true
   const isInSupportedChains = chainId

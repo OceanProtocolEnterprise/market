@@ -3,24 +3,26 @@ import { useAccount } from 'wagmi'
 import appConfig from 'app.config.cjs'
 import { useSsiWallet } from '@context/SsiWallet'
 import { useEthersSigner } from './useEthersSigner'
-import useAllowedWalletChain from './useAllowedWalletChain'
+import useSsiAllowedChain from './useSsiAllowedChain'
 import { useUserPreferences } from '@context/UserPreferences'
 
 export default function useSsiAutoConnectPrompt(): void {
   const { isConnected } = useAccount()
-  const { isAllowedChain } = useAllowedWalletChain()
+  const { isSsiChainAllowed, isSsiChainReady } = useSsiAllowedChain()
   const walletClient = useEthersSigner()
   const { setShowSsiWalletModule } = useUserPreferences()
   const {
     sessionToken,
+    isSsiStateHydrated,
     tryAcquireSsiAutoConnectLock,
     resetSsiAutoConnectLock
   } = useSsiWallet()
 
   useEffect(() => {
     if (!appConfig.ssiEnabled) return
+    if (!isSsiStateHydrated) return
 
-    if (!isConnected || !isAllowedChain) {
+    if (!isConnected || !isSsiChainReady || !isSsiChainAllowed) {
       resetSsiAutoConnectLock()
       setShowSsiWalletModule(false)
       return
@@ -32,9 +34,11 @@ export default function useSsiAutoConnectPrompt(): void {
     setShowSsiWalletModule(true)
   }, [
     isConnected,
-    isAllowedChain,
+    isSsiChainAllowed,
+    isSsiChainReady,
     walletClient,
     sessionToken,
+    isSsiStateHydrated,
     tryAcquireSsiAutoConnectLock,
     resetSsiAutoConnectLock,
     setShowSsiWalletModule

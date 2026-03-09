@@ -7,6 +7,7 @@ import { getTokenInfo } from '@utils/wallet'
 import { Fees } from 'src/@types/feeCollector/FeeCollector.type'
 import { OpcFee } from '@context/MarketMetadata/_types'
 import { useEthersSigner } from './useEthersSigner'
+import appConfig from '../../app.config.cjs'
 
 function isNetworkChangedError(error: any): boolean {
   if (!error) return false
@@ -17,6 +18,7 @@ function isNetworkChangedError(error: any): boolean {
 function useEnterpriseFeeCollector() {
   const chainId = useChainId()
   const signer = useEthersSigner()
+  const isSupportedChain = appConfig.chainIdsSupported.includes(chainId)
   const [enterpriseFeeCollector, setEnterpriseFeeCollector] = useState<
     EnterpriseFeeCollectorContract | undefined
   >(undefined)
@@ -29,7 +31,9 @@ function useEnterpriseFeeCollector() {
       enterpriseFeeColletor: EnterpriseFeeCollectorContract
     ): Promise<Fees[]> => {
       try {
+        if (!isSupportedChain) return []
         const config = getOceanConfig(chainId)
+        if (!config) return []
         const { tokenAddresses } = config
 
         if (!tokenAddresses || tokenAddresses.length === 0 || !signer) {
@@ -103,11 +107,11 @@ function useEnterpriseFeeCollector() {
         return []
       }
     },
-    [chainId, signer] // Dependencies for fetchFees
+    [chainId, signer, isSupportedChain] // Dependencies for fetchFees
   )
 
   useEffect(() => {
-    if (!signer || !chainId) {
+    if (!signer || !chainId || !isSupportedChain) {
       setEnterpriseFeeCollector(undefined)
       setFees(undefined)
       return
@@ -127,7 +131,7 @@ function useEnterpriseFeeCollector() {
     } catch (error: any) {
       console.error('Error initializing EnterpriseFeeCollectorContract:', error)
     }
-  }, [signer, chainId])
+  }, [signer, chainId, isSupportedChain])
 
   useEffect(() => {
     if (!enterpriseFeeCollector) return
