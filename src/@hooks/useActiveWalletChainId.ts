@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useChainId } from 'wagmi'
+import { useEffect, useMemo, useState } from 'react'
+import { useAccount, useChainId } from 'wagmi'
 
 type Eip1193Provider = {
   chainId?: string | number
@@ -26,10 +26,24 @@ function parseChainId(value: unknown): number | undefined {
 }
 
 export default function useActiveWalletChainId(): number | undefined {
+  const { connector } = useAccount()
   const wagmiChainId = useChainId()
   const [injectedChainId, setInjectedChainId] = useState<number>()
+  const shouldPreferInjectedChain = useMemo(() => {
+    if (!connector) return false
+
+    const connectorId = connector.id?.toLowerCase()
+    const connectorType = (connector as { type?: string }).type?.toLowerCase()
+
+    return connectorId === 'injected' || connectorType === 'injected'
+  }, [connector])
 
   useEffect(() => {
+    if (!shouldPreferInjectedChain) {
+      setInjectedChainId(undefined)
+      return
+    }
+
     if (typeof window === 'undefined') return
 
     const ethereum = (window as Window & { ethereum?: unknown }).ethereum as
@@ -57,7 +71,9 @@ export default function useActiveWalletChainId(): number | undefined {
     return () => {
       ethereum.removeListener?.('chainChanged', handleChainChanged)
     }
-  }, [])
+  }, [shouldPreferInjectedChain])
+
+  if (!shouldPreferInjectedChain) return wagmiChainId
 
   return injectedChainId ?? wagmiChainId
 }
