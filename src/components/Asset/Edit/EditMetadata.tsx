@@ -51,6 +51,7 @@ export default function Edit({
 
   async function handleSubmit(values: MetadataEditForm, resetForm: () => void) {
     try {
+      const updatedAt = new Date().toISOString()
       const processAddress = (
         inputValue: string,
         fieldName: 'allow' | 'deny'
@@ -113,6 +114,7 @@ export default function Edit({
 
       const updatedMetadata: Metadata = {
         ...asset.credentialSubject?.metadata,
+        updated: updatedAt,
         name: values.name,
         description: {
           '@value': values.description,
