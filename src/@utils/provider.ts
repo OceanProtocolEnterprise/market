@@ -23,6 +23,7 @@ import {
   PolicyServerInitiateActionData,
   PolicyServerInitiateComputeActionData
 } from 'src/@types/PolicyServer'
+import { S3AccessConfig } from 'src/@types/S3File'
 
 export async function initializeProviderForComputeMulti(
   datasets:
@@ -119,7 +120,6 @@ export async function initializeProviderForComputeMulti(
   )
 }
 
-// TODO: Why do we have these one line functions ?!?!?!
 export async function getEncryptedFiles(
   files: any,
   chainId: number,
@@ -127,9 +127,16 @@ export async function getEncryptedFiles(
   signer: Signer
 ): Promise<string> {
   try {
-    // https://github.com/oceanprotocol/provider/blob/v4main/API.md#encrypt-endpoint
+    const filesForEncryption = {
+      ...files,
+      files: files.files.map((file: any) => {
+        const cleanFile = { ...file }
+        if (!cleanFile.type) cleanFile.type = 'url'
+        return cleanFile
+      })
+    }
     const response = await ProviderInstance.encrypt(
-      files,
+      filesForEncryption,
       chainId,
       providerUrl,
       signer
@@ -137,8 +144,16 @@ export async function getEncryptedFiles(
     return response
   } catch (error) {
     const message = getErrorMessage(error.message)
+    console.error('[getEncryptedFiles] Error:', {
+      error,
+      message,
+      files: JSON.stringify(files),
+      providerUrl,
+      chainId
+    })
     LoggerInstance.error('[Provider Encrypt] Error:', message)
     toast.error(message)
+    throw error
   }
 }
 
@@ -164,6 +179,57 @@ export async function getFileDidInfo(
   }
 }
 
+async function validateS3File(s3Config: S3AccessConfig): Promise<FileInfo[]> {
+  try {
+    if (
+      !s3Config.endpoint ||
+      !s3Config.bucket ||
+      !s3Config.objectKey ||
+      !s3Config.accessKeyId ||
+      !s3Config.secretAccessKey
+    ) {
+      throw new Error('Missing required S3 fields')
+    }
+    const fileName = s3Config.objectKey.split('/').pop() || s3Config.objectKey
+    const fileExtension = fileName.includes('.')
+      ? fileName.split('.').pop()
+      : ''
+
+    let contentType = 'application/octet-stream'
+    if (fileExtension) {
+      const extensionMap: Record<string, string> = {
+        txt: 'text/plain',
+        csv: 'text/csv',
+        json: 'application/json',
+        pdf: 'application/pdf',
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png',
+        gif: 'image/gif',
+        zip: 'application/zip',
+        tar: 'application/x-tar',
+        gz: 'application/gzip',
+        mp4: 'video/mp4',
+        mp3: 'audio/mpeg'
+      }
+      contentType = extensionMap[fileExtension] || 'application/octet-stream'
+    }
+    const fileInfo: FileInfo = {
+      type: 's3',
+      url: `s3://${s3Config.bucket}/${s3Config.objectKey}`,
+      contentType,
+      contentLength: '0',
+      valid: true,
+      method: 'GET'
+    }
+    return [fileInfo]
+  } catch (error) {
+    console.error('[validateS3File] Error:', error)
+    LoggerInstance.error('[S3 Validation] Error:', error)
+    throw error
+  }
+}
+
 export async function getFileInfo(
   file: string,
   providerUrl: string,
@@ -173,6 +239,7 @@ export async function getFileInfo(
   abi?: string,
   chainId?: number,
   method?: string,
+  s3Config?: S3AccessConfig,
   withChecksum = false
 ): Promise<FileInfo[]> {
   let response
@@ -218,6 +285,20 @@ export async function getFileInfo(
         const message = getErrorMessage(error.message)
         LoggerInstance.error('[Provider Get File info] Error:', message)
         toast.error(message)
+      }
+      break
+    }
+    case 's3': {
+      try {
+        if (!s3Config) {
+          throw new Error('S3 configuration is required for S3 file validation')
+        }
+        response = await validateS3File(s3Config)
+      } catch (error) {
+        const message = getErrorMessage(error.message)
+        LoggerInstance.error('[S3 File Validation] Error:', message)
+        toast.error(message)
+        throw error
       }
       break
     }
