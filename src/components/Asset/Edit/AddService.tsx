@@ -90,6 +90,8 @@ export default function AddService({
   // add new service
   async function handleSubmit(values: ServiceEditForm, resetForm: () => void) {
     try {
+      const updatedAt = new Date().toISOString()
+
       const processAddress = (
         inputValue: string,
         fieldName: 'allow' | 'deny'
@@ -298,6 +300,10 @@ export default function AddService({
 
       const updatedAsset = { ...asset }
       updatedAsset.credentialSubject.services.push(newService)
+      updatedAsset.credentialSubject.metadata = {
+        ...updatedAsset.credentialSubject.metadata,
+        updated: updatedAt
+      }
 
       stringifyCredentialPolicies(updatedAsset.credentialSubject.credentials)
       updatedAsset.credentialSubject.services.forEach((service) => {
