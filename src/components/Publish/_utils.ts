@@ -518,6 +518,16 @@ function fileInfoToLicenseDocument(
         size: fileSize
       }
     }),
+    displayName: {
+      '@value': name,
+      '@language': '',
+      '@direction': ''
+    },
+    description: {
+      '@value': '',
+      '@direction': '',
+      '@language': ''
+    },
     mirrors: [
       {
         type: fileInfo?.type || 'url',
