@@ -55,7 +55,6 @@ export default function MetadataFields(): ReactElement {
         name="metadata.description"
         rows={7}
       />
-      {/* Add language and direction fields here */}
       <Field
         {...getFieldContent('descriptionLanguage', content.metadata.fields)}
         component={Input}
