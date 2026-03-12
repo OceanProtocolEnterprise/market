@@ -28,7 +28,7 @@ import {
   FormAdditionalLicenseFile,
   FormPublishData
 } from '../_types'
-import { supportedLanguages } from '@components/Asset/languageType' // Add this import
+import { supportedLanguages } from '@components/Asset/languageType'
 
 const assetTypeOptionsTitles = getFieldContent(
   'type',
@@ -46,14 +46,12 @@ export default function useMetadata() {
   >({})
   const [, meta] = useField('metadata.dockerImageCustomChecksum')
 
-  // Language options for description
   const languageOptions = useMemo(() => {
     return supportedLanguages
       .map((lang) => lang.name)
       .sort((a, b) => a.localeCompare(b))
   }, [])
 
-  // Set default language if not set
   useEffect(() => {
     if (!values.metadata.descriptionLanguage) {
       setFieldValue('metadata.descriptionLanguage', 'en')
@@ -61,7 +59,6 @@ export default function useMetadata() {
     }
   }, [setFieldValue, values.metadata.descriptionLanguage])
 
-  // Handle language change
   const handleDescriptionLanguageChange = (languageName: string) => {
     const selectedLanguage = supportedLanguages.find(
       (lang) => lang.name === languageName
@@ -73,7 +70,6 @@ export default function useMetadata() {
     }
   }
 
-  // Get current language name for display
   const getCurrentDescriptionLanguageName = () => {
     const currentCode = values.metadata.descriptionLanguage
     if (!currentCode) return ''
