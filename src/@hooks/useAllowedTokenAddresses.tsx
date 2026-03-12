@@ -2,6 +2,7 @@
 import { useMemo } from 'react'
 import { getAddress } from 'ethers'
 import { getOceanConfig } from '@utils/ocean'
+import appConfig from '../../app.config.cjs'
 /**
  * Returns a checksummed array of allowed token addresses for a given network.
  * Falls back to OCEAN token if no env addresses are found.
@@ -12,8 +13,10 @@ export default function useAllowedTokenAddresses(
 ): string[] {
   return useMemo(() => {
     if (!networkId) return []
+    const normalizedNetworkId = Number(networkId)
+    if (!appConfig.chainIdsSupported.includes(normalizedNetworkId)) return []
 
-    const oceanConfig = getOceanConfig(networkId)
+    const oceanConfig = getOceanConfig(normalizedNetworkId)
     const tokenAddresses = oceanConfig?.tokenAddresses || []
 
     if (!Array.isArray(tokenAddresses) || tokenAddresses.length === 0) {

@@ -13,15 +13,19 @@ import { LoggerInstance } from '@oceanprotocol/lib'
 import SsiApiModal from '../Wallet/SsiApiModal'
 import { SsiWalletDesc, SsiWalletSession } from 'src/@types/SsiWallet'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import useSsiAutoConnectPrompt from '@hooks/useSsiAutoConnectPrompt'
+import { toast } from 'react-toastify'
 
 export default function SsiWalletManager() {
   const { showSsiWalletModule, setShowSsiWalletModule } = useUserPreferences()
   const walletClient = useEthersSigner()
+  useSsiAutoConnectPrompt()
   const {
     setSessionToken,
     ssiWalletCache,
     setCachedCredentials,
     clearVerifierSessionCache,
+    setIsSsiSessionHydrating,
     selectedWallet,
     setSelectedWallet,
     setSelectedKey,
@@ -39,6 +43,7 @@ export default function SsiWalletManager() {
       setSelectedWallet(wallets[0])
       return wallets[0]
     } catch (error) {
+      LoggerInstance.error(error)
       return selectedWallet
     }
   }
@@ -57,6 +62,8 @@ export default function SsiWalletManager() {
   }
 
   async function handleSsiConnect() {
+    setIsSsiSessionHydrating(true)
+
     try {
       if (!walletClient) {
         LoggerInstance.error('Wallet Client not available for SSI connection.')
@@ -64,11 +71,11 @@ export default function SsiWalletManager() {
       }
 
       ssiWalletCache.clearCredentials()
-      setCachedCredentials(undefined)
+      setCachedCredentials([])
       clearVerifierSessionCache()
       setSsiWalletApiOverride(overrideApi)
 
-      const session = await connectToWallet(walletClient as any)
+      const session = await connectToWallet(walletClient)
       setSessionToken(session)
       setSelectedDid(undefined)
       setSelectedKey(undefined)
@@ -77,6 +84,11 @@ export default function SsiWalletManager() {
       setShowSsiWalletModule(false)
     } catch (error) {
       LoggerInstance.error(error)
+      const message =
+        error instanceof Error ? error.message : 'SSI connection failed'
+      toast.error(message)
+    } finally {
+      setIsSsiSessionHydrating(false)
     }
   }
 

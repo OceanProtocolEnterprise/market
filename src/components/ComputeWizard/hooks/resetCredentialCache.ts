@@ -1,10 +1,12 @@
+import { SsiVerifiableCredential } from 'src/@types/SsiWallet'
+
 export function resetCredentialCache(
   ssiWalletCache: { clearCredentials: () => void },
-  setCachedCredentials: (value: any) => void,
+  setCachedCredentials: (value: SsiVerifiableCredential[]) => void,
   clearVerifierSessionCache: () => void
 ) {
   ssiWalletCache.clearCredentials()
-  setCachedCredentials(undefined as any)
+  setCachedCredentials([])
   clearVerifierSessionCache()
   try {
     for (let i = localStorage.length - 1; i >= 0; i--) {

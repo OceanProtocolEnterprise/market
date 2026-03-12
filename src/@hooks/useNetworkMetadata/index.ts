@@ -10,9 +10,12 @@ import {
 import { useMarketMetadata } from '@context/MarketMetadata'
 import { useChainId } from 'wagmi'
 
-export default function useNetworkMetadata(): UseNetworkMetadata {
+export default function useNetworkMetadata(
+  chainIdOverride?: number
+): UseNetworkMetadata {
   const { appConfig } = useMarketMetadata()
-  const chainId = useChainId()
+  const wagmiChainId = useChainId()
+  const chainId = chainIdOverride ?? wagmiChainId
 
   const [networkDisplayName, setNetworkDisplayName] = useState<string>()
   const [networkData, setNetworkData] = useState<EthereumListsChain>()

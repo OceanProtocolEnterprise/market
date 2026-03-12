@@ -19,17 +19,21 @@ export default function Wallet(): ReactElement {
 
   return (
     <div className={styles.wallet}>
-      <Network />
-      <Tooltip
-        content={<Details />}
-        trigger="click focus mouseenter"
-        disabled={!accountId || isSsiModalOpen}
-        onCreate={(instance) => {
-          tooltipRef.current = instance
-        }}
-      >
+      {accountId && <Network />}
+      {!accountId ? (
         <Account onSsiModalOpenChange={setIsSsiModalOpen} />
-      </Tooltip>
+      ) : (
+        <Tooltip
+          content={<Details />}
+          trigger="click focus mouseenter"
+          disabled={isSsiModalOpen}
+          onCreate={(instance) => {
+            tooltipRef.current = instance
+          }}
+        >
+          <Account onSsiModalOpenChange={setIsSsiModalOpen} />
+        </Tooltip>
+      )}
     </div>
   )
 }

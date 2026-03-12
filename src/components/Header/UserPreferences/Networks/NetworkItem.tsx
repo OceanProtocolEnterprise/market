@@ -1,6 +1,6 @@
-import { ChangeEvent, ReactElement } from 'react'
-import { useUserPreferences } from '@context/UserPreferences'
-import { removeItemFromArray } from '@utils/index'
+import { ReactElement } from 'react'
+import { useAccount, useSwitchChain } from 'wagmi'
+import Button from '@shared/atoms/Button'
 import NetworkName from '@shared/NetworkName'
 import styles from './NetworkItem.module.css'
 
@@ -9,34 +9,42 @@ export default function NetworkItem({
 }: {
   chainId: number
 }): ReactElement {
-  const { chainIds, setChainIds } = useUserPreferences()
+  const { chainId: connectedChainId } = useAccount()
+  const { switchChain, switchChainAsync, isPending } = useSwitchChain()
 
-  function handleNetworkChanged(e: ChangeEvent<HTMLInputElement>) {
-    const { value } = e.target
+  const isConnected = connectedChainId === chainId
+  const buttonLabel = isConnected ? 'Connected' : 'Connect'
+  const buttonClassName = isConnected
+    ? `${styles.connectButton} ${styles.connectedButton}`
+    : styles.connectButton
+  const isDisabled = isConnected || isPending
 
-    // storing all chainId everywhere as a number so convert from here
-    const valueAsNumber = Number(value)
-
-    const newChainIds = chainIds.includes(valueAsNumber)
-      ? [...removeItemFromArray(chainIds, valueAsNumber)]
-      : [...chainIds, valueAsNumber]
-    setChainIds(newChainIds)
+  async function handleSwitchChain() {
+    try {
+      if (switchChainAsync) {
+        await switchChainAsync({ chainId })
+      } else {
+        switchChain({ chainId })
+      }
+    } catch {}
   }
 
   return (
-    <div className={styles.radioWrap} key={chainId}>
-      <label className={styles.radioLabel} htmlFor={`opt-${chainId}`}>
-        <input
-          className={styles.input}
-          id={`opt-${chainId}`}
-          type="checkbox"
-          name="chainIds"
-          value={chainId}
-          onChange={handleNetworkChanged}
-          defaultChecked={chainIds.includes(chainId)}
-        />
-        <NetworkName key={chainId} networkId={chainId} />
-      </label>
+    <div className={styles.row}>
+      <div className={styles.networkName}>
+        <NetworkName networkId={chainId} />
+      </div>
+
+      <Button
+        type="button"
+        style="outlined"
+        size="small"
+        disabled={isDisabled}
+        className={buttonClassName}
+        onClick={!isConnected ? handleSwitchChain : undefined}
+      >
+        {buttonLabel}
+      </Button>
     </div>
   )
 }

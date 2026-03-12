@@ -13,27 +13,34 @@ import useNetworkMetadata, {
 import { useUserPreferences } from '@context/UserPreferences'
 import { useMarketMetadata } from '@context/MarketMetadata'
 
-export default function Networks(): ReactElement {
-  const { appConfig } = useMarketMetadata()
+export default function Networks(): ReactElement | null {
+  const { validatedSupportedChains, isValidatingSupportedChains } =
+    useMarketMetadata()
   const { networksList } = useNetworkMetadata()
   const { chainIds } = useUserPreferences()
+  const supportedChainIds = validatedSupportedChains
+
+  if (isValidatingSupportedChains) return null
+  if (supportedChainIds.length <= 1) return null
 
   const networksMain = filterNetworksByType(
     'mainnet',
-    appConfig.chainIdsSupported,
+    supportedChainIds,
     networksList
   )
 
   const networksTest = filterNetworksByType(
     'testnet',
-    appConfig.chainIdsSupported,
+    supportedChainIds,
     networksList
   )
 
   return (
     <Tooltip
       content={
-        <ul className={stylesIndex.preferencesDetails}>
+        <ul
+          className={`${stylesIndex.preferencesDetails} ${styles.preferencesDetails}`}
+        >
           <li>
             <Label htmlFor="chains">Networks</Label>
             <FormHelp>Switch the data source for the interface.</FormHelp>
@@ -44,6 +51,7 @@ export default function Networks(): ReactElement {
         </ul>
       }
       trigger="click focus mouseenter"
+      contentClassName={styles.tooltipContent}
       className={`${stylesIndex.preferences} ${styles.networks}`}
     >
       <>

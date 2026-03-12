@@ -9,17 +9,18 @@ import { useMarketMetadata } from '@context/MarketMetadata'
 
 export default function AvailableNetworks(): ReactElement {
   const { networksList } = useNetworkMetadata()
-  const { appConfig } = useMarketMetadata()
+  const { validatedSupportedChains } = useMarketMetadata()
+  const supportedChainIds = validatedSupportedChains
 
   const networksMain = filterNetworksByType(
     'mainnet',
-    appConfig.chainIdsSupported,
+    supportedChainIds,
     networksList
   )
 
   const networksTest = filterNetworksByType(
     'testnet',
-    appConfig.chainIdsSupported,
+    supportedChainIds,
     networksList
   )
   const networkCategories = [

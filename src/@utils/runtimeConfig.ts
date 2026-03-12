@@ -89,3 +89,69 @@ const runtimeConfig: RuntimeConfig = (() => {
 export function getRuntimeConfig(): RuntimeConfig {
   return runtimeConfig
 }
+
+function parseRuntimeObject(rawValue?: string): Record<string, unknown> | null {
+  if (typeof rawValue !== 'string' || rawValue.trim().length === 0) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue) as unknown
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return null
+    }
+    return parsed as Record<string, unknown>
+  } catch {
+    return null
+  }
+}
+
+export function getNodeUriMap(
+  fallback: Record<string, string> = {}
+): Record<string, string> {
+  const parsed = parseRuntimeObject(getRuntimeConfig().NEXT_PUBLIC_NODE_URI_MAP)
+  if (!parsed) return fallback
+
+  return Object.keys(parsed).reduce((acc: Record<string, string>, key) => {
+    const value = parsed[key]
+    if (typeof value === 'string' && value.trim().length > 0) {
+      acc[key] = value
+    }
+    return acc
+  }, {})
+}
+
+export function getAllowedErc20Map(
+  fallback: Record<string, string[]> = {}
+): Record<string, string[]> {
+  const parsed = parseRuntimeObject(
+    getRuntimeConfig().NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES
+  )
+  if (!parsed) return fallback
+
+  return Object.keys(parsed).reduce((acc: Record<string, string[]>, key) => {
+    const value = parsed[key]
+    if (!Array.isArray(value)) return acc
+
+    const addresses = value.filter(
+      (address): address is string => typeof address === 'string'
+    )
+    acc[key] = addresses
+    return acc
+  }, {})
+}
+
+export function getAllowedErc20ChainIds(fallback: number[] = []): number[] {
+  const parsed = parseRuntimeObject(
+    getRuntimeConfig().NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES
+  )
+  if (!parsed) {
+    return fallback
+  }
+
+  const allowedMap = getAllowedErc20Map()
+  return Object.keys(allowedMap)
+    .filter((chainId) => allowedMap[chainId].length > 0)
+    .map(Number)
+    .filter((chainId) => Number.isFinite(chainId))
+}

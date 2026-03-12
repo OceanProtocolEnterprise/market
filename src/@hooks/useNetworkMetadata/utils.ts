@@ -45,11 +45,7 @@ export function getNetworkDisplayName(data: EthereumListsChain): string {
       displayName = 'OEC Testnet'
       break
     default:
-      displayName = data
-        ? `${data.chain}${
-            getNetworkType(data) === 'mainnet' ? '' : ` ${data.name}`
-          }`
-        : 'Unknown'
+      displayName = data?.name || data?.title || data?.chain || 'Unknown'
       break
   }
 

@@ -3,7 +3,11 @@ import {
   Config,
   getOceanArtifactsAddressesByChainId
 } from '@oceanprotocol/lib'
-import { getRuntimeConfig } from '../runtimeConfig'
+import {
+  getAllowedErc20Map,
+  getNodeUriMap,
+  getRuntimeConfig
+} from '../runtimeConfig'
 import { getAddress } from 'ethers'
 
 export interface ConfigEnterprise extends Config {
@@ -56,24 +60,24 @@ function validateAndChecksumAddresses(addresses: string[]): string[] {
   }, [])
 }
 
-export function getOceanConfig(network: string | number): ConfigEnterprise {
-  const runtimeConfig = getRuntimeConfig()
-  // Load the RPC map from .env
-  const rpcMap: Record<string, string> = runtimeConfig.NEXT_PUBLIC_NODE_URI_MAP
-    ? JSON.parse(runtimeConfig.NEXT_PUBLIC_NODE_URI_MAP)
-    : {}
-
-  const erc20Map: Record<string, string[]> =
-    runtimeConfig.NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES
-      ? JSON.parse(runtimeConfig.NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES)
-      : {}
-
+export function getOceanConfig(
+  network: string | number
+): ConfigEnterprise | null {
   if (!network) {
     console.warn('[getOceanConfig] No network provided yet.')
-    return {} as ConfigEnterprise
+    return null
   }
 
+  const rpcMap = getNodeUriMap()
+  const erc20Map = getAllowedErc20Map()
+
   let config = new ConfigHelper().getConfig(network) as any
+
+  if (!config) {
+    console.warn(`[getOceanConfig] No config found for network: ${network}`)
+    return null
+  }
+
   if (network === 8996) {
     config = { ...config, ...sanitizeDevelopmentConfig(config) }
   }
@@ -86,8 +90,10 @@ export function getOceanConfig(network: string | number): ConfigEnterprise {
     config.tokenAddresses = validAddresses
   } else {
     // Fallback if no map entry exists: use the default config ocean token as a single-item array
-    config.tokenAddresses = [config.oceanTokenAddress]
-  } // Get contracts for current network
+    config.tokenAddresses = config?.oceanTokenAddress
+      ? [config.oceanTokenAddress]
+      : []
+  }
   const enterpriseContracts = getOceanArtifactsAddressesByChainId(
     Number(network)
   )
