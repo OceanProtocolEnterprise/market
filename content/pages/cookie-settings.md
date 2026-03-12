@@ -1,44 +1,53 @@
 ---
 title: Cookie Policy
-description: This cookie policy explains how Ocean Protocol Enterprise uses cookies and similar technologies on our website.
+description: This cookie policy explains how the Ocean Enterprise Demonstration Market uses cookies and similar technologies.
 ---
 
-A cookie is a small file that stores Internet settings. Almost every website uses cookie technology. It is downloaded by your web browser on the first visit to a website. The next time this website is opened with the same user device, the cookie and the information stored in it is either sent back to the website that created it (first-party cookie) or sent to another website it belongs to (third-party cookie). This enables the website to detect that you have opened it previously with this browser and in some cases to vary the displayed content.
+Last updated on March 12, 2026.
 
-When you first arrive on our site, a cookie banner will be shown. By accepting the cookies, you help us to provide better content in the future. The only downside for rejecting cookies on your side is that you will not be able to see some content loaded from external sources, which at the moment is only Twitter content.
+This Cookie Policy explains how the Ocean Enterprise Demonstration Market uses cookies and similar technologies. This policy should be read alongside our Privacy Policy.
 
-The collected IP addresses are truncated before being sent to Google, making them anonymized. Google Analytics also sets cookies.
+## 1. What are cookies?
 
-On our site, only Google Analytics and Twitter set cookies. We have to set a cookie of our own though, for remembering your acceptance or rejection of our cookie banner. This cookie will stay in your browser for 13 months, unless you delete it manually. This is so we can detect your acceptance or rejection on your next visit, and adapt the site accordingly.
+A cookie is a small file that stores information on your device. Your web browser downloads it on your first visit to a website. When you return using the same device, the cookie is either sent back to the site that created it (first-party) or to another website it belongs to (third-party).
 
-If you have Do Not Track activated in your browser, or if you rejected our cookie banner, we won’t let Google set any cookies in your browser.
+In this policy, the term "cookies" refers to standard browser cookies, as well as web storage (`localStorage` and `sessionStorage`) and `IndexedDB`, which serve similar functions.
 
-## Contact & Data Controller
+### Cookie Categories
 
-You also have the option of disabling cookies in your browser setting, and deleting cookies from your computer’s hard disk at any time.
+- Essential cookies: Strictly necessary for you to browse the website and use features like wallet connections.
+- Preference cookies: Used to remember your settings (e.g., currency or selected chains) to improve user-friendliness.
+- Statistics cookies: Collect information about how you use the website to improve functions.
+- Marketing cookies: Track activity to deliver relevant content or advertising.
 
-If you want to change your cookie consent, click the **Cookie Settings** link at the bottom of the page.
+## 2. How do we use cookies?
 
-In general, you can block cookies by using your browser’s settings, or by installing a browser add-on such as:
+We use essential and preference-based first-party storage to ensure the portal functions correctly. Currently, optional cookie categories (statistics/marketing) are not active in the user interface.
 
-- [Privacy Badger](https://privacybadger.org/)
-- [uBlock Origin](https://ublockorigin.com/)
+| Name / Key                  | Service          | Purpose                                                             | Type and Duration                    |
+| --------------------------- | ---------------- | ------------------------------------------------------------------- | ------------------------------------ |
+| `wagmi.store`               | wagmi/connectkit | Stores wallet connection state (chain, connector, account mapping). | Cookie; session-based.               |
+| `ocean-user-preferences-v4` | Ocean App        | Stores currency, selected chains, bookmarks, and onboarding flags.  | `localStorage`; persistent.          |
+| `sessionToken`              | SSI Auth         | Stores SSI session token (session ID, bearer token, expiration).    | `localStorage`; persistent.          |
+| `cachedCredentials`         | SSI Flow         | Caches verifiable credentials per DID to speed up access.           | `localStorage`; persistent.          |
+| `credential_<assetId>`      | Access Control   | Stores timestamp of successful credential checks.                   | `localStorage`; persistent.          |
+| `compute-rerun:<jobId>`     | Compute          | Stores rerun payloads for compute history.                          | `localStorage`; persistent.          |
+| `ssiWalletApiOverride`      | SSI Auth         | Stores user-entered SSI API base URL overrides.                     | `sessionStorage`; ends with session. |
+| `wc@2:*`                    | WalletConnect    | Persistence for WalletConnect client sessions.                      | `localStorage` and `IndexedDB`.      |
 
-## Google Analytics
+## 3. External Data Transfers
 
-The site uses Google Analytics, which provides us with anonymized information about our users (such as anonymized IP address, browser version, and so on) and how they use the site. We use this information to make the site better.
+While not all are "cookies," the following services receive data during your use of the market:
 
-If you hit **Reject** on the cookie banner, all previously set Google cookies will be deleted, and the rejection is stored in a cookie named `CookieConsent` with a value of `false`.
+- SSI Wallet API: Processes wallet addresses and credential IDs during verification.
+- Ocean Node: Receives DIDs and consumer addresses for asset downloads or compute jobs, processes search and filter queries.
+- IPFS (Pinata/Gateways): Used for pinning and retrieving decentralized content.
 
-## Marketing Activities
+## 4. How to block or delete cookies
 
-We may transfer your personal data to our business partners:
+- Removing cookies: You can delete all cookies or site-specific cookies via your browser settings at any time.
+- Blocking cookies: Most browsers allow you to prevent cookies from being placed. Please note that blocking essential cookies will prevent wallet connections and asset access from functioning.
 
-**BigchainDB GmbH**  
-Bernauer Str. 49  
-10435 Berlin  
-Germany
+## 5. Changes to this cookie policy
 
-For any requests, you can contact us as follows:
-
-**Email:** [info@oceanenterprise.io](mailto:info@oceanenterprise.io)
+This policy may be amended from time to time. The "Last updated" date at the top indicates the most recent changes. Material changes will be notified via a prominent notice on the demonstration market.
