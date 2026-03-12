@@ -225,13 +225,9 @@
           {
             "value": "s3",
             "title": "S3",
-            "label": "S3 Configuration",
-            "placeholder": "S3 bucket details",
-            "help": "Files are stored in S3-compatible object storage. The node uses the AWS SDK and works with Amazon S3, Ceph, MinIO, DigitalOcean Spaces, and other S3-compatible services.",
             "computeHelp": "For a compute dataset, your file should match the file type required by the algorithm, and should not exceed 1 GB in file size.",
             "prominentHelp": true,
             "type": "files",
-            "required": true,
             "methods": false,
             "innerFields": [
               {

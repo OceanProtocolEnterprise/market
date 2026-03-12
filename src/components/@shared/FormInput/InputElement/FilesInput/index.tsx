@@ -331,16 +331,14 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
               storageType={storageType}
               disabled={isValidated}
             />
-          ) : (
+          ) : storageType !== 's3' ? (
             <UrlInput
               submitText="Validate"
               {...inputProps}
               name={`${field.name}[0].url`}
               isLoading={isLoading}
               hideButton={
-                storageType === 'graphql' ||
-                storageType === 'smartcontract' ||
-                storageType === 's3'
+                storageType === 'graphql' || storageType === 'smartcontract'
               }
               hideError={true}
               checkUrl={true}
@@ -350,11 +348,9 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
               onReset={handleClose}
               showResetButton={!props.isAdditionalLicense}
             />
-          )}
-
+          ) : null}{' '}
           {(isValidated || field?.value?.[0]?.type === 'hidden') &&
             field?.value?.[0] && <FileInfoDetails file={field.value[0]} />}
-
           {props.innerFields && (
             <>
               <div className={`${styles.textblock}`}>

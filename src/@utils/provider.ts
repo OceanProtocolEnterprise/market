@@ -24,6 +24,11 @@ import {
   PolicyServerInitiateComputeActionData
 } from 'src/@types/PolicyServer'
 import { S3AccessConfig } from 'src/@types/S3File'
+import { S3Client, HeadObjectCommand } from '@aws-sdk/client-s3'
+
+interface S3FileInfo extends FileInfo {
+  name?: string
+}
 
 export async function initializeProviderForComputeMulti(
   datasets:
@@ -179,53 +184,61 @@ export async function getFileDidInfo(
   }
 }
 
-async function validateS3File(s3Config: S3AccessConfig): Promise<FileInfo[]> {
+async function validateS3File(s3Config: S3AccessConfig): Promise<S3FileInfo[]> {
   try {
-    if (
-      !s3Config.endpoint ||
-      !s3Config.bucket ||
-      !s3Config.objectKey ||
-      !s3Config.accessKeyId ||
-      !s3Config.secretAccessKey
-    ) {
-      throw new Error('Missing required S3 fields')
-    }
-    const fileName = s3Config.objectKey.split('/').pop() || s3Config.objectKey
-    const fileExtension = fileName.includes('.')
-      ? fileName.split('.').pop()
-      : ''
+    const cleanBucket = s3Config.bucket.trim()
+    const cleanObjectKey = s3Config.objectKey.trim()
 
-    let contentType = 'application/octet-stream'
-    if (fileExtension) {
-      const extensionMap: Record<string, string> = {
-        txt: 'text/plain',
-        csv: 'text/csv',
-        json: 'application/json',
-        pdf: 'application/pdf',
-        jpg: 'image/jpeg',
-        jpeg: 'image/jpeg',
-        png: 'image/png',
-        gif: 'image/gif',
-        zip: 'application/zip',
-        tar: 'application/x-tar',
-        gz: 'application/gzip',
-        mp4: 'video/mp4',
-        mp3: 'audio/mpeg'
-      }
-      contentType = extensionMap[fileExtension] || 'application/octet-stream'
-    }
-    const fileInfo: FileInfo = {
+    const client = new S3Client({
+      endpoint: s3Config.endpoint,
+      region: s3Config.region || 'us-east-1',
+      credentials: {
+        accessKeyId: s3Config.accessKeyId.trim(),
+        secretAccessKey: s3Config.secretAccessKey.trim()
+      },
+      forcePathStyle: s3Config.forcePathStyle || false
+    })
+
+    const command = new HeadObjectCommand({
+      Bucket: cleanBucket,
+      Key: cleanObjectKey
+    })
+
+    const response = await client.send(command)
+    const fileName = cleanObjectKey.split('/').pop() || cleanObjectKey
+
+    const fileInfo: S3FileInfo = {
       type: 's3',
-      url: `s3://${s3Config.bucket}/${s3Config.objectKey}`,
-      contentType,
-      contentLength: '0',
+      url: `s3://${cleanBucket}/${cleanObjectKey}`,
+      contentType: response.ContentType || 'application/octet-stream',
+      contentLength: response.ContentLength?.toString() || '0',
       valid: true,
-      method: 'GET'
+      method: 'GET',
+      checksum: response.ETag?.replace(/"/g, ''),
+      name: fileName
     }
     return [fileInfo]
-  } catch (error) {
-    console.error('[validateS3File] Error:', error)
-    LoggerInstance.error('[S3 Validation] Error:', error)
+  } catch (error: any) {
+    console.error('S3 validation error:', {
+      name: error.name,
+      message: error.message,
+      code: error.Code,
+      statusCode: error.$metadata?.httpStatusCode
+    })
+
+    if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+      throw new Error(
+        `File not found: ${s3Config.bucket}/${s3Config.objectKey}`
+      )
+    }
+    if (
+      error.name === 'AccessDenied' ||
+      error.$metadata?.httpStatusCode === 403
+    ) {
+      throw new Error(
+        'Access denied. Check your credentials and bucket permissions'
+      )
+    }
     throw error
   }
 }
