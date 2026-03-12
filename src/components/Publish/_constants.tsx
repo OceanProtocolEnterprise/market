@@ -80,6 +80,8 @@ export const initialValues: FormPublishData = {
     type: 'dataset' as 'dataset' | 'algorithm',
     name: '',
     description: '',
+    descriptionLanguage: 'en',
+    descriptionDirection: 'ltr',
     author: '',
     termsAndConditions: false,
     dockerImage: '',

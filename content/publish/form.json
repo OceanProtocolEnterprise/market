@@ -31,6 +31,22 @@
         "required": true
       },
       {
+        "name": "descriptionDirection",
+        "label": "Description language direction",
+        "type": "serviceDirection",
+        "help": "Please enter the description language direction",
+        "placeholder": "e.g. ltr",
+        "required": false
+      },
+      {
+        "name": "descriptionLanguage",
+        "label": "Description language",
+        "type": "serviceLanguage",
+        "help": "Please enter the description language",
+        "placeholder": "e.g. en",
+        "required": false
+      },
+      {
         "name": "tags",
         "label": "Tags",
         "type": "tags",

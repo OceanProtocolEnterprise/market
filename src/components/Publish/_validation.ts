@@ -94,6 +94,8 @@ const validationMetadata = {
       (param) => `Description must have maximum ${param.max} characters`
     )
     .required('Required'),
+  descriptionLanguage: Yup.string(),
+  descriptionDirection: Yup.string(),
   tags: Yup.array<string[]>().nullable(),
   dockerImage: Yup.string().when('type', {
     is: 'algorithm',

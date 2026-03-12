@@ -504,7 +504,9 @@ function omit<T extends object, K extends keyof T>(
 
 function fileInfoToLicenseDocument(
   fileInfo: FileInfo,
-  name: string
+  name: string,
+  language: string,
+  direction: string
 ): RemoteObject {
   const fileSize = Number(fileInfo?.contentLength)
   const hasValidFileSize = Number.isFinite(fileSize) && fileSize >= 0
@@ -520,13 +522,13 @@ function fileInfoToLicenseDocument(
     }),
     displayName: {
       '@value': name,
-      '@language': '',
-      '@direction': ''
+      '@language': language || '',
+      '@direction': direction || ''
     },
     description: {
       '@value': '',
-      '@direction': '',
-      '@language': ''
+      '@language': language || '',
+      '@direction': direction || ''
     },
     mirrors: [
       {
@@ -630,7 +632,9 @@ export async function transformPublishFormToDdo(
 
       const urlDocument = fileInfoToLicenseDocument(
         fileInfo,
-        resolvedUrlFileName
+        resolvedUrlFileName,
+        metadata.descriptionLanguage,
+        metadata.descriptionDirection
       )
       return urlDocument
     })
@@ -644,7 +648,9 @@ export async function transformPublishFormToDdo(
     const primaryFile = values.metadata.licenseUrl[0]
     const primaryLicenseDocument = fileInfoToLicenseDocument(
       primaryFile,
-      primaryFile.url
+      primaryFile.url,
+      metadata.descriptionLanguage,
+      metadata.descriptionDirection
     )
 
     license = {
@@ -675,8 +681,8 @@ export async function transformPublishFormToDdo(
     name,
     description: {
       '@value': description,
-      '@direction': '',
-      '@language': ''
+      '@direction': metadata.descriptionDirection || '',
+      '@language': metadata.descriptionLanguage || ''
     },
     tags: transformTags(tags),
     author,
