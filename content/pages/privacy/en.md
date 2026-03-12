@@ -46,8 +46,6 @@ For any questions or concerns regarding these Terms, please contact us at **info
 
 ## Privacy Policy
 
-_Last updated on June 5, 2025._
-
 This privacy policy informs you about how **Ocean Enterprise Collective e.V. (in the following OEC, we, us, our)** processes your personal data. Moreover, this privacy policy informs you about your rights.
 
 ### 1. Contact details of the controller

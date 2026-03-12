@@ -1,9 +1,8 @@
 ---
 title: Cookie Policy
 description: This cookie policy explains how the Ocean Enterprise Demonstration Market uses cookies and similar technologies.
+showLastUpdated: true
 ---
-
-Last updated on March 12, 2026.
 
 This Cookie Policy explains how the Ocean Enterprise Demonstration Market uses cookies and similar technologies. This policy should be read alongside our Privacy Policy.
 

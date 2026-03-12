@@ -5,9 +5,11 @@ import PrivacyLanguages from './PrivacyLanguages'
 import AnchorNavigation from '@shared/AnchorNavigation'
 
 export default function PrivacyPolicyHeader({
-  policy
+  policy,
+  lastUpdatedDate
 }: {
   policy: string
+  lastUpdatedDate?: string
 }): ReactElement {
   const { policies } = usePrivacyMetadata()
   const policyMetadata = policies.find((p) => p.policy === policy)
@@ -15,6 +17,7 @@ export default function PrivacyPolicyHeader({
   if (!policyMetadata) return null
 
   const { date, params } = policyMetadata
+  const resolvedDate = lastUpdatedDate || date
 
   return (
     <div>
@@ -36,7 +39,7 @@ export default function PrivacyPolicyHeader({
         <em>
           {params?.updated || 'Last updated on'}{' '}
           <Time
-            date={date}
+            date={resolvedDate}
             displayFormat={params?.dateFormat || 'MMMM dd, yyyy.'}
           />
         </em>
