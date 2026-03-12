@@ -45,12 +45,15 @@ export default function FormEditMetadata(): ReactElement {
     additionalFileSourceOptions,
     additionalLicenseSubtext,
     primaryLicenseReady,
+    languageOptions,
     handleAdditionalFileUpload,
     handleNewAdditionalFile,
     handleDeleteAdditionalFile,
     handleAdditionalFileSourceChange,
     handleAdditionalFileUrlValidate,
-    handleResetPrimaryUploadedLicense
+    handleResetPrimaryUploadedLicense,
+    getCurrentDescriptionLanguageName,
+    handleDescriptionLanguageChange
   } = useEditMetadata()
 
   // BoxSelection component is not a Formik component
@@ -190,6 +193,22 @@ export default function FormEditMetadata(): ReactElement {
           {...getFieldContent('description', data)}
           component={Input}
           name="description"
+        />
+        <Field
+          {...getFieldContent('descriptionLanguage', data)}
+          component={Input}
+          name="descriptionLanguage"
+          type="select"
+          selectStyle="serviceLanguage"
+          options={languageOptions}
+          value={getCurrentDescriptionLanguageName()}
+          onChange={(e) => handleDescriptionLanguageChange(e.target.value)}
+        />
+        <Field
+          {...getFieldContent('descriptionDirection', data)}
+          component={Input}
+          name="descriptionDirection"
+          readOnly
         />
         {/* <Field
           {...getFieldContent('links', data)}

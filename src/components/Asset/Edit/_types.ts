@@ -20,6 +20,8 @@ export interface FormAdditionalLicenseFile {
 export interface MetadataEditForm {
   name: string
   description: string
+  descriptionLanguage?: string
+  descriptionDirection?: string
   type: string
   links?: FileInfo[]
   author?: string

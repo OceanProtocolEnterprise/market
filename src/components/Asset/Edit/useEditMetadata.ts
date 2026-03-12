@@ -1,5 +1,5 @@
 import { useFormikContext } from 'formik'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { MetadataEditForm, FormAdditionalLicenseFile } from './_types'
 import { deleteIpfsFile, uploadFileItemToIPFS } from '@utils/ipfs'
 import { FileItem } from '@utils/fileItem'
@@ -17,6 +17,7 @@ import {
   getAdditionalLicenseSubtext
 } from '@components/Publish/_license'
 import { AdditionalLicenseSourceType } from '@components/Publish/_types'
+import { supportedLanguages } from '@components/Asset/languageType'
 
 export default function useEditMetadata() {
   const { asset } = useAsset()
@@ -28,6 +29,36 @@ export default function useEditMetadata() {
   const [additionalFilesDeleting, setAdditionalFilesDeleting] = useState<
     Record<number, boolean>
   >({})
+
+  // Language options for description
+  const languageOptions = useMemo(() => {
+    return supportedLanguages
+      .map((lang) => lang.name)
+      .sort((a, b) => a.localeCompare(b))
+  }, [])
+
+  // Handle language change
+  const handleDescriptionLanguageChange = (languageName: string) => {
+    const selectedLanguage = supportedLanguages.find(
+      (lang) => lang.name === languageName
+    )
+
+    if (selectedLanguage) {
+      setFieldValue('descriptionLanguage', selectedLanguage.code)
+      setFieldValue('descriptionDirection', selectedLanguage.direction)
+    }
+  }
+
+  // Get current language name for display
+  const getCurrentDescriptionLanguageName = () => {
+    const currentCode = values.descriptionLanguage
+    if (!currentCode) return ''
+
+    const language = supportedLanguages.find(
+      (lang) => lang.code === currentCode
+    )
+    return language?.name || ''
+  }
 
   function isPrimaryLicenseReady(): boolean {
     if (values.useRemoteLicense) {
@@ -63,6 +94,16 @@ export default function useEditMetadata() {
             size: fileSize
           }
         }),
+        description: {
+          '@value': '',
+          '@direction': values.descriptionDirection || '',
+          '@language': values.descriptionLanguage || ''
+        },
+        displayName: {
+          '@value': urlDoc.url,
+          '@language': values.descriptionLanguage || '',
+          '@direction': values.descriptionDirection || ''
+        },
         mirrors: [
           {
             url: urlDoc.url,
@@ -101,6 +142,16 @@ export default function useEditMetadata() {
               size: fileSize
             }
           }),
+          description: {
+            '@value': '',
+            '@direction': values.descriptionDirection || '',
+            '@language': values.descriptionLanguage || ''
+          },
+          displayName: {
+            '@value': file.name,
+            '@language': values.descriptionLanguage || '',
+            '@direction': values.descriptionDirection || ''
+          },
           mirrors: [
             {
               url: urlDoc.url,
@@ -225,13 +276,13 @@ export default function useEditMetadata() {
       },
       description: {
         '@value': '',
-        '@direction': '',
-        '@language': ''
+        '@language': values.descriptionLanguage || '',
+        '@direction': values.descriptionDirection || ''
       },
       displayName: {
         '@value': fileItem.name,
-        '@language': '',
-        '@direction': ''
+        '@language': values.descriptionLanguage || '',
+        '@direction': values.descriptionDirection || ''
       },
       mirrors: [remoteSource]
     }
@@ -451,11 +502,14 @@ export default function useEditMetadata() {
     additionalFileSourceOptions: additionalLicenseSourceOptions,
     additionalLicenseSubtext,
     primaryLicenseReady,
+    languageOptions,
     handleAdditionalFileUpload,
     handleNewAdditionalFile,
     handleDeleteAdditionalFile,
     handleAdditionalFileSourceChange,
     handleAdditionalFileUrlValidate,
-    handleResetPrimaryUploadedLicense
+    handleResetPrimaryUploadedLicense,
+    getCurrentDescriptionLanguageName,
+    handleDescriptionLanguageChange
   }
 }
