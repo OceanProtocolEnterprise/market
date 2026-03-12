@@ -774,7 +774,6 @@ export async function transformPublishFormToDdo(
     credentialSubject: {
       chainId,
       ...(appConfig.dataspace && { dataspace: appConfig.dataspace }),
-      license,
       metadata: newMetadata,
       services: [newService],
       nftAddress,

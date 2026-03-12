@@ -146,7 +146,6 @@ export default function Edit({
         ...(asset as Asset),
         credentialSubject: {
           ...(asset as Asset).credentialSubject,
-          license,
           metadata: updatedMetadata,
           credentials: updatedCredentials
         },
