@@ -30,14 +30,12 @@ export default function useEditMetadata() {
     Record<number, boolean>
   >({})
 
-  // Language options for description
   const languageOptions = useMemo(() => {
     return supportedLanguages
       .map((lang) => lang.name)
       .sort((a, b) => a.localeCompare(b))
   }, [])
 
-  // Handle language change
   const handleDescriptionLanguageChange = (languageName: string) => {
     const selectedLanguage = supportedLanguages.find(
       (lang) => lang.name === languageName
@@ -49,7 +47,6 @@ export default function useEditMetadata() {
     }
   }
 
-  // Get current language name for display
   const getCurrentDescriptionLanguageName = () => {
     const currentCode = values.descriptionLanguage
     if (!currentCode) return ''
