@@ -3,6 +3,7 @@ import { useAccount, useChainId } from 'wagmi'
 
 type Eip1193Provider = {
   chainId?: string | number
+  request?: (args: { method: string }) => Promise<unknown>
   on?: (event: string, callback: (value?: unknown) => void) => void
   removeListener?: (event: string, callback: (value?: unknown) => void) => void
 }
@@ -44,34 +45,75 @@ export default function useActiveWalletChainId(): number | undefined {
       return
     }
 
-    if (typeof window === 'undefined') return
+    let cancelled = false
+    let activeProvider: Eip1193Provider | undefined
+    let activeListener: ((value?: unknown) => void) | undefined
 
-    const ethereum = (window as Window & { ethereum?: unknown }).ethereum as
-      | Eip1193Provider
-      | undefined
+    const setChainId = (value?: unknown) => {
+      const parsedChainId = parseChainId(value)
+      if (parsedChainId === undefined || cancelled) return
 
-    if (!ethereum) return
-
-    const updateChainId = (value?: unknown) => {
-      const parsedChainId = parseChainId(value ?? ethereum.chainId)
-      if (parsedChainId === undefined) return
       setInjectedChainId((previous) =>
         previous === parsedChainId ? previous : parsedChainId
       )
     }
 
-    updateChainId()
+    const resolveFallbackProvider = (): Eip1193Provider | undefined => {
+      if (typeof window === 'undefined') return
 
-    const handleChainChanged = (value?: unknown) => {
-      updateChainId(value)
+      return (window as Window & { ethereum?: unknown }).ethereum as
+        | Eip1193Provider
+        | undefined
     }
 
-    ethereum.on?.('chainChanged', handleChainChanged)
+    const initializeProvider = async () => {
+      try {
+        const connectorProvider = connector?.getProvider
+          ? ((await connector.getProvider()) as Eip1193Provider | undefined)
+          : undefined
+
+        const provider = connectorProvider ?? resolveFallbackProvider()
+
+        if (!provider || cancelled) return
+
+        activeProvider = provider
+
+        const requestedChainId =
+          provider.request &&
+          (await provider.request({ method: 'eth_chainId' }).catch(() => null))
+
+        setChainId(requestedChainId ?? provider.chainId)
+
+        activeListener = (value?: unknown) => {
+          setChainId(value ?? activeProvider?.chainId)
+        }
+
+        provider.on?.('chainChanged', activeListener)
+      } catch {
+        const fallbackProvider = resolveFallbackProvider()
+        if (!fallbackProvider || cancelled) return
+
+        activeProvider = fallbackProvider
+        setChainId(fallbackProvider.chainId)
+
+        activeListener = (value?: unknown) => {
+          setChainId(value ?? activeProvider?.chainId)
+        }
+
+        fallbackProvider.on?.('chainChanged', activeListener)
+      }
+    }
+
+    initializeProvider().catch(() => undefined)
 
     return () => {
-      ethereum.removeListener?.('chainChanged', handleChainChanged)
+      cancelled = true
+
+      if (activeProvider && activeListener) {
+        activeProvider.removeListener?.('chainChanged', activeListener)
+      }
     }
-  }, [shouldPreferInjectedChain])
+  }, [connector, shouldPreferInjectedChain])
 
   if (!shouldPreferInjectedChain) return wagmiChainId
 
