@@ -1,6 +1,5 @@
 import { ReactElement } from 'react'
 import { useUserPreferences } from '@context/UserPreferences'
-import { useGdprMetadata } from '@hooks/useGdprMetadata'
 import styles from './Links.module.css'
 import { useMarketMetadata } from '@context/MarketMetadata'
 import Link from 'next/link'
@@ -8,7 +7,6 @@ import Link from 'next/link'
 export default function Links(): ReactElement {
   const { appConfig, siteContent } = useMarketMetadata()
   const { setShowPPC, privacyPolicySlug } = useUserPreferences()
-  const cookies = useGdprMetadata()
 
   const { content, privacyTitle } = siteContent.footer
 
@@ -21,7 +19,10 @@ export default function Links(): ReactElement {
               <p className={styles.title}>{section.title}</p>
               <div className={styles.links}>
                 {section.links.map((e, i) => {
-                  if (e.name === 'Cookie Settings') {
+                  if (
+                    e.name === 'Cookie Settings' ||
+                    e.name === 'Cookie Policy'
+                  ) {
                     return (
                       <Link
                         key={i}
@@ -31,9 +32,7 @@ export default function Links(): ReactElement {
                           setShowPPC(true)
                         }}
                       >
-                        {cookies.optionalCookies
-                          ? 'Cookie Settings'
-                          : 'Cookies'}
+                        Cookie Policy
                       </Link>
                     )
                   }
@@ -112,7 +111,7 @@ export default function Links(): ReactElement {
                 setShowPPC(true)
               }}
             >
-              {cookies.optionalCookies ? 'Cookie Settings' : 'Cookies'}
+              Cookie Policy
             </Link>
           )}
         </div>

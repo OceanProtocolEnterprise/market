@@ -27,3 +27,19 @@
 .noHover {
   pointer-events: none;
 }
+
+.buttonContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.buttonLoader {
+  width: 0.95rem;
+}
+
+.connectButton {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}

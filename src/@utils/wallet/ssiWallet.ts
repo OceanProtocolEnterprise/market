@@ -7,7 +7,8 @@ import {
   SsiWalletDid
 } from 'src/@types/SsiWallet'
 import { JsonRpcSigner } from 'ethers'
-import { ssiWalletApi } from 'app.config.cjs'
+import appConfig from 'app.config.cjs'
+import { getAllowedErc20ChainIds } from '@utils/runtimeConfig'
 import { LoggerInstance } from '@oceanprotocol/lib'
 
 export const STORAGE_KEY = 'ssiWalletApiOverride'
@@ -18,7 +19,7 @@ export function setSsiWalletApiOverride(url: string) {
 
 export function getSsiWalletApi(): string {
   const override = sessionStorage.getItem(STORAGE_KEY)
-  return override || ssiWalletApi
+  return override || appConfig.ssiWalletApi
 }
 
 export async function connectToWallet(
@@ -30,6 +31,15 @@ export async function connectToWallet(
   }
 
   try {
+    const network = await owner.provider.getNetwork()
+    const signerChainId = Number(network.chainId)
+    const allowedChainIds = getAllowedErc20ChainIds(appConfig.chainIdsSupported)
+    if (!allowedChainIds.includes(signerChainId)) {
+      throw new Error(
+        `SSI connection is disabled on chain ${signerChainId}. Switch to an allowed network first.`
+      )
+    }
+
     // 1. Get nonce
     const response = await axios.get(
       `${api}/wallet-api/auth/account/web3/nonce`

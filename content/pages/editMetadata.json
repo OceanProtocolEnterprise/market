@@ -19,6 +19,23 @@
         "required": true
       },
       {
+        "name": "descriptionLanguage",
+        "label": "Description language",
+        "type": "select",
+        "selectStyle": "serviceLanguage",
+        "help": "Please select the description language",
+        "options": [],
+        "required": false
+      },
+      {
+        "name": "descriptionDirection",
+        "label": "Description direction",
+        "type": "text",
+        "help": "Description text direction (ltr/rtl)",
+        "readOnly": true,
+        "required": false
+      },
+      {
         "name": "type",
         "label": "Asset Type",
         "type": "boxSelection",

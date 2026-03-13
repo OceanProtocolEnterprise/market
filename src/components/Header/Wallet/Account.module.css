@@ -22,7 +22,7 @@
   /* text-decoration: underline; */
 }
 
-.button.initial {
+.initial {
   font-family: var(--font-family);
   font-weight: 700;
   font-size: 20px;
@@ -35,8 +35,8 @@
   max-width: 100%;
 }
 
-.button.initial span {
-  display: none;
+.initialLabel {
+  display: inline;
 }
 
 .address {
@@ -51,7 +51,7 @@
 .button svg {
   width: var(--menu-caret-size);
   height: var(--menu-caret-size);
-  fill: var(--menu-icon-color-fill);
+  fill: var(--menu-icon-fill-color);
   display: inline-block;
   vertical-align: middle;
   margin-left: calc(var(--spacer) / 3);
@@ -74,7 +74,7 @@ svg.caret {
 }
 
 @media screen and (min-width: 15rem) and (max-width: 47rem) {
-  .button.initial span {
+  .initialLabel {
     display: inline;
   }
   .caret,
@@ -84,7 +84,7 @@ svg.caret {
   }
 }
 @media screen and (min-width: 47rem) {
-  .button.initial span {
+  .initialLabel {
     display: inline;
   }
   /* ... */
@@ -94,25 +94,21 @@ svg.caret {
   .button {
     font-size: 16px;
   }
-  .button.initial {
+  .initial {
     font-size: 16px;
   }
 }
 
 @media screen and (min-width: 150px) and (max-width: 480px) {
-  .button.initial {
+  .initial {
     font-size: 14px;
     /* max-width: 50%; */
   }
   .button {
     font-size: 14px;
   }
-  .button.initial::after {
-    content: 'Connect...';
-  }
-
-  .button.initial span {
-    display: none;
+  .initialLabel {
+    display: inline;
   }
 }
 

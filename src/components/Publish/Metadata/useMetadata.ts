@@ -28,6 +28,7 @@ import {
   FormAdditionalLicenseFile,
   FormPublishData
 } from '../_types'
+import { supportedLanguages } from '@components/Asset/languageType'
 
 const assetTypeOptionsTitles = getFieldContent(
   'type',
@@ -44,6 +45,40 @@ export default function useMetadata() {
     Record<number, boolean>
   >({})
   const [, meta] = useField('metadata.dockerImageCustomChecksum')
+
+  const languageOptions = useMemo(() => {
+    return supportedLanguages
+      .map((lang) => lang.name)
+      .sort((a, b) => a.localeCompare(b))
+  }, [])
+
+  useEffect(() => {
+    if (!values.metadata.descriptionLanguage) {
+      setFieldValue('metadata.descriptionLanguage', 'en')
+      setFieldValue('metadata.descriptionDirection', 'ltr')
+    }
+  }, [setFieldValue, values.metadata.descriptionLanguage])
+
+  const handleDescriptionLanguageChange = (languageName: string) => {
+    const selectedLanguage = supportedLanguages.find(
+      (lang) => lang.name === languageName
+    )
+
+    if (selectedLanguage) {
+      setFieldValue('metadata.descriptionLanguage', selectedLanguage.code)
+      setFieldValue('metadata.descriptionDirection', selectedLanguage.direction)
+    }
+  }
+
+  const getCurrentDescriptionLanguageName = () => {
+    const currentCode = values.metadata.descriptionLanguage
+    if (!currentCode) return ''
+
+    const language = supportedLanguages.find(
+      (lang) => lang.code === currentCode
+    )
+    return language?.name || ''
+  }
 
   function getAdditionalFilesSnapshot(): FormAdditionalLicenseFile[] {
     return [...(values.metadata.additionalLicenseFiles || [])]
@@ -121,13 +156,13 @@ export default function useMetadata() {
       },
       description: {
         '@value': '',
-        '@direction': '',
-        '@language': ''
+        '@direction': values.metadata.descriptionDirection || '',
+        '@language': values.metadata.descriptionLanguage || ''
       },
       displayName: {
         '@value': fileItem.name,
-        '@language': '',
-        '@direction': ''
+        '@language': values.metadata.descriptionLanguage || '',
+        '@direction': values.metadata.descriptionDirection || ''
       },
       mirrors: [remoteSource]
     }
@@ -406,6 +441,9 @@ export default function useMetadata() {
     handleNewAdditionalFile,
     handleDeleteAdditionalFile,
     handleAdditionalFileSourceChange,
-    handleResetPrimaryUploadedLicense
+    handleResetPrimaryUploadedLicense,
+    languageOptions,
+    getCurrentDescriptionLanguageName,
+    handleDescriptionLanguageChange
   }
 }

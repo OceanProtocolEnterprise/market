@@ -183,21 +183,57 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
         props.name.includes('metadata.additionalLicense[') ||
         props.name.startsWith('additionalLicense[')
 
-      const newDoc = {
-        name: fileName,
-        fileType: checkedFileInfo.contentType || checkedFileInfo.type,
-        sha256: checkedFileInfo.checksum,
-        mirrors:
-          storageType === 's3'
-            ? [
-                {
-                  type: storageType,
-                  url: `s3://${bucket}/${objectKey}`
-                }
-              ]
-            : [{ url, type: storageType, method }],
-        ...(storageType === 's3' && {
-          s3Access: {
+      const isLicenseField =
+        props.name.includes('licenseUrl') ||
+        props.name.includes('metadata.additionalLicense[') ||
+        props.name.startsWith('additionalLicense[')
+
+      if (isLicenseField) {
+        // Create base mirrors array
+        let mirrors = []
+        if (storageType === 's3') {
+          mirrors = [
+            {
+              type: storageType,
+              url: `s3://${bucket}/${objectKey}`
+            }
+          ]
+        } else {
+          mirrors = [
+            {
+              type: storageType || 'url',
+              method: method || 'get',
+              url
+            }
+          ]
+        }
+
+        // Build the license document with proper structure
+        const newDoc: any = {
+          name: fileName,
+          fileType: checkedFileInfo.contentType || checkedFileInfo.type || '',
+          sha256: checkedFileInfo.checksum || '',
+          ...(checkedFileInfo.contentLength && {
+            additionalInformation: {
+              size: Number(checkedFileInfo.contentLength)
+            }
+          }),
+          displayName: {
+            '@value': fileName,
+            '@language': '',
+            '@direction': ''
+          },
+          description: {
+            '@value': '',
+            '@direction': '',
+            '@language': ''
+          },
+          mirrors
+        }
+
+        // Add S3-specific data if applicable
+        if (storageType === 's3') {
+          newDoc.s3Access = {
             endpoint,
             region: region || 'us-east-1',
             bucket,
@@ -206,46 +242,47 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
             secretAccessKey,
             forcePathStyle
           }
-        }),
-        ...checkedFileInfo
-      }
+        }
 
-      if (isEditPage) {
-        const currentDocs = values.license?.licenseDocuments || []
+        if (isEditPage) {
+          const currentDocs = values.license?.licenseDocuments || []
 
-        if (isMainLicense) {
-          setFieldValue('license.licenseDocuments', [
-            newDoc,
-            ...currentDocs.slice(1)
-          ])
-        } else if (isAdditionalLicense) {
-          const mainLicense = currentDocs[0] || null
-          const additionalDocs = currentDocs.slice(1)
+          if (isMainLicense) {
+            setFieldValue('license.licenseDocuments', [
+              newDoc,
+              ...currentDocs.slice(1)
+            ])
+          } else if (isAdditionalLicense) {
+            const mainLicense = currentDocs[0] || null
+            const additionalDocs = currentDocs.slice(1)
 
-          setFieldValue('license.licenseDocuments', [
-            ...(mainLicense ? [mainLicense] : []),
-            ...additionalDocs,
-            newDoc
-          ])
+            setFieldValue('license.licenseDocuments', [
+              ...(mainLicense ? [mainLicense] : []),
+              ...additionalDocs,
+              newDoc
+            ])
+          }
+        } else {
+          const currentDocs = values.metadata?.license?.licenseDocuments || []
+
+          if (isMainLicense) {
+            setFieldValue('metadata.license.licenseDocuments', [
+              newDoc,
+              ...currentDocs.slice(1)
+            ])
+          } else if (isAdditionalLicense) {
+            const mainLicense = currentDocs[0] || null
+            const additionalDocs = currentDocs.slice(1)
+
+            setFieldValue('metadata.license.licenseDocuments', [
+              ...(mainLicense ? [mainLicense] : []),
+              ...additionalDocs,
+              newDoc
+            ])
+          }
         }
       } else {
-        const currentDocs = values.metadata?.license?.licenseDocuments || []
-
-        if (isMainLicense) {
-          setFieldValue('metadata.license.licenseDocuments', [
-            newDoc,
-            ...currentDocs.slice(1)
-          ])
-        } else if (isAdditionalLicense) {
-          const mainLicense = currentDocs[0] || null
-          const additionalDocs = currentDocs.slice(1)
-
-          setFieldValue('metadata.license.licenseDocuments', [
-            ...(mainLicense ? [mainLicense] : []),
-            ...additionalDocs,
-            newDoc
-          ])
-        }
+        onValidationComplete?.(url, true, checkedFileInfo)
       }
 
       helpers.setValue([normalizedFileInfo])
@@ -282,6 +319,7 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
       setDisabledButton(!providerUrl || !abi || !checkJson(abi) || !urlValue)
       return
     }
+
     if (storageType === 's3') {
       setDisabledButton(
         !providerUrl ||
@@ -348,9 +386,11 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
               onReset={handleClose}
               showResetButton={!props.isAdditionalLicense}
             />
-          ) : null}{' '}
+          ) : null}
+
           {(isValidated || field?.value?.[0]?.type === 'hidden') &&
             field?.value?.[0] && <FileInfoDetails file={field.value[0]} />}
+
           {props.innerFields && (
             <>
               <div className={`${styles.textblock}`}>
@@ -358,6 +398,7 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
                   props.innerFields.map((innerField: any, i: number) => {
                     let fieldName = `${field.name}[0].${innerField.value}`
                     let fieldValue = field.value?.[0]?.[innerField.value]
+
                     if (storageType === 's3') {
                       if (innerField.type === 'checkbox') {
                         fieldName = `${field.name}[0].s3Access.${innerField.value}`

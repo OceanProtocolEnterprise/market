@@ -23,6 +23,11 @@
   font-weight: var(--font-weight-bold);
 }
 
+.lastUpdated {
+  margin: 0 0 calc(var(--spacer) / 2) 0;
+  color: var(--font-color-text);
+}
+
 .content {
   /* handling long text, like URLs */
   overflow-wrap: break-word;

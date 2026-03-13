@@ -1,0 +1,58 @@
+.networkWarningContent {
+  padding: 20px;
+  text-align: center;
+}
+
+.networkWarningModal {
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.warningIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.warningSubtitle {
+  color: #4b5563;
+  font-size: 16px;
+  font-weight: 500;
+  margin: 20px 0 16px 0;
+}
+
+.networkList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.networkSwitchButton {
+  width: 100%;
+  min-width: 100%;
+}
+
+.buttonLoader {
+  min-height: 1.25rem;
+}
+
+.hint {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 16px 0 0 0;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}

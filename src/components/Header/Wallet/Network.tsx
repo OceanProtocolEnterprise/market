@@ -4,12 +4,12 @@ import Badge from '@shared/atoms/Badge'
 import Tooltip from '@shared/atoms/Tooltip'
 import NetworkName from '@shared/NetworkName'
 import styles from './Network.module.css'
-import { useChainId } from 'wagmi'
 import useNetworkMetadata from '@hooks/useNetworkMetadata'
+import useAllowedWalletChain from '@hooks/useAllowedWalletChain'
 
 export default function Network(): ReactElement {
-  const chainId = useChainId()
-  const { isTestnet, isSupportedOceanNetwork } = useNetworkMetadata()
+  const { chainId } = useAllowedWalletChain()
+  const { isTestnet, isSupportedOceanNetwork } = useNetworkMetadata(chainId)
 
   return chainId ? (
     <div className={styles.network}>

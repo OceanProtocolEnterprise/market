@@ -29,7 +29,7 @@ export default function Details(): ReactElement {
   async function disconnectSsiWallet() {
     try {
       ssiWalletCache.clearCredentials()
-      setCachedCredentials(undefined)
+      setCachedCredentials([])
       clearVerifierSessionCache()
       disconnectFromWallet()
       setSessionToken(undefined)

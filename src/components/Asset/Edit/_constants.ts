@@ -321,6 +321,8 @@ export function getInitialValues(
   return {
     name: metadata?.name,
     description: metadata?.description?.['@value'],
+    descriptionLanguage: metadata?.description?.['@language'] || 'en',
+    descriptionDirection: metadata?.description?.['@direction'] || 'ltr',
     type: metadata?.type,
     links: [{ url: '', type: 'url' }],
     author: metadata?.author,

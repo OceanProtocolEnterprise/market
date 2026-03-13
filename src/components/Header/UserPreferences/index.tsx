@@ -9,7 +9,6 @@ import ExternalContent from './ExternalContent'
 import SsiWalletApiOption from './SsiWalletApiOption'
 import appConfig from 'app.config.cjs'
 import { useAccount } from 'wagmi'
-import SsiWalletManager from '../SsiWallet/SsiWalletManager'
 
 export default function UserPreferences(): ReactElement {
   const { isConnected } = useAccount()
@@ -42,7 +41,6 @@ export default function UserPreferences(): ReactElement {
           <Caret aria-hidden="true" className={styles.caret} />
         </>
       </Tooltip>
-      <SsiWalletManager />
     </>
   )
 }

@@ -122,6 +122,8 @@ export default function EditService({
   // edit 1 service
   async function handleSubmit(values: ServiceEditForm, resetForm: () => void) {
     try {
+      const updatedAt = new Date().toISOString()
+
       const processAddress = (
         inputValue: string,
         fieldName: 'allow' | 'deny'
@@ -243,6 +245,10 @@ export default function EditService({
       const updatedAsset = { ...asset }
       if (updatedAsset.credentialSubject) {
         updatedAsset.credentialSubject.services[serviceIndex] = updatedService
+        updatedAsset.credentialSubject.metadata = {
+          ...updatedAsset.credentialSubject.metadata,
+          updated: updatedAt
+        }
       }
 
       stringifyCredentialPolicies(updatedAsset.credentialSubject.credentials)

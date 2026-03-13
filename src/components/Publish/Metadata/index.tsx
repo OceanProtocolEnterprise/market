@@ -29,7 +29,10 @@ export default function MetadataFields(): ReactElement {
     handleNewAdditionalFile,
     handleDeleteAdditionalFile,
     handleAdditionalFileSourceChange,
-    handleResetPrimaryUploadedLicense
+    handleResetPrimaryUploadedLicense,
+    languageOptions,
+    getCurrentDescriptionLanguageName,
+    handleDescriptionLanguageChange
   } = useMetadata()
   const primaryUploadedLicenseDocument =
     values.metadata.uploadedLicense?.licenseDocuments?.[0]
@@ -51,6 +54,22 @@ export default function MetadataFields(): ReactElement {
         component={Input}
         name="metadata.description"
         rows={7}
+      />
+      <Field
+        {...getFieldContent('descriptionLanguage', content.metadata.fields)}
+        component={Input}
+        name="metadata.descriptionLanguage"
+        type="select"
+        selectStyle="serviceLanguage"
+        options={languageOptions}
+        value={getCurrentDescriptionLanguageName()}
+        onChange={(e) => handleDescriptionLanguageChange(e.target.value)}
+      />
+      <Field
+        {...getFieldContent('descriptionDirection', content.metadata.fields)}
+        component={Input}
+        name="metadata.descriptionDirection"
+        readOnly
       />
       <Field
         {...getFieldContent('tags', content.metadata.fields)}

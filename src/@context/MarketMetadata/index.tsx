@@ -15,6 +15,7 @@ import { getTokenInfo } from '@utils/wallet'
 import useEnterpriseFeeColletor from '@hooks/useEnterpriseFeeCollector'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 import useAllowedTokenAddresses from '@hooks/useAllowedTokenAddresses'
+import useValidatedSupportedChains from '@hooks/useValidatedSupportedChains'
 
 const MarketMetadataContext = createContext({} as MarketMetadataProviderValue)
 
@@ -32,6 +33,11 @@ function MarketMetadataProvider({
   const [opcFees, setOpcFees] = useState<OpcFee[]>()
   const [approvedBaseTokens, setApprovedBaseTokens] = useState<TokenInfo[]>()
   const envAllowedAddresses = useAllowedTokenAddresses(chainId)
+  const {
+    validatedSupportedChains,
+    isValidatingSupportedChains,
+    supportedChainsValidationError
+  } = useValidatedSupportedChains()
 
   // ---------------------------
   // Load OPC Fee Data
@@ -128,7 +134,10 @@ function MarketMetadataProvider({
           siteContent,
           appConfig,
           getOpcFeeForToken,
-          approvedBaseTokens
+          approvedBaseTokens,
+          validatedSupportedChains,
+          isValidatingSupportedChains,
+          supportedChainsValidationError
         } as MarketMetadataProviderValue
       }
     >
