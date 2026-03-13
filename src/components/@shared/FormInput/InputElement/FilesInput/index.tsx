@@ -52,11 +52,33 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
   const abi = field.value?.[0]?.abi || undefined
   const headers = field.value?.[0]?.headers || undefined
   const method = field.value?.[0]?.method || 'get'
+  const s3Access = field.value?.[0]?.s3Access || {}
+  const endpoint = s3Access?.endpoint || ''
+  const region = s3Access?.region || ''
+  const bucket = s3Access?.bucket || ''
+  const objectKey = s3Access?.objectKey || ''
+  const accessKeyId = s3Access?.accessKeyId || ''
+  const secretAccessKey = s3Access?.secretAccessKey || ''
+  const forcePathStyle = s3Access?.forcePathStyle || false
+
   const isValidated = field?.value?.[0]?.valid === true
 
   const isEditPage =
     props.name?.startsWith('additionalLicenseFiles[') ||
     props.name?.startsWith('licenseUrl')
+
+  useEffect(() => {
+    if (storageType === 's3' && field.value?.[0]) {
+      const currentValue = field.value[0]
+      if (!currentValue.s3Access) {
+        currentValue.s3Access = {}
+      }
+      if (currentValue.s3Access.forcePathStyle === undefined) {
+        currentValue.s3Access.forcePathStyle = false
+        helpers.setValue([currentValue])
+      }
+    }
+  }, [storageType])
 
   async function handleValidation(e: React.SyntheticEvent, url: string) {
     e?.preventDefault()
@@ -66,7 +88,7 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
       setIsLoading(true)
       onValidationLoadingChange?.(true)
 
-      if (isUrl(url) && isGoogleUrl(url)) {
+      if (storageType !== 's3' && isUrl(url) && isGoogleUrl(url)) {
         throw Error(
           'Google Drive is not supported. Use another hosting service.'
         )
@@ -75,16 +97,41 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
       const isValid = await checkValidProvider(providerUrl)
       if (!isValid) throw Error('✗ Provider cannot be reached.')
 
-      const checkedFile = await getFileInfo(
-        url,
-        providerUrl,
-        storageType,
-        query,
-        headers,
-        abi,
-        chainId,
-        method
-      )
+      let checkedFile
+
+      if (storageType === 's3') {
+        const s3Url = `s3://${bucket}/${objectKey}`
+        checkedFile = await getFileInfo(
+          s3Url,
+          providerUrl,
+          storageType,
+          query,
+          headers,
+          abi,
+          chainId,
+          method,
+          {
+            endpoint,
+            region,
+            bucket,
+            objectKey,
+            accessKeyId,
+            secretAccessKey,
+            forcePathStyle
+          }
+        )
+      } else {
+        checkedFile = await getFileInfo(
+          url,
+          providerUrl,
+          storageType,
+          query,
+          headers,
+          abi,
+          chainId,
+          method
+        )
+      }
 
       if (!checkedFile || checkedFile[0].valid === false)
         throw Error('✗ No valid file detected.')
@@ -94,30 +141,83 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
         contentType?: string
       }
 
-      const normalizedFileInfo = {
-        ...field.value[0],
-        ...checkedFileInfo,
-        type: storageType,
-        method: field.value?.[0]?.method || checkedFileInfo?.method || 'get',
-        url,
-        valid: true
+      let normalizedFileInfo
+      if (storageType === 's3') {
+        normalizedFileInfo = {
+          ...field.value[0],
+          ...checkedFileInfo,
+          type: storageType,
+          s3Access: {
+            endpoint,
+            region: region || 'us-east-1',
+            bucket,
+            objectKey,
+            accessKeyId,
+            secretAccessKey,
+            forcePathStyle
+          },
+          url: `s3://${bucket}/${objectKey}`,
+          valid: true
+        }
+      } else {
+        normalizedFileInfo = {
+          ...field.value[0],
+          ...checkedFileInfo,
+          type: storageType,
+          method: field.value?.[0]?.method || checkedFileInfo?.method || 'get',
+          url,
+          valid: true
+        }
       }
-      const fileName = url.split('/').pop() || url
+
+      const fileName =
+        storageType === 's3' ? objectKey : url.split('/').pop() || url
+
+      onValidationComplete?.(url, true, {
+        ...checkedFileInfo,
+        name: fileName
+      })
+
+      const isMainLicense = props.name.includes('licenseUrl')
+      const isAdditionalLicense =
+        props.name.includes('metadata.additionalLicense[') ||
+        props.name.startsWith('additionalLicense[')
+
       const isLicenseField =
         props.name.includes('licenseUrl') ||
         props.name.includes('metadata.additionalLicense[') ||
         props.name.startsWith('additionalLicense[')
 
       if (isLicenseField) {
-        const newDoc = {
+        // Create base mirrors array
+        let mirrors = []
+        if (storageType === 's3') {
+          mirrors = [
+            {
+              type: storageType,
+              url: `s3://${bucket}/${objectKey}`
+            }
+          ]
+        } else {
+          mirrors = [
+            {
+              type: storageType || 'url',
+              method: method || 'get',
+              url
+            }
+          ]
+        }
+
+        // Build the license document with proper structure
+        const newDoc: any = {
           name: fileName,
           fileType: checkedFileInfo.contentType || checkedFileInfo.type || '',
           sha256: checkedFileInfo.checksum || '',
-          additionalInformation: checkedFileInfo.contentLength
-            ? {
-                size: Number(checkedFileInfo.contentLength)
-              }
-            : undefined,
+          ...(checkedFileInfo.contentLength && {
+            additionalInformation: {
+              size: Number(checkedFileInfo.contentLength)
+            }
+          }),
           displayName: {
             '@value': fileName,
             '@language': '',
@@ -128,25 +228,21 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
             '@direction': '',
             '@language': ''
           },
-          mirrors: [
-            {
-              type: storageType || 'url',
-              method: method || 'get',
-              url
-            }
-          ],
-          ...checkedFileInfo
+          mirrors
         }
 
-        onValidationComplete?.(url, true, {
-          ...checkedFileInfo,
-          name: fileName
-        })
-
-        const isMainLicense = props.name.includes('licenseUrl')
-        const isAdditionalLicense =
-          props.name.includes('metadata.additionalLicense[') ||
-          props.name.startsWith('additionalLicense[')
+        // Add S3-specific data if applicable
+        if (storageType === 's3') {
+          newDoc.s3Access = {
+            endpoint,
+            region: region || 'us-east-1',
+            bucket,
+            objectKey,
+            accessKeyId,
+            secretAccessKey,
+            forcePathStyle
+          }
+        }
 
         if (isEditPage) {
           const currentDocs = values.license?.licenseDocuments || []
@@ -224,13 +320,38 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
       return
     }
 
+    if (storageType === 's3') {
+      setDisabledButton(
+        !providerUrl ||
+          !endpoint ||
+          !bucket ||
+          !objectKey ||
+          !accessKeyId ||
+          !secretAccessKey
+      )
+      return
+    }
+
     setDisabledButton(!providerUrl || !urlValue)
 
     if (meta.error?.length > 0) {
       const { url } = meta.error[0] as unknown as FileInfo
       url && setDisabledButton(true)
     }
-  }, [storageType, providerUrl, headers, query, abi, meta, urlValue])
+  }, [
+    storageType,
+    providerUrl,
+    headers,
+    query,
+    abi,
+    meta,
+    urlValue,
+    endpoint,
+    bucket,
+    objectKey,
+    accessKeyId,
+    secretAccessKey
+  ])
 
   return (
     <div className={styles.filesContainer}>
@@ -248,7 +369,7 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
               storageType={storageType}
               disabled={isValidated}
             />
-          ) : (
+          ) : storageType !== 's3' ? (
             <UrlInput
               submitText="Validate"
               {...inputProps}
@@ -265,7 +386,7 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
               onReset={handleClose}
               showResetButton={!props.isAdditionalLicense}
             />
-          )}
+          ) : null}
 
           {(isValidated || field?.value?.[0]?.type === 'hidden') &&
             field?.value?.[0] && <FileInfoDetails file={field.value[0]} />}
@@ -275,40 +396,85 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
               <div className={`${styles.textblock}`}>
                 {props.innerFields &&
                   props.innerFields.map((innerField: any, i: number) => {
+                    let fieldName = `${field.name}[0].${innerField.value}`
+                    let fieldValue = field.value?.[0]?.[innerField.value]
+
+                    if (storageType === 's3') {
+                      if (innerField.type === 'checkbox') {
+                        fieldName = `${field.name}[0].s3Access.${innerField.value}`
+                        fieldValue =
+                          field.value?.[0]?.s3Access?.[innerField.value] ||
+                          false
+                      } else if (
+                        innerField.value === 'endpoint' ||
+                        innerField.value === 'region' ||
+                        innerField.value === 'bucket' ||
+                        innerField.value === 'objectKey' ||
+                        innerField.value === 'accessKeyId' ||
+                        innerField.value === 'secretAccessKey'
+                      ) {
+                        fieldName = `${field.name}[0].s3Access.${innerField.value}`
+                        fieldValue =
+                          field.value?.[0]?.s3Access?.[innerField.value]
+                      }
+                    }
+
                     return (
-                      <Field
-                        key={i}
-                        component={
-                          innerField.type === 'headers' ? InputKeyValue : Input
-                        }
-                        {...innerField}
-                        name={`${field.name}[0].${innerField.value}`}
-                        value={field.value?.[0]?.[innerField.value]}
-                        disabled={isValidated}
-                        render={({ field: formikField, form, meta }: any) =>
-                          innerField.type === 'headers' ? (
-                            <InputKeyValue
-                              {...innerField}
-                              field={formikField}
-                              form={form}
-                              meta={meta}
-                              name={`${field.name}[0].${innerField.value}`}
-                              value={field.value?.[0]?.[innerField.value]}
-                              disabled={isValidated}
-                            />
-                          ) : (
-                            <Input
-                              {...innerField}
-                              field={formikField}
-                              form={form}
-                              meta={meta}
-                              name={`${field.name}[0].${innerField.value}`}
-                              value={field.value?.[0]?.[innerField.value]}
-                              disabled={isValidated}
-                            />
-                          )
-                        }
-                      />
+                      <Field key={i} name={fieldName}>
+                        {({ field: formikField, form, meta }: any) => {
+                          if (innerField.type === 'checkbox') {
+                            return (
+                              <Input
+                                {...innerField}
+                                type="checkbox"
+                                name={fieldName}
+                                checked={fieldValue}
+                                value={fieldValue}
+                                disabled={isValidated}
+                                onChange={(
+                                  e: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  const newValue = e.target.checked
+                                  form.setFieldValue(fieldName, newValue)
+                                  const currentValue = field.value
+                                  if (currentValue?.[0]) {
+                                    if (!currentValue[0].s3Access) {
+                                      currentValue[0].s3Access = {}
+                                    }
+                                    currentValue[0].s3Access[innerField.value] =
+                                      newValue
+                                    helpers.setValue(currentValue)
+                                  }
+                                }}
+                              />
+                            )
+                          } else if (innerField.type === 'headers') {
+                            return (
+                              <InputKeyValue
+                                {...innerField}
+                                field={formikField}
+                                form={form}
+                                meta={meta}
+                                name={fieldName}
+                                value={fieldValue}
+                                disabled={isValidated}
+                              />
+                            )
+                          } else {
+                            return (
+                              <Input
+                                {...innerField}
+                                field={formikField}
+                                form={form}
+                                meta={meta}
+                                name={fieldName}
+                                value={fieldValue}
+                                disabled={isValidated}
+                              />
+                            )
+                          }
+                        }}
+                      </Field>
                     )
                   })}
               </div>
@@ -332,12 +498,19 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
                         ? 'query'
                         : storageType === 'smartcontract'
                         ? 'abi'
+                        : storageType === 's3'
+                        ? 'S3 Configuration'
                         : 'URL'
                     }`}
                     buttonStyle="gradient"
                     onClick={(e: React.SyntheticEvent) => {
                       e.preventDefault()
-                      handleValidation(e, field.value[0].url)
+                      if (storageType === 's3') {
+                        const s3Url = `s3://${bucket}/${objectKey}`
+                        handleValidation(e, s3Url)
+                      } else {
+                        handleValidation(e, field.value[0].url)
+                      }
                     }}
                     disabled={disabledButton || isValidated}
                   />

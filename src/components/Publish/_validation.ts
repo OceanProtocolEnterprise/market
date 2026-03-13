@@ -6,6 +6,7 @@ import { getOriginalValue, testLinks } from '@utils/yup'
 import { validationConsumerParameters } from '@components/@shared/FormInput/InputElement/ConsumerParameters/_validation'
 import { FormUrlFileInfo } from './_types'
 import { additionalLicenseSourceOptions } from './_license'
+import { isS3File } from 'src/@types/S3File'
 
 // TODO: conditional validation
 // e.g. when algo is selected, Docker image is required
@@ -45,6 +46,42 @@ function getVpPolicies(parent: unknown): VpPolicyLike[] {
     (policy): policy is VpPolicyLike => !!policy && typeof policy === 'object'
   )
 }
+
+// S3 file validation schema
+const s3FileSchema = Yup.object().shape({
+  type: Yup.string().oneOf(['s3']).required(),
+  url: Yup.string().required(),
+  valid: Yup.boolean().required().oneOf([true], 'File must be valid.'),
+  s3Access: Yup.object().shape({
+    endpoint: Yup.string().required('Endpoint is required'),
+    region: Yup.string().optional(),
+    bucket: Yup.string().required('Bucket name is required'),
+    objectKey: Yup.string().required('Object key is required'),
+    accessKeyId: Yup.string().required('Access Key ID is required'),
+    secretAccessKey: Yup.string().required('Secret Access Key is required'),
+    forcePathStyle: Yup.boolean().optional()
+  })
+})
+
+// Regular URL file validation schema
+const urlFileSchema = Yup.object().shape({
+  url: testLinks(),
+  valid: Yup.boolean().required().oneOf([true], 'File must be valid.')
+})
+
+// Combined file validation schema that handles both URL and S3
+const fileSchema = Yup.mixed().test(
+  'file-type',
+  'Invalid file type',
+  function (value: any) {
+    if (!value) return false
+
+    if (isS3File(value)) {
+      return s3FileSchema.isValidSync(value)
+    }
+    return urlFileSchema.isValidSync(value)
+  }
+)
 
 const validationAdditionalLicenseFile = Yup.object().shape({
   name: Yup.string().trim().required('Required'),
@@ -178,31 +215,31 @@ const validationRequestCredentials = {
       name: Yup.string()
         .when('type', {
           is: 'staticPolicy',
-          then: (shema) => shema.required('Required')
+          then: (schema) => schema.required('Required')
         })
         .when('type', {
           is: 'customUrlPolicy',
-          then: (shema) => shema.required('Required')
+          then: (schema) => schema.required('Required')
         })
         .when('type', {
           is: 'customPolicy',
-          then: (shema) =>
-            shema
+          then: (schema) =>
+            schema
               .required('Required')
               .matches(/^[A-Za-z]+$/, 'Only letters A–Z are allowed')
         }),
       args: Yup.array().when('type', {
         is: 'parameterizedPolicy',
-        then: (shema) => shema.of(Yup.string().required('Required'))
+        then: (schema) => schema.of(Yup.string().required('Required'))
       }),
       policy: Yup.string().when('type', {
         is: 'parameterizedPolicy',
-        then: (shema) => shema.required('Required')
+        then: (schema) => schema.required('Required')
       }),
       policyUrl: Yup.string().when('type', {
         is: 'customUrlPolicy',
-        then: (shema) =>
-          shema
+        then: (schema) =>
+          schema
             .required('Required')
             .test('isValidUrl', 'Invalid URL format', (value) => {
               if (!value) return false
@@ -224,8 +261,8 @@ const validationRequestCredentials = {
       arguments: Yup.array()
         .when('type', {
           is: 'customUrlPolicy',
-          then: (shema) =>
-            shema.of(
+          then: (schema) =>
+            schema.of(
               Yup.object().shape({
                 name: Yup.string().required('Required'),
                 value: Yup.string().required('Required')
@@ -234,8 +271,8 @@ const validationRequestCredentials = {
         })
         .when('type', {
           is: 'customPolicy',
-          then: (shema) =>
-            shema.of(
+          then: (schema) =>
+            schema.of(
               Yup.object().shape({
                 name: Yup.string().required('Required'),
                 value: Yup.string().required('Required')
@@ -244,8 +281,8 @@ const validationRequestCredentials = {
         }),
       rules: Yup.array().when('type', {
         is: 'customPolicy',
-        then: (shema) =>
-          shema.of(
+        then: (schema) =>
+          schema.of(
             Yup.object().shape({
               leftValue: Yup.string().required('Required'),
               operator: Yup.string().required('Required'),
@@ -261,8 +298,8 @@ const validationVpPolicy = {
   type: Yup.string().required('Required'),
   name: Yup.mixed().when('type', {
     is: 'staticVpPolicy',
-    then: (shema) =>
-      shema.test('static-name', 'Required', (value) => {
+    then: (schema) =>
+      schema.test('static-name', 'Required', (value) => {
         if (typeof value === 'string') return value.trim().length > 0
         if (hasPolicyString(value)) {
           return value.policy.trim().length > 0
@@ -272,16 +309,16 @@ const validationVpPolicy = {
   }),
   policy: Yup.string().when('type', {
     is: 'argumentVpPolicy',
-    then: (shema) => shema.required('Required')
+    then: (schema) => schema.required('Required')
   }),
   args: Yup.number().when('type', {
     is: 'argumentVpPolicy',
-    then: (shema) => shema.required('Required')
+    then: (schema) => schema.required('Required')
   }),
   url: Yup.string().when('type', {
     is: 'externalEvpForwardVpPolicy',
-    then: (shema) =>
-      shema.test('isValidUrlOpt', 'Invalid URL format', (value) => {
+    then: (schema) =>
+      schema.test('isValidUrlOpt', 'Invalid URL format', (value) => {
         if (!value) return true
         const trimmedValue = value.trim()
         const pattern = /^https?:\/\/\S+$/i
@@ -327,15 +364,10 @@ const validationService = {
       )
       .required('Required')
   }),
-  files: Yup.array<FileInfo[]>()
-    .of(
-      Yup.object().shape({
-        url: testLinks(),
-        valid: Yup.boolean().isTrue().required('File must be valid.')
-      })
-    )
+  files: Yup.array()
+    .of(fileSchema)
     .min(1, `At least one file is required.`)
-    .required('Enter a valid URL and click ADD FILE.'),
+    .required('Enter a valid file and click Validate.'),
   links: Yup.array<FileInfo[]>()
     .of(
       Yup.object().shape({

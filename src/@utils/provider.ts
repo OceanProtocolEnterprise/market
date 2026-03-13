@@ -23,6 +23,12 @@ import {
   PolicyServerInitiateActionData,
   PolicyServerInitiateComputeActionData
 } from 'src/@types/PolicyServer'
+import { S3AccessConfig } from 'src/@types/S3File'
+import { S3Client, HeadObjectCommand } from '@aws-sdk/client-s3'
+
+interface S3FileInfo extends FileInfo {
+  name?: string
+}
 
 export async function initializeProviderForComputeMulti(
   datasets:
@@ -119,7 +125,6 @@ export async function initializeProviderForComputeMulti(
   )
 }
 
-// TODO: Why do we have these one line functions ?!?!?!
 export async function getEncryptedFiles(
   files: any,
   chainId: number,
@@ -127,9 +132,16 @@ export async function getEncryptedFiles(
   signer: Signer
 ): Promise<string> {
   try {
-    // https://github.com/oceanprotocol/provider/blob/v4main/API.md#encrypt-endpoint
+    const filesForEncryption = {
+      ...files,
+      files: files.files.map((file: any) => {
+        const cleanFile = { ...file }
+        if (!cleanFile.type) cleanFile.type = 'url'
+        return cleanFile
+      })
+    }
     const response = await ProviderInstance.encrypt(
-      files,
+      filesForEncryption,
       chainId,
       providerUrl,
       signer
@@ -137,8 +149,16 @@ export async function getEncryptedFiles(
     return response
   } catch (error) {
     const message = getErrorMessage(error.message)
+    console.error('[getEncryptedFiles] Error:', {
+      error,
+      message,
+      files: JSON.stringify(files),
+      providerUrl,
+      chainId
+    })
     LoggerInstance.error('[Provider Encrypt] Error:', message)
     toast.error(message)
+    throw error
   }
 }
 
@@ -164,6 +184,65 @@ export async function getFileDidInfo(
   }
 }
 
+async function validateS3File(s3Config: S3AccessConfig): Promise<S3FileInfo[]> {
+  try {
+    const cleanBucket = s3Config.bucket.trim()
+    const cleanObjectKey = s3Config.objectKey.trim()
+
+    const client = new S3Client({
+      endpoint: s3Config.endpoint,
+      region: s3Config.region || 'us-east-1',
+      credentials: {
+        accessKeyId: s3Config.accessKeyId.trim(),
+        secretAccessKey: s3Config.secretAccessKey.trim()
+      },
+      forcePathStyle: s3Config.forcePathStyle || false
+    })
+
+    const command = new HeadObjectCommand({
+      Bucket: cleanBucket,
+      Key: cleanObjectKey
+    })
+
+    const response = await client.send(command)
+    const fileName = cleanObjectKey.split('/').pop() || cleanObjectKey
+
+    const fileInfo: S3FileInfo = {
+      type: 's3',
+      url: `s3://${cleanBucket}/${cleanObjectKey}`,
+      contentType: response.ContentType || 'application/octet-stream',
+      contentLength: response.ContentLength?.toString() || '0',
+      valid: true,
+      method: 'GET',
+      checksum: response.ETag?.replace(/"/g, ''),
+      name: fileName
+    }
+    return [fileInfo]
+  } catch (error: any) {
+    console.error('S3 validation error:', {
+      name: error.name,
+      message: error.message,
+      code: error.Code,
+      statusCode: error.$metadata?.httpStatusCode
+    })
+
+    if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+      throw new Error(
+        `File not found: ${s3Config.bucket}/${s3Config.objectKey}`
+      )
+    }
+    if (
+      error.name === 'AccessDenied' ||
+      error.$metadata?.httpStatusCode === 403
+    ) {
+      throw new Error(
+        'Access denied. Check your credentials and bucket permissions'
+      )
+    }
+    throw error
+  }
+}
+
 export async function getFileInfo(
   file: string,
   providerUrl: string,
@@ -173,6 +252,7 @@ export async function getFileInfo(
   abi?: string,
   chainId?: number,
   method?: string,
+  s3Config?: S3AccessConfig,
   withChecksum = false
 ): Promise<FileInfo[]> {
   let response
@@ -218,6 +298,20 @@ export async function getFileInfo(
         const message = getErrorMessage(error.message)
         LoggerInstance.error('[Provider Get File info] Error:', message)
         toast.error(message)
+      }
+      break
+    }
+    case 's3': {
+      try {
+        if (!s3Config) {
+          throw new Error('S3 configuration is required for S3 file validation')
+        }
+        response = await validateS3File(s3Config)
+      } catch (error) {
+        const message = getErrorMessage(error.message)
+        LoggerInstance.error('[S3 File Validation] Error:', message)
+        toast.error(message)
+        throw error
       }
       break
     }

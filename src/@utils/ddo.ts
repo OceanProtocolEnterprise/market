@@ -16,6 +16,7 @@ import {
   Credential,
   CredentialPolicyBased
 } from 'src/@types/ddo/Credentials'
+import { S3FileInfo, S3AccessConfig, FormFileData } from 'src/@types/S3File'
 
 export function isValidDid(did: string): boolean {
   const regex = /^did:ope:[A-Za-z0-9]{64}$/
@@ -106,49 +107,65 @@ interface FileExtended extends FileInfo {
 
 export function normalizeFile(
   storageType: string,
-  file: FileExtended,
+  file: FormFileData | FormFileData[],
   _chainId: number
-) {
-  let fileObj
-  const headersProvider = {}
-  const headers = file[0]?.headers || file?.headers
-  if (headers && headers.length > 0) {
-    headers.map((el) => {
-      headersProvider[el.key] = el.value
-      return el
+): Ipfs | Arweave | UrlFile | S3FileInfo {
+  const fileData = Array.isArray(file) ? file[0] : file
+  const headersProvider: Record<string, string> = {}
+  const headers = fileData?.headers
+  if (headers && Array.isArray(headers) && headers.length > 0) {
+    headers.forEach((el: any) => {
+      if (el.key && el.value) {
+        headersProvider[el.key] = el.value
+      }
     })
   }
   switch (storageType) {
     case 'ipfs': {
-      fileObj = {
-        type: storageType,
-        hash: file[0]?.url || file?.url
+      return {
+        type: 'ipfs',
+        hash: fileData?.url || ''
       } as Ipfs
-      break
     }
     case 'arweave': {
-      fileObj = {
-        type: storageType,
-        transactionId:
-          file[0]?.url ||
-          file?.url ||
-          file[0]?.transactionId ||
-          file?.transactionId
+      return {
+        type: 'arweave',
+        transactionId: fileData?.url || fileData?.transactionId || ''
       } as Arweave
-      break
+    }
+    case 's3': {
+      if (!fileData.s3Access) {
+        throw new Error('S3 configuration is required for S3 file type')
+      }
+      const s3Access: S3AccessConfig = {
+        endpoint: fileData.s3Access.endpoint,
+        region: fileData.s3Access.region || 'us-east-1',
+        bucket: fileData.s3Access.bucket,
+        objectKey: fileData.s3Access.objectKey,
+        accessKeyId: fileData.s3Access.accessKeyId,
+        secretAccessKey: fileData.s3Access.secretAccessKey,
+        forcePathStyle: fileData.s3Access.forcePathStyle || false
+      }
+      return {
+        type: 's3',
+        url: fileData.url || `s3://${s3Access.bucket}/${s3Access.objectKey}`,
+        contentType: fileData.contentType,
+        contentLength: fileData.contentLength,
+        valid: fileData.valid,
+        method: fileData.method || 'GET',
+        s3Access
+      } as S3FileInfo
     }
     default: {
-      fileObj = {
+      return {
         type: 'url',
         index: 0,
-        url: file ? file[0]?.url || file?.url : null,
+        url: fileData?.url || null,
         headers: headersProvider,
-        method: file.method
+        method: fileData?.method || 'get'
       } as UrlFile
-      break
     }
   }
-  return fileObj
 }
 
 export function previewDebugPatch(

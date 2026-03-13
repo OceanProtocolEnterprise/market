@@ -239,6 +239,80 @@
             ]
           },
           {
+            "value": "s3",
+            "title": "S3",
+            "computeHelp": "For a compute dataset, your file should match the file type required by the algorithm, and should not exceed 1 GB in file size.",
+            "prominentHelp": true,
+            "type": "files",
+            "methods": false,
+            "innerFields": [
+              {
+                "value": "endpoint",
+                "title": "Endpoint",
+                "label": "Endpoint URL",
+                "placeholder": "e.g. https://s3.amazonaws.com or https://nyc3.digitaloceanspaces.com",
+                "help": "S3 endpoint URL (e.g., https://s3.amazonaws.com for AWS S3, or your custom S3-compatible endpoint)",
+                "type": "text",
+                "required": true
+              },
+              {
+                "value": "region",
+                "title": "Region",
+                "label": "Region",
+                "placeholder": "e.g. us-east-1 (optional)",
+                "help": "Region (e.g., us-east-1). Optional; defaults to us-east-1 if omitted.",
+                "type": "text",
+                "required": false
+              },
+              {
+                "value": "bucket",
+                "title": "Bucket",
+                "label": "Bucket Name",
+                "placeholder": "e.g. my-bucket",
+                "help": "S3 bucket name where the file is stored",
+                "type": "text",
+                "required": true
+              },
+              {
+                "value": "objectKey",
+                "title": "Object Key",
+                "label": "Object Key/Path",
+                "placeholder": "e.g. path/to/file.zip",
+                "help": "Object key (path within the bucket)",
+                "type": "text",
+                "required": true
+              },
+              {
+                "value": "accessKeyId",
+                "title": "Access Key ID",
+                "label": "Access Key ID",
+                "placeholder": "e.g. AKIAIOSFODNN7EXAMPLE",
+                "help": "Access key for the S3-compatible API",
+                "type": "text",
+                "required": true
+              },
+              {
+                "value": "secretAccessKey",
+                "title": "Secret Access Key",
+                "label": "Secret Access Key",
+                "placeholder": "e.g. wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+                "help": "Secret key for the S3-compatible API",
+                "type": "password",
+                "required": true
+              },
+              {
+                "value": "forcePathStyle",
+                "title": "Force Path Style",
+                "label": "Force Path Style",
+                "placeholder": "",
+                "help": "If true, use path-style addressing (e.g., endpoint/bucket/key). Required for some S3-compatible services (e.g., MinIO). Default false (virtual-host style, standard for AWS S3).",
+                "type": "checkbox",
+                "required": false,
+                "options": ["Use path-style addressing"]
+              }
+            ]
+          },
+          {
             "value": "ipfs",
             "title": "IPFS",
             "label": "CID",

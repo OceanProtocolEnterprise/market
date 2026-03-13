@@ -186,11 +186,13 @@ export default function ServicesFields(): ReactElement {
             component={Input}
             name="services[0].files"
           />
-          <Field
-            {...getFieldContent('links', content.services.fields)}
-            component={Input}
-            name="services[0].links"
-          />
+          <SectionContainer border padding="16px">
+            <Field
+              {...getFieldContent('links', content.services.fields)}
+              component={Input}
+              name="services[0].links"
+            />
+          </SectionContainer>
           <Field
             {...getFieldContent('timeout', content.services.fields)}
             component={Input}

@@ -52,6 +52,7 @@ import {
   RequestCredential,
   VP
 } from 'src/@types/ddo/Credentials'
+import { isS3File, getS3Access } from 'src/@types/S3File'
 import * as VCDataModel from 'src/@types/ddo/VerifiableCredential'
 import { convertLinks } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
@@ -591,13 +592,11 @@ export async function transformPublishFormToDdo(
 
   // Transform from files[0].url to string[] assuming only 1 file
   const filesTransformed = files?.length &&
-    files[0].valid && [sanitizeUrl(files[0].url)]
+    files[0].valid && [sanitizeUrl(files[0].url || '')]
   const linksTransformed =
-    links?.length && links[0].valid && convertLinks([sanitizeUrl(links[0].url)])
-
-  // const consumerParametersTransformed = usesConsumerParameters
-  //   ? transformConsumerParameters(consumerParameters)
-  //   : undefined
+    links?.length &&
+    links[0].valid &&
+    convertLinks([sanitizeUrl(links[0].url || '')])
 
   const additionalLicenseDocuments: RemoteObject[] = (
     values.metadata.additionalLicenseFiles || []
@@ -648,13 +647,13 @@ export async function transformPublishFormToDdo(
     const primaryFile = values.metadata.licenseUrl[0]
     const primaryLicenseDocument = fileInfoToLicenseDocument(
       primaryFile,
-      primaryFile.url,
+      primaryFile.url || '',
       metadata.descriptionLanguage,
       metadata.descriptionDirection
     )
 
     license = {
-      name: primaryFile.url,
+      name: primaryFile.url || '',
       licenseDocuments: [primaryLicenseDocument, ...additionalLicenseDocuments]
     }
   }
@@ -687,7 +686,6 @@ export async function transformPublishFormToDdo(
     tags: transformTags(tags),
     author,
     license,
-    // links: convertLinks(linksTransformed),
     additionalInformation: {
       termsAndConditions
     },
@@ -716,24 +714,64 @@ export async function transformPublishFormToDdo(
                 ? dockerImageCustomChecksum
                 : algorithmContainerPresets.checksum
           }
-          // consumerParameters: consumerParametersTransformed
         }
       }),
     copyrightHolder: '',
     providedBy: ''
   }
+  let fileObject: any
+  if (files[0] && isS3File(files[0])) {
+    const s3Access = getS3Access(files[0])
+
+    fileObject = {
+      type: 's3',
+      url: files[0].url,
+      contentType: files[0].contentType,
+      contentLength: files[0].contentLength,
+      valid: files[0].valid,
+      method: files[0].method || 'GET',
+      s3Access
+    }
+  } else {
+    fileObject = normalizeFile(files[0]?.type || 'url', files[0], chainId)
+  }
 
   const file = {
     nftAddress,
     datatokenAddress,
-    files: [normalizeFile(files[0].type, files[0], chainId)]
+    files: [fileObject]
   }
 
-  const filesEncrypted =
-    !isPreview &&
-    files?.length &&
-    files[0].valid &&
-    (await getEncryptedFiles(file, chainId, providerUrl.url, signer))
+  let filesEncrypted = ''
+  if (!isPreview && files?.length && files[0].valid) {
+    try {
+      const encryptedResult = await getEncryptedFiles(
+        file,
+        chainId,
+        providerUrl.url,
+        signer
+      )
+
+      if (encryptedResult) {
+        filesEncrypted = encryptedResult
+      } else {
+        console.warn('⚠️ encryptedResult was empty/undefined')
+      }
+    } catch (error) {
+      console.error('Encryption failed with error:', error)
+      throw error
+    }
+  } else {
+    console.warn('⏭️ Skipping encryption - conditions not met:', {
+      isPreview,
+      filesExist: !!files?.length,
+      fileValid: files?.[0]?.valid
+    })
+    if (isPreview) {
+      console.warn('👁️ Preview mode - using placeholder')
+      filesEncrypted = 'encryptedFilesPlaceholder'
+    }
+  }
 
   const newServiceCredentials = generateCredentials(credentials)
   const valuesCompute: ComputeEditForm = {
