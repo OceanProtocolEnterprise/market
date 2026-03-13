@@ -69,6 +69,8 @@ export interface FormPublishData {
     type: 'dataset' | 'algorithm'
     name: string
     description: string
+    descriptionLanguage?: string
+    descriptionDirection?: string
     author: string
     termsAndConditions: boolean
     license?: License

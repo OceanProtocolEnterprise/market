@@ -102,60 +102,91 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
         url,
         valid: true
       }
-      onValidationComplete?.(url, true, {
-        ...checkedFileInfo,
-        name: url.split('/').pop() || url
-      })
-
-      const isMainLicense = props.name.includes('licenseUrl')
-      const isAdditionalLicense =
+      const fileName = url.split('/').pop() || url
+      const isLicenseField =
+        props.name.includes('licenseUrl') ||
         props.name.includes('metadata.additionalLicense[') ||
         props.name.startsWith('additionalLicense[')
 
-      const newDoc = {
-        name: url.split('/').pop() || url,
-        fileType: checkedFileInfo.contentType || checkedFileInfo.type,
-        sha256: checkedFileInfo.checksum,
-        mirrors: [{ url, type: storageType, method }],
-        ...checkedFileInfo
-      }
+      if (isLicenseField) {
+        const newDoc = {
+          name: fileName,
+          fileType: checkedFileInfo.contentType || checkedFileInfo.type || '',
+          sha256: checkedFileInfo.checksum || '',
+          additionalInformation: checkedFileInfo.contentLength
+            ? {
+                size: Number(checkedFileInfo.contentLength)
+              }
+            : undefined,
+          displayName: {
+            '@value': fileName,
+            '@language': '',
+            '@direction': ''
+          },
+          description: {
+            '@value': '',
+            '@direction': '',
+            '@language': ''
+          },
+          mirrors: [
+            {
+              type: storageType || 'url',
+              method: method || 'get',
+              url
+            }
+          ],
+          ...checkedFileInfo
+        }
 
-      if (isEditPage) {
-        const currentDocs = values.license?.licenseDocuments || []
+        onValidationComplete?.(url, true, {
+          ...checkedFileInfo,
+          name: fileName
+        })
 
-        if (isMainLicense) {
-          setFieldValue('license.licenseDocuments', [
-            newDoc,
-            ...currentDocs.slice(1)
-          ])
-        } else if (isAdditionalLicense) {
-          const mainLicense = currentDocs[0] || null
-          const additionalDocs = currentDocs.slice(1)
+        const isMainLicense = props.name.includes('licenseUrl')
+        const isAdditionalLicense =
+          props.name.includes('metadata.additionalLicense[') ||
+          props.name.startsWith('additionalLicense[')
 
-          setFieldValue('license.licenseDocuments', [
-            ...(mainLicense ? [mainLicense] : []),
-            ...additionalDocs,
-            newDoc
-          ])
+        if (isEditPage) {
+          const currentDocs = values.license?.licenseDocuments || []
+
+          if (isMainLicense) {
+            setFieldValue('license.licenseDocuments', [
+              newDoc,
+              ...currentDocs.slice(1)
+            ])
+          } else if (isAdditionalLicense) {
+            const mainLicense = currentDocs[0] || null
+            const additionalDocs = currentDocs.slice(1)
+
+            setFieldValue('license.licenseDocuments', [
+              ...(mainLicense ? [mainLicense] : []),
+              ...additionalDocs,
+              newDoc
+            ])
+          }
+        } else {
+          const currentDocs = values.metadata?.license?.licenseDocuments || []
+
+          if (isMainLicense) {
+            setFieldValue('metadata.license.licenseDocuments', [
+              newDoc,
+              ...currentDocs.slice(1)
+            ])
+          } else if (isAdditionalLicense) {
+            const mainLicense = currentDocs[0] || null
+            const additionalDocs = currentDocs.slice(1)
+
+            setFieldValue('metadata.license.licenseDocuments', [
+              ...(mainLicense ? [mainLicense] : []),
+              ...additionalDocs,
+              newDoc
+            ])
+          }
         }
       } else {
-        const currentDocs = values.metadata?.license?.licenseDocuments || []
-
-        if (isMainLicense) {
-          setFieldValue('metadata.license.licenseDocuments', [
-            newDoc,
-            ...currentDocs.slice(1)
-          ])
-        } else if (isAdditionalLicense) {
-          const mainLicense = currentDocs[0] || null
-          const additionalDocs = currentDocs.slice(1)
-
-          setFieldValue('metadata.license.licenseDocuments', [
-            ...(mainLicense ? [mainLicense] : []),
-            ...additionalDocs,
-            newDoc
-          ])
-        }
+        onValidationComplete?.(url, true, checkedFileInfo)
       }
 
       helpers.setValue([normalizedFileInfo])

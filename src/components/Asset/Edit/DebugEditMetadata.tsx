@@ -34,8 +34,8 @@ export default function DebugEditMetadata({
         name: values.name,
         description: {
           '@value': values.description,
-          '@direction': '',
-          '@language': ''
+          '@direction': values.descriptionDirection || '',
+          '@language': values.descriptionLanguage || ''
         },
         links: convertLinks(linksTransformed),
         author: values.author,
