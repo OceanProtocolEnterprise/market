@@ -1,6 +1,7 @@
 import { useEffect, ReactNode } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '@hooks/useAuth'
+import { buildAuthLoginRedirect, isProtectedAuthRoute } from '@utils/authGuard'
 
 interface AuthGuardProps {
   children: ReactNode
@@ -9,53 +10,21 @@ interface AuthGuardProps {
 export default function AuthGuard({ children }: AuthGuardProps) {
   const { isAuthenticated, isLoading, authEnabled } = useAuth()
   const router = useRouter()
-
-  const isPublicRoute = (): boolean => {
-    const path = router.asPath.split('?')[0]
-
-    const exactPublicPaths = [
-      '/',
-      '/auth/login',
-      '/auth/callback',
-      '/about',
-      '/terms',
-      '/privacy',
-      '/imprint',
-      '/cookie-settings'
-    ]
-
-    if (exactPublicPaths.includes(path)) {
-      return true
-    }
-
-    if (path.startsWith('/privacy/')) {
-      return true
-    }
-
-    if (path.startsWith('/auth/')) {
-      return true
-    }
-
-    return false
-  }
-
-  const isPublic = isPublicRoute()
+  const isProtectedRoute = isProtectedAuthRoute(router.asPath)
   const shouldRedirectToLogin =
-    authEnabled && !isLoading && !isAuthenticated && !isPublic
+    authEnabled && isProtectedRoute && !isLoading && !isAuthenticated
 
   useEffect(() => {
     if (shouldRedirectToLogin) {
-      router.replace(
-        `/auth/login?callbackUrl=${encodeURIComponent(router.asPath)}`
-      )
+      router.replace(buildAuthLoginRedirect(router.asPath))
     }
   }, [router, router.asPath, shouldRedirectToLogin])
 
-  if (!authEnabled) {
+  if (!authEnabled || !isProtectedRoute) {
     return <>{children}</>
   }
 
-  if ((isLoading && !isPublic) || shouldRedirectToLogin) {
+  if (isLoading || shouldRedirectToLogin) {
     return (
       <div
         style={{

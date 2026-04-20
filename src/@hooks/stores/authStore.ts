@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 
 export interface User {
   id: string
@@ -25,25 +24,17 @@ interface AuthState {
   updateUser: (updates: Partial<User>) => void
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false,
-      isLogoutPending: false,
-      setUser: (user) => set({ user, isAuthenticated: !!user }),
-      setLoading: (isLoading) => set({ isLoading }),
-      setLogoutPending: (isLogoutPending) => set({ isLogoutPending }),
-      logout: () => set({ user: null, isAuthenticated: false }),
-      updateUser: (updates) =>
-        set((state) => ({
-          user: state.user ? { ...state.user, ...updates } : null
-        }))
-    }),
-    {
-      name: 'ocean-auth-storage',
-      partialize: (state) => ({ user: state.user })
-    }
-  )
-)
+export const useAuthStore = create<AuthState>()((set) => ({
+  user: null,
+  isLoading: true,
+  isAuthenticated: false,
+  isLogoutPending: false,
+  setUser: (user) => set({ user, isAuthenticated: !!user }),
+  setLoading: (isLoading) => set({ isLoading }),
+  setLogoutPending: (isLogoutPending) => set({ isLogoutPending }),
+  logout: () => set({ user: null, isAuthenticated: false }),
+  updateUser: (updates) =>
+    set((state) => ({
+      user: state.user ? { ...state.user, ...updates } : null
+    }))
+}))

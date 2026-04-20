@@ -167,19 +167,6 @@ export default function Details({
     } catch (error) {
       console.error('Error disconnecting wallet/SSI:', error)
     }
-    // const vm3Logout = process.env.NEXT_PUBLIC_VM3_LOGOUT_URL
-    // const callback = process.env.NEXT_PUBLIC_VM3_POST_LOGOUT_REDIRECT
-    const vm3Logout =
-      'https://vm3.oceanenterprise.io/application/o/ocean-market/end-session/'
-    const callback =
-      'https://market-git-feat-aa-auth-ocean-enterprise.vercel.app/auth/callback/logout'
-
-    if (vm3Logout && callback) {
-      window.location.href = `${vm3Logout}?post_logout_redirect_uri=${encodeURIComponent(
-        callback
-      )}`
-      return
-    }
 
     await logout()
     onRequestClose?.()

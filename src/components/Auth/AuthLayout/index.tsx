@@ -21,7 +21,7 @@ export default function AuthLayout({
   content,
   initialTab = 'login'
 }: AuthLayoutProps) {
-  const { isAuthenticated, isLogoutPending } = useAuth()
+  const { isAuthenticated, isLoading, isLogoutPending } = useAuth()
   const [activeTab, setActiveTab] = useState<AuthTab>(initialTab)
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function AuthLayout({
       <div className={styles.card}>
         <BrandPanel content={content} />
         <div className={styles.formPanel}>
-          {!isAuthenticated && !isLogoutPending && (
+          {!isAuthenticated && !isLogoutPending && !isLoading && (
             <div className={styles.pillTabs}>
               <button
                 type="button"
@@ -59,6 +59,8 @@ export default function AuthLayout({
           <div className={styles.formContent}>
             {isLogoutPending ? (
               <LogoutPanel />
+            ) : isLoading && !isAuthenticated ? (
+              <div>Checking your session...</div>
             ) : isAuthenticated ? (
               <SetupPanel />
             ) : activeTab === 'login' ? (

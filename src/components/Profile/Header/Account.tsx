@@ -63,7 +63,9 @@ export default function Account({
           <p className={styles.username}>{displayUsername}</p>
         )}
         {displayEmail && <p className={styles.email}>{displayEmail}</p>}
-        {displayUserId && <p className={styles.userId}>{displayUserId}</p>}
+        {displayUserId && (
+          <p className={styles.userId}>User ID (sub): {displayUserId}</p>
+        )}
 
         {accountId && (
           <code className={styles.accountId}>

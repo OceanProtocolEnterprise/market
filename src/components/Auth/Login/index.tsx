@@ -63,12 +63,8 @@ export default function Login({ content, initialTab = 'login' }: LoginProps) {
     }
 
     const redirectTo = (callbackUrl as string) || '/profile'
-    const timeoutId = window.setTimeout(() => {
-      clearPendingAuthMode()
-      router.replace(redirectTo)
-    }, 900)
-
-    return () => window.clearTimeout(timeoutId)
+    clearPendingAuthMode()
+    router.replace(redirectTo)
   }, [
     callbackUrl,
     isAuthenticated,
