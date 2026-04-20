@@ -1,4 +1,4 @@
-import { ReactElement, ReactNode } from 'react'
+import { ReactElement, ReactNode, useState } from 'react'
 import { useDisconnect, useAccount } from 'wagmi'
 import styles from './Details.module.css'
 import Avatar from '@components/@shared/atoms/Avatar'
@@ -63,6 +63,7 @@ interface ActionButtonProps {
   description?: string
   onClick: () => void
   tone?: 'default' | 'danger'
+  isLoading?: boolean
 }
 
 function ActionButton({
@@ -70,7 +71,8 @@ function ActionButton({
   title,
   description,
   onClick,
-  tone = 'default'
+  tone = 'default',
+  isLoading = false
 }: ActionButtonProps): ReactElement {
   const isDanger = tone === 'danger'
   const hasDescription = Boolean(description)
@@ -82,6 +84,7 @@ function ActionButton({
         isDanger ? styles.actionButtonDanger : ''
       } ${!hasDescription ? styles.actionButtonCompact : ''}`}
       onClick={onClick}
+      disabled={isLoading}
     >
       <span
         className={`${styles.actionIconBadge} ${
@@ -89,7 +92,7 @@ function ActionButton({
         }`}
         aria-hidden="true"
       >
-        {icon}
+        {isLoading ? <span className={styles.spinner} /> : icon}
       </span>
       <span className={styles.actionContent}>
         <span className={styles.actionTitle}>{title}</span>
@@ -110,6 +113,7 @@ export default function Details({
   const { setOpen } = useModal()
   const router = useRouter()
   const { showOnboardingModule } = useUserPreferences()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const {
     setSessionToken,
@@ -158,6 +162,9 @@ export default function Details({
   }
 
   const handleLogout = async () => {
+    if (isLoggingOut) return
+    setIsLoggingOut(true)
+
     try {
       if (isWalletConnected) {
         await handleDisconnectWallet()
@@ -165,7 +172,7 @@ export default function Details({
         await disconnectSsiWallet()
       }
     } catch (error) {
-      console.error('Error disconnecting wallet/SSI:', error)
+      console.error('wallet logout error', error)
     }
 
     await logout()
@@ -243,6 +250,7 @@ export default function Details({
             }
             onClick={handleLogout}
             tone="danger"
+            isLoading={isLoggingOut}
           />
         )}
       </div>

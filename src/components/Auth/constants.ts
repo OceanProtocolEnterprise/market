@@ -46,7 +46,7 @@ export const authBrandDefaults: {
 export const authLoginCopy = {
   title: 'Welcome back',
   subtitle: "Sign in to your organization's data marketplace",
-  ssoLabel: 'Continue with Company SSO',
+  ssoLabel: 'Log in to OE Marketplace',
   ssoLoadingLabel: 'Redirecting to login...',
   demoNotice: 'Demo Mode: No real authentication required'
 }
@@ -54,7 +54,7 @@ export const authLoginCopy = {
 export const authSignupCopy = {
   title: 'Get started',
   subtitle: "Create your organization's marketplace account",
-  ssoLabel: 'Sign up with Company SSO',
+  ssoLabel: 'Sign-up to OE Marketplace',
   ssoLoadingLabel: 'Redirecting to signup...',
   termsIntro: 'By creating an account, you agree to our',
   termsLabel: 'Terms of Service',
