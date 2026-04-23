@@ -24,7 +24,7 @@
     "knip": "knip"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.967.0",
+    "@aws-sdk/client-s3": "^3.1035.0",
     "@codemirror/lang-json": "^6.0.1",
     "@codemirror/language": "^6.3.1",
     "@coingecko/cryptoformat": "^0.5.4",
@@ -38,7 +38,7 @@
     "@uiw/codemirror-themes": "^4.21.12",
     "@uiw/react-codemirror": "^4.19.5",
     "@urql/exchange-refocus": "1.0.0",
-    "axios": "^1.2.0",
+    "axios": "^1.15.2",
     "base64url": "^3.0.1",
     "classnames": "^2.3.2",
     "connectkit": "^1.9.1",
@@ -56,7 +56,7 @@
     "js-cookie": "^3.0.5",
     "match-sorter": "^6.3.1",
     "myetherwallet-blockies": "^0.1.1",
-    "next": "^15.5.11",
+    "next": "^15.5.15",
     "normalize-url": "^8.1.0",
     "query-string": "^8.1.0",
     "react": "^18.2.0",
@@ -130,9 +130,12 @@
     "semver": "^7.5.2",
     "json5": "^2.2.3",
     "min-document": "2.19.1",
-    "brace-expansion": "2.0.2",
+    "axios": "$axios",
+    "brace-expansion": "2.0.3",
+    "fast-xml-parser": "^5.7.0",
+    "undici": "6.25.0",
     "minimatch": {
-      "brace-expansion": "1.1.12"
+      "brace-expansion": "1.1.13"
     },
     "request": {
       "tough-cookie": "^4.1.3"
