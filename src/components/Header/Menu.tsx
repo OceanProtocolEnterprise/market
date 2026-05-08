@@ -67,7 +67,7 @@ export default function Menu(): ReactElement {
     router.query.sort === 'indexedMetadata.event.block' &&
     router.query.sortOrder === 'desc'
 
-  const canShowProtectedCtas = isAuthenticated && !isAuthRoute
+  const canShowProtectedCtas = (!authEnabled || isAuthenticated) && !isAuthRoute
   const showPublishButton = canShowProtectedCtas && !isPublishRoute
   const showCatalogButton = canShowProtectedCtas && !isCatalogRoute
 
