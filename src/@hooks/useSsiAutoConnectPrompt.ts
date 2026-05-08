@@ -14,7 +14,7 @@ export default function useSsiAutoConnectPrompt(): void {
   const { isSsiChainAllowed, isSsiChainReady } = useSsiAllowedChain()
   const walletClient = useEthersSigner()
   const { setShowSsiWalletModule } = useUserPreferences()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, authEnabled } = useAuth()
   const {
     sessionToken,
     isSsiStateHydrated,
@@ -39,7 +39,7 @@ export default function useSsiAutoConnectPrompt(): void {
       return
     }
 
-    if (!isAuthenticated) {
+    if (authEnabled && !isAuthenticated) {
       resetSsiAutoConnectLock()
       setShowSsiWalletModule(false)
       return
@@ -52,6 +52,7 @@ export default function useSsiAutoConnectPrompt(): void {
   }, [
     isConnected,
     isAuthenticated,
+    authEnabled,
     isSsiChainAllowed,
     isSsiChainReady,
     walletClient,
