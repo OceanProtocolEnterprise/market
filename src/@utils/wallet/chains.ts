@@ -39,9 +39,9 @@ const ethereumHoodi: Chain = {
   testnet: true
 }
 
-// Chain IDs of custom chains defined in this file whose hardcoded
-// RPC URLs are considered intentionally configured and GDPR-approved.
-const customChainIds = new Set([opSepolia.id, ethereumHoodi.id])
+// Custom chains with intentionally configured, approved RPC URLs.
+const customChains: Chain[] = [opSepolia, ethereumHoodi]
+const customChainIds = new Set(customChains.map((chain) => chain.id))
 
 /**
  * Returns wagmi-compatible chains filtered by allowed chain IDs.
@@ -52,16 +52,17 @@ const customChainIds = new Set([opSepolia.id, ethereumHoodi.id])
  * defined above are treated as approved and always pass through.
  */
 export const getSupportedChains = (chainIdsSupported: number[]): Chain[] => {
-  // Convert wagmiChains module to array of Chain objects
-  const baseChains: Chain[] = Object.values(wagmiChains)
+  // Convert wagmiChains module to array of Chain objects, excluding any
+  // that share an ID with a custom chain so the custom definition (with
+  // its approved RPC) is used instead of the wagmi-bundled public RPC.
+  const baseChains: Chain[] = Object.values(wagmiChains).filter(
+    (chain) => !customChainIds.has(chain.id)
+  )
 
-  // Include custom chains
-  const allChains = [...baseChains, opSepolia, ethereumHoodi]
+  const allChains = [...baseChains, ...customChains]
 
   const rpcMap = getNodeUriMap()
 
-  // Only keep chains that have an approved RPC: either a custom chain
-  // (hardcoded RPC we control) or a viem built-in with an env override.
   const allowedChains = allChains.filter((chain) => {
     if (!chainIdsSupported.includes(chain.id)) return false
     if (customChainIds.has(chain.id)) return true
