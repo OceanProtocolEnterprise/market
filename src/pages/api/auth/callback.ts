@@ -99,6 +99,10 @@ export default async function handler(
     })
 
     const data = await tokenRes.json()
+    console.log(
+      '\n========== RAW TOKEN RESPONSE ==========\n',
+      JSON.stringify(data, null, 2)
+    )
 
     if (!tokenRes.ok) {
       console.error('Token exchange failed:', {
@@ -108,11 +112,24 @@ export default async function handler(
       return failRedirect(res)
     }
 
+    const rawJwtPayload = JSON.parse(
+      Buffer.from(data.id_token.split('.')[1], 'base64').toString()
+    )
+
+    console.log(
+      '\n========== RAW JWT PAYLOAD ==========\n',
+      JSON.stringify(rawJwtPayload, null, 2)
+    )
+
     const metadata = await getOidcMetadata(issuer)
     const { payload } = await jwtVerify(data.id_token, metadata.jwks, {
       issuer: metadata.issuer,
       audience: clientId
     })
+    console.log(
+      '\n========== VERIFIED JWT PAYLOAD ==========\n',
+      JSON.stringify(payload, null, 2)
+    )
 
     if (payload.nonce !== expectedNonce) return failRedirect(res)
 
