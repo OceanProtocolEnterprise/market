@@ -47,13 +47,18 @@ function getDfnsConfig() {
 
   return {
     apiUrl: runtimeConfig.NEXT_PUBLIC_DFNS_API_URL,
+    orgId: runtimeConfig.NEXT_PUBLIC_DFNS_ORG_ID,
     relyingPartyId: runtimeConfig.NEXT_PUBLIC_DFNS_RP_ID
   }
 }
 
 function assertDfnsConfig() {
   const config = getDfnsConfig()
-  const missing = Object.entries(config)
+  const requiredConfig = {
+    apiUrl: config.apiUrl,
+    relyingPartyId: config.relyingPartyId
+  }
+  const missing = Object.entries(requiredConfig)
     .filter(([, value]) => !value)
     .map(([key]) => key)
 
@@ -64,16 +69,17 @@ function assertDfnsConfig() {
   return config as Required<ReturnType<typeof getDfnsConfig>>
 }
 
-function resolveDfnsOrgId(organizationId?: string) {
+function resolveDfnsOrgId(organizationId?: string, fallbackOrgId?: string) {
   console.log(
-    'Resolving Dfns organization id from OIDC session:',
-    organizationId
+    'Resolving Dfns organization id:',
+    organizationId ? 'OIDC session' : fallbackOrgId ? 'env fallback' : 'missing'
   )
 
   if (organizationId?.trim()) return organizationId.trim()
+  if (fallbackOrgId?.trim()) return fallbackOrgId.trim()
 
   throw new Error(
-    'Missing Dfns organization id. Add organizationId, organization_id, or dfns_org_id to the OIDC session claims.'
+    'Missing Dfns organization id. Add organizationId, organization_id, or dfns_org_id to the OIDC session claims, or set NEXT_PUBLIC_DFNS_ORG_ID as fallback.'
   )
 }
 
@@ -268,7 +274,10 @@ export function dfnsConnector() {
       const dfnsConfig = assertDfnsConfig()
       const username = promptForUsername(parameters?.username)
       console.log('parameters:', parameters)
-      const orgId = resolveDfnsOrgId(parameters?.organizationId)
+      const orgId = resolveDfnsOrgId(
+        parameters?.organizationId,
+        dfnsConfig.orgId
+      )
       const signer = new WebAuthnSigner({
         relyingParty: {
           id: dfnsConfig.relyingPartyId,
