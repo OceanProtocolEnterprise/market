@@ -92,6 +92,9 @@ const notifySessionLost = (reason: string) => {
 }
 
 const persistVerifiedSession = (data: SessionResponse) => {
+  console.log('OIDC session response in browser:', data)
+  console.log('OIDC organizationId in browser:', data.user?.organizationId)
+
   if (!data.user) {
     clearStoredSessionData()
     return null

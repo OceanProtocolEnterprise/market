@@ -65,6 +65,11 @@ function assertDfnsConfig() {
 }
 
 function resolveDfnsOrgId(organizationId?: string) {
+  console.log(
+    'Resolving Dfns organization id from OIDC session:',
+    organizationId
+  )
+
   if (organizationId?.trim()) return organizationId.trim()
 
   throw new Error(
@@ -262,6 +267,7 @@ export function dfnsConnector() {
 
       const dfnsConfig = assertDfnsConfig()
       const username = promptForUsername(parameters?.username)
+      console.log('parameters:', parameters)
       const orgId = resolveDfnsOrgId(parameters?.organizationId)
       const signer = new WebAuthnSigner({
         relyingParty: {

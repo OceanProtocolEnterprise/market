@@ -180,6 +180,7 @@ export default function SetupPanel() {
   const handleDfnsConnect = async () => {
     setIsDfnsConnecting(true)
     try {
+      console.log('user here:', user)
       await connectAsync({
         connector: dfnsConnector(),
         username: user?.email || user?.username,
