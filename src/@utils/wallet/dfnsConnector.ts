@@ -14,7 +14,10 @@ import {
 import { toAccount } from 'viem/accounts'
 import { createConnector } from 'wagmi'
 import { UserRejectedRequestError } from 'viem'
-import { getRuntimeConfig } from '../runtimeConfig'
+import { JsonRpcProvider } from 'ethers'
+import { getNodeUriMap, getRuntimeConfig } from '../runtimeConfig'
+import { getSupportedChains } from './chains'
+import { DfnsEoaSigner, setActiveDfnsEoaSigner } from './dfnsEoaSigner'
 
 type DfnsProvider = {
   request(args: { method: string; params?: unknown }): Promise<unknown>
@@ -89,6 +92,46 @@ function promptForRegistrationCode() {
   }
 
   return registrationCode.trim()
+}
+
+function getDfnsSelectableChains(fallbackChains: readonly Chain[]): Chain[] {
+  const rpcMap = getNodeUriMap()
+  const configuredChainIds = Object.keys(rpcMap)
+    .map(Number)
+    .filter((chainId) => Number.isFinite(chainId))
+
+  const configuredChains = getSupportedChains(configuredChainIds)
+  return configuredChains.length > 0 ? configuredChains : [...fallbackChains]
+}
+
+function promptForChain(chains: readonly Chain[]): Chain {
+  if (chains.length === 0) {
+    throw new Error('No Dfns networks are configured.')
+  }
+
+  if (chains.length === 1) return chains[0]
+
+  const options = chains
+    .map(
+      (chain, index) =>
+        `${index + 1}. ${chain.name || `Chain ${chain.id}`} (${chain.id})`
+    )
+    .join('\n')
+  const selectedOption = window.prompt(`Select Dfns network:\n${options}`, '1')
+
+  if (!selectedOption) {
+    throw new UserRejectedRequestError(
+      new Error('Dfns network selection cancelled.')
+    )
+  }
+
+  const selectedIndex = Number(selectedOption.trim()) - 1
+  const selectedChain = chains[selectedIndex]
+  if (!selectedChain) {
+    throw new Error('Invalid Dfns network selection.')
+  }
+
+  return selectedChain
 }
 
 function isRegistrationRequiredError(error: unknown): boolean {
@@ -170,9 +213,15 @@ export function dfnsConnector() {
     async connect<withCapabilities extends boolean = false>(
       parameters?: DfnsConnectParameters<withCapabilities>
     ): Promise<DfnsConnectReturn<withCapabilities>> {
-      const chain =
-        config.chains.find((item) => item.id === parameters?.chainId) ??
-        config.chains[0]
+      const selectableChains = getDfnsSelectableChains(config.chains)
+      let activeChain = parameters?.chainId
+        ? selectableChains.find((item) => item.id === parameters.chainId)
+        : undefined
+
+      if (!activeChain) {
+        activeChain = promptForChain(selectableChains)
+      }
+
       const dfnsConfig = assertDfnsConfig()
       const username = promptForUsername(parameters?.username)
       const signer = new WebAuthnSigner({
@@ -200,15 +249,28 @@ export function dfnsConnector() {
         walletId: dfnsConfig.walletId,
         dfnsClient
       })
-      const walletClient = createWalletClient({
-        account: toAccount(dfnsWallet),
-        chain,
-        transport: http(chain.rpcUrls.default.http[0])
+      const dfnsAccount = toAccount(dfnsWallet)
+      let walletClient = createWalletClient({
+        account: dfnsAccount,
+        chain: activeChain,
+        transport: http(activeChain.rpcUrls.default.http[0])
       })
 
       account = getAddress(dfnsWallet.address)
-      chainId = chain.id
+      chainId = activeChain.id
       connected = true
+      setActiveDfnsEoaSigner(
+        new DfnsEoaSigner({
+          address: account,
+          chain: activeChain,
+          dfnsWallet,
+          provider: new JsonRpcProvider(activeChain.rpcUrls.default.http[0], {
+            chainId: activeChain.id,
+            name: activeChain.name
+          }),
+          walletClient
+        })
+      )
       if (typeof window !== 'undefined') {
         window.localStorage.setItem('dfns_username', username)
       }
@@ -247,16 +309,37 @@ export function dfnsConnector() {
           if (method === 'wallet_switchEthereumChain') {
             const [{ chainId: nextChainId }] =
               (params as [{ chainId: Hex }]) || []
-            const nextChain = config.chains.find(
+            const nextChain = selectableChains.find(
               (item) => item.id === fromHex(nextChainId, 'number')
             )
             if (!nextChain) throw new Error('Unsupported chain')
+            activeChain = nextChain
             chainId = nextChain.id
+            walletClient = createWalletClient({
+              account: dfnsAccount,
+              chain: activeChain,
+              transport: http(activeChain.rpcUrls.default.http[0])
+            })
+            setActiveDfnsEoaSigner(
+              new DfnsEoaSigner({
+                address: account!,
+                chain: activeChain,
+                dfnsWallet,
+                provider: new JsonRpcProvider(
+                  activeChain.rpcUrls.default.http[0],
+                  {
+                    chainId: activeChain.id,
+                    name: activeChain.name
+                  }
+                ),
+                walletClient
+              })
+            )
             config.emitter.emit('change', { chainId })
             return null
           }
 
-          return rpcRequest(chain, method, params)
+          return rpcRequest(activeChain, method, params)
         },
         on() {},
         removeListener() {}
@@ -278,6 +361,7 @@ export function dfnsConnector() {
       account = undefined
       chainId = undefined
       provider = undefined
+      setActiveDfnsEoaSigner(undefined)
       config.emitter.emit('disconnect')
     },
     async getAccounts() {
@@ -312,6 +396,7 @@ export function dfnsConnector() {
     onDisconnect() {
       connected = false
       account = undefined
+      setActiveDfnsEoaSigner(undefined)
       config.emitter.emit('disconnect')
     }
   }))

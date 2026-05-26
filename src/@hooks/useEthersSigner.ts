@@ -2,7 +2,8 @@
 import { BrowserProvider, JsonRpcSigner } from 'ethers'
 import { useMemo } from 'react'
 import type { Client, Transport, Chain, Account } from 'viem'
-import { type Config, useChainId, useConnectorClient } from 'wagmi'
+import { type Config, useAccount, useChainId, useConnectorClient } from 'wagmi'
+import { getActiveDfnsEoaSigner } from '@utils/wallet/dfnsEoaSigner'
 
 function clientToSigner(
   client: Client<Transport, Chain, Account>
@@ -22,13 +23,16 @@ function clientToSigner(
 
 export function useEthersSigner() {
   const chainId = useChainId()
+  const { connector } = useAccount()
   const { data } = useConnectorClient<Config>({ chainId })
 
-  return useMemo(
-    () =>
-      data
-        ? clientToSigner(data as Client<Transport, Chain, Account>)
-        : undefined,
-    [data]
-  )
+  return useMemo(() => {
+    if (connector?.id === 'dfns') {
+      return getActiveDfnsEoaSigner()
+    }
+
+    return data
+      ? clientToSigner(data as Client<Transport, Chain, Account>)
+      : undefined
+  }, [connector?.id, data])
 }
