@@ -22,10 +22,18 @@ type DfnsProvider = {
   removeListener(event: string, listener: (...args: unknown[]) => void): void
 }
 
-type DfnsConnectParameters = {
+type DfnsConnectParameters<withCapabilities extends boolean = false> = {
   chainId?: number
   isReconnecting?: boolean
+  withCapabilities?: withCapabilities | boolean
   username?: string
+}
+
+type DfnsConnectReturn<withCapabilities extends boolean = false> = {
+  accounts: withCapabilities extends true
+    ? readonly { address: Address; capabilities: Record<string, unknown> }[]
+    : readonly Address[]
+  chainId: number
 }
 
 const DFNS_CONNECTOR_ID = 'dfns'
@@ -111,7 +119,9 @@ export function dfnsConnector() {
     id: DFNS_CONNECTOR_ID,
     name: 'Dfns Passkey',
     type: DFNS_CONNECTOR_ID,
-    async connect(parameters?: DfnsConnectParameters) {
+    async connect<withCapabilities extends boolean = false>(
+      parameters?: DfnsConnectParameters<withCapabilities>
+    ): Promise<DfnsConnectReturn<withCapabilities>> {
       const chain =
         config.chains.find((item) => item.id === parameters?.chainId) ??
         config.chains[0]
@@ -205,7 +215,14 @@ export function dfnsConnector() {
 
       config.emitter.emit('connect', { accounts: [account], chainId })
 
-      return { accounts: [account], chainId }
+      return {
+        accounts: (parameters?.withCapabilities
+          ? [{ address: account, capabilities: {} }]
+          : [
+              account
+            ]) as unknown as DfnsConnectReturn<withCapabilities>['accounts'],
+        chainId
+      }
     },
     async disconnect() {
       connected = false
