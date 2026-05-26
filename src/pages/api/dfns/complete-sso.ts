@@ -17,7 +17,6 @@ export default async function handler(
       return res.redirect(`/dfns-login?error=missing_auth_params`)
     }
 
-    // Complete the SSO login with Dfns
     const response = await fetch(`${DFNS_CONFIG.baseUrl}/auth/login/sso`, {
       method: 'POST',
       headers: {
@@ -39,7 +38,6 @@ export default async function handler(
       throw new Error('No token received from Dfns')
     }
 
-    // Set the token as a cookie
     res.setHeader(
       'Set-Cookie',
       `dfns_token=${data.token}; HttpOnly; Path=/; Max-Age=86400; SameSite=Lax`

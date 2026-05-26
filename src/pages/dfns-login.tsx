@@ -32,13 +32,11 @@ function LoginContent() {
   }
 
   useEffect(() => {
-    // Check for URL parameters
     const success = searchParams.get('success')
     const errorParam = searchParams.get('error')
 
     if (success === 'true') {
       setError(null)
-      // Optionally fetch the token from a secure endpoint if you want to display it
       fetchToken()
     }
 
@@ -65,7 +63,6 @@ function LoginContent() {
         throw new Error(data.error || 'Failed to initiate login')
       }
 
-      // Redirect to Authentik (IdP) login page
       if (data.ssoRedirectUrl) {
         window.location.href = data.ssoRedirectUrl
       } else {
@@ -79,7 +76,6 @@ function LoginContent() {
   }
 
   const handleLogout = () => {
-    // Clear cookies and state
     document.cookie =
       'dfns_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
     setToken(null)
@@ -145,11 +141,6 @@ function LoginContent() {
       </div>
     </div>
   )
-}
-
-// Optional: Add an endpoint to get the token for display
-async function getTokenEndpoint() {
-  // This would be another API route to retrieve the token from cookie if needed
 }
 
 export default function DfnsLoginPage() {
