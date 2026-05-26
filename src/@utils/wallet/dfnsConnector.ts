@@ -74,7 +74,7 @@ function resolveDfnsOrgId(organizationId?: string, fallbackOrgId?: string) {
   if (fallbackOrgId?.trim()) return fallbackOrgId.trim()
 
   throw new Error(
-    'Missing Dfns organization id. Add organizationId, organization_id, or dfns_org_id to the OIDC session claims, or set NEXT_PUBLIC_DFNS_ORG_ID as fallback.'
+    'Missing Dfns organization id. Add orgId to the OIDC session claims, or set NEXT_PUBLIC_DFNS_ORG_ID as fallback.'
   )
 }
 
@@ -295,7 +295,6 @@ export function dfnsConnector() {
         signer
       })
       const walletId = await resolveDfnsWalletId(dfnsClient)
-      console.log('walletId', walletId)
       const dfnsWallet = await DfnsWallet.init({
         walletId,
         dfnsClient

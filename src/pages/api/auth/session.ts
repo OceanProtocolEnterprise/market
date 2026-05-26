@@ -125,9 +125,7 @@ export default async function handler(
       main_oidc: getOptionalStringClaim(payload, 'iss') || issuer,
       upstream_idp: getLoginSource(payload) || 'unknown'
     }
-    const organizationId =
-      getOptionalStringClaim(payload, 'organizationId') ||
-      getOptionalStringClaim(payload, 'org_id')
+    const organizationId = getOptionalStringClaim(payload, 'orgId')
 
     return res.status(200).json({
       user: {
