@@ -1,14 +1,15 @@
-// app/api/dfns/get-token.ts (optional - for displaying token)
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextApiRequest, NextApiResponse } from 'next'
 
-export async function GET(request: NextRequest) {
-  const token = request.cookies.get('dfns_token')?.value
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  const token = req.cookies.dfns_token
 
   if (!token) {
-    return NextResponse.json({ error: 'No token found' }, { status: 401 })
+    return res.status(401).json({
+      error: 'No token found'
+    })
   }
 
-  // Only return token for development/demo purposes
-  // In production, you might want to return only a partial token or mask it
-  return NextResponse.json({ token })
+  return res.status(200).json({
+    token
+  })
 }
