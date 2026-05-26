@@ -214,6 +214,20 @@
   transform: none;
 }
 
+.walletChoices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.secondaryActionButton {
+  color: #0a4b70;
+  background: #ffffff;
+  border: 1px solid rgba(10, 75, 112, 0.22);
+}
+
 .readyState {
   display: inline-flex;
   align-items: center;
@@ -264,5 +278,9 @@
 
   .actionButton {
     width: 100%;
+  }
+
+  .walletChoices {
+    flex-direction: column;
   }
 }

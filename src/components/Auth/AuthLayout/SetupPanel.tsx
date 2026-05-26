@@ -1,4 +1,4 @@
-import { useAccount } from 'wagmi'
+import { useAccount, useConnect, useConnectors } from 'wagmi'
 import { useModal } from 'connectkit'
 import appConfig from 'app.config.cjs'
 import { useSsiWallet } from '@context/SsiWallet'
@@ -9,6 +9,8 @@ import { getPendingAuthMode } from '@utils/authFlow'
 import useSsiConnect from '@hooks/useSsiConnect'
 import { authSetupCopy } from '../constants'
 import styles from './SetupPanel.module.css'
+import { toast } from 'react-toastify'
+import { useState } from 'react'
 
 type StepStatus = 'complete' | 'active' | 'pending'
 type SetupAction = 'connectWallet' | 'switchNetwork' | 'connectSsi' | null
@@ -87,7 +89,10 @@ function getSetupSubtitle(
 export default function SetupPanel() {
   const { isConnected } = useAccount()
   const { setOpen } = useModal()
+  const connectors = useConnectors()
+  const { connectAsync } = useConnect()
   const { user, logout } = useAuth()
+  const [isDfnsConnecting, setIsDfnsConnecting] = useState(false)
   const { connectSsi } = useSsiConnect()
   const { sessionToken, isSsiStateHydrated, isSsiSessionHydrating } =
     useSsiWallet()
@@ -172,6 +177,28 @@ export default function SetupPanel() {
     }
   }
 
+  const handleDfnsConnect = async () => {
+    const connector = connectors.find((item) => item.id === 'dfns')
+    if (!connector) {
+      toast.error('Dfns wallet connector is not available.')
+      return
+    }
+
+    setIsDfnsConnecting(true)
+    try {
+      await connectAsync({
+        connector,
+        username: user?.email || user?.username
+      } as Parameters<typeof connectAsync>[0])
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Dfns wallet login failed.'
+      )
+    } finally {
+      setIsDfnsConnecting(false)
+    }
+  }
+
   const handleAccountSwitch = () => {
     logout().catch((error) => {
       console.error('Account switch logout failed:', error)
@@ -223,19 +250,45 @@ export default function SetupPanel() {
           </div>
         ) : (
           <>
-            {actionLabel && (
-              <button
-                type="button"
-                className={styles.actionButton}
-                onClick={() => {
-                  handleAction().catch((error) => {
-                    console.error('SSI setup action failed:', error)
-                  })
-                }}
-                disabled={isSsiSessionHydrating}
-              >
-                {actionLabel}
-              </button>
+            {currentAction === 'connectWallet' ? (
+              <div className={styles.walletChoices}>
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={() => setOpen(true)}
+                >
+                  {authSetupCopy.connectBrowserWallet}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.actionButton} ${styles.secondaryActionButton}`}
+                  onClick={() => {
+                    handleDfnsConnect().catch((error) => {
+                      console.error('Dfns wallet setup failed:', error)
+                    })
+                  }}
+                  disabled={isDfnsConnecting}
+                >
+                  {isDfnsConnecting
+                    ? authSetupCopy.dfnsConnecting
+                    : authSetupCopy.connectDfnsWallet}
+                </button>
+              </div>
+            ) : (
+              actionLabel && (
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={() => {
+                    handleAction().catch((error) => {
+                      console.error('SSI setup action failed:', error)
+                    })
+                  }}
+                  disabled={isSsiSessionHydrating}
+                >
+                  {actionLabel}
+                </button>
+              )
             )}
           </>
         )}
