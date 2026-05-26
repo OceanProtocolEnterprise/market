@@ -70,11 +70,6 @@ function assertDfnsConfig() {
 }
 
 function resolveDfnsOrgId(organizationId?: string, fallbackOrgId?: string) {
-  console.log(
-    'Resolving Dfns organization id:',
-    organizationId ? 'OIDC session' : fallbackOrgId ? 'env fallback' : 'missing'
-  )
-
   if (organizationId?.trim()) return organizationId.trim()
   if (fallbackOrgId?.trim()) return fallbackOrgId.trim()
 
