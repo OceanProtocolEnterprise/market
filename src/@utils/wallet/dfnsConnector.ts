@@ -28,6 +28,7 @@ type DfnsProvider = {
 type DfnsConnectParameters<withCapabilities extends boolean = false> = {
   chainId?: number
   isReconnecting?: boolean
+  organizationId?: string
   withCapabilities?: withCapabilities | boolean
   username?: string
 }
@@ -46,9 +47,7 @@ function getDfnsConfig() {
 
   return {
     apiUrl: runtimeConfig.NEXT_PUBLIC_DFNS_API_URL,
-    orgId: runtimeConfig.NEXT_PUBLIC_DFNS_ORG_ID,
-    relyingPartyId: runtimeConfig.NEXT_PUBLIC_DFNS_RP_ID,
-    walletId: runtimeConfig.NEXT_PUBLIC_DFNS_WALLET_ID
+    relyingPartyId: runtimeConfig.NEXT_PUBLIC_DFNS_RP_ID
   }
 }
 
@@ -63,6 +62,14 @@ function assertDfnsConfig() {
   }
 
   return config as Required<ReturnType<typeof getDfnsConfig>>
+}
+
+function resolveDfnsOrgId(organizationId?: string) {
+  if (organizationId?.trim()) return organizationId.trim()
+
+  throw new Error(
+    'Missing Dfns organization id. Add organizationId, organization_id, or dfns_org_id to the OIDC session claims.'
+  )
 }
 
 function getDefaultUsername(username?: string) {
@@ -85,13 +92,44 @@ function promptForUsername(username?: string) {
 
 function promptForRegistrationCode() {
   const registrationCode = window.prompt('Dfns registration code')
-  if (!registrationCode) {
+  if (!registrationCode?.trim()) {
     throw new UserRejectedRequestError(
       new Error('Dfns registration cancelled.')
     )
   }
 
   return registrationCode.trim()
+}
+
+function isEvmDfnsWallet(
+  wallet: Awaited<
+    ReturnType<DfnsApiClient['wallets']['listWallets']>
+  >['items'][number]
+) {
+  return (
+    wallet.status === 'Active' &&
+    wallet.signingKey.scheme === 'ECDSA' &&
+    wallet.signingKey.curve === 'secp256k1' &&
+    typeof wallet.address === 'string' &&
+    /^0x[0-9a-fA-F]{40}$/.test(wallet.address)
+  )
+}
+
+async function resolveDfnsWalletId(dfnsClient: DfnsApiClient) {
+  let paginationToken: string | undefined
+
+  do {
+    const wallets = await dfnsClient.wallets.listWallets({
+      query: { limit: 100, paginationToken }
+    })
+    const wallet = wallets.items.find(isEvmDfnsWallet)
+
+    if (wallet) return wallet.id
+
+    paginationToken = wallets.nextPageToken
+  } while (paginationToken)
+
+  throw new Error('No active EVM Dfns wallet is available for this user.')
 }
 
 function getDfnsSelectableChains(fallbackChains: readonly Chain[]): Chain[] {
@@ -224,6 +262,7 @@ export function dfnsConnector() {
 
       const dfnsConfig = assertDfnsConfig()
       const username = promptForUsername(parameters?.username)
+      const orgId = resolveDfnsOrgId(parameters?.organizationId)
       const signer = new WebAuthnSigner({
         relyingParty: {
           id: dfnsConfig.relyingPartyId,
@@ -237,7 +276,7 @@ export function dfnsConnector() {
       })
       const { token } = await loginOrRegisterDfnsUser({
         authenticator,
-        orgId: dfnsConfig.orgId,
+        orgId,
         username
       })
       const dfnsClient = new DfnsApiClient({
@@ -245,8 +284,10 @@ export function dfnsConnector() {
         authToken: token,
         signer
       })
+      const walletId = await resolveDfnsWalletId(dfnsClient)
+      console.log('walletId', walletId)
       const dfnsWallet = await DfnsWallet.init({
-        walletId: dfnsConfig.walletId,
+        walletId,
         dfnsClient
       })
       const dfnsAccount = toAccount(dfnsWallet)

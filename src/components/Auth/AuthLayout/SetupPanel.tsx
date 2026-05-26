@@ -182,7 +182,8 @@ export default function SetupPanel() {
     try {
       await connectAsync({
         connector: dfnsConnector(),
-        username: user?.email || user?.username
+        username: user?.email || user?.username,
+        organizationId: user?.organizationId
       } as Parameters<typeof connectAsync>[0])
     } catch (error) {
       toast.error(
