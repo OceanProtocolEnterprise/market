@@ -1,4 +1,4 @@
-import { DfnsApiClient, DfnsAuthenticator } from '@dfns/sdk'
+import { DfnsApiClient, DfnsAuthenticator, DfnsError } from '@dfns/sdk'
 import { WebAuthnSigner } from '@dfns/sdk-browser'
 import { DfnsWallet } from '@dfns/lib-viem'
 import {
@@ -80,6 +80,54 @@ function promptForUsername(username?: string) {
   return promptedUsername.trim()
 }
 
+function promptForRegistrationCode() {
+  const registrationCode = window.prompt('Dfns registration code')
+  if (!registrationCode) {
+    throw new UserRejectedRequestError(
+      new Error('Dfns registration cancelled.')
+    )
+  }
+
+  return registrationCode.trim()
+}
+
+function isRegistrationRequiredError(error: unknown): boolean {
+  if (!(error instanceof DfnsError)) return false
+
+  const message = error.message.toLowerCase()
+  return (
+    error.httpStatus === 401 ||
+    error.httpStatus === 404 ||
+    message.includes('not found') ||
+    message.includes('not registered') ||
+    message.includes('registration')
+  )
+}
+
+async function loginOrRegisterDfnsUser({
+  authenticator,
+  orgId,
+  username
+}: {
+  authenticator: DfnsAuthenticator
+  orgId: string
+  username: string
+}) {
+  try {
+    return await authenticator.login({ orgId, username })
+  } catch (error) {
+    if (!isRegistrationRequiredError(error)) throw error
+
+    await authenticator.register({
+      orgId,
+      username,
+      registrationCode: promptForRegistrationCode()
+    })
+
+    return authenticator.login({ orgId, username })
+  }
+}
+
 async function rpcRequest(
   chain: Chain,
   method: string,
@@ -127,18 +175,19 @@ export function dfnsConnector() {
         config.chains[0]
       const dfnsConfig = assertDfnsConfig()
       const username = promptForUsername(parameters?.username)
-
       const signer = new WebAuthnSigner({
         relyingParty: {
           id: dfnsConfig.relyingPartyId,
           name: 'Ocean Enterprise Marketplace'
         }
       })
+
       const authenticator = new DfnsAuthenticator({
         baseUrl: dfnsConfig.apiUrl,
         signer
       })
-      const { token } = await authenticator.login({
+      const { token } = await loginOrRegisterDfnsUser({
+        authenticator,
         orgId: dfnsConfig.orgId,
         username
       })

@@ -1,4 +1,4 @@
-import { useAccount, useConnect, useConnectors } from 'wagmi'
+import { useAccount, useConnect } from 'wagmi'
 import { useModal } from 'connectkit'
 import appConfig from 'app.config.cjs'
 import { useSsiWallet } from '@context/SsiWallet'
@@ -7,6 +7,7 @@ import useSsiChainGuard from '@hooks/useSsiChainGuard'
 import { useAuth } from '@hooks/useAuth'
 import { getPendingAuthMode } from '@utils/authFlow'
 import useSsiConnect from '@hooks/useSsiConnect'
+import { dfnsConnector } from '@utils/wallet/dfnsConnector'
 import { authSetupCopy } from '../constants'
 import styles from './SetupPanel.module.css'
 import { toast } from 'react-toastify'
@@ -89,7 +90,6 @@ function getSetupSubtitle(
 export default function SetupPanel() {
   const { isConnected } = useAccount()
   const { setOpen } = useModal()
-  const connectors = useConnectors()
   const { connectAsync } = useConnect()
   const { user, logout } = useAuth()
   const [isDfnsConnecting, setIsDfnsConnecting] = useState(false)
@@ -178,16 +178,10 @@ export default function SetupPanel() {
   }
 
   const handleDfnsConnect = async () => {
-    const connector = connectors.find((item) => item.id === 'dfns')
-    if (!connector) {
-      toast.error('Dfns wallet connector is not available.')
-      return
-    }
-
     setIsDfnsConnecting(true)
     try {
       await connectAsync({
-        connector,
+        connector: dfnsConnector(),
         username: user?.email || user?.username
       } as Parameters<typeof connectAsync>[0])
     } catch (error) {

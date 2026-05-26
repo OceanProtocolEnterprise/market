@@ -16,7 +16,6 @@ import {
 import { getOceanConfig } from '../ocean'
 import { getSupportedChains } from './chains'
 import { getAllowedErc20ChainIds, getRuntimeConfig } from '../runtimeConfig'
-import { dfnsConnector } from './dfnsConnector'
 
 export async function getDummySigner(chainId: number): Promise<Wallet> {
   const config = getOceanConfig(chainId)
@@ -57,7 +56,7 @@ export function createWagmiConfig() {
     chains,
     ssr: true,
     storage: createStorage({ storage: cookieStorage }),
-    connectors: [injected({ target: 'metaMask' }), dfnsConnector()],
+    connectors: [injected({ target: 'metaMask' })],
     transports: chains.reduce(
       (acc, chain) => ({
         ...acc,
