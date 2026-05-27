@@ -19,6 +19,7 @@ export default async function handler(
     const config = getDfnsSsoConfig(req, {
       orgId: body.organizationId
     })
+    console.log('Dfns SSO config:', config)
     const response = await fetch(`${config.apiUrl}/auth/login/sso/init`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
