@@ -330,34 +330,29 @@ async function hasUsableDfnsPasskey({
 }
 
 async function createDfnsPasskeyWithCode({
-  dfnsClient,
+  authenticator,
   registrationCode,
-  signer
+  username,
+  orgId
 }: {
-  dfnsClient: DfnsApiClient
+  authenticator: DfnsAuthenticator
   registrationCode: string
-  signer: WebAuthnSigner
+  username: string
+  orgId: string
 }) {
-  const challenge = await dfnsClient.auth.createCredentialChallengeWithCode({
-    body: {
-      credentialKind: 'Fido2',
-      code: registrationCode
-    }
+  await authenticator.register({
+    orgId,
+    username,
+    registrationCode
   })
 
-  if (challenge.kind !== 'Fido2') {
-    throw new Error(`Unsupported Dfns credential kind: ${challenge.kind}`)
-  }
-
-  const attestation = await signer.create(challenge)
-
-  await dfnsClient.auth.createCredentialWithCode({
-    body: {
-      ...attestation,
-      credentialName: 'Ocean Enterprise Marketplace',
-      challengeIdentifier: challenge.challengeIdentifier
-    }
-  })
+  // await dfnsClient.auth.createCredentialWithCode({
+  //   body: {
+  //     ...attestation,
+  //     credentialName: 'Ocean Enterprise Marketplace',
+  //     challengeIdentifier: challenge.challengeIdentifier
+  //   }
+  // })
 }
 
 export function dfnsConnector() {
@@ -428,9 +423,10 @@ export function dfnsConnector() {
           }
 
           await createDfnsPasskeyWithCode({
-            dfnsClient,
+            authenticator,
             registrationCode: registrationCode || promptForRegistrationCode(),
-            signer
+            username: parameters?.username,
+            orgId
           })
           registeredUsername = parameters?.username
         }
