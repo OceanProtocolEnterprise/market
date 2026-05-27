@@ -32,6 +32,7 @@ export default async function handler(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code, state })
     })
+    console.log('response login:', response)
     const data = (await response.json().catch(() => ({}))) as {
       token?: string
       message?: string
@@ -41,6 +42,7 @@ export default async function handler(
       throw new Error(data.message || 'Failed to complete Dfns SSO login')
     }
 
+    console.log('Dfns SSO login successful:', data)
     res.setHeader(
       'Set-Cookie',
       serializeDfnsTokenCookie(data.token, DFNS_TOKEN_MAX_AGE)
