@@ -1,10 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import {
-  getDfnsApiUrl,
-  serializeDfnsTokenCookie
-} from '@utils/dfnsServerConfig'
-
-const DFNS_TOKEN_MAX_AGE = 24 * 60 * 60
+import { getDfnsApiUrl } from '@utils/dfnsServerConfig'
 
 function getSingleQueryValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value
@@ -18,13 +13,16 @@ export default async function handler(
     res.setHeader('Allow', ['GET'])
     return res.status(405).json({ error: 'Method not allowed' })
   }
-
+  console.log('req.query:', req.query)
   const code = getSingleQueryValue(req.query.code)
   const state = getSingleQueryValue(req.query.state)
 
   if (!code || !state) {
     return res.redirect(302, '/auth/login?dfns=missing_auth_params')
   }
+  console.log('code', code)
+  console.log('state', state)
+  console.log('url:', getDfnsApiUrl())
 
   try {
     const response = await fetch(`${getDfnsApiUrl()}/auth/login/sso`, {
