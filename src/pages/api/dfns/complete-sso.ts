@@ -27,8 +27,11 @@ export default async function handler(
         state
       })
     })
-
+    console.log('Complete SSO response status:', code)
+    console.log('Complete SSO response status text:', response)
+    console.log('Complete SSO response state:', state)
     const data = await response.json()
+    console.log('Complete SSO response data:', data)
 
     if (!response.ok) {
       throw new Error(data.message || 'Failed to complete SSO login')
