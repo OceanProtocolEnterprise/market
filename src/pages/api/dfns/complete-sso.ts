@@ -43,9 +43,13 @@ export default async function handler(
     }
 
     console.log('Dfns SSO login successful:', data)
+    // res.setHeader(
+    //   'Set-Cookie',
+    //   serializeDfnsTokenCookie(data.token, DFNS_TOKEN_MAX_AGE)
+    // )
     res.setHeader(
       'Set-Cookie',
-      serializeDfnsTokenCookie(data.token, DFNS_TOKEN_MAX_AGE)
+      `dfns_token=${data.token}; HttpOnly; Path=/; Max-Age=86400; SameSite=Lax`
     )
 
     return res.redirect(302, '/auth/login?dfns=success')
