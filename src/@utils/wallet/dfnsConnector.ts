@@ -26,9 +26,11 @@ type DfnsProvider = {
 }
 
 type DfnsConnectParameters<withCapabilities extends boolean = false> = {
+  allowRegistrationCodePrompt?: boolean
   chainId?: number
   isReconnecting?: boolean
   organizationId?: string
+  registrationCode?: string
   withCapabilities?: withCapabilities | boolean
   username?: string
 }
@@ -41,6 +43,9 @@ type DfnsConnectReturn<withCapabilities extends boolean = false> = {
 }
 
 const DFNS_CONNECTOR_ID = 'dfns'
+const DFNS_SELECTED_CHAIN_ID_KEY = 'dfns_selected_chain_id'
+export const DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE =
+  'Dfns registration code is required.'
 
 function getDfnsConfig() {
   const runtimeConfig = getRuntimeConfig()
@@ -140,7 +145,9 @@ async function resolveDfnsWalletId(dfnsClient: DfnsApiClient) {
   throw new Error('No active EVM Dfns wallet is available for this user.')
 }
 
-function getDfnsSelectableChains(fallbackChains: readonly Chain[]): Chain[] {
+export function getDfnsSelectableChains(
+  fallbackChains: readonly Chain[]
+): Chain[] {
   const rpcMap = getNodeUriMap()
   const configuredChainIds = Object.keys(rpcMap)
     .map(Number)
@@ -178,6 +185,33 @@ function promptForChain(chains: readonly Chain[]): Chain {
   }
 
   return selectedChain
+}
+
+export function getStoredDfnsSelectedChainId() {
+  if (typeof window === 'undefined') return undefined
+
+  const storedChainId = Number(
+    window.sessionStorage.getItem(DFNS_SELECTED_CHAIN_ID_KEY)
+  )
+  if (!Number.isFinite(storedChainId)) return undefined
+
+  return storedChainId
+}
+
+export function storeDfnsSelectedChainId(chainId: number) {
+  if (typeof window === 'undefined') return
+  window.sessionStorage.setItem(DFNS_SELECTED_CHAIN_ID_KEY, String(chainId))
+}
+
+function getStoredDfnsChain(chains: readonly Chain[]): Chain | undefined {
+  const storedChainId = getStoredDfnsSelectedChainId()
+  if (!storedChainId) return undefined
+
+  return chains.find((chain) => chain.id === storedChainId)
+}
+
+function storeDfnsChain(chain: Chain) {
+  storeDfnsSelectedChainId(chain.id)
 }
 
 async function rpcRequest(
@@ -245,16 +279,18 @@ async function getDfnsSsoToken() {
 async function registerDfnsUser({
   authenticator,
   orgId,
+  registrationCode,
   username
 }: {
   authenticator: DfnsAuthenticator
   orgId: string
+  registrationCode?: string
   username: string
 }) {
   await authenticator.register({
     orgId,
     username,
-    registrationCode: promptForRegistrationCode()
+    registrationCode: registrationCode?.trim() || promptForRegistrationCode()
   })
 }
 
@@ -272,13 +308,15 @@ export function dfnsConnector() {
       parameters?: DfnsConnectParameters<withCapabilities>
     ): Promise<DfnsConnectReturn<withCapabilities>> {
       const selectableChains = getDfnsSelectableChains(config.chains)
+      const token = await getDfnsSsoToken()
       let activeChain = parameters?.chainId
         ? selectableChains.find((item) => item.id === parameters.chainId)
-        : undefined
+        : getStoredDfnsChain(selectableChains)
 
       if (!activeChain) {
         activeChain = promptForChain(selectableChains)
       }
+      storeDfnsChain(activeChain)
 
       const dfnsConfig = assertDfnsConfig()
       const orgId = resolveDfnsOrgId(
@@ -297,7 +335,6 @@ export function dfnsConnector() {
         signer
       })
 
-      const token = await getDfnsSsoToken()
       const dfnsClient = new DfnsApiClient({
         baseUrl: dfnsConfig.apiUrl,
         authToken: token,
@@ -309,10 +346,19 @@ export function dfnsConnector() {
       } catch (error) {
         if (!isRegistrationRequiredError(error)) throw error
 
+        const registrationCode = parameters?.registrationCode?.trim()
+        if (
+          !registrationCode &&
+          parameters?.allowRegistrationCodePrompt === false
+        ) {
+          throw new Error(DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE)
+        }
+
         const username = promptForUsername(parameters?.username)
         await registerDfnsUser({
           authenticator,
           orgId,
+          registrationCode,
           username
         })
         registeredUsername = username

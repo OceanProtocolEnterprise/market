@@ -248,6 +248,183 @@
   box-shadow: 0 0 0 8px rgba(22, 163, 74, 0.12);
 }
 
+.chainModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(3px);
+}
+
+.chainModal {
+  width: min(440px, 100%);
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+}
+
+.chainModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 22px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.chainModalTitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: #1a2c3e;
+}
+
+.chainModalDescription {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.chainModalClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border: 1px solid #dbe3ec;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #475569;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.chainModalClose:hover {
+  border-color: rgba(10, 75, 112, 0.36);
+  color: #0a4b70;
+  background: rgba(10, 75, 112, 0.06);
+}
+
+.chainList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+}
+
+.chainOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.chainOption:hover {
+  border-color: rgba(10, 75, 112, 0.34);
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.chainName {
+  min-width: 0;
+  color: #223655;
+  font-size: 15px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.chainId {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: rgba(10, 75, 112, 0.1);
+  color: #0a4b70;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.registrationForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+}
+
+.registrationLabel {
+  color: #223655;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.registrationInput {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 13px 14px;
+  color: #1a2c3e;
+  background: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  outline: none;
+}
+
+.registrationInput:focus {
+  border-color: rgba(10, 75, 112, 0.62);
+  box-shadow: 0 0 0 3px rgba(10, 75, 112, 0.12);
+}
+
+.registrationActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 6px;
+}
+
+.registrationCancel,
+.registrationSubmit {
+  border-radius: 999px;
+  padding: 11px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.registrationCancel {
+  border: 1px solid #dbe3ec;
+  color: #475569;
+  background: #ffffff;
+}
+
+.registrationSubmit {
+  border: none;
+  color: #ffffff;
+  background: var(--gradient-primary);
+  box-shadow: 1px 2px 8px var(--box-shadow-color);
+}
+
+.registrationSubmit:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
 @keyframes pulse {
   0%,
   100% {
@@ -282,5 +459,27 @@
 
   .walletChoices {
     flex-direction: column;
+  }
+
+  .chainModalHeader {
+    padding: 20px 18px 14px;
+  }
+
+  .chainList {
+    padding: 14px;
+  }
+
+  .chainOption {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .registrationActions {
+    flex-direction: column-reverse;
+  }
+
+  .registrationCancel,
+  .registrationSubmit {
+    width: 100%;
   }
 }
