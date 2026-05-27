@@ -6,15 +6,18 @@ import useSsiAllowedChain from '@hooks/useSsiAllowedChain'
 import useSsiChainGuard from '@hooks/useSsiChainGuard'
 import { useAuth } from '@hooks/useAuth'
 import { getPendingAuthMode } from '@utils/authFlow'
+import { getRuntimeConfig } from '@utils/runtimeConfig'
 import useSsiConnect from '@hooks/useSsiConnect'
 import { dfnsConnector } from '@utils/wallet/dfnsConnector'
 import { authSetupCopy } from '../constants'
 import styles from './SetupPanel.module.css'
 import { toast } from 'react-toastify'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 
 type StepStatus = 'complete' | 'active' | 'pending'
 type SetupAction = 'connectWallet' | 'switchNetwork' | 'connectSsi' | null
+const DFNS_RETURN_PATH_KEY = 'dfns_return_path'
 
 interface SetupStepItem {
   title: string
@@ -92,6 +95,7 @@ export default function SetupPanel() {
   const { setOpen } = useModal()
   const { connectAsync } = useConnect()
   const { user, logout } = useAuth()
+  const router = useRouter()
   const [isDfnsConnecting, setIsDfnsConnecting] = useState(false)
   const { connectSsi } = useSsiConnect()
   const { sessionToken, isSsiStateHydrated, isSsiSessionHydrating } =
@@ -100,6 +104,8 @@ export default function SetupPanel() {
   const { ensureAllowedChainForSsi } = useSsiChainGuard()
   const authMode = getPendingAuthMode()
   const isSsiEnabled = appConfig.ssiEnabled
+  const dfnsOrganizationId =
+    user?.organizationId || getRuntimeConfig().NEXT_PUBLIC_DFNS_ORG_ID
 
   const isWalletReady = isConnected
   const isSsiReady = Boolean(sessionToken)
@@ -177,23 +183,120 @@ export default function SetupPanel() {
     }
   }
 
-  const handleDfnsConnect = async () => {
+  const startDfnsSso = useCallback(async () => {
+    sessionStorage.setItem(
+      DFNS_RETURN_PATH_KEY,
+      `${window.location.pathname}${window.location.search}`
+    )
+    const response = await fetch('/api/dfns/initiate-sso', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        organizationId: dfnsOrganizationId
+      })
+    })
+    console.log('response', response, dfnsOrganizationId)
+    const data = (await response.json().catch(() => ({}))) as {
+      ssoRedirectUrl?: string
+      error?: string
+    }
+    console.log('data', data)
+
+    if (!response.ok || !data.ssoRedirectUrl) {
+      throw new Error(data.error || 'Failed to start Dfns SSO login.')
+    }
+
+    window.location.assign(data.ssoRedirectUrl)
+  }, [dfnsOrganizationId])
+
+  const handleDfnsConnect = useCallback(async () => {
     setIsDfnsConnecting(true)
     try {
-      console.log('user here:', user)
       await connectAsync({
         connector: dfnsConnector(),
         username: user?.email || user?.username,
-        organizationId: user?.organizationId
+        organizationId: dfnsOrganizationId
       } as Parameters<typeof connectAsync>[0])
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.toLowerCase().includes('dfns sso login')
+      ) {
+        await startDfnsSso()
+        return
+      }
+
       toast.error(
-        error instanceof Error ? error.message : 'Dfns wallet login failed.'
+        error instanceof Error ? error.message : 'Dfns wallet failed.'
       )
     } finally {
       setIsDfnsConnecting(false)
     }
-  }
+  }, [
+    connectAsync,
+    dfnsOrganizationId,
+    startDfnsSso,
+    user?.email,
+    user?.username
+  ])
+
+  useEffect(() => {
+    if (!router.isReady || router.query.dfns !== 'success' || isConnected) {
+      return
+    }
+
+    const returnPath = sessionStorage.getItem(DFNS_RETURN_PATH_KEY)
+    if (returnPath) {
+      sessionStorage.removeItem(DFNS_RETURN_PATH_KEY)
+      const returnUrl = new URL(returnPath, window.location.origin)
+      const callbackUrl = returnUrl.searchParams.get('callbackUrl')
+      if (callbackUrl && !router.query.callbackUrl) {
+        router.replace(
+          {
+            pathname: router.pathname,
+            query: { ...router.query, callbackUrl }
+          },
+          undefined,
+          { shallow: true }
+        )
+      }
+    }
+
+    handleDfnsConnect().catch((error) => {
+      console.error('Dfns wallet setup failed:', error)
+    })
+  }, [
+    handleDfnsConnect,
+    isConnected,
+    router,
+    router.isReady,
+    router.query.callbackUrl,
+    router.query.dfns
+  ])
+
+  useEffect(() => {
+    if (!router.isReady) return
+    const dfnsStatus = router.query.dfns
+    if (
+      dfnsStatus !== 'missing_auth_params' &&
+      dfnsStatus !== 'sso_completion_failed'
+    ) {
+      return
+    }
+
+    toast.error('Dfns SSO login failed. Please try again.')
+    const nextQuery = { ...router.query }
+    delete nextQuery.dfns
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: nextQuery
+      },
+      undefined,
+      { shallow: true }
+    )
+  }, [router])
 
   const handleAccountSwitch = () => {
     logout().catch((error) => {

@@ -90,7 +90,9 @@ function promptForUsername(username?: string) {
 
   const promptedUsername = window.prompt('Dfns account email')
   if (!promptedUsername) {
-    throw new UserRejectedRequestError(new Error('Dfns login cancelled.'))
+    throw new UserRejectedRequestError(
+      new Error('Dfns registration cancelled.')
+    )
   }
 
   return promptedUsername.trim()
@@ -178,43 +180,6 @@ function promptForChain(chains: readonly Chain[]): Chain {
   return selectedChain
 }
 
-function isRegistrationRequiredError(error: unknown): boolean {
-  if (!(error instanceof DfnsError)) return false
-
-  const message = error.message.toLowerCase()
-  return (
-    error.httpStatus === 401 ||
-    error.httpStatus === 404 ||
-    message.includes('not found') ||
-    message.includes('not registered') ||
-    message.includes('registration')
-  )
-}
-
-async function loginOrRegisterDfnsUser({
-  authenticator,
-  orgId,
-  username
-}: {
-  authenticator: DfnsAuthenticator
-  orgId: string
-  username: string
-}) {
-  try {
-    return await authenticator.login({ orgId, username })
-  } catch (error) {
-    if (!isRegistrationRequiredError(error)) throw error
-
-    await authenticator.register({
-      orgId,
-      username,
-      registrationCode: promptForRegistrationCode()
-    })
-
-    return authenticator.login({ orgId, username })
-  }
-}
-
 async function rpcRequest(
   chain: Chain,
   method: string,
@@ -244,6 +209,55 @@ function isHex(value: unknown): value is Hex {
   return typeof value === 'string' && /^0x[0-9a-fA-F]*$/.test(value)
 }
 
+function isRegistrationRequiredError(error: unknown): boolean {
+  if (!(error instanceof DfnsError)) return false
+
+  const message = error.message.toLowerCase()
+  return (
+    error.httpStatus === 401 ||
+    error.httpStatus === 404 ||
+    message.includes('not found') ||
+    message.includes('not registered') ||
+    message.includes('registration')
+  )
+}
+
+async function getDfnsSsoToken() {
+  const response = await fetch('/api/dfns/get-token', {
+    credentials: 'same-origin'
+  })
+  const data = (await response.json().catch(() => ({}))) as {
+    token?: string
+    error?: string
+  }
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Dfns SSO login is required.')
+  }
+
+  if (!data.token) {
+    throw new Error('Dfns SSO token was not returned.')
+  }
+
+  return data.token
+}
+
+async function registerDfnsUser({
+  authenticator,
+  orgId,
+  username
+}: {
+  authenticator: DfnsAuthenticator
+  orgId: string
+  username: string
+}) {
+  await authenticator.register({
+    orgId,
+    username,
+    registrationCode: promptForRegistrationCode()
+  })
+}
+
 export function dfnsConnector() {
   let connected = false
   let account: Address | undefined
@@ -267,34 +281,43 @@ export function dfnsConnector() {
       }
 
       const dfnsConfig = assertDfnsConfig()
-      const username = promptForUsername(parameters?.username)
-      console.log('parameters:', parameters)
       const orgId = resolveDfnsOrgId(
         parameters?.organizationId,
         dfnsConfig.orgId
       )
+      let registeredUsername: string | undefined
       const signer = new WebAuthnSigner({
         relyingParty: {
           id: dfnsConfig.relyingPartyId,
           name: 'Ocean Enterprise Marketplace'
         }
       })
-
       const authenticator = new DfnsAuthenticator({
         baseUrl: dfnsConfig.apiUrl,
         signer
       })
-      const { token } = await loginOrRegisterDfnsUser({
-        authenticator,
-        orgId,
-        username
-      })
+
+      const token = await getDfnsSsoToken()
       const dfnsClient = new DfnsApiClient({
         baseUrl: dfnsConfig.apiUrl,
         authToken: token,
         signer
       })
-      const walletId = await resolveDfnsWalletId(dfnsClient)
+      let walletId: string
+      try {
+        walletId = await resolveDfnsWalletId(dfnsClient)
+      } catch (error) {
+        if (!isRegistrationRequiredError(error)) throw error
+
+        const username = promptForUsername(parameters?.username)
+        await registerDfnsUser({
+          authenticator,
+          orgId,
+          username
+        })
+        registeredUsername = username
+        walletId = await resolveDfnsWalletId(dfnsClient)
+      }
       const dfnsWallet = await DfnsWallet.init({
         walletId,
         dfnsClient
@@ -321,8 +344,8 @@ export function dfnsConnector() {
           walletClient
         })
       )
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem('dfns_username', username)
+      if (registeredUsername && typeof window !== 'undefined') {
+        window.localStorage.setItem('dfns_username', registeredUsername)
       }
 
       provider = {
