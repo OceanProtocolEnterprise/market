@@ -343,6 +343,7 @@ export function dfnsConnector() {
       let walletId: string
       try {
         walletId = await resolveDfnsWalletId(dfnsClient)
+        console.log('walletiD', walletId, dfnsClient)
       } catch (error) {
         console.log('Dfns wallet resolution failed:', error)
         if (!isRegistrationRequiredError(error)) throw error
