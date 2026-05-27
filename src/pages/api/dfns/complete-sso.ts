@@ -1,8 +1,25 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getDfnsApiUrl } from '@utils/dfnsServerConfig'
+import {
+  getDfnsApiUrl,
+  serializeDfnsTokenCookie
+} from '@utils/dfnsServerConfig'
+
+const DFNS_TOKEN_MAX_AGE = 24 * 60 * 60
+
+type CompleteSsoResponse = {
+  token?: string
+  message?: string
+  error?: string
+}
 
 function getSingleQueryValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value
+}
+
+async function readDfnsResponse(
+  response: Response
+): Promise<CompleteSsoResponse> {
+  return response.json().catch(() => ({})) as Promise<CompleteSsoResponse>
 }
 
 export default async function handler(
@@ -13,41 +30,39 @@ export default async function handler(
     res.setHeader('Allow', ['GET'])
     return res.status(405).json({ error: 'Method not allowed' })
   }
-  console.log('req.query:', req.query)
+
   const code = getSingleQueryValue(req.query.code)
   const state = getSingleQueryValue(req.query.state)
 
   if (!code || !state) {
     return res.redirect(302, '/auth/login?dfns=missing_auth_params')
   }
-  console.log('code', code)
-  console.log('state', state)
-  console.log('url:', getDfnsApiUrl())
 
   try {
     const response = await fetch(`${getDfnsApiUrl()}/auth/login/sso`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ code, state })
     })
-    console.log('response login:', response)
-    const data = (await response.json().catch(() => ({}))) as {
-      token?: string
-      message?: string
-    }
+    const data = await readDfnsResponse(response)
 
     if (!response.ok || !data.token) {
-      throw new Error(data.message || 'Failed to complete Dfns SSO login')
+      console.error('Dfns SSO completion rejected:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: data
+      })
+      throw new Error(
+        data.message || data.error || 'Failed to complete Dfns SSO login'
+      )
     }
 
-    console.log('Dfns SSO login successful:', data)
-    // res.setHeader(
-    //   'Set-Cookie',
-    //   serializeDfnsTokenCookie(data.token, DFNS_TOKEN_MAX_AGE)
-    // )
     res.setHeader(
       'Set-Cookie',
-      `dfns_token=${data.token}; HttpOnly; Path=/; Max-Age=86400; SameSite=Lax`
+      serializeDfnsTokenCookie(data.token, DFNS_TOKEN_MAX_AGE)
     )
 
     return res.redirect(302, '/auth/login?dfns=success')

@@ -9,7 +9,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const token = req.cookies.dfns_token
-  console.log('token ere:', token)
   if (!token) {
     return res.status(401).json({ error: 'Dfns SSO login is required.' })
   }
