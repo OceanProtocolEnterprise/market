@@ -259,6 +259,9 @@ export default function SetupPanel() {
           error instanceof Error &&
           error.message === DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE
         ) {
+          console.log('Dfns registration code modal opened:', {
+            chainId: chainId || getStoredDfnsSelectedChainId()
+          })
           setPendingDfnsChainId(chainId || getStoredDfnsSelectedChainId())
           setDfnsRegistrationCode('')
           setIsDfnsRegistrationModalOpen(true)
@@ -288,6 +291,10 @@ export default function SetupPanel() {
       const registrationCode = dfnsRegistrationCode.trim()
       if (!registrationCode) return
 
+      console.log('Dfns registration code submitted:', {
+        chainId: pendingDfnsChainId || getStoredDfnsSelectedChainId(),
+        hasRegistrationCode: Boolean(registrationCode)
+      })
       setIsDfnsRegistrationModalOpen(false)
       handleDfnsConnect(
         pendingDfnsChainId || getStoredDfnsSelectedChainId(),

@@ -344,9 +344,14 @@ export function dfnsConnector() {
       try {
         walletId = await resolveDfnsWalletId(dfnsClient)
       } catch (error) {
+        console.log('Dfns wallet resolution failed:', error)
         if (!isRegistrationRequiredError(error)) throw error
 
         const registrationCode = parameters?.registrationCode?.trim()
+        console.log('Dfns registration required:', {
+          hasRegistrationCode: Boolean(registrationCode),
+          allowRegistrationCodePrompt: parameters?.allowRegistrationCodePrompt
+        })
         if (
           !registrationCode &&
           parameters?.allowRegistrationCodePrompt === false
