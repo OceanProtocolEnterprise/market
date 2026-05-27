@@ -256,6 +256,17 @@ function isRegistrationRequiredError(error: unknown): boolean {
   )
 }
 
+function isMissingCredentialError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+
+  const message = error.message.toLowerCase()
+  return (
+    message.includes('does not have a credential') ||
+    message.includes('no credential') ||
+    (message.includes('credential') && message.includes('application'))
+  )
+}
+
 async function getDfnsSsoToken() {
   const response = await fetch('/api/dfns/get-token', {
     credentials: 'same-origin'
@@ -291,6 +302,61 @@ async function registerDfnsUser({
     orgId,
     username,
     registrationCode: registrationCode?.trim() || promptForRegistrationCode()
+  })
+}
+
+async function hasUsableDfnsPasskey({
+  dfnsClient,
+  relyingPartyId
+}: {
+  dfnsClient: DfnsApiClient
+  relyingPartyId: string
+}) {
+  const credentials = await dfnsClient.auth.listCredentials()
+  const hasPasskey = credentials.items.some(
+    (credential) =>
+      credential.isActive &&
+      credential.kind === 'Fido2' &&
+      credential.relyingPartyId === relyingPartyId
+  )
+
+  console.log('Dfns credential check:', {
+    credentialCount: credentials.items.length,
+    hasPasskey,
+    relyingPartyId
+  })
+
+  return hasPasskey
+}
+
+async function createDfnsPasskeyWithCode({
+  dfnsClient,
+  registrationCode,
+  signer
+}: {
+  dfnsClient: DfnsApiClient
+  registrationCode: string
+  signer: WebAuthnSigner
+}) {
+  const challenge = await dfnsClient.auth.createCredentialChallengeWithCode({
+    body: {
+      credentialKind: 'Fido2',
+      code: registrationCode
+    }
+  })
+
+  if (challenge.kind !== 'Fido2') {
+    throw new Error(`Unsupported Dfns credential kind: ${challenge.kind}`)
+  }
+
+  const attestation = await signer.create(challenge)
+
+  await dfnsClient.auth.createCredentialWithCode({
+    body: {
+      ...attestation,
+      credentialName: 'Ocean Enterprise Marketplace',
+      challengeIdentifier: challenge.challengeIdentifier
+    }
   })
 }
 
@@ -340,6 +406,71 @@ export function dfnsConnector() {
         authToken: token,
         signer
       })
+      const registrationCode = parameters?.registrationCode?.trim()
+
+      try {
+        const hasPasskey = await hasUsableDfnsPasskey({
+          dfnsClient,
+          relyingPartyId: dfnsConfig.relyingPartyId
+        })
+
+        if (!hasPasskey) {
+          console.log('Dfns passkey registration required:', {
+            hasRegistrationCode: Boolean(registrationCode),
+            allowRegistrationCodePrompt: parameters?.allowRegistrationCodePrompt
+          })
+
+          if (
+            !registrationCode &&
+            parameters?.allowRegistrationCodePrompt === false
+          ) {
+            throw new Error(DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE)
+          }
+
+          await createDfnsPasskeyWithCode({
+            dfnsClient,
+            registrationCode: registrationCode || promptForRegistrationCode(),
+            signer
+          })
+          registeredUsername = parameters?.username
+        }
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE
+        ) {
+          throw error
+        }
+
+        if (
+          !isRegistrationRequiredError(error) &&
+          !isMissingCredentialError(error)
+        ) {
+          throw error
+        }
+
+        console.log(
+          'Dfns credential check failed with registration error:',
+          error
+        )
+
+        if (
+          !registrationCode &&
+          parameters?.allowRegistrationCodePrompt === false
+        ) {
+          throw new Error(DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE)
+        }
+
+        const username = promptForUsername(parameters?.username)
+        await registerDfnsUser({
+          authenticator,
+          orgId,
+          registrationCode,
+          username
+        })
+        registeredUsername = username
+      }
+
       let walletId: string
       try {
         walletId = await resolveDfnsWalletId(dfnsClient)
@@ -348,7 +479,6 @@ export function dfnsConnector() {
         console.log('Dfns wallet resolution failed:', error)
         if (!isRegistrationRequiredError(error)) throw error
 
-        const registrationCode = parameters?.registrationCode?.trim()
         console.log('Dfns registration required:', {
           hasRegistrationCode: Boolean(registrationCode),
           allowRegistrationCodePrompt: parameters?.allowRegistrationCodePrompt
