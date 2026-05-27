@@ -320,12 +320,6 @@ async function hasUsableDfnsPasskey({
       credential.relyingPartyId === relyingPartyId
   )
 
-  console.log('Dfns credential check:', {
-    credentialCount: credentials.items.length,
-    hasPasskey,
-    relyingPartyId
-  })
-
   return hasPasskey
 }
 
@@ -410,11 +404,6 @@ export function dfnsConnector() {
         })
 
         if (!hasPasskey) {
-          console.log('Dfns passkey registration required:', {
-            hasRegistrationCode: Boolean(registrationCode),
-            allowRegistrationCodePrompt: parameters?.allowRegistrationCodePrompt
-          })
-
           if (
             !registrationCode &&
             parameters?.allowRegistrationCodePrompt === false
@@ -470,15 +459,9 @@ export function dfnsConnector() {
       let walletId: string
       try {
         walletId = await resolveDfnsWalletId(dfnsClient)
-        console.log('walletiD', walletId, dfnsClient)
       } catch (error) {
-        console.log('Dfns wallet resolution failed:', error)
         if (!isRegistrationRequiredError(error)) throw error
 
-        console.log('Dfns registration required:', {
-          hasRegistrationCode: Boolean(registrationCode),
-          allowRegistrationCodePrompt: parameters?.allowRegistrationCodePrompt
-        })
         if (
           !registrationCode &&
           parameters?.allowRegistrationCodePrompt === false
