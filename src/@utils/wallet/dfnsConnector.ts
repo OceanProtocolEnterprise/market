@@ -248,11 +248,22 @@ function isRegistrationRequiredError(error: unknown): boolean {
 
   const message = error.message.toLowerCase()
   return (
-    error.httpStatus === 401 ||
     error.httpStatus === 404 ||
     message.includes('not found') ||
     message.includes('not registered') ||
     message.includes('registration')
+  )
+}
+
+function isDfnsAuthTokenError(error: unknown): boolean {
+  if (!(error instanceof DfnsError)) return false
+
+  const message = error.message.toLowerCase()
+  return (
+    error.httpStatus === 401 &&
+    (message.includes('token') ||
+      message.includes('unauthorized') ||
+      message.includes('missing or invalid'))
   )
 }
 
@@ -427,6 +438,10 @@ export function dfnsConnector() {
           throw error
         }
 
+        if (isDfnsAuthTokenError(error)) {
+          throw new Error('Dfns SSO login is required.')
+        }
+
         if (
           !isRegistrationRequiredError(error) &&
           !isMissingCredentialError(error)
@@ -460,6 +475,10 @@ export function dfnsConnector() {
       try {
         walletId = await resolveDfnsWalletId(dfnsClient)
       } catch (error) {
+        if (isDfnsAuthTokenError(error)) {
+          throw new Error('Dfns SSO login is required.')
+        }
+
         if (!isRegistrationRequiredError(error)) throw error
 
         if (
