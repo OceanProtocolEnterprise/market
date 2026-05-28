@@ -100,3 +100,34 @@ export const getSupportedChains = (chainIdsSupported: number[]): Chain[] => {
 
   return mappedChains
 }
+
+/**
+ * Maps DFNS BlockchainNetwork enum strings to wagmi chain IDs. DFNS uses
+ * named network identifiers (e.g. "EthereumSepolia") in its wallet records;
+ * this table is the single source of truth for translating them to numeric
+ * chainIds the rest of the codebase uses.
+ *
+ * Source: https://docs.dfns.co/d/api-docs/wallets/list-wallets
+ */
+const DFNS_NETWORK_TO_CHAIN_ID: Record<string, number> = {
+  Ethereum: 1,
+  EthereumSepolia: 11155111,
+  EthereumHolesky: 17000,
+  EthereumHoodi: 560048,
+  Polygon: 137,
+  PolygonAmoy: 80002,
+  Optimism: 10,
+  OptimismSepolia: 11155420,
+  Arbitrum: 42161,
+  ArbitrumSepolia: 421614,
+  Base: 8453,
+  BaseSepolia: 84532,
+  Bsc: 56,
+  BscTestnet: 97,
+  Avalanche: 43114,
+  AvalancheFuji: 43113
+}
+
+export function dfnsNetworkToChainId(network: string): number | undefined {
+  return DFNS_NETWORK_TO_CHAIN_ID[network]
+}

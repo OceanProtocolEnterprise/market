@@ -8,6 +8,12 @@ import {
   getNetworkDataById,
   getNetworkDisplayName
 } from '@hooks/useNetworkMetadata'
+import { useAccount } from 'wagmi'
+import {
+  DFNS_WALLET_NOT_CONNECTED_REASON,
+  DFNS_WALLET_UNAVAILABLE_REASON,
+  useDfnsWalletsByChain
+} from '@hooks/useDfnsWalletsByChain'
 import styles from './NetworkWarningModal.module.css'
 
 const MODAL_TITLE = 'Network Not Supported'
@@ -66,6 +72,9 @@ export default function NetworkWarningModal({
   onSwitchChain
 }: NetworkWarningModalProps) {
   const [loadingChainId, setLoadingChainId] = useState<number | null>(null)
+  const { connector } = useAccount()
+  const dfnsWalletsByChain = useDfnsWalletsByChain()
+  const isDfns = connector?.id === 'dfns'
 
   useEffect(() => {
     if (!isPending) setLoadingChainId(null)
@@ -116,26 +125,40 @@ export default function NetworkWarningModal({
             <p className={styles.warningSubtitle}>{SWITCH_NETWORK_PROMPT}</p>
 
             <div className={styles.networkList}>
-              {supportedChains.map((id: number) => (
-                <Button
-                  key={id}
-                  type="button"
-                  style="secondary"
-                  onClick={() => handleSwitchClick(id)}
-                  disabled={isPending}
-                  className={styles.networkSwitchButton}
-                >
-                  {loadingChainId === id && isPending ? (
-                    <Loader
-                      variant="primary"
-                      noMargin
-                      className={styles.buttonLoader}
-                    />
-                  ) : (
-                    getReadableNetworkName(id)
-                  )}
-                </Button>
-              ))}
+              {supportedChains.map((id: number) => {
+                const isDfnsUnavailable =
+                  isDfns && (!dfnsWalletsByChain || !dfnsWalletsByChain.has(id))
+                const dfnsUnavailableReason = !dfnsWalletsByChain
+                  ? DFNS_WALLET_NOT_CONNECTED_REASON
+                  : DFNS_WALLET_UNAVAILABLE_REASON
+                const isRowDisabled = isPending || isDfnsUnavailable
+                return (
+                  <Button
+                    key={id}
+                    type="button"
+                    style="secondary"
+                    onClick={() => handleSwitchClick(id)}
+                    disabled={isRowDisabled}
+                    className={styles.networkSwitchButton}
+                    title={
+                      isDfnsUnavailable ? dfnsUnavailableReason : undefined
+                    }
+                  >
+                    {loadingChainId === id && isPending ? (
+                      <Loader
+                        variant="primary"
+                        noMargin
+                        className={styles.buttonLoader}
+                      />
+                    ) : (
+                      <>
+                        {getReadableNetworkName(id)}
+                        {isDfnsUnavailable && ' — unavailable'}
+                      </>
+                    )}
+                  </Button>
+                )
+              })}
             </div>
 
             <p className={styles.hint}>{NETWORK_HINT}</p>

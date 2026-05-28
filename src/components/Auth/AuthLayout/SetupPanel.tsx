@@ -8,6 +8,7 @@ import { useAuth } from '@hooks/useAuth'
 import { getPendingAuthMode } from '@utils/authFlow'
 import { getRuntimeConfig } from '@utils/runtimeConfig'
 import useSsiConnect from '@hooks/useSsiConnect'
+import { useMarketMetadata } from '@context/MarketMetadata'
 import {
   DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE,
   dfnsConnector,
@@ -126,10 +127,17 @@ export default function SetupPanel() {
   const isSsiEnabled = appConfig.ssiEnabled
   const dfnsOrganizationId =
     user?.organizationId || getRuntimeConfig().NEXT_PUBLIC_DFNS_ORG_ID
-  const dfnsChains = useMemo(
-    () => getDfnsSelectableChains(wagmiConfig.chains),
-    [wagmiConfig.chains]
-  )
+  const { validatedSupportedChains } = useMarketMetadata()
+  // Pre-connect we don't have the DFNS wallets list yet, so narrow to chains
+  // the marketplace has already validated against Ocean's EnterpriseFeeCollector.
+  // Post-connect the connector reconciles further against actual DFNS wallets.
+  const dfnsChains = useMemo(() => {
+    const allChains = getDfnsSelectableChains(wagmiConfig.chains)
+    if (!validatedSupportedChains?.length) return allChains
+    const validatedSet = new Set(validatedSupportedChains)
+    const intersection = allChains.filter((chain) => validatedSet.has(chain.id))
+    return intersection.length > 0 ? intersection : allChains
+  }, [wagmiConfig.chains, validatedSupportedChains])
 
   const isWalletReady = isConnected
   const isSsiReady = Boolean(sessionToken)

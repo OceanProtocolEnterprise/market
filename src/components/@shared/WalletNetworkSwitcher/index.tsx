@@ -6,6 +6,7 @@ import useNetworkMetadata, {
 } from '@hooks/useNetworkMetadata'
 import { useAsset } from '@context/Asset'
 import { useChainId, useSwitchChain } from 'wagmi'
+import { useIsChainSupportedByConnector } from '@hooks/useDfnsWalletsByChain'
 
 export default function WalletNetworkSwitcher(): ReactElement {
   const chainId = useChainId()
@@ -25,10 +26,13 @@ export default function WalletNetworkSwitcher(): ReactElement {
     <strong>{getNetworkDisplayName(walletNetworkData)}</strong>
   )
 
+  const { isSupported, isDfns, reason } =
+    useIsChainSupportedByConnector(ddoNetworkId)
+  const isDfnsBlocked = isDfns && !isSupported
+
   const handleSwitchChain = () => {
-    if (ddoNetworkId) {
-      switchChain({ chainId: ddoNetworkId })
-    }
+    if (!ddoNetworkId || isDfnsBlocked) return
+    switchChain({ chainId: ddoNetworkId })
   }
 
   return (
@@ -43,12 +47,20 @@ export default function WalletNetworkSwitcher(): ReactElement {
       </div>
 
       <div className={styles.tooltipWrapper}>
-        <button className={styles.button} onClick={handleSwitchChain}>
-          Switch Network
+        <button
+          className={styles.button}
+          onClick={handleSwitchChain}
+          disabled={isDfnsBlocked}
+          title={isDfnsBlocked ? reason : undefined}
+        >
+          {isDfnsBlocked ? 'Unavailable on DFNS' : 'Switch Network'}
         </button>
         <div className={styles.tooltip}>
-          Click to switch your wallet to {ddoNetworkName} network to interact
-          with this asset.
+          {isDfnsBlocked
+            ? reason
+            : `Click to switch your wallet to ${getNetworkDisplayName(
+                ddoNetworkData
+              )} network to interact with this asset.`}
         </div>
       </div>
     </div>
