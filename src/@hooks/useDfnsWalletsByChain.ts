@@ -1,6 +1,8 @@
-import { useSyncExternalStore } from 'react'
+import { useMemo, useSyncExternalStore } from 'react'
 import { useAccount } from 'wagmi'
+import { useMarketMetadata } from '@context/MarketMetadata'
 import {
+  DFNS_CONNECTOR_ID,
   getActiveDfnsWalletsByChain,
   subscribeToActiveDfnsWalletsByChain
 } from '@utils/wallet/dfnsConnector'
@@ -28,7 +30,6 @@ export function useDfnsWalletsByChain():
 export type ChainSupportStatus = {
   isSupported: boolean
   isDfns: boolean
-  /** Present when not supported — short, user-facing explanation. */
   reason?: string
 }
 
@@ -38,7 +39,7 @@ export type ChainSupportStatus = {
  * - For DFNS: requires both the chain to be in the wallets-by-chain map and
  *   the user to be connected. Otherwise reports the reason so callers can
  *   render a tooltip or disabled state.
- * - For other connectors (MetaMask / injected): trusts the wagmi config —
+ * - For other connectors (MetaMask / injected): trusts the wagmi config;
  *   any chain in `config.chains` is switchable.
  */
 export function useIsChainSupportedByConnector(
@@ -46,7 +47,7 @@ export function useIsChainSupportedByConnector(
 ): ChainSupportStatus {
   const { connector } = useAccount()
   const dfnsMap = useDfnsWalletsByChain()
-  const isDfns = connector?.id === 'dfns'
+  const isDfns = connector?.id === DFNS_CONNECTOR_ID
 
   if (!chainId) {
     return { isSupported: false, isDfns, reason: 'Missing chain id.' }
@@ -73,4 +74,32 @@ export function useIsChainSupportedByConnector(
   }
 
   return { isSupported: true, isDfns: true }
+}
+
+/**
+ * Central selector for the networks a user can actually switch to, given the
+ * active wallet connection. This is the single source of truth consumed by all
+ * network-picker surfaces (header switcher, NetworkWarningModal):
+ *
+ *   - MetaMask / injected: the full Ocean-validated chain list.
+ *   - DFNS: Ocean-validated chains intersected with the chains the user has a
+ *     DFNS wallet provisioned on. Chains without a DFNS wallet are dropped
+ *     entirely (not shown disabled).
+ *
+ * The Ocean-validated list (`validatedSupportedChains`) is intentionally left
+ * untouched in context. It is still the source for non-UI logic such as the
+ * "current chain supported" check and OPC fee fetching, which must see every
+ * Ocean chain regardless of wallet provisioning.
+ */
+export function useConnectorSupportedChains(): number[] {
+  const { validatedSupportedChains } = useMarketMetadata()
+  const { connector } = useAccount()
+  const dfnsMap = useDfnsWalletsByChain()
+  const isDfns = connector?.id === DFNS_CONNECTOR_ID
+
+  return useMemo(() => {
+    if (!isDfns) return validatedSupportedChains
+    if (!dfnsMap) return []
+    return validatedSupportedChains.filter((chainId) => dfnsMap.has(chainId))
+  }, [isDfns, dfnsMap, validatedSupportedChains])
 }

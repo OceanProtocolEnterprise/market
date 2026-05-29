@@ -136,7 +136,7 @@ export class DfnsEoaSigner extends AbstractSigner<JsonRpcProvider> {
   /**
    * Resolves the DFNS wallet for a chainId, initialises the viem walletClient
    * and ethers JsonRpcProvider, and constructs a ready-to-use signer.
-   * No WebAuthn / SSO prompt — DfnsWallet.init reads via the authenticated
+   * No WebAuthn / SSO prompt; DfnsWallet.init reads via the authenticated
    * dfnsClient.
    */
   static async createForChain(input: {
@@ -197,10 +197,24 @@ export class DfnsEoaSigner extends AbstractSigner<JsonRpcProvider> {
     return this.walletClient
   }
 
+  async createSignerForChain(nextChainId: number): Promise<DfnsEoaSigner> {
+    if (nextChainId === this.chain.id) return this
+    if (!this.walletsByChain.has(nextChainId)) {
+      throw new Error(`No DFNS wallet provisioned for chain ${nextChainId}.`)
+    }
+
+    return DfnsEoaSigner.createForChain({
+      chainId: nextChainId,
+      dfnsClient: this.dfnsClient,
+      chainsById: this.chainsById,
+      walletsByChain: this.walletsByChain
+    })
+  }
+
   /**
    * Re-binds the active DFNS signer to a different chain by:
    *  - resolving the per-chain DFNS walletId,
-   *  - re-initialising DfnsWallet (no WebAuthn prompt — uses live SSO token),
+   *  - re-initialising DfnsWallet (no WebAuthn prompt; uses live SSO token),
    *  - rebuilding the viem walletClient,
    *  - rebuilding the ethers JsonRpcProvider.
    *
@@ -210,18 +224,8 @@ export class DfnsEoaSigner extends AbstractSigner<JsonRpcProvider> {
    * to the prior signer; they should always re-read via getActiveDfnsEoaSigner.
    */
   async setChainId(nextChainId: number): Promise<void> {
-    if (nextChainId === this.chain.id) return
-    if (!this.walletsByChain.has(nextChainId)) {
-      throw new Error(`No DFNS wallet provisioned for chain ${nextChainId}.`)
-    }
-
-    const next = await DfnsEoaSigner.createForChain({
-      chainId: nextChainId,
-      dfnsClient: this.dfnsClient,
-      chainsById: this.chainsById,
-      walletsByChain: this.walletsByChain
-    })
-
+    const next = await this.createSignerForChain(nextChainId)
+    if (next === this) return
     setActiveDfnsEoaSigner(next)
   }
 

@@ -8,12 +8,6 @@ import {
   getNetworkDataById,
   getNetworkDisplayName
 } from '@hooks/useNetworkMetadata'
-import { useAccount } from 'wagmi'
-import {
-  DFNS_WALLET_NOT_CONNECTED_REASON,
-  DFNS_WALLET_UNAVAILABLE_REASON,
-  useDfnsWalletsByChain
-} from '@hooks/useDfnsWalletsByChain'
 import styles from './NetworkWarningModal.module.css'
 
 const MODAL_TITLE = 'Network Not Supported'
@@ -21,6 +15,7 @@ const ALERT_TITLE = 'Unsupported Network'
 const NETWORK_ALERT_SUFFIX =
   'This network either has no approved tokens or is not configured for this marketplace.'
 const CONFIG_ALERT_TITLE = 'Configuration Required'
+const SWITCH_OPTIONS_ALERT_TITLE = 'No Switchable Networks'
 const CONFIG_ALERT_TEXT =
   'NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES must be set with at least one supported chain and token address.'
 const SWITCH_NETWORK_PROMPT = 'Please switch to one of the supported networks:'
@@ -59,6 +54,7 @@ interface NetworkWarningModalProps {
   isOpen: boolean
   isPending: boolean
   supportedChains: number[]
+  emptySwitchOptionsText?: string
   onClose: () => void
   onSwitchChain: (targetChainId: number) => void
 }
@@ -68,13 +64,11 @@ export default function NetworkWarningModal({
   isOpen,
   isPending,
   supportedChains,
+  emptySwitchOptionsText,
   onClose,
   onSwitchChain
 }: NetworkWarningModalProps) {
   const [loadingChainId, setLoadingChainId] = useState<number | null>(null)
-  const { connector } = useAccount()
-  const dfnsWalletsByChain = useDfnsWalletsByChain()
-  const isDfns = connector?.id === 'dfns'
 
   useEffect(() => {
     if (!isPending) setLoadingChainId(null)
@@ -91,10 +85,14 @@ export default function NetworkWarningModal({
   const connectedNetworkName = chainId
     ? getReadableNetworkName(chainId)
     : 'an unknown network'
-  const alertTitle = hasSupportedChains ? ALERT_TITLE : CONFIG_ALERT_TITLE
+  const alertTitle = hasSupportedChains
+    ? ALERT_TITLE
+    : emptySwitchOptionsText
+    ? SWITCH_OPTIONS_ALERT_TITLE
+    : CONFIG_ALERT_TITLE
   const alertText = hasSupportedChains
     ? `You're connected to ${connectedNetworkName}. ${NETWORK_ALERT_SUFFIX}`
-    : CONFIG_ALERT_TEXT
+    : emptySwitchOptionsText || CONFIG_ALERT_TEXT
 
   function handleSwitchClick(targetChainId: number) {
     if (isPending) return
@@ -125,40 +123,26 @@ export default function NetworkWarningModal({
             <p className={styles.warningSubtitle}>{SWITCH_NETWORK_PROMPT}</p>
 
             <div className={styles.networkList}>
-              {supportedChains.map((id: number) => {
-                const isDfnsUnavailable =
-                  isDfns && (!dfnsWalletsByChain || !dfnsWalletsByChain.has(id))
-                const dfnsUnavailableReason = !dfnsWalletsByChain
-                  ? DFNS_WALLET_NOT_CONNECTED_REASON
-                  : DFNS_WALLET_UNAVAILABLE_REASON
-                const isRowDisabled = isPending || isDfnsUnavailable
-                return (
-                  <Button
-                    key={id}
-                    type="button"
-                    style="secondary"
-                    onClick={() => handleSwitchClick(id)}
-                    disabled={isRowDisabled}
-                    className={styles.networkSwitchButton}
-                    title={
-                      isDfnsUnavailable ? dfnsUnavailableReason : undefined
-                    }
-                  >
-                    {loadingChainId === id && isPending ? (
-                      <Loader
-                        variant="primary"
-                        noMargin
-                        className={styles.buttonLoader}
-                      />
-                    ) : (
-                      <>
-                        {getReadableNetworkName(id)}
-                        {isDfnsUnavailable && ' — unavailable'}
-                      </>
-                    )}
-                  </Button>
-                )
-              })}
+              {supportedChains.map((id: number) => (
+                <Button
+                  key={id}
+                  type="button"
+                  style="secondary"
+                  onClick={() => handleSwitchClick(id)}
+                  disabled={isPending}
+                  className={styles.networkSwitchButton}
+                >
+                  {loadingChainId === id && isPending ? (
+                    <Loader
+                      variant="primary"
+                      noMargin
+                      className={styles.buttonLoader}
+                    />
+                  ) : (
+                    getReadableNetworkName(id)
+                  )}
+                </Button>
+              ))}
             </div>
 
             <p className={styles.hint}>{NETWORK_HINT}</p>

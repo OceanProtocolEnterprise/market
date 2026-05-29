@@ -2,7 +2,6 @@ import { ReactElement } from 'react'
 import { useAccount, useSwitchChain } from 'wagmi'
 import Button from '@shared/atoms/Button'
 import NetworkName from '@shared/NetworkName'
-import { useIsChainSupportedByConnector } from '@hooks/useDfnsWalletsByChain'
 import styles from './NetworkItem.module.css'
 
 export default function NetworkItem({
@@ -12,20 +11,13 @@ export default function NetworkItem({
 }): ReactElement {
   const { chainId: connectedChainId } = useAccount()
   const { switchChain, switchChainAsync, isPending } = useSwitchChain()
-  const { isSupported, isDfns, reason } =
-    useIsChainSupportedByConnector(chainId)
 
   const isConnected = connectedChainId === chainId
-  const isUnavailable = isDfns && !isSupported
-  const buttonLabel = isConnected
-    ? 'Connected'
-    : isUnavailable
-    ? 'Unavailable'
-    : 'Connect'
+  const buttonLabel = isConnected ? 'Connected' : 'Connect'
   const buttonClassName = isConnected
     ? `${styles.connectButton} ${styles.connectedButton}`
     : styles.connectButton
-  const isDisabled = isConnected || isPending || isUnavailable
+  const isDisabled = isConnected || isPending
 
   async function handleSwitchChain() {
     try {
@@ -38,7 +30,7 @@ export default function NetworkItem({
   }
 
   return (
-    <div className={styles.row} title={isUnavailable ? reason : undefined}>
+    <div className={styles.row}>
       <div className={styles.networkName}>
         <NetworkName networkId={chainId} />
       </div>
@@ -49,7 +41,7 @@ export default function NetworkItem({
         size="small"
         disabled={isDisabled}
         className={buttonClassName}
-        onClick={!isConnected && !isUnavailable ? handleSwitchChain : undefined}
+        onClick={!isConnected ? handleSwitchChain : undefined}
       >
         {buttonLabel}
       </Button>
