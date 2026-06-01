@@ -26,6 +26,7 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
   const license =
     ddo?.credentialSubject?.license || ddo?.credentialSubject?.metadata?.license
   const primaryLicenseDocument = license?.licenseDocuments?.[0]
+  const oeNode = ddo?.credentialSubject?.services?.[0]?.serviceEndpoint
 
   const effectiveAssetState =
     assetState ||
@@ -147,6 +148,7 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
           />
         )}
         <AdditionalLicenseFiles licenseDocuments={license?.licenseDocuments} />
+        <MetaItem title="OE Node" content={oeNode || 'Not available'} />
       </div>
     </>
   ) : null

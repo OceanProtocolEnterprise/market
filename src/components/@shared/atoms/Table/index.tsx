@@ -1,4 +1,4 @@
-import { ReactElement } from 'react'
+import { ReactElement, ReactNode } from 'react'
 import DataTable, { TableProps, TableColumn } from 'react-data-table-component'
 import Loader from '../Loader'
 import Pagination from '@shared/Pagination'
@@ -15,7 +15,7 @@ export interface TableOceanColumn<T> extends TableColumn<T> {
 interface TableOceanProps<T> extends TableProps<T> {
   columns: TableOceanColumn<T>[]
   isLoading?: boolean
-  emptyMessage?: string
+  emptyMessage?: string | ReactNode
   sortField?: string
   sortAsc?: boolean
   className?: string

@@ -28,6 +28,7 @@ import {
 } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { customProviderUrl, nodeUriIndex } from 'app.config.cjs'
+import { getSupportedChainIds } from 'chains.config.cjs'
 import { ServiceComputeOptions } from '@oceanprotocol/ddo-js'
 // Local form shape needed by compute transform
 type ComputeFormLike = {
@@ -222,7 +223,8 @@ async function getJobs(
   providerUrls: string[],
   signer: Signer,
   assets?: Asset[],
-  _cancelToken?: CancelToken
+  _cancelToken?: CancelToken,
+  chainIds?: number[]
 ): Promise<ComputeJobMetaData[]> {
   const uniqueProviders = [...new Set(providerUrls)]
   const providersComputeJobsExtended: ComputeJobExtended[] = []
@@ -242,7 +244,6 @@ async function getJobs(
       return rawMessage
     }
   }
-
   try {
     for (let i = 0; i < uniqueProviders.length; i++) {
       const providerComputeJobs = (await ProviderInstance.computeStatus(
@@ -268,17 +269,70 @@ async function getJobs(
       })
       type LocalComputeJob = ComputeJobExtended & {
         assets?: Array<{ documentId: string }>
+        algorithm?: { documentId?: string }
       }
-      providersComputeJobsExtended.forEach(async (job: ComputeJobExtended) => {
+
+      const getJobDid = (job: ComputeJobExtended): string | null => {
         const jobWithAssets = job as LocalComputeJob
-        const did =
-          jobWithAssets.assets && jobWithAssets.assets.length > 0
-            ? jobWithAssets.assets[0].documentId
-            : null
+
+        return (
+          jobWithAssets.assets?.[0]?.documentId ||
+          jobWithAssets.algorithm?.documentId ||
+          null
+        )
+      }
+
+      let resolvedAssets = assets
+
+      if (!resolvedAssets && _cancelToken) {
+        const didList = [
+          ...new Set(
+            providersComputeJobsExtended
+              .map((job: ComputeJobExtended) => getJobDid(job))
+              .filter((did): did is string => Boolean(did))
+          )
+        ]
+        const initialChainIds = chainIds?.length
+          ? chainIds
+          : getSupportedChainIds()
+
+        resolvedAssets = await getAssetsFromDids(
+          didList,
+          initialChainIds,
+          _cancelToken
+        )
+
+        const unresolvedDids = didList.filter(
+          (did) => !resolvedAssets?.some((asset: Asset) => asset.id === did)
+        )
+
+        if (unresolvedDids.length > 0 && chainIds?.length) {
+          const fallbackChainIds = getSupportedChainIds().filter(
+            (chainId: number) => !chainIds.includes(chainId)
+          )
+          const fallbackAssets = await getAssetsFromDids(
+            unresolvedDids,
+            fallbackChainIds,
+            _cancelToken
+          )
+
+          resolvedAssets = [
+            ...(resolvedAssets || []),
+            ...(fallbackAssets || [])
+          ]
+        }
+      }
+
+      const assetsByDid = new Map(
+        resolvedAssets?.map((asset: Asset) => [asset.id, asset]) || []
+      )
+
+      providersComputeJobsExtended.forEach((job: ComputeJobExtended) => {
+        const did = getJobDid(job)
+        const asset = did ? assetsByDid.get(did) : null
+        const networkId = asset?.credentialSubject?.chainId || 0
 
         if (assets) {
-          const assetFiltered = assets.filter((x) => x.id === did)
-          const asset = assetFiltered.length > 0 ? assetFiltered[0] : null
           if (asset) {
             const compJob: ComputeJobMetaData = {
               ...job,
@@ -291,9 +345,11 @@ async function getJobs(
         } else {
           const compJob: ComputeJobMetaData = {
             ...job,
-            assetName: did ? 'name' : 'Algorithm Only Job',
-            assetDtSymbol: 'symbol',
-            networkId: 11155111
+            assetName:
+              asset?.credentialSubject?.metadata?.name ||
+              (did ? 'name' : 'Algorithm Only Job'),
+            assetDtSymbol: asset?.indexedMetadata?.stats[0].symbol || 'symbol',
+            networkId
           }
           computeJobs.push(compJob)
         }
@@ -337,7 +393,8 @@ export async function getComputeJobs(
     providerUrls,
     signer,
     assets,
-    cancelToken
+    cancelToken,
+    chainIds
   )
   computeResult.isLoaded = true
 
@@ -347,7 +404,8 @@ export async function getComputeJobs(
 export async function getAllComputeJobs(
   accountId: string,
   signer: Signer,
-  cancelToken?: CancelToken
+  cancelToken?: CancelToken,
+  chainIds?: number[]
 ): Promise<ComputeResults> {
   if (!accountId) return
   const computeResult: ComputeResults = {
@@ -362,7 +420,8 @@ export async function getAllComputeJobs(
     providerUrls,
     signer,
     null,
-    cancelToken
+    cancelToken,
+    chainIds
   )
   computeResult.isLoaded = true
 

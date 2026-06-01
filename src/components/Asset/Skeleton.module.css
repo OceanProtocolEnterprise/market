@@ -1,0 +1,223 @@
+.loadingStatus {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.grid {
+  display: grid;
+  gap: calc(var(--spacer) * 1.5);
+  position: relative;
+  margin-top: -1rem;
+}
+
+.grid > div {
+  margin-top: var(--spacer);
+}
+
+@media (min-width: 60rem) {
+  .grid {
+    grid-template-columns: 1.5fr 1fr;
+  }
+}
+
+@media (min-width: 1500px) {
+  .grid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.metaMenu {
+  border: 1px solid var(--ink-alpha-10);
+  border-radius: 10px;
+  min-height: 40px;
+  width: 100%;
+  box-shadow: 1px 4px 8px 0 var(--black-alpha-15);
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+}
+
+.nftPlaceholder {
+  flex-shrink: 0;
+  width: calc(var(--spacer) * 1.335);
+  border-right: 1px solid var(--border-color);
+  background: var(--background-highlight);
+  border-radius: 10px 0 0 10px;
+}
+
+.metaMenuContent {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--spacer);
+}
+
+.bookmarkSlot {
+  display: flex;
+  align-items: center;
+  padding-right: calc(var(--spacer) / 2);
+}
+
+.content {
+  margin-top: var(--spacer);
+  background: #fff;
+  border: 1px solid var(--ink-alpha-10);
+  border-radius: 20px;
+  box-shadow: 1px 4px 8px 0 var(--black-alpha-15);
+  padding: calc(var(--spacer) * 0.75) var(--spacer) var(--spacer);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacer) / 2);
+}
+
+.publisherInfo {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacer) / 4);
+}
+
+.assetName {
+  margin-top: calc(var(--spacer) / 4);
+}
+
+.description {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacer) / 4);
+}
+
+.tagsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacer) / 4);
+}
+
+.didRow {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacer) / 4);
+  margin-top: calc(var(--spacer) / 4);
+}
+
+.metaGrid {
+  display: grid;
+  gap: var(--spacer);
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+@media (min-width: 1024px) {
+  .metaGrid {
+    grid-template-columns: 0.6fr 0.6fr 1.6fr;
+  }
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacer) / 4);
+}
+
+.licenseRow {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacer) / 4);
+  padding-top: calc(var(--spacer) / 2);
+  border-top: 1px solid var(--ink-alpha-10);
+  grid-column: 1 / -1;
+}
+
+.computeJobs {
+  margin-top: 3rem;
+  border: 1px solid var(--ink-alpha-10);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 1px 4px 8px 0 var(--black-alpha-15);
+  background: #fff;
+}
+
+.computeJobsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: calc(var(--spacer) * 0.75);
+}
+
+.computeJobsTable {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacer) / 2);
+}
+
+.computeJobsColumns {
+  display: flex;
+  gap: 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--ink-alpha-10);
+}
+
+.computeJobsColumns > * {
+  flex: 1;
+}
+
+.computeJobsRow {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  border-bottom: 1px solid var(--ink-alpha-10);
+  gap: 0;
+}
+
+.computeJobsRow:last-child {
+  border-bottom: none;
+}
+
+.computeJobsStatusCell {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacer) / 3);
+}
+
+.computeJobsRow > *:not(.computeJobsStatusCell) {
+  flex: 1;
+}
+
+.actions {
+  margin-top: var(--spacer);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacer) / 1.5);
+}
+
+.serviceCard {
+  background: #fff;
+  border: 1px solid var(--ink-alpha-10);
+  border-radius: 20px;
+  box-shadow: 1px 4px 8px 0 var(--black-alpha-15);
+  padding: calc(var(--spacer) * 0.5) var(--spacer);
+  min-height: 145px;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacer) / 3);
+}
+
+.serviceCardFooter {
+  margin-top: auto;
+  display: flex;
+  gap: calc(var(--spacer) / 1.5);
+}
+
+.relatedSection {
+  margin-top: calc(var(--spacer) * 2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacer);
+}

@@ -32,15 +32,16 @@ export const customStyles: TableStyles = {
   },
   head: {
     style: {
-      fontSize: 'var(--font-size-small)',
-      fontWeight: 'var(--font-weight-base)'
+      fontSize: 'var(--font-size-small)'
     }
   },
   headCells: {
     style: {
       textTransform: 'uppercase',
       color: 'var(--color-secondary)',
-      fontSize: 'var(--font-size-small)'
+      fontSize: 'var(--font-size-small)',
+      fontWeight: 'var(--font-weight-bold)',
+      minWidth: '0 !important'
     }
   },
   cells: {
@@ -52,6 +53,16 @@ export const customStyles: TableStyles = {
     style: {
       fontSize: 'var(--font-size-small)',
       fontWeight: 'var(--font-weight-base)'
+    }
+  },
+  expanderButton: {
+    style: {
+      '&:hover:not(:disabled)': {
+        backgroundColor: 'var(--surface-hover)'
+      },
+      '&:focus': {
+        backgroundColor: 'transparent'
+      }
     }
   }
 }

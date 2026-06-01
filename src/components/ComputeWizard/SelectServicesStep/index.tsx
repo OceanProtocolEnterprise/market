@@ -12,6 +12,7 @@ import { CopyToClipboard } from '@shared/CopyToClipboard'
 import Link from 'next/link'
 import { getBaseTokenSymbol } from '@utils/getBaseTokenSymbol'
 import { useMarketMetadata } from '@context/MarketMetadata'
+import { resolveServiceTokenSymbol } from '@utils/priceToken'
 
 type DatasetService = {
   id?: string
@@ -183,50 +184,13 @@ const extractString = (
   return ''
 }
 
-type StatsEntry = {
-  serviceId?: string
-  prices?: Array<{
-    token?: string | { symbol?: string; address?: string }
-  }>
-}
-
-const resolveTokenSymbolFromStats = (
-  asset: Asset,
-  serviceIndex: number,
-  serviceId?: string,
-  tokenSymbolMap?: Record<string, string>
-): string | undefined => {
-  const stats = (asset.indexedMetadata?.stats || []) as StatsEntry[]
-  const matched =
-    serviceId != null
-      ? stats.find((stat) => stat?.serviceId === serviceId)
-      : undefined
-  const stat = matched || stats[serviceIndex]
-  const priceToken = stat?.prices?.[0]?.token
-  if (!priceToken) return undefined
-
-  if (typeof priceToken === 'string') {
-    return tokenSymbolMap?.[priceToken.toLowerCase()]
-  }
-
-  if (typeof priceToken === 'object') {
-    const tokenInfo = priceToken as { symbol?: string; address?: string }
-    if (tokenInfo.symbol) return tokenInfo.symbol
-    if (tokenInfo.address) {
-      return tokenSymbolMap?.[tokenInfo.address.toLowerCase()]
-    }
-  }
-
-  return undefined
-}
-
 const getServiceTokenSymbol = (
   asset: Asset,
   serviceIndex: number,
   serviceId?: string,
   tokenSymbolMap?: Record<string, string>
 ): string =>
-  resolveTokenSymbolFromStats(asset, serviceIndex, serviceId, tokenSymbolMap) ||
+  resolveServiceTokenSymbol(asset, serviceIndex, serviceId, tokenSymbolMap) ||
   getBaseTokenSymbol(asset, serviceIndex) ||
   ''
 

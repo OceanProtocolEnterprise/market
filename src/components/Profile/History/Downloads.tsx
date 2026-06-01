@@ -5,6 +5,31 @@ import AssetTitle from '@shared/AssetListTitle'
 import NetworkName from '@shared/NetworkName'
 import { useProfile } from '@context/Profile'
 import { useUserPreferences } from '@context/UserPreferences'
+import TableSkeleton from '@shared/atoms/Table/Skeleton'
+
+// 4 cols: Dataset | Network | Datatoken | Time
+const headerWidths = ['55%', '70%', '65%', '55%']
+const rowWidths = [
+  ['80%', '60%', '70%', '55%'],
+  ['65%', '75%', '60%', '65%'],
+  ['85%', '55%', '75%', '50%'],
+  ['70%', '65%', '65%', '60%'],
+  ['75%', '70%', '55%', '70%'],
+  ['60%', '60%', '80%', '55%'],
+  ['80%', '75%', '65%', '65%'],
+  ['70%', '55%', '70%', '50%'],
+  ['65%', '65%', '60%', '60%']
+]
+
+function DownloadsSkeleton(): ReactElement {
+  return (
+    <TableSkeleton
+      gridTemplateColumns="2fr 1fr 1fr 1fr"
+      headerWidths={headerWidths}
+      rowWidths={rowWidths}
+    />
+  )
+}
 // import Button from '@components/@shared/atoms/Button'
 // import { getPdf } from '@utils/invoice/createInvoice'
 // import { decodeBuyDataSet } from '../../../@types/invoice/buyInvoice'
@@ -215,17 +240,21 @@ export default function ComputeDownloads({
   ]
 
   return accountId ? (
-    <Table
-      columns={columns}
-      data={downloads}
-      pagination
-      paginationServer
-      paginationPerPage={9}
-      paginationTotalRows={downloadsTotal}
-      onChangePage={handlePageChange}
-      isLoading={isDownloadsLoading}
-      emptyMessage={chainIds.length === 0 ? 'No network selected' : null}
-    />
+    isDownloadsLoading && !downloads?.length ? (
+      <DownloadsSkeleton />
+    ) : (
+      <Table
+        columns={columns}
+        data={downloads}
+        pagination
+        paginationServer
+        paginationPerPage={9}
+        paginationTotalRows={downloadsTotal}
+        onChangePage={handlePageChange}
+        isLoading={isDownloadsLoading}
+        emptyMessage={chainIds.length === 0 ? 'No network selected' : null}
+      />
+    )
   ) : (
     <div>Please connect your wallet.</div>
   )

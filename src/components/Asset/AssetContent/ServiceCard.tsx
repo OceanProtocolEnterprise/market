@@ -1,6 +1,7 @@
 import { ReactElement, useState } from 'react'
 import styles from './ServiceCard.module.css'
 import { Service } from 'src/@types/ddo/Service'
+import ServiceTypeIcon from '@shared/ServiceTypeIcon'
 
 export default function ServiceCard({
   service,
@@ -74,7 +75,10 @@ export default function ServiceCard({
         )}
       </div>
       <span className={styles.title}>Type: </span>
-      <span className={styles.access}>{service.type}</span>
+      <span className={styles.access}>
+        <ServiceTypeIcon type={service.type} className={styles.typeIcon} />
+        {service.type}
+      </span>
       <br />
       <span className={styles.title}>Price: </span>
       {accessDetails.type === 'fixed' ? (
@@ -94,6 +98,7 @@ export default function ServiceCard({
         }`}
       >
         <button
+          type="button"
           className={styles.selectButton}
           disabled={!clickable}
           style={{

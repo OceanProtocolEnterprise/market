@@ -9,6 +9,8 @@ import {
 import { LoggerInstance, LogLevel } from '@oceanprotocol/lib'
 import { isBrowser } from '@utils/index'
 import { useMarketMetadata } from './MarketMetadata'
+import { AssetViewOptions, isAssetViewOption } from 'src/@types/AssetView'
+
 interface UserPreferencesValue {
   debug: boolean
   setDebug: (value: boolean) => void
@@ -21,6 +23,7 @@ interface UserPreferencesValue {
   bookmarks: string[]
   addBookmark: (did: string) => void
   removeBookmark: (did: string) => void
+  removeBookmarks: (dids: string[]) => void
   setPrivacyPolicySlug: (slug: string) => void
   setShowPPC: (value: boolean) => void
   allowExternalContent: boolean
@@ -32,23 +35,51 @@ interface UserPreferencesValue {
   setShowSsiWalletModule: (value: boolean) => void
   onboardingStep: number
   setOnboardingStep: (step: number) => void
+  assetView: AssetViewOptions
+  setAssetView: (view: AssetViewOptions) => void
 }
+
+type StoredUserPreferences = Partial<
+  Pick<
+    UserPreferencesValue,
+    | 'debug'
+    | 'currency'
+    | 'chainIds'
+    | 'privacyPolicySlug'
+    | 'showPPC'
+    | 'bookmarks'
+    | 'allowExternalContent'
+    | 'showOnboardingModule'
+    | 'onboardingStep'
+    | 'assetView'
+  >
+> | null
 
 const UserPreferencesContext = createContext(null)
 
 const localStorageKey = 'ocean-user-preferences-v4'
 
-function getLocalStorage(): UserPreferencesValue {
-  const storageParsed =
-    isBrowser && JSON.parse(window.localStorage.getItem(localStorageKey))
-  return storageParsed
+function getLocalStorage(): StoredUserPreferences {
+  if (!isBrowser) return null
+
+  try {
+    const storedPreferences = window.localStorage.getItem(localStorageKey)
+    if (!storedPreferences) return null
+
+    return JSON.parse(storedPreferences)
+  } catch {
+    return null
+  }
 }
 
 function setLocalStorage(values: Partial<UserPreferencesValue>) {
-  return (
-    isBrowser &&
+  if (!isBrowser) return
+
+  try {
     window.localStorage.setItem(localStorageKey, JSON.stringify(values))
-  )
+  } catch {
+    // Storage can be unavailable in restricted browsing contexts.
+  }
 }
 
 function UserPreferencesProvider({
@@ -59,6 +90,7 @@ function UserPreferencesProvider({
   const { appConfig, validatedSupportedChains, isValidatingSupportedChains } =
     useMarketMetadata()
   const localStorage = getLocalStorage()
+  const storedAssetView = localStorage?.assetView
   // Set default values from localStorage
   const [debug, setDebug] = useState<boolean>(localStorage?.debug || false)
   const [currency, setCurrency] = useState<string>(
@@ -90,6 +122,10 @@ function UserPreferencesProvider({
     localStorage?.allowExternalContent || false
   )
 
+  const [assetView, setAssetView] = useState<AssetViewOptions>(
+    isAssetViewOption(storedAssetView) ? storedAssetView : AssetViewOptions.Grid
+  )
+
   // Write values to localStorage on change
   useEffect(() => {
     setLocalStorage({
@@ -100,7 +136,9 @@ function UserPreferencesProvider({
       privacyPolicySlug,
       showPPC,
       showOnboardingModule,
-      allowExternalContent
+      onboardingStep,
+      allowExternalContent,
+      assetView
     })
   }, [
     chainIds,
@@ -111,7 +149,8 @@ function UserPreferencesProvider({
     showPPC,
     allowExternalContent,
     showOnboardingModule,
-    onboardingStep
+    onboardingStep,
+    assetView
   ])
 
   // Set ocean.js log levels, default: Error
@@ -128,13 +167,25 @@ function UserPreferencesProvider({
   }, [])
 
   function addBookmark(didToAdd: string): void {
-    const newPinned = [...bookmarks, didToAdd]
-    setBookmarks(newPinned)
+    setBookmarks((currentBookmarks: string[]) =>
+      currentBookmarks.includes(didToAdd)
+        ? currentBookmarks
+        : [...currentBookmarks, didToAdd]
+    )
   }
 
   function removeBookmark(didToAdd: string): void {
-    const newPinned = bookmarks.filter((did: string) => did !== didToAdd)
-    setBookmarks(newPinned)
+    setBookmarks((currentBookmarks: string[]) =>
+      currentBookmarks.filter((did: string) => did !== didToAdd)
+    )
+  }
+
+  function removeBookmarks(didsToRemove: string[]): void {
+    const didsToRemoveSet = new Set(didsToRemove)
+
+    setBookmarks((currentBookmarks: string[]) =>
+      currentBookmarks.filter((did: string) => !didsToRemoveSet.has(did))
+    )
   }
 
   // Bookmarks old data structure migration
@@ -198,6 +249,7 @@ function UserPreferencesProvider({
           setCurrency,
           addBookmark,
           removeBookmark,
+          removeBookmarks,
           setPrivacyPolicySlug,
           setShowPPC,
           allowExternalContent,
@@ -207,7 +259,9 @@ function UserPreferencesProvider({
           showSsiWalletModule,
           setShowSsiWalletModule,
           onboardingStep,
-          setOnboardingStep
+          setOnboardingStep,
+          assetView,
+          setAssetView
         } as UserPreferencesValue
       }
     >

@@ -102,7 +102,8 @@ export default function HistoryPage({
         const computeJobs = await getAllComputeJobs(
           accountId,
           signer,
-          newCancelToken()
+          newCancelToken(),
+          chainIds
         )
         setJobs(computeJobs?.computeJobs)
         setIsLoadingJobs(!computeJobs.isLoaded)

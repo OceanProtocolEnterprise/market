@@ -18,7 +18,6 @@
 @media screen and (min-width: 65rem) {
   .container {
     flex-direction: row;
-    gap: calc(var(--spacer) / 0.5);
   }
   .filterContainer {
     flex-direction: column;
@@ -31,13 +30,15 @@
   }
   .results {
     width: 100%;
+    display: flex;
+    flex-direction: column;
   }
 }
 
 @media screen and (min-width: 1500px) {
   .container {
     flex-direction: row;
-    gap: calc(var(--spacer) / 0.4);
+    gap: calc(var(--spacer) / 0.8);
     padding-right: 1rem;
   }
   .filterContainer {
@@ -51,5 +52,7 @@
   }
   .results {
     width: 100%;
+    display: flex;
+    flex-direction: column;
   }
 }

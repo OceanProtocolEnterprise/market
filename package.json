@@ -1,7 +1,7 @@
 {
   "name": "@OceanProtocolEnterprise/market",
   "description": "Ocean Protocol Enterprise Marketplace",
-  "version": "1.4.3",
+  "version": "1.4.5",
   "license": "Apache-2.0",
   "homepage": "https://github.com/OceanProtocolEnterprise",
   "type": "module",
@@ -28,6 +28,9 @@
     "@codemirror/lang-json": "^6.0.1",
     "@codemirror/language": "^6.3.1",
     "@coingecko/cryptoformat": "^0.5.4",
+    "@dfns/lib-viem": "^0.8.21",
+    "@dfns/sdk": "^0.8.21",
+    "@dfns/sdk-browser": "^0.8.21",
     "@loadable/component": "^5.15.3",
     "@oceanprotocol/art": "^3.2.0",
     "@oceanprotocol/ddo-js": "^0.1.4",
@@ -82,6 +85,7 @@
     "styled-components": "^6.2.0",
     "urql": "^3.0.3",
     "use-debounce": "^9.0.4",
+    "viem": "^2.50.4",
     "wagmi": "^2.19.5",
     "yup": "^0.32.11"
   },

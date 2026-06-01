@@ -97,7 +97,7 @@ export default function usePagination({
     isLastPage:
       displayedPageCount > 0 && selectedPage >= displayedPageCount - 1,
     selectedPage,
-    shouldRenderPagination: Boolean(totalPageNumbers && totalPageNumbers > 0),
+    shouldRenderPagination: Boolean(totalPageNumbers && totalPageNumbers > 1),
     smallViewport
   }
 }

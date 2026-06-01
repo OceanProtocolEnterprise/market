@@ -36,3 +36,121 @@
     gap: calc(var(--spacer) / 0.65);
   }
 }
+
+.listViewWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.listTable {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+.listDatasetCell {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  gap: 0;
+  padding: 0.35rem 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.listTypeCell {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: calc(var(--spacer) / 4);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--font-size-small);
+}
+
+.listTypeCell > svg {
+  flex: 0 0 1em;
+}
+
+.listTypeCell > :last-child {
+  min-width: 0;
+  margin-left: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listNetworkCell.listNetworkCell {
+  color: inherit;
+  font-size: inherit;
+  font-weight: var(--font-weight-base);
+  line-height: inherit;
+  text-transform: uppercase;
+}
+
+.listNetworkCell > svg,
+.listNetworkCell > :first-child {
+  width: 1em;
+  height: 1em;
+}
+
+.listAssetName {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--font-color-heading);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.listAssetName:hover,
+.listAssetName:focus {
+  color: var(--color-primary);
+}
+
+.listPublisher {
+  font-size: var(--font-size-small);
+  color: var(--color-secondary);
+}
+
+.listDescription {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  font-size: var(--font-size-small);
+  color: var(--font-color-text);
+  margin-top: 0.3rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tableSkeletonWrapper {
+  width: 100%;
+}
+
+.tableSkeletonRow {
+  display: grid;
+  grid-template-columns: 2.5fr 0.7fr 0.75fr 1fr 0.5fr 0.9fr;
+  gap: calc(var(--spacer) / 1.5);
+  align-items: center;
+  padding: calc(var(--spacer) / 2.5) calc(var(--spacer) / 4);
+  border-bottom: var(--border-size-sm) solid var(--border-color);
+}
+
+.tableSkeletonHeaderRow {
+  padding-top: calc(var(--spacer) / 3);
+  padding-bottom: calc(var(--spacer) / 3);
+}

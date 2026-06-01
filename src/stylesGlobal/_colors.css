@@ -90,8 +90,8 @@
 
   /* Component tokens */
   --checkbox-selected-background: var(--ocean-orange-color);
-  --bookmark-icon-fill-color: var(--brand-grey-lighter);
-  --bookmark-icon-selected-fill-color: var(--brand-grey);
+  --bookmark-icon-fill-color: var(--clr-slate-70);
+  --bookmark-icon-selected-fill-color: var(--ocean-orange-color);
   --link-font-color: var(--color-highlight);
   --nft-refresh-icon-fill: var(--brand-white);
   --badge-background-color: var(--color-primary);

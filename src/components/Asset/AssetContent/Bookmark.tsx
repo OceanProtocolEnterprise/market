@@ -3,7 +3,13 @@ import { ReactElement } from 'react'
 import styles from './Bookmark.module.css'
 import BookmarkIcon from '@images/bookmark.svg'
 
-export default function Bookmark({ did }: { did: string }): ReactElement {
+export default function Bookmark({
+  did,
+  className
+}: {
+  did: string
+  className?: string
+}): ReactElement {
   const { bookmarks, addBookmark, removeBookmark } = useUserPreferences()
   const isBookmarked = bookmarks && bookmarks?.includes(did)
 
@@ -14,7 +20,9 @@ export default function Bookmark({ did }: { did: string }): ReactElement {
   return (
     <button
       onClick={handleBookmark}
-      className={`${styles.bookmark} ${isBookmarked ? styles.active : ''} `}
+      className={`${styles.bookmark} ${isBookmarked ? styles.active : ''} ${
+        className || ''
+      }`}
       data-tooltip={
         isBookmarked
           ? 'Asset is Bookmarked, Click to Remove'

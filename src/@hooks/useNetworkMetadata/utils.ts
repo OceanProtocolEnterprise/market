@@ -29,6 +29,12 @@ export function getNetworkDisplayName(data: EthereumListsChain): string {
     case 10:
       displayName = 'OP Mainnet'
       break
+    case 11155111:
+      displayName = 'Ethereum Sepolia'
+      break
+    case 11155420:
+      displayName = 'OP Sepolia'
+      break
     case 1285:
       displayName = 'Moonriver'
       break

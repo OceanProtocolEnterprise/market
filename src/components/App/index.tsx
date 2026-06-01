@@ -14,6 +14,8 @@ import useEnterpriseFeeCollector from '@hooks/useEnterpriseFeeCollector'
 import useTokenApproval from '@hooks/useTokenApproval'
 import useAllowedTokenAddresses from '@hooks/useAllowedTokenAddresses'
 import { useWalletAuthSync } from '@hooks/useWalletAuthSync'
+import { useConnectorSupportedChains } from '@hooks/useDfnsWalletsByChain'
+import { DFNS_CONNECTOR_ID } from '@utils/wallet/dfnsConnector'
 import NetworkWarningModal from './NetworkWarningModal'
 import SsiWalletManager from '@components/Header/SsiWallet/SsiWalletManager'
 
@@ -31,7 +33,7 @@ export default function App({
     validatedSupportedChains,
     isValidatingSupportedChains
   } = useMarketMetadata()
-  const { address, isConnected, chainId } = useAccount()
+  const { address, connector, isConnected, chainId } = useAccount()
   const { switchChain, isPending } = useSwitchChain()
   const { isInPurgatory, purgatoryData } = useAccountPurgatory(address)
 
@@ -51,6 +53,11 @@ export default function App({
   const [showNoAllowedMessage, setShowNoAllowedMessage] = useState(false)
   const [showNetworkWarning, setShowNetworkWarning] = useState(false)
   const supportedChains = validatedSupportedChains
+  const switchableChains = useConnectorSupportedChains()
+  const emptySwitchOptionsText =
+    connector?.id === DFNS_CONNECTOR_ID
+      ? 'No DFNS wallets are provisioned on any marketplace-supported network.'
+      : undefined
   const supportedChainsLoaded = !isValidatingSupportedChains
 
   const decisionLockedRef = useRef(false)
@@ -161,7 +168,8 @@ export default function App({
         chainId={chainId}
         isOpen={showNetworkWarning}
         isPending={isPending}
-        supportedChains={supportedChains}
+        supportedChains={switchableChains}
+        emptySwitchOptionsText={emptySwitchOptionsText}
         onClose={() => setShowNetworkWarning(false)}
         onSwitchChain={handleNetworkSwitch}
       />

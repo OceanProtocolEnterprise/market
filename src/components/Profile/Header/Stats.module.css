@@ -1,8 +1,9 @@
 .stats {
-  display: grid;
-  gap: var(--spacer);
-  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacer) * 2);
   margin-top: var(--spacer);
+  min-width: 0;
 }
 
 .stats [class^='PriceUnit_symbol'] {
@@ -26,7 +27,32 @@
   font-size: var(--font-size-small);
 }
 
-.tokenSelect {
-  width: 100%;
-  margin-bottom: var(--spacer);
+.stats [class^='NumberUnit_unit'] {
+  width: auto;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.stats [class^='NumberUnit_number'] {
+  max-width: min(100%, 22rem);
+  min-width: 0;
+}
+
+.tokenAmount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: calc(var(--spacer) / 8);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.tokenSymbol {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.withdrawHint {
+  display: block;
 }

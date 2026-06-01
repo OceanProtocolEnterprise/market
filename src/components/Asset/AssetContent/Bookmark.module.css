@@ -12,10 +12,10 @@
 }
 
 .bookmark svg {
-  fill: var(--bookmark-icon-fill-color);
+  color: var(--bookmark-icon-fill-color);
+  fill: none;
   height: 32px;
   width: 24px;
-  box-shadow: 0 4px 6px var(--box-shadow-color);
 }
 
 .bookmark:hover,
@@ -24,13 +24,14 @@
 }
 
 .bookmark.active svg {
-  fill: var(--bookmark-icon-selected-fill-color);
+  color: var(--bookmark-icon-selected-fill-color);
+  fill: currentColor;
 }
 
 .bookmark::after {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: 35px;
+  bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
   background-color: var(--tooltip-bg-color, var(--neutral-900));
@@ -46,24 +47,7 @@
   pointer-events: none;
 }
 
-.bookmark::before {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 4px;
-  border-style: solid;
-  border-color: transparent transparent
-    var(--tooltip-bg-color, var(--neutral-900)) transparent;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-  z-index: 1001;
-}
-
-.bookmark:hover::after,
-.bookmark:hover::before {
+.bookmark:hover::after {
   opacity: 1;
   visibility: visible;
 }

@@ -7,6 +7,7 @@ import Caret from '@images/caret.svg'
 import Onboarding from './Onboarding'
 import ExternalContent from './ExternalContent'
 import SsiWalletApiOption from './SsiWalletApiOption'
+import AssetView from './AssetView'
 import appConfig from 'app.config.cjs'
 import { useAccount } from 'wagmi'
 
@@ -30,6 +31,9 @@ export default function UserPreferences(): ReactElement {
             )}
             <li>
               <Debug />
+            </li>
+            <li>
+              <AssetView />
             </li>
           </ul>
         }

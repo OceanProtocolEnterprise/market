@@ -1,84 +1,90 @@
 import AssetTeaser from '@shared/AssetTeaser'
 import { ReactElement } from 'react'
+import Link from 'next/link'
 import Pagination from '@shared/Pagination'
+import Publisher from '@shared/Publisher'
+import NetworkName from '@shared/NetworkName'
+import AssetType from '@shared/AssetType'
+import removeMarkdown from 'remove-markdown'
 import styles from './index.module.css'
-import AssetTitle from '@shared/AssetListTitle'
 import Table, { TableOceanColumn } from '../atoms/Table'
-import Price from '../Price'
-import AssetType from '../AssetType'
-import { getServiceByName } from '@utils/ddo'
-import { AssetViewOptions } from './AssetViewSelector'
+import { AssetViewOptions } from 'src/@types/AssetView'
 import Time from '../atoms/Time'
-import Loader from '../atoms/Loader'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import Alert from '../atoms/Alert'
+import AssetListSkeleton, { AssetListTableSkeleton } from './Skeleton'
+import { ServiceTypeIcons, ServicesColumnHeader } from './ServiceTypeIcons'
 
 const columns: TableOceanColumn<AssetExtended>[] = [
   {
-    name: 'Dataset',
-    selector: (row) => {
-      const { metadata } = row
+    name: 'Asset',
+    cell: (row) => {
+      const name = row.credentialSubject?.metadata?.name
+      const owner = row.indexedMetadata?.nft?.owner
+      const rawDescription = row.credentialSubject?.metadata?.description
+      const description = removeMarkdown(
+        rawDescription?.['@value'] ??
+          (typeof rawDescription === 'string' ? rawDescription : '')
+      )
       return (
-        <div>
-          <AssetTitle title={metadata.name} asset={row} />
-          <p>{row.id}</p>
+        <div className={styles.listDatasetCell}>
+          <Link href={`/asset/${row.id}`} className={styles.listAssetName}>
+            {name || row.id}
+          </Link>
+          {owner && (
+            <span className={styles.listPublisher}>
+              <Publisher account={owner} minimal />
+            </span>
+          )}
+          {description && (
+            <span className={styles.listDescription}>{description}</span>
+          )}
         </div>
       )
     },
-    maxWidth: '35rem',
-    grow: 1
+    grow: 2,
+    width: '600px'
   },
   {
     name: 'Type',
-    selector: (row) => {
-      const { metadata } = row
-      const isCompute = Boolean(getServiceByName(row, 'compute'))
-      const accessType = isCompute ? 'compute' : 'access'
-      return (
-        <AssetType
-          className={styles.typeLabel}
-          type={metadata.type}
-          accessType={accessType}
-        />
-      )
-    },
-    maxWidth: '9rem'
+    cell: (row) => (
+      <AssetType
+        type={row.credentialSubject?.metadata?.type}
+        variant="metadata"
+        className={styles.listTypeCell}
+      />
+    ),
+    width: '140px'
   },
   {
-    name: 'Price',
-    selector: (row) => {
-      return (
-        <Price
-          price={{
-            value: Number(row.indexedMetadata.stats[0].prices[0].price),
-            tokenSymbol: row.indexedMetadata.stats[0].symbol,
-            tokenAddress: row.indexedMetadata.stats[0].datatokenAddress
-          }}
-          size="small"
-        />
-      )
-    },
-    maxWidth: '7rem'
+    name: <ServicesColumnHeader />,
+    cell: (row) => (
+      <ServiceTypeIcons services={row.credentialSubject?.services} />
+    ),
+    width: '120px'
+  },
+  {
+    name: 'Network',
+    cell: (row) => (
+      <NetworkName
+        networkId={row.credentialSubject?.chainId}
+        className={styles.listNetworkCell}
+      />
+    ),
+    maxWidth: '9rem'
   },
   {
     name: 'Sales',
     selector: (row) => {
-      return (
-        <strong>
-          {row.indexedMetadata.stats[0].orders < 0
-            ? 'N/A'
-            : row.indexedMetadata.stats[0].orders}
-        </strong>
-      )
+      const orders = row.indexedMetadata?.stats?.[0]?.orders
+      return <span>{orders == null || orders < 0 ? '—' : orders}</span>
     },
-    maxWidth: '7rem'
+    maxWidth: '6rem'
   },
   {
     name: 'Published',
-    selector: (row) => {
-      return <Time date={row.indexedMetadata.nft.created} />
-    },
-    maxWidth: '7rem'
+    selector: (row) => <Time date={row.indexedMetadata?.nft?.created} />,
+    maxWidth: '8rem'
   }
 ]
 
@@ -93,8 +99,8 @@ declare type AssetListProps = {
   noPublisher?: boolean
   noDescription?: boolean
   noPrice?: boolean
-  showAssetViewSelector?: boolean
   defaultAssetView?: AssetViewOptions
+  skeletonCount?: number
 }
 
 export default function AssetList({
@@ -108,7 +114,8 @@ export default function AssetList({
   noPublisher,
   noDescription,
   noPrice,
-  defaultAssetView
+  defaultAssetView,
+  skeletonCount = 21
 }: AssetListProps): ReactElement {
   const activeAssetView = defaultAssetView || AssetViewOptions.Grid
 
@@ -119,49 +126,68 @@ export default function AssetList({
 
   const styleClasses = `${styles.assetList} ${className || ''}`
 
-  return isLoading ? (
-    <Loader />
-  ) : (
-    <>
-      <div className={styleClasses}>
-        {assets?.length > 0 && assets[0] !== undefined ? (
-          <>
-            {activeAssetView === AssetViewOptions.List && (
-              <Table
-                columns={columns}
-                data={assets}
-                pagination={false}
-                paginationPerPage={assets?.length}
-                dense
-              />
-            )}
+  if (isLoading) {
+    return activeAssetView === AssetViewOptions.List ? (
+      <AssetListTableSkeleton />
+    ) : (
+      <AssetListSkeleton
+        count={skeletonCount}
+        noPublisher={noPublisher}
+        noDescription={noDescription}
+      />
+    )
+  }
 
-            {activeAssetView === AssetViewOptions.Grid &&
-              assets?.map((asset) => {
-                if (asset?.indexedMetadata && asset?.credentialSubject) {
-                  return (
-                    <AssetTeaser
-                      asset={asset}
-                      key={asset.id}
-                      noPublisher={noPublisher}
-                      noDescription={noDescription}
-                      noPrice={noPrice}
-                    />
-                  )
-                }
-                return null
-              })}
-          </>
-        ) : (
-          <Alert warning>No results found</Alert>
-        )}
-      </div>
-      {showPagination && (
-        <Pagination
-          totalPages={totalPages}
-          currentPage={page}
-          onChangePage={handlePageChange}
-        />
+  if (!assets?.length || assets[0] === undefined) {
+    return <Alert warning>No results found</Alert>
+  }
+
+  return (
+    <>
+      {activeAssetView === AssetViewOptions.List ? (
+        <div className={styles.listViewWrapper}>
+          <Table
+            className={styles.listTable}
+            columns={columns}
+            data={assets}
+            pagination={false}
+            paginationPerPage={assets.length}
+            dense
+          />
+          {showPagination && (
+            <Pagination
+              totalPages={totalPages}
+              currentPage={page}
+              onChangePage={handlePageChange}
+            />
+          )}
+        </div>
+      ) : (
+        <>
+          <div className={styleClasses}>
+            {assets.map((asset) => {
+              if (asset?.indexedMetadata && asset?.credentialSubject) {
+                return (
+                  <AssetTeaser
+                    asset={asset}
+                    key={asset.id}
+                    noPublisher={noPublisher}
+                    noDescription={noDescription}
+                    noPrice={noPrice}
+                  />
+                )
+              }
+              return null
+            })}
+          </div>
+          {showPagination && (
+            <Pagination
+              totalPages={totalPages}
+              currentPage={page}
+              onChangePage={handlePageChange}
+            />
+          )}
+        </>
       )}
     </>
   )

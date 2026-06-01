@@ -1,4 +1,4 @@
-import { ReactElement, useState, useEffect, useCallback, useMemo } from 'react'
+import { ReactElement, useState, useEffect, useCallback } from 'react'
 import AssetList from '@shared/AssetList'
 import queryString from 'query-string'
 import Filter from './Filter'
@@ -10,6 +10,7 @@ import { useRouter } from 'next/router'
 import { useDebouncedCallback } from 'use-debounce'
 import SearchBar from '@components/Header/SearchBar'
 import { useMarketMetadata } from '@context/MarketMetadata'
+import { useUserPreferences } from '@context/UserPreferences'
 
 export default function SearchPage({
   setTotalResults,
@@ -22,6 +23,7 @@ export default function SearchPage({
   const [parsed, setParsed] = useState<queryString.ParsedQuery<string>>()
   const { validatedSupportedChains, isValidatingSupportedChains } =
     useMarketMetadata()
+  const { assetView } = useUserPreferences()
   const [queryResult, setQueryResult] = useState<PagedAssets>()
   const [loading, setLoading] = useState<boolean>(true)
   const newCancelToken = useCancelToken()
@@ -37,6 +39,7 @@ export default function SearchPage({
 
   const updatePage = useCallback(
     (page: number) => {
+      setLoading(true)
       const newUrl = buildSearchPageUrl(router.pathname, location.search, page)
       return router.push(newUrl)
     },
@@ -95,7 +98,7 @@ export default function SearchPage({
           page={queryResult?.page}
           totalPages={queryResult?.totalPages}
           onPageChange={updatePage}
-          showAssetViewSelector
+          defaultAssetView={assetView}
         />
       </div>
     </div>

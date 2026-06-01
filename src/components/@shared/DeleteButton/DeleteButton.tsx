@@ -10,6 +10,7 @@ interface DeleteButtonProps {
   className?: string
   loading?: boolean
   loadingText?: string
+  text?: string
 }
 
 export default function DeleteButton({
@@ -17,7 +18,8 @@ export default function DeleteButton({
   disabled = false,
   className = '',
   loading = false,
-  loadingText = 'Deleting...'
+  loadingText = 'Deleting...',
+  text = 'Delete'
 }: DeleteButtonProps): ReactElement {
   return (
     <Button
@@ -39,7 +41,7 @@ export default function DeleteButton({
       ) : (
         <>
           <DeleteIcon />
-          Delete
+          {text}
         </>
       )}
     </Button>

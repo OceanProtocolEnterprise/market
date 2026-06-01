@@ -8,7 +8,7 @@
 }
 
 .assetType {
-  display: inline-block;
+  display: inline-flex;
   border-right: 1px solid var(--border-color);
   padding-right: calc(var(--spacer) / 3.5);
   margin-right: calc(var(--spacer) / 4);

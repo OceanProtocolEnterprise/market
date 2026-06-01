@@ -125,6 +125,7 @@ export default async function handler(
       main_oidc: getOptionalStringClaim(payload, 'iss') || issuer,
       upstream_idp: getLoginSource(payload) || 'unknown'
     }
+    const organizationId = getOptionalStringClaim(payload, 'orgId')
 
     return res.status(200).json({
       user: {
@@ -133,7 +134,8 @@ export default async function handler(
         name: getOptionalStringClaim(payload, 'name'),
         username:
           getOptionalStringClaim(payload, 'preferred_username') ||
-          getOptionalStringClaim(payload, 'username')
+          getOptionalStringClaim(payload, 'username'),
+        organizationId
       },
       authMeta,
       has_refresh_token: Boolean(refreshToken),
