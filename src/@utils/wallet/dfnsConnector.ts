@@ -461,7 +461,7 @@ export function dfnsConnector() {
 
     return {
       id: DFNS_CONNECTOR_ID,
-      name: 'Dfns Passkey',
+      name: 'Dfns Account',
       type: DFNS_CONNECTOR_ID,
       async connect<withCapabilities extends boolean = false>(
         parameters?: DfnsConnectParameters<withCapabilities>
