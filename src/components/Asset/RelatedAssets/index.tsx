@@ -16,13 +16,19 @@ export default function RelatedAssets(): ReactElement {
 
   const [relatedAssets, setRelatedAssets] = useState<Asset[]>()
   const [isLoading, setIsLoading] = useState<boolean>()
+  const assetId = asset?.id
+  const assetNftAddress = asset?.credentialSubject?.nftAddress
+  const assetOwner = asset?.indexedMetadata?.nft?.owner
+  const assetTags = asset?.credentialSubject?.metadata?.tags
+  const hasAssetMetadata = Boolean(asset?.credentialSubject?.metadata)
 
   useEffect(() => {
     if (
       !chainIds?.length ||
-      !asset?.credentialSubject?.nftAddress ||
-      !asset?.indexedMetadata.nft ||
-      !asset?.credentialSubject?.metadata
+      !assetId ||
+      !assetNftAddress ||
+      !assetOwner ||
+      !hasAssetMetadata
     ) {
       return
     }
@@ -34,7 +40,7 @@ export default function RelatedAssets(): ReactElement {
         let tagResults: Asset[] = []
 
         // safeguard against faults in the metadata
-        if (asset.credentialSubject?.metadata.tags instanceof Array) {
+        if (assetTags instanceof Array) {
           const tagQuery = {
             ...generateBaseQuery({
               chainIds,
@@ -45,15 +51,14 @@ export default function RelatedAssets(): ReactElement {
                 must: [
                   {
                     terms: {
-                      'credentialSubject.metadata.tags.keyword':
-                        asset.credentialSubject.metadata.tags
+                      'credentialSubject.metadata.tags.keyword': assetTags
                     }
                   }
                 ],
                 must_not: [
                   {
                     term: {
-                      id: asset.id
+                      id: assetId
                     }
                   }
                 ]
@@ -69,10 +74,10 @@ export default function RelatedAssets(): ReactElement {
           const ownerQuery = generateBaseQuery(
             generateQuery(
               chainIds,
-              asset.credentialSubject.nftAddress,
+              assetNftAddress,
               4 - tagResults?.length,
               null,
-              asset.indexedMetadata.nft.owner
+              assetOwner
             )
           )
 
@@ -87,7 +92,7 @@ export default function RelatedAssets(): ReactElement {
               (asset2) => !tagResults?.find((asset1) => asset1.id === asset2.id)
             )
           )
-          setRelatedAssets(bothResults?.filter((a) => a.id !== asset.id))
+          setRelatedAssets(bothResults?.filter((a) => a.id !== assetId))
         }
       } catch (error) {
         LoggerInstance.error(error.message)
@@ -96,7 +101,15 @@ export default function RelatedAssets(): ReactElement {
       }
     }
     getAssets()
-  }, [chainIds, asset, newCancelToken])
+  }, [
+    chainIds,
+    assetId,
+    assetNftAddress,
+    assetOwner,
+    assetTags,
+    hasAssetMetadata,
+    newCancelToken
+  ])
 
   return (
     <section className={styles.section}>
@@ -105,9 +118,8 @@ export default function RelatedAssets(): ReactElement {
         assets={relatedAssets}
         showPagination={false}
         isLoading={isLoading}
-        noDescription
-        noPublisher
         noPrice
+        skeletonCount={4}
       />
     </section>
   )

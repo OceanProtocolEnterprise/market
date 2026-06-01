@@ -9,7 +9,7 @@ import NetworkName from '@shared/NetworkName'
 import styles from './index.module.css'
 import AssetListTitle from '@shared/AssetListTitle'
 import { useAccount } from 'wagmi'
-import { SkeletonTable } from '../HistoryData'
+import ComputeJobsSkeleton from './Skeleton'
 // import { getAsset } from '@utils/aquarius'
 // import { useCancelToken } from '@hooks/useCancelToken'
 // import { getPdf } from '@utils/invoice/createInvoice'
@@ -295,8 +295,8 @@ export default function ComputeJobs({
           Refresh
         </Button>
       )}
-      {isLoading ? (
-        <SkeletonTable />
+      {isLoading && !jobs?.length ? (
+        <ComputeJobsSkeleton />
       ) : (
         <Table
           columns={minimal ? columnsMinimal : columns}

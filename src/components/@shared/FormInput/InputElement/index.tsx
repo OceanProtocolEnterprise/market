@@ -131,7 +131,8 @@ const InputElement = forwardRef(
       accentSelect: selectStyle === 'accent',
       customSelect: selectStyle === 'custom',
       serviceLanguageSelect: selectStyle === 'serviceLanguage',
-      [size]: size
+      [size]: size,
+      [props.className]: props.className
     })
 
     switch (props.type) {

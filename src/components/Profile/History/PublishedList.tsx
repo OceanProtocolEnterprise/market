@@ -10,6 +10,7 @@ import { CancelToken } from 'axios'
 import { useProfile } from '@context/Profile'
 import { useFilter, Filters } from '@context/Filter'
 import { useDebouncedCallback } from 'use-debounce'
+import { useUserPreferences } from '@context/UserPreferences'
 
 export default function PublishedList({
   accountId
@@ -19,6 +20,7 @@ export default function PublishedList({
   const { validatedSupportedChains } = useMarketMetadata()
   const { ownAccount } = useProfile()
   const { filters, ignorePurgatory } = useFilter()
+  const { assetView } = useUserPreferences()
   const [queryResult, setQueryResult] = useState<PagedAssets>()
   const [isLoading, setIsLoading] = useState(true)
   const [page, setPage] = useState<number>(1)
@@ -95,10 +97,12 @@ export default function PublishedList({
           page={queryResult?.page > 1 ? queryResult?.page - 1 : 1}
           totalPages={queryResult?.totalPages}
           onPageChange={(newPage) => {
+            setIsLoading(true)
             setPage(newPage)
           }}
           noPublisher
-          showAssetViewSelector
+          defaultAssetView={assetView}
+          skeletonCount={9}
         />
       </div>
     </div>

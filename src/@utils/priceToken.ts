@@ -18,6 +18,20 @@ export type ServiceStatsEntry = {
   prices?: ServicePriceEntry[]
 }
 
+type AssetWithPriceSources = Asset & {
+  accessDetails?: Array<{ baseToken?: { address?: string } }>
+  offchain?: {
+    stats?: {
+      services?: ServiceStatsEntry[]
+    }
+  }
+}
+
+export function getPriceTokenAddress(token?: PriceToken): string {
+  if (!token) return ''
+  return typeof token === 'string' ? token : token.address || ''
+}
+
 export function getServiceStats(
   asset: Asset,
   serviceIndex: number,
@@ -30,6 +44,33 @@ export function getServiceStats(
       : undefined
 
   return matched || stats[serviceIndex]
+}
+
+export function getAssetPriceTokenAddresses(
+  asset: AssetWithPriceSources
+): string[] {
+  const addresses = new Set<string>()
+
+  asset.credentialSubject?.services?.forEach((service, index) => {
+    const stat = getServiceStats(asset, index, service.id)
+    const priceEntry = stat?.prices?.[0]
+    const offchainStat =
+      asset.offchain?.stats?.services?.find(
+        (entry) => entry?.serviceId === service.id
+      ) || asset.offchain?.stats?.services?.[index]
+    const offchainPriceEntry = offchainStat?.prices?.[0]
+
+    ;[
+      asset.accessDetails?.[index]?.baseToken?.address,
+      getPriceTokenAddress(offchainPriceEntry?.token),
+      priceEntry?.baseToken?.address,
+      getPriceTokenAddress(priceEntry?.token)
+    ].forEach((address) => {
+      if (address) addresses.add(address.toLowerCase())
+    })
+  })
+
+  return Array.from(addresses)
 }
 
 export function resolveServiceTokenSymbol(

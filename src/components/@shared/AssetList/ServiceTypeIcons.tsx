@@ -1,37 +1,42 @@
 import { ReactElement } from 'react'
 import Tooltip from '@shared/atoms/Tooltip'
-import Download from '@images/download.svg'
-import Compute from '@images/compute.svg'
+import ServiceTypeIcon from '@shared/ServiceTypeIcon'
 import { Service } from 'src/@types/ddo/Service'
-import styles from '../Bookmarks.module.css'
+import styles from './ServiceTypeIcons.module.css'
+
+function getServiceTypesLabel(hasDownload: boolean, hasCompute: boolean) {
+  if (hasDownload && hasCompute) return 'Access and compute services'
+  if (hasDownload) return 'Access service'
+  return 'Compute service'
+}
 
 export function ServiceTypeIcons({
-  services
+  services,
+  hideEmpty,
+  className
 }: {
   services?: Service[]
+  hideEmpty?: boolean
+  className?: string
 }): ReactElement {
   const hasDownload = services?.some((service) => service.type === 'access')
   const hasCompute = services?.some((service) => service.type === 'compute')
 
   if (!hasDownload && !hasCompute) {
-    return <span className={styles.serviceTypesEmpty}>-</span>
+    return hideEmpty ? null : <span className={styles.empty}>-</span>
   }
 
   return (
-    <div className={styles.serviceTypes}>
+    <div
+      className={[styles.serviceTypes, className].filter(Boolean).join(' ')}
+      role="img"
+      aria-label={getServiceTypesLabel(hasDownload, hasCompute)}
+    >
       {hasDownload && (
-        <Download
-          role="img"
-          aria-label="Download"
-          className={styles.serviceIcon}
-        />
+        <ServiceTypeIcon type="access" className={styles.serviceIcon} />
       )}
       {hasCompute && (
-        <Compute
-          role="img"
-          aria-label="Compute"
-          className={styles.serviceIcon}
-        />
+        <ServiceTypeIcon type="compute" className={styles.serviceIcon} />
       )}
     </div>
   )
@@ -46,18 +51,18 @@ export function ServicesColumnHeader(): ReactElement {
         content={
           <div className={styles.serviceLegend}>
             <span className={styles.serviceLegendRow}>
-              <Download
-                role="img"
-                aria-label="Download"
+              <ServiceTypeIcon
+                type="access"
                 className={styles.serviceIcon}
+                ariaHidden={false}
               />
               Has services of type access
             </span>
             <span className={styles.serviceLegendRow}>
-              <Compute
-                role="img"
-                aria-label="Compute"
+              <ServiceTypeIcon
+                type="compute"
                 className={styles.serviceIcon}
+                ariaHidden={false}
               />
               Has services of type compute
             </span>

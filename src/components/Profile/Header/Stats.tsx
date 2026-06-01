@@ -5,6 +5,38 @@ import { useProfile } from '@context/Profile'
 import EscrowWithdrawModal from './EscrowWithdrawModal'
 import { formatToFixedNoRounding } from '@utils/numbers'
 
+function TokenAmount({
+  amount,
+  token
+}: {
+  amount: string
+  token: string
+}): ReactElement {
+  const value = `${amount} ${token}`
+
+  return (
+    <span className={styles.tokenAmount} title={value}>
+      <span>{amount}</span>
+      <span className={styles.tokenSymbol}>{token}</span>
+    </span>
+  )
+}
+
+function EscrowAvailableLabel({
+  hasAvailable
+}: {
+  hasAvailable: boolean
+}): ReactElement {
+  return (
+    <>
+      <span>Escrow Available Funds</span>
+      {hasAvailable && (
+        <span className={styles.withdrawHint}>👉 Click to Withdraw 👈</span>
+      )}
+    </>
+  )
+}
+
 export default function Stats({
   selectedToken
 }: {
@@ -42,35 +74,37 @@ export default function Stats({
       {activeToken && (
         <NumberUnit
           label="Revenue"
-          value={`${formatToFixedNoRounding(
-            selectedRevenue,
-            3
-          )} ${activeToken}`}
+          value={
+            <TokenAmount
+              amount={formatToFixedNoRounding(selectedRevenue, 3)}
+              token={activeToken}
+            />
+          }
         />
       )}
       {ownAccount && activeToken && (
         <>
           <NumberUnit
             label="Escrow Locked Funds"
-            value={`${formatToFixedNoRounding(
-              selectedEscrowLocked,
-              3
-            )} ${activeToken}`}
+            value={
+              <TokenAmount
+                amount={formatToFixedNoRounding(selectedEscrowLocked, 3)}
+                token={activeToken}
+              />
+            }
           />
           <div
             onClick={hasAvailable ? () => setShowModal(true) : undefined}
             style={{ cursor: hasAvailable ? 'pointer' : 'default' }}
           >
             <NumberUnit
-              label={
-                hasAvailable
-                  ? 'Escrow Available Funds 👉 Click to Withdraw 👈'
-                  : 'Escrow Available Funds'
+              label={<EscrowAvailableLabel hasAvailable={hasAvailable} />}
+              value={
+                <TokenAmount
+                  amount={formatToFixedNoRounding(selectedEscrowAvailable, 3)}
+                  token={activeToken}
+                />
               }
-              value={`${formatToFixedNoRounding(
-                selectedEscrowAvailable,
-                3
-              )} ${activeToken}`}
             />
           </div>
         </>

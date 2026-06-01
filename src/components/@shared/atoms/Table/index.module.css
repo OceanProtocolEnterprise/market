@@ -10,15 +10,19 @@
 .buttonContainer {
   display: flex;
   justify-content: center;
-  margin-top: 2%;
+  margin-top: calc(var(--spacer) / 2);
   width: 100%;
+}
+
+.tableContent {
+  flex: 1;
 }
 
 .totalContainer {
   display: flex;
   flex-direction: row;
   justify-content: center;
-  margin-top: 5%;
+  margin-top: var(--spacer);
   align-items: center;
   gap: 16px;
   width: 100%;

@@ -2,9 +2,9 @@ import { useState, useEffect, ReactElement } from 'react'
 import { useRouter } from 'next/router'
 import Page from '@shared/Page'
 import Alert from '@shared/atoms/Alert'
-import Loader from '@shared/atoms/Loader'
 import { useAsset } from '@context/Asset'
 import AssetContent from './AssetContent'
+import AssetDetailsSkeleton from './Skeleton'
 
 export default function AssetDetails({ uri }: { uri: string }): ReactElement {
   const router = useRouter()
@@ -28,8 +28,8 @@ export default function AssetDetails({ uri }: { uri: string }): ReactElement {
       <Alert title={pageTitle} text={error} state={'error'} />
     </Page>
   ) : (
-    <Page title={undefined} uri={uri}>
-      <Loader />
+    <Page title=" " uri={uri}>
+      <AssetDetailsSkeleton />
     </Page>
   )
 }

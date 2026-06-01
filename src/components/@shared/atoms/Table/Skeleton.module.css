@@ -1,0 +1,17 @@
+.skeletonTable {
+  width: 100%;
+}
+
+.skeletonRow {
+  display: grid;
+  grid-template-columns: var(--table-skeleton-columns);
+  gap: calc(var(--spacer) / 1.5);
+  align-items: center;
+  padding: calc(var(--spacer) / 2.5) calc(var(--spacer) / 4);
+  border-bottom: var(--border-size-sm) solid var(--border-color);
+}
+
+.skeletonHeaderRow {
+  padding-top: calc(var(--spacer) / 3);
+  padding-bottom: calc(var(--spacer) / 3);
+}

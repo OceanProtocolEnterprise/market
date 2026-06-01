@@ -27,31 +27,30 @@ import useNetworkMetadata, {
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { getAccessDetails } from '@utils/accessDetailsAndPricing'
 import { getBaseTokenSymbol } from '@utils/getBaseTokenSymbol'
+import TableSkeleton from '@shared/atoms/Table/Skeleton'
+
+// 7 cols: Dataset | Network | Datatoken | Time | Sales | Price | Revenue
+const headerWidths = ['55%', '70%', '65%', '55%', '60%', '55%', '55%']
+const rowWidths = [
+  ['80%', '65%', '70%', '55%', '40%', '60%', '60%'],
+  ['70%', '55%', '60%', '65%', '50%', '55%', '70%'],
+  ['85%', '70%', '55%', '50%', '45%', '65%', '65%'],
+  ['75%', '60%', '75%', '60%', '35%', '50%', '55%'],
+  ['65%', '75%', '65%', '55%', '50%', '70%', '60%'],
+  ['80%', '65%', '70%', '65%', '40%', '60%', '65%'],
+  ['70%', '55%', '60%', '50%', '55%', '55%', '60%'],
+  ['85%', '70%', '65%', '60%', '45%', '65%', '55%'],
+  ['75%', '60%', '75%', '55%', '50%', '60%', '65%']
+]
 
 function HistorySkeleton(): ReactElement {
-  const rows = Array.from({ length: 9 })
-  const cols = Array.from({ length: 6 })
-
   return (
-    <div className={styles.skeletonWrapper}>
-      <div className={styles.skeletonTable}>
-        <div className={styles.skeletonHeaderRow}>
-          {cols.map((_, idx) => (
-            <div key={`header-skel-${idx}`} className={styles.skeletonHeader} />
-          ))}
-        </div>
-        {rows.map((_, rowIdx) => (
-          <div key={`skeleton-row-${rowIdx}`} className={styles.skeletonRow}>
-            {cols.map((__, colIdx) => (
-              <div
-                key={`skeleton-cell-${rowIdx}-${colIdx}`}
-                className={styles.skeletonCell}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
+    <TableSkeleton
+      className={styles.skeletonWrapper}
+      gridTemplateColumns="2.2fr 1.2fr 1fr 1.2fr 0.7fr 0.9fr 0.9fr"
+      headerWidths={headerWidths}
+      rowWidths={rowWidths}
+    />
   )
 }
 
@@ -96,19 +95,6 @@ const getPrice = (asset: AssetExtended): number => {
 const getOrders = (asset: AssetExtended) =>
   asset.indexedMetadata?.stats?.[0]?.orders || 0
 
-const buildRevenueByToken = (assets: AssetExtended[] = []) => {
-  const map: Record<string, number> = {}
-  assets.forEach((asset) => {
-    const price = getPrice(asset)
-    const orders = getOrders(asset)
-    const symbol = getBaseTokenSymbol(asset)
-    const revenue = orders * price
-    if (!symbol || isNaN(revenue)) return
-    map[symbol] = (map[symbol] || 0) + revenue
-  })
-  return map
-}
-
 const filterAndSeedRevenue = (
   revenue: Record<string, number>,
   approvedBaseTokens?: { symbol: string }[]
@@ -119,10 +105,6 @@ const filterAndSeedRevenue = (
   })
 
   return seeded
-}
-
-export function SkeletonTable(): ReactElement {
-  return <HistorySkeleton />
 }
 
 export default function HistoryData({
@@ -301,13 +283,7 @@ export default function HistoryData({
         }
       }
     },
-    [
-      activeChainIdsKey,
-      ignorePurgatory,
-      newCancelToken,
-      ownAccount,
-      approvedBaseTokens
-    ]
+    [activeChainIdsKey, ignorePurgatory, newCancelToken, ownAccount]
   )
 
   useEffect(() => {
@@ -327,14 +303,14 @@ export default function HistoryData({
         <Filter showPurgatoryOption={ownAccount} expanded showTime />
       </div>
       <div className={styles.tableContainer}>
-        {isTableLoading && !queryResult ? (
+        {isTableLoading ? (
           <HistorySkeleton />
         ) : (
           <HistoryTable
+            className={styles.historyTableWrapper}
             columns={columns}
             data={queryResult?.results || []}
             paginationPerPage={9}
-            isLoading={isTableLoading}
             emptyMessage={
               validatedSupportedChains.length === 0
                 ? 'No network selected'

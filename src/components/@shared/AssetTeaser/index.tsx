@@ -5,9 +5,9 @@ import Publisher from '@shared/Publisher'
 import AssetType from '@shared/AssetType'
 import NetworkName from '@shared/NetworkName'
 import styles from './index.module.css'
-import { getServiceByName } from '@utils/ddo'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import Bookmark from '@components/Asset/AssetContent/Bookmark'
+import { ServiceTypeIcons } from '@shared/AssetList/ServiceTypeIcons'
 
 declare type AssetTeaserProps = {
   asset: AssetExtended
@@ -22,8 +22,10 @@ export default function AssetTeaser({
   noDescription
 }: AssetTeaserProps): ReactElement {
   const { name, type, description } = asset.credentialSubject.metadata
-  const isCompute = Boolean(getServiceByName(asset, 'compute'))
-  const accessType = isCompute ? 'compute' : 'access'
+  const services = asset.credentialSubject?.services
+  const hasServiceTypes = services?.some((service) =>
+    ['access', 'compute'].includes(service.type)
+  )
   const owner = asset.indexedMetadata.nft?.owner
   const { orders } = asset.indexedMetadata.stats[0] || {}
 
@@ -32,10 +34,20 @@ export default function AssetTeaser({
       <Link href={`/asset/${asset.id}`} className={styles.link}>
         <aside className={styles.detailLine}>
           <AssetType
-            className={styles.typeLabel}
+            className={styles.assetTypeLabel}
             type={type}
-            accessType={accessType}
+            variant="metadata"
           />
+          {hasServiceTypes && (
+            <>
+              <span className={styles.detailDivider} aria-hidden="true" />
+              <ServiceTypeIcons
+                services={services}
+                hideEmpty
+                className={styles.serviceTypes}
+              />
+            </>
+          )}
         </aside>
         <header className={styles.header}>
           <h1 className={styles.title}>{name.slice(0, 200)}</h1>
