@@ -6,8 +6,10 @@ import {
   escapeEsReservedCharacters,
   getFilterTerm,
   generateBaseQuery,
-  getWhitelistShould
+  getWhitelistShould,
+  sortMergedResults
 } from '.'
+import { Asset } from 'src/@types/Asset'
 
 const defaultBaseQueryReturn: SearchQuery = {
   from: 0,
@@ -91,5 +93,32 @@ describe('@utils/aquarius', () => {
         'indexedMetadata.event.block': 'asc'
       }
     })
+  })
+
+  test('sortMergedResults sorts created assets by time across chains', () => {
+    const olderOpAsset = {
+      id: 'op-sepolia',
+      indexedMetadata: {
+        event: {
+          block: 44114188,
+          datetime: '2026-05-29T05:01:56.000Z'
+        }
+      }
+    } as Asset
+    const newerEthAsset = {
+      id: 'eth-sepolia',
+      indexedMetadata: {
+        event: {
+          block: 10567100,
+          datetime: '2026-06-01T10:00:00.000Z'
+        }
+      }
+    } as Asset
+
+    expect(
+      sortMergedResults([olderOpAsset, newerEthAsset], {
+        [SortTermOptions.Created]: SortDirectionOptions.Descending
+      }).map((asset) => asset.id)
+    ).toStrictEqual(['eth-sepolia', 'op-sepolia'])
   })
 })

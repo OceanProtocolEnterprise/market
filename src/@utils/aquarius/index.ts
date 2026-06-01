@@ -421,7 +421,21 @@ function getSortValue(asset: Asset, path: string): string | number | undefined {
     : undefined
 }
 
-function sortMergedResults(
+function getMergedSortValue(
+  asset: Asset,
+  path: string
+): string | number | undefined {
+  if (path === SortTermOptions.Created) {
+    return (
+      asset?.indexedMetadata?.event?.datetime ??
+      asset?.indexedMetadata?.nft?.created
+    )
+  }
+
+  return getSortValue(asset, path)
+}
+
+export function sortMergedResults(
   results: Asset[],
   sort?: SearchQuery['sort']
 ): Asset[] {
@@ -431,8 +445,8 @@ function sortMergedResults(
   if (!sortPath) return results
 
   return [...results].sort((a, b) => {
-    const aValue = getSortValue(a, sortPath)
-    const bValue = getSortValue(b, sortPath)
+    const aValue = getMergedSortValue(a, sortPath)
+    const bValue = getMergedSortValue(b, sortPath)
 
     if (aValue === bValue) return 0
     if (typeof aValue === 'undefined') return 1
