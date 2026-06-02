@@ -5,26 +5,18 @@ import useNetworkMetadata, {
   getNetworkDisplayName
 } from '@hooks/useNetworkMetadata'
 import { useAsset } from '@context/Asset'
-import { useChainId, useSwitchChain } from 'wagmi'
+import { useSwitchChain } from 'wagmi'
 import { useIsChainSupportedByConnector } from '@hooks/useDfnsWalletsByChain'
+import Button from '@shared/atoms/Button'
+import Tooltip from '@shared/atoms/Tooltip'
 
 export default function WalletNetworkSwitcher(): ReactElement {
-  const chainId = useChainId()
   const { asset } = useAsset()
   const { switchChain } = useSwitchChain()
   const { networksList } = useNetworkMetadata()
 
   const ddoNetworkId = asset.credentialSubject?.chainId
-
   const ddoNetworkData = getNetworkDataById(networksList, ddoNetworkId)
-  const walletNetworkData = getNetworkDataById(networksList, chainId)
-
-  const ddoNetworkName = (
-    <strong>{getNetworkDisplayName(ddoNetworkData)}</strong>
-  )
-  const walletNetworkName = (
-    <strong>{getNetworkDisplayName(walletNetworkData)}</strong>
-  )
 
   const { isSupported, isDfns, reason } =
     useIsChainSupportedByConnector(ddoNetworkId)
@@ -37,32 +29,24 @@ export default function WalletNetworkSwitcher(): ReactElement {
 
   return (
     <div className={styles.networkWarning}>
-      <div className={styles.tooltipWrapper}>
-        <p className={styles.text}>Switch Network</p>
-        <div className={styles.tooltip}>
-          This asset is published on {ddoNetworkName} but your wallet is
-          connected to {walletNetworkName}. Connect to {ddoNetworkName} to
-          interact with this asset.
-        </div>
-      </div>
-
-      <div className={styles.tooltipWrapper}>
-        <button
-          className={styles.button}
+      <Tooltip
+        content={
+          isDfnsBlocked
+            ? reason
+            : `Click to switch your wallet to ${getNetworkDisplayName(
+                ddoNetworkData
+              )} network to interact with this asset.`
+        }
+      >
+        <Button
+          style="gradient"
           onClick={handleSwitchChain}
           disabled={isDfnsBlocked}
           title={isDfnsBlocked ? reason : undefined}
         >
           {isDfnsBlocked ? 'Unavailable on DFNS' : 'Switch Network'}
-        </button>
-        <div className={styles.tooltip}>
-          {isDfnsBlocked
-            ? reason
-            : `Click to switch your wallet to ${getNetworkDisplayName(
-                ddoNetworkData
-              )} network to interact with this asset.`}
-        </div>
-      </div>
+        </Button>
+      </Tooltip>
     </div>
   )
 }
