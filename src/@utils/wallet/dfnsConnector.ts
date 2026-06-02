@@ -11,7 +11,11 @@ import {
 import { createConnector } from 'wagmi'
 import { UserRejectedRequestError } from 'viem'
 import { getNodeUriMap, getRuntimeConfig } from '../runtimeConfig'
-import { dfnsNetworkToChainId, getSupportedChains } from './chains'
+import {
+  dfnsNetworkToChainId,
+  getSupportedChains,
+  pickPreferredChainId
+} from './chains'
 import {
   DfnsEoaSigner,
   getActiveDfnsEoaSigner,
@@ -85,7 +89,12 @@ function resolveDfnsOrgId(organizationId?: string, fallbackOrgId?: string) {
 function getDefaultUsername(username?: string) {
   if (username) return username
   if (typeof window === 'undefined') return ''
-  return window.localStorage.getItem('dfns_username') || ''
+
+  try {
+    return window.localStorage.getItem('dfns_username') || ''
+  } catch {
+    return ''
+  }
 }
 
 function promptForUsername(username?: string) {
@@ -178,50 +187,65 @@ export function getDfnsSelectableChains(
   return configuredChains.length > 0 ? configuredChains : [...fallbackChains]
 }
 
-function promptForChain(chains: readonly Chain[]): Chain {
-  if (chains.length === 0) {
+/**
+ * Resolves the default DFNS chain from a list of selectable chains, following
+ * the marketplace preference order (Ethereum Sepolia → OP Sepolia → first).
+ */
+export function getDefaultDfnsChain(
+  chains: readonly Chain[]
+): Chain | undefined {
+  const preferredId = pickPreferredChainId(chains.map((chain) => chain.id))
+  return chains.find((chain) => chain.id === preferredId)
+}
+
+/**
+ * Picks the network a DFNS wallet should default to when the user has not
+ * explicitly chosen one, so first-time login never blocks on a prompt.
+ */
+function pickDefaultDfnsChain(chains: readonly Chain[]): Chain {
+  const defaultChain = getDefaultDfnsChain(chains)
+  if (!defaultChain) {
     throw new Error('No Dfns networks are configured.')
   }
 
-  if (chains.length === 1) return chains[0]
+  return defaultChain
+}
 
-  const options = chains
-    .map(
-      (chain, index) =>
-        `${index + 1}. ${chain.name || `Chain ${chain.id}`} (${chain.id})`
-    )
-    .join('\n')
-  const selectedOption = window.prompt(`Select Dfns network:\n${options}`, '1')
-
-  if (!selectedOption) {
-    throw new UserRejectedRequestError(
-      new Error('Dfns network selection cancelled.')
-    )
-  }
-
-  const selectedIndex = Number(selectedOption.trim()) - 1
-  const selectedChain = chains[selectedIndex]
-  if (!selectedChain) {
-    throw new Error('Invalid Dfns network selection.')
-  }
-
-  return selectedChain
+/**
+ * Resolves the default chain id from the user's provisioned DFNS wallet chains,
+ * following the same preference order. Used for post-connect reconciliation.
+ */
+export function getDefaultDfnsWalletChainId(walletChainIds: Iterable<number>) {
+  return pickPreferredChainId(walletChainIds)
 }
 
 export function getStoredDfnsSelectedChainId() {
   if (typeof window === 'undefined') return undefined
 
-  const storedChainId = Number(
-    window.sessionStorage.getItem(DFNS_SELECTED_CHAIN_ID_KEY)
-  )
-  if (!Number.isFinite(storedChainId)) return undefined
+  let storedValue: string | null
+  try {
+    storedValue = window.sessionStorage.getItem(DFNS_SELECTED_CHAIN_ID_KEY)
+  } catch {
+    return undefined
+  }
+
+  if (!storedValue) return undefined
+
+  const storedChainId = Number(storedValue)
+  if (!Number.isInteger(storedChainId) || storedChainId <= 0) return undefined
 
   return storedChainId
 }
 
 export function storeDfnsSelectedChainId(chainId: number) {
   if (typeof window === 'undefined') return
-  window.sessionStorage.setItem(DFNS_SELECTED_CHAIN_ID_KEY, String(chainId))
+  if (!Number.isInteger(chainId) || chainId <= 0) return
+
+  try {
+    window.sessionStorage.setItem(DFNS_SELECTED_CHAIN_ID_KEY, String(chainId))
+  } catch {
+    // Continue without persistence when browser storage is unavailable.
+  }
 }
 
 function getStoredDfnsChain(chains: readonly Chain[]): Chain | undefined {
@@ -473,7 +497,7 @@ export function dfnsConnector() {
           : getStoredDfnsChain(selectableChains)
 
         if (!activeChain) {
-          activeChain = promptForChain(selectableChains)
+          activeChain = pickDefaultDfnsChain(selectableChains)
         }
         storeDfnsChain(activeChain)
 
@@ -515,13 +539,14 @@ export function dfnsConnector() {
               throw new Error(DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE)
             }
 
+            const username = promptForUsername(parameters?.username)
             await createDfnsPasskeyWithCode({
               authenticator,
               registrationCode: registrationCode || promptForRegistrationCode(),
-              username: parameters?.username,
+              username,
               orgId
             })
-            registeredUsername = parameters?.username
+            registeredUsername = username
           }
         } catch (error) {
           if (
@@ -600,21 +625,28 @@ export function dfnsConnector() {
           )
         }
 
-        // Fall back to the first available chain if the user selected one we
-        // have no wallet on. The chain picker is best-effort pre-connect; this
-        // is the post-connect reconciliation.
+        // Fall back if the user selected a chain we have no wallet on. The
+        // chain picker is best-effort pre-connect; this is the post-connect
+        // reconciliation. Prefer Ethereum Sepolia (marketplace default) when a
+        // wallet exists there, otherwise the first available wallet chain.
         if (!walletsByChain.has(activeChain.id)) {
-          const firstAvailableChainId = walletsByChain.keys().next()
-            .value as number
-          const firstAvailableChain = selectableChains.find(
-            (item) => item.id === firstAvailableChainId
+          const fallbackChainId = getDefaultDfnsWalletChainId(
+            walletsByChain.keys()
           )
-          if (!firstAvailableChain) {
+          if (!fallbackChainId) {
             throw new Error(
-              `DFNS wallet exists for chain ${firstAvailableChainId} but it is not in the wagmi chain config.`
+              'No DFNS wallets are provisioned on any marketplace-supported network.'
             )
           }
-          activeChain = firstAvailableChain
+          const fallbackChain = selectableChains.find(
+            (item) => item.id === fallbackChainId
+          )
+          if (!fallbackChain) {
+            throw new Error(
+              `DFNS wallet exists for chain ${fallbackChainId} but it is not in the wagmi chain config.`
+            )
+          }
+          activeChain = fallbackChain
           storeDfnsChain(activeChain)
         }
 
@@ -635,7 +667,11 @@ export function dfnsConnector() {
         connectionEpoch += 1
 
         if (registeredUsername && typeof window !== 'undefined') {
-          window.localStorage.setItem('dfns_username', registeredUsername)
+          try {
+            window.localStorage.setItem('dfns_username', registeredUsername)
+          } catch {
+            // Continue without caching the username when storage is unavailable.
+          }
         }
 
         provider = {
@@ -662,7 +698,7 @@ export function dfnsConnector() {
             if (method === 'eth_sendTransaction') {
               const [tx] = (params as [Record<string, Hex>]) || []
               const walletClient = currentSigner.getWalletClient()
-              return walletClient.sendTransaction({
+              const transaction = {
                 account: currentSigner.address,
                 to: tx.to,
                 value: tx.value ? BigInt(tx.value) : undefined,
@@ -676,7 +712,9 @@ export function dfnsConnector() {
                   ? BigInt(tx.maxPriorityFeePerGas)
                   : undefined,
                 nonce: tx.nonce ? fromHex(tx.nonce, 'number') : undefined
-              } as any)
+              } as unknown as Parameters<typeof walletClient.sendTransaction>[0]
+
+              return walletClient.sendTransaction(transaction)
             }
             if (method === 'wallet_switchEthereumChain') {
               const nextChainId = getRequestedSwitchChainId(params)

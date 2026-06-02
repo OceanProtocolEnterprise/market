@@ -15,6 +15,8 @@ import useTokenApproval from '@hooks/useTokenApproval'
 import useAllowedTokenAddresses from '@hooks/useAllowedTokenAddresses'
 import { useWalletAuthSync } from '@hooks/useWalletAuthSync'
 import { useConnectorSupportedChains } from '@hooks/useDfnsWalletsByChain'
+import { useDfnsSsoReturn } from '@hooks/useDfnsConnect'
+import DfnsRegistrationModal from '@shared/DfnsRegistrationModal'
 import NetworkWarningModal from './NetworkWarningModal'
 import SsiWalletManager from '@components/Header/SsiWallet/SsiWalletManager'
 
@@ -37,6 +39,7 @@ export default function App({
   const { isInPurgatory, purgatoryData } = useAccountPurgatory(address)
 
   useWalletAuthSync()
+  const dfnsSsoReturn = useDfnsSsoReturn()
 
   const router = useRouter()
   const isRoot = router.pathname === '/'
@@ -218,6 +221,15 @@ export default function App({
       {appConfig?.privacyPreferenceCenter === 'true' && (
         <PrivacyPreferenceCenter style="small" />
       )}
+
+      <DfnsRegistrationModal
+        isOpen={dfnsSsoReturn.isRegistrationModalOpen}
+        registrationCode={dfnsSsoReturn.registrationCode}
+        isConnecting={dfnsSsoReturn.isConnecting}
+        onChange={dfnsSsoReturn.setRegistrationCode}
+        onSubmit={dfnsSsoReturn.submitRegistrationCode}
+        onClose={() => dfnsSsoReturn.setIsRegistrationModalOpen(false)}
+      />
 
       <ToastContainer position="bottom-right" newestOnTop />
     </div>

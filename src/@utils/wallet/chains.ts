@@ -131,3 +131,31 @@ const DFNS_NETWORK_TO_CHAIN_ID: Record<string, number> = {
 export function dfnsNetworkToChainId(network: string): number | undefined {
   return DFNS_NETWORK_TO_CHAIN_ID[network]
 }
+
+export const DFNS_DEFAULT_CHAIN_ID = DFNS_NETWORK_TO_CHAIN_ID.EthereumSepolia
+
+/**
+ * Ordered preference list for the default DFNS network. Ethereum Sepolia is
+ * preferred; OP Sepolia is the fallback used by environments that don't ship
+ * Sepolia (e.g. the demo deployment). See `pickPreferredChainId`.
+ */
+export const DFNS_DEFAULT_CHAIN_IDS = [
+  DFNS_NETWORK_TO_CHAIN_ID.EthereumSepolia,
+  DFNS_NETWORK_TO_CHAIN_ID.OptimismSepolia
+] as const
+
+/**
+ * Picks the default chain from the ones actually available (env-configured or
+ * provisioned): Ethereum Sepolia first, then OP Sepolia, otherwise the first
+ * available chain. Returns `undefined` when nothing is available.
+ */
+export function pickPreferredChainId(
+  availableChainIds: Iterable<number>
+): number | undefined {
+  const available = [...availableChainIds]
+  if (available.length === 0) return undefined
+  const availableSet = new Set(available)
+  return (
+    DFNS_DEFAULT_CHAIN_IDS.find((id) => availableSet.has(id)) ?? available[0]
+  )
+}
