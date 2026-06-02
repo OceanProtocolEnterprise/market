@@ -237,7 +237,7 @@ export default function SetupPanel() {
                 </button>
                 <button
                   type="button"
-                  className={`${styles.actionButton} ${styles.secondaryActionButton}`}
+                  className={styles.actionButton}
                   onClick={dfns.openConnect}
                   disabled={dfns.isConnecting}
                 >

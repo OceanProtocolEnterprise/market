@@ -222,12 +222,6 @@
   width: 100%;
 }
 
-.secondaryActionButton {
-  color: #0a4b70;
-  background: #ffffff;
-  border: 1px solid rgba(10, 75, 112, 0.22);
-}
-
 .readyState {
   display: inline-flex;
   align-items: center;
