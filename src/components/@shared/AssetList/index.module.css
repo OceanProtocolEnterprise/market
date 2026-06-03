@@ -2,6 +2,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: calc(var(--spacer) / 2);
+  overflow-x: clip;
 }
 
 @media screen and (min-width: 25rem) {
