@@ -99,6 +99,7 @@ export default async function handler(
     })
 
     const data = await tokenRes.json()
+    console.log('Token response:', { status: tokenRes.status, data })
 
     if (!tokenRes.ok) {
       console.error('Token exchange failed:', {
@@ -113,6 +114,8 @@ export default async function handler(
       issuer: metadata.issuer,
       audience: clientId
     })
+    console.log('ID Token payload:', payload)
+    console.log('Expected metadata:', metadata)
 
     if (payload.nonce !== expectedNonce) return failRedirect(res)
 
