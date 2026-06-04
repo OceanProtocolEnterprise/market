@@ -86,6 +86,20 @@ function resolveDfnsOrgId(organizationId?: string, fallbackOrgId?: string) {
   )
 }
 
+function assertRequestedAccount(
+  requestedAddress: string | undefined,
+  signerAddress: Address,
+  method: string
+) {
+  if (!requestedAddress) {
+    throw new Error(`${method} requires an account address.`)
+  }
+
+  if (getAddress(requestedAddress) !== getAddress(signerAddress)) {
+    throw new Error(`${method} requested a different account.`)
+  }
+}
+
 function getDefaultUsername(username?: string) {
   if (username) return username
   if (typeof window === 'undefined') return ''
@@ -688,7 +702,18 @@ export function dfnsConnector() {
               return [currentSigner.address]
             }
             if (method === 'personal_sign' || method === 'eth_sign') {
-              const [message] = (params as [string, string]) || []
+              // personal_sign is [message, address]; eth_sign is [address, data].
+              // Pick the payload arg per method so we never sign the address.
+              const [first, second] = (params as [string, string]) || []
+              const requestedAddress = method === 'eth_sign' ? first : second
+              const message = method === 'eth_sign' ? second : first
+              assertRequestedAccount(
+                requestedAddress,
+                currentSigner.address,
+                method
+              )
+              if (!message) throw new Error(`${method} requires a message.`)
+
               const walletClient = currentSigner.getWalletClient()
               return walletClient.signMessage({
                 account: currentSigner.address,
@@ -697,6 +722,11 @@ export function dfnsConnector() {
             }
             if (method === 'eth_sendTransaction') {
               const [tx] = (params as [Record<string, Hex>]) || []
+              if (!tx) {
+                throw new Error('eth_sendTransaction requires a transaction.')
+              }
+              assertRequestedAccount(tx.from, currentSigner.address, method)
+
               const walletClient = currentSigner.getWalletClient()
               const transaction = {
                 account: currentSigner.address,

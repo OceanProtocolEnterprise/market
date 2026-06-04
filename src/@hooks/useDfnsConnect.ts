@@ -46,13 +46,18 @@ function popReturnPath() {
   }
 }
 
-function getCallbackUrlFromReturnPath(returnPath?: string) {
+/**
+ * Validate a stored return path and reduce it to a same-origin relative path
+ * (`/pathname?search`). Rejects absolute/cross-origin URLs and `//host` forms
+ * so the SSO callback can never be turned into an open redirect.
+ */
+function getSafeReturnPath(returnPath?: string) {
   if (!returnPath || typeof window === 'undefined') return undefined
 
   try {
     const returnUrl = new URL(returnPath, window.location.origin)
     if (returnUrl.origin !== window.location.origin) return undefined
-    return returnUrl.searchParams.get('callbackUrl') || undefined
+    return `${returnUrl.pathname}${returnUrl.search}`
   } catch {
     return undefined
   }
@@ -98,11 +103,11 @@ export function useDfnsConnect() {
 
   const startSso = useCallback(async () => {
     storeReturnPath()
+    // The org is resolved server-side from the authenticated session; no need
+    // to send it from the client (it would be ignored / untrusted anyway).
     const response = await fetch('/api/dfns/initiate-sso', {
       method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ organizationId })
+      credentials: 'same-origin'
     })
     const data = (await response.json().catch(() => ({}))) as {
       ssoRedirectUrl?: string
@@ -114,7 +119,7 @@ export function useDfnsConnect() {
     }
 
     redirectToDfnsSso(data.ssoRedirectUrl)
-  }, [organizationId])
+  }, [])
 
   const connect = useCallback(
     async (chainId?: number, code?: string) => {
@@ -215,15 +220,22 @@ export function useDfnsSsoReturnHandler(connect: DfnsConnect) {
       return
     }
 
-    const callbackUrl = getCallbackUrlFromReturnPath(popReturnPath())
-    const nextQuery = { ...router.query }
-    delete nextQuery.dfns
-    if (callbackUrl && !nextQuery.callbackUrl) {
-      nextQuery.callbackUrl = callbackUrl
+    // Return the user to the page that started the flow (validated same-origin).
+    // The server callback always lands here on /auth/login; navigating to the
+    // stored path restores a header-initiated reconnect to its origin page.
+    // Falls back to stripping the `dfns` marker from the current route.
+    const returnPath = getSafeReturnPath(popReturnPath())
+    if (returnPath) {
+      router.replace(returnPath)
+    } else {
+      const nextQuery = { ...router.query }
+      delete nextQuery.dfns
+      router.replace(
+        { pathname: router.pathname, query: nextQuery },
+        undefined,
+        { shallow: true }
+      )
     }
-    router.replace({ pathname: router.pathname, query: nextQuery }, undefined, {
-      shallow: true
-    })
 
     connect(getStoredDfnsSelectedChainId()).catch((error) =>
       console.error('Dfns wallet setup failed:', error)
