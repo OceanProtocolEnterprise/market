@@ -1,4 +1,4 @@
-import { ReactElement, useMemo } from 'react'
+import { ReactElement, useEffect, useMemo, useState } from 'react'
 import { useMarketMetadata } from '@context/MarketMetadata'
 import Price from '@shared/Price'
 import { secondsToString } from '@utils/ddo'
@@ -7,7 +7,15 @@ import Compute from '@images/compute.svg'
 import BranchArrow from '@images/arrow_branch.svg'
 import { AssetPrice } from 'src/@types/AssetPrice'
 import { AssetExtended } from 'src/@types/AssetExtended'
-import { getServiceStats, resolveServiceTokenSymbol } from '@utils/priceToken'
+import {
+  getAssetPriceTokenAddresses,
+  getPriceTokenAddress,
+  getServiceStats,
+  resolveServiceTokenSymbol
+} from '@utils/priceToken'
+import { getOceanConfig } from '@utils/ocean'
+import { getTokenInfo } from '@utils/wallet'
+import { JsonRpcProvider } from 'ethers'
 import styles from '../Bookmarks.module.css'
 
 function getServicePrice(
@@ -40,11 +48,12 @@ function getServicePrice(
     ) || asset.offchain?.stats?.services?.[serviceIndex]
   const offchainPriceEntry = offchainStat?.prices?.[0]
   const priceToken = priceEntry?.token
+  const offchainPriceToken = offchainPriceEntry?.token
   const tokenAddress =
     accessDetail?.baseToken?.address ||
-    offchainPriceEntry?.token?.address ||
+    getPriceTokenAddress(offchainPriceToken) ||
     priceEntry?.baseToken?.address ||
-    (typeof priceToken === 'string' ? priceToken : priceToken?.address) ||
+    getPriceTokenAddress(priceToken) ||
     ''
 
   return {
@@ -54,6 +63,7 @@ function getServicePrice(
     tokenSymbol:
       accessDetail?.baseToken?.symbol ||
       offchainPriceEntry?.token?.symbol ||
+      tokenSymbolMap?.[tokenAddress.toLowerCase()] ||
       resolveServiceTokenSymbol(
         asset,
         serviceIndex,
@@ -73,7 +83,10 @@ export default function ExpandedServices({
 }): ReactElement {
   const { approvedBaseTokens } = useMarketMetadata()
   const services = data.credentialSubject?.services || []
-  const tokenSymbolMap = useMemo(() => {
+  const [fetchedTokenSymbols, setFetchedTokenSymbols] = useState<
+    Record<string, string>
+  >({})
+  const approvedTokenSymbolMap = useMemo(() => {
     const map: Record<string, string> = {}
     approvedBaseTokens?.forEach((token) => {
       if (!token?.address || !token?.symbol) return
@@ -81,6 +94,64 @@ export default function ExpandedServices({
     })
     return map
   }, [approvedBaseTokens])
+  const priceTokenAddresses = useMemo(
+    () => getAssetPriceTokenAddresses(data),
+    [data]
+  )
+  const priceTokenAddressKey = priceTokenAddresses.join('|')
+  const tokenSymbolMap = useMemo(
+    () => ({ ...approvedTokenSymbolMap, ...fetchedTokenSymbols }),
+    [approvedTokenSymbolMap, fetchedTokenSymbols]
+  )
+
+  useEffect(() => {
+    const missingTokenAddresses = priceTokenAddresses.filter(
+      (address) => !tokenSymbolMap[address]
+    )
+
+    if (!missingTokenAddresses.length) return
+
+    const chainId = data.credentialSubject?.chainId
+    const nodeUri = getOceanConfig(chainId)?.nodeUri
+    if (!nodeUri) return
+
+    let cancelled = false
+    const provider = new JsonRpcProvider(nodeUri)
+
+    async function resolveMissingTokenSymbols() {
+      const entries = await Promise.all(
+        missingTokenAddresses.map(async (address) => {
+          const tokenInfo = await getTokenInfo(address, provider)
+          return [address, tokenInfo?.symbol || ''] as const
+        })
+      )
+
+      if (cancelled) return
+
+      setFetchedTokenSymbols((current) => {
+        const next = { ...current }
+        let changed = false
+        entries.forEach(([address, symbol]) => {
+          if (symbol && symbol !== '???' && current[address] !== symbol) {
+            next[address] = symbol
+            changed = true
+          }
+        })
+        return changed ? next : current
+      })
+    }
+
+    resolveMissingTokenSymbols()
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    data.credentialSubject?.chainId,
+    priceTokenAddressKey,
+    priceTokenAddresses,
+    tokenSymbolMap
+  ])
 
   if (!services.length) {
     return (
@@ -102,7 +173,12 @@ export default function ExpandedServices({
         {services.map((service, index) => {
           const isCompute = service.type === 'compute'
           const TypeIcon = isCompute ? Compute : Download
-          const price = getServicePrice(data, index, service.id, tokenSymbolMap)
+          const prices = getServicePrice(
+            data,
+            index,
+            service.id,
+            tokenSymbolMap
+          )
 
           return (
             <div
@@ -130,7 +206,7 @@ export default function ExpandedServices({
                 {secondsToString(Number(service.timeout) || 0)}
               </div>
               <div className={styles.expandedPrice}>
-                <Price price={price} size="small" />
+                <Price price={prices} size="small" />
               </div>
             </div>
           )

@@ -11,13 +11,13 @@ import { useSsiWallet } from '@context/SsiWallet'
 import { disconnectFromWallet } from '@utils/wallet/ssiWallet'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { useAuth } from '@hooks/useAuth'
-import { useModal } from 'connectkit'
 import { useRouter } from 'next/router'
 import { useUserPreferences } from '@context/UserPreferences'
 import { clearFederatedStorage } from '@utils/logoutRouter'
 
 interface DetailsProps {
   onRequestClose?: () => void
+  onRequestWalletChoice?: () => void
 }
 
 function formatWalletAddress(address: string): string {
@@ -106,13 +106,13 @@ function ActionButton({
 }
 
 export default function Details({
-  onRequestClose
+  onRequestClose,
+  onRequestWalletChoice
 }: DetailsProps): ReactElement {
   const { connector: activeConnector, address: accountId } = useAccount()
   const { disconnect } = useDisconnect()
   const { logout, markLogoutPending, isAuthenticated, user, authEnabled } =
     useAuth()
-  const { setOpen } = useModal()
   const router = useRouter()
   const { showOnboardingModule } = useUserPreferences()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -153,7 +153,7 @@ export default function Details({
 
   const handleConnectWallet = () => {
     onRequestClose?.()
-    setOpen(true)
+    onRequestWalletChoice?.()
   }
 
   const handleDisconnectWallet = async () => {

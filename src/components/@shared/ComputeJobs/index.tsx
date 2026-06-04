@@ -46,7 +46,10 @@ const ComputeJobs = ({
         const response = await getAllComputeJobs(
           accountId,
           signer,
-          newCancelToken()
+          newCancelToken(),
+          asset?.credentialSubject?.chainId
+            ? [asset.credentialSubject.chainId]
+            : undefined
         )
 
         if (response?.computeJobs) {

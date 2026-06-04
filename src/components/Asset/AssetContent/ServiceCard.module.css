@@ -37,6 +37,16 @@
   font-size: 14px;
   color: var(--clr-slate-70);
   line-height: 250%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.typeIcon {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+  flex-shrink: 0;
 }
 .serviceTitle {
   font-family: var(--font-family);

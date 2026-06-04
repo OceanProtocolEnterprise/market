@@ -191,7 +191,11 @@
   display: flex;
   align-items: center;
   gap: calc(var(--spacer) / 4);
+  flex: 1 1 0;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
+  overflow: hidden;
 }
 
 .externalLink {
@@ -243,44 +247,6 @@
 
 .skeletonRow > :last-child {
   justify-self: end;
-}
-
-.skeletonCell,
-.skeletonHeaderCell,
-.skeletonSquare {
-  border-radius: 4px;
-  background: linear-gradient(
-      90deg,
-      var(--black-alpha-6) 25%,
-      var(--black-alpha-12) 37%,
-      var(--black-alpha-6) 63%
-    ),
-    var(--background-highlight);
-  background-size: 400% 100%;
-  animation: shimmer 1.2s ease-in-out infinite;
-}
-
-.skeletonCell {
-  height: 1rem;
-}
-
-.skeletonHeaderCell {
-  height: 0.7rem;
-  width: 70%;
-}
-
-.skeletonSquare {
-  width: 18px;
-  height: 18px;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 100% 0;
-  }
-  100% {
-    background-position: -100% 0;
-  }
 }
 
 /* selectable-row checkboxes — match the project checkbox component */

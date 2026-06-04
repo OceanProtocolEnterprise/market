@@ -42,6 +42,10 @@ a.link:focus {
 
 .detailLine {
   margin-bottom: calc(var(--spacer) / 4);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacer) / 4);
+  min-width: 0;
 }
 
 .content {
@@ -96,6 +100,30 @@ a.link:focus {
   justify-content: space-between;
   align-items: center;
   margin-top: calc(var(--spacer) / 24);
+}
+
+.assetTypeLabel {
+  font-family: var(--font-family);
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--clr-slate-70);
+}
+
+.detailDivider {
+  width: 1px;
+  height: 14px;
+  background: var(--border-color);
+  flex-shrink: 0;
+}
+
+.serviceTypes {
+  color: var(--clr-slate-70);
+  gap: calc(var(--spacer) / 4);
+}
+
+.serviceTypes svg {
+  width: 12px;
+  height: 12px;
 }
 
 .typeLabel {

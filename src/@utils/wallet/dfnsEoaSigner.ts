@@ -1,4 +1,5 @@
-import type { DfnsWallet } from '@dfns/lib-viem'
+import type { DfnsApiClient } from '@dfns/sdk'
+import { DfnsWallet } from '@dfns/lib-viem'
 import {
   AbstractSigner,
   JsonRpcProvider,
@@ -8,11 +9,30 @@ import {
   type TypedDataDomain,
   type TypedDataField
 } from 'ethers'
-import type { Chain, Hex, WalletClient } from 'viem'
+import {
+  type Address,
+  type Chain,
+  type Hex,
+  type WalletClient,
+  createWalletClient,
+  getAddress,
+  http
+} from 'viem'
 import { toAccount } from 'viem/accounts'
 
 type DfnsWalletClient = WalletClient & {
   account: ReturnType<typeof toAccount>
+}
+
+export type DfnsEoaSignerInit = {
+  address: Address
+  chainId: number
+  dfnsClient: DfnsApiClient
+  dfnsWallet: DfnsWallet
+  walletClient: DfnsWalletClient
+  provider: JsonRpcProvider
+  chainsById: ReadonlyMap<number, Chain>
+  walletsByChain: ReadonlyMap<number, string>
 }
 
 function toBigIntValue(value: TransactionRequest[keyof TransactionRequest]) {
@@ -40,30 +60,173 @@ function toViemDomain(domain: TypedDataDomain) {
   }
 }
 
+function buildProvider(chain: Chain): JsonRpcProvider {
+  return new JsonRpcProvider(chain.rpcUrls.default.http[0], {
+    chainId: chain.id,
+    name: chain.name
+  })
+}
+
+function buildWalletClient(
+  chain: Chain,
+  dfnsWallet: DfnsWallet
+): DfnsWalletClient {
+  return createWalletClient({
+    account: toAccount(dfnsWallet),
+    chain,
+    transport: http(chain.rpcUrls.default.http[0])
+  }) as DfnsWalletClient
+}
+
+let activeDfnsEoaSigner: DfnsEoaSigner | undefined
+const activeSignerListeners = new Set<() => void>()
+
+export function setActiveDfnsEoaSigner(signer: DfnsEoaSigner | undefined) {
+  activeDfnsEoaSigner = signer
+  activeSignerListeners.forEach((listener) => listener())
+}
+
+export function getActiveDfnsEoaSigner() {
+  return activeDfnsEoaSigner
+}
+
+export function subscribeToActiveDfnsEoaSigner(listener: () => void) {
+  activeSignerListeners.add(listener)
+  return () => {
+    activeSignerListeners.delete(listener)
+  }
+}
+
 export class DfnsEoaSigner extends AbstractSigner<JsonRpcProvider> {
-  readonly address: string
+  readonly address: Address
+
   private readonly chain: Chain
   private readonly dfnsWallet: DfnsWallet
-  private readonly walletClient: DfnsWalletClient
+  private walletClient: DfnsWalletClient
 
-  constructor({
-    address,
-    chain,
-    dfnsWallet,
-    provider,
-    walletClient
-  }: {
-    address: string
-    chain: Chain
-    dfnsWallet: DfnsWallet
-    provider: JsonRpcProvider
-    walletClient: DfnsWalletClient
-  }) {
-    super(provider)
-    this.address = address
+  private readonly dfnsClient: DfnsApiClient
+  private readonly chainsById: ReadonlyMap<number, Chain>
+  private readonly walletsByChain: ReadonlyMap<number, string>
+
+  constructor(init: DfnsEoaSignerInit) {
+    super(init.provider)
+
+    if (!init.walletsByChain.has(init.chainId)) {
+      throw new Error(
+        `DFNS chain ${init.chainId} is not supported by this account. ` +
+          `Available: ${
+            Array.from(init.walletsByChain.keys()).join(', ') || '(none)'
+          }.`
+      )
+    }
+    const chain = init.chainsById.get(init.chainId)
+    if (!chain) {
+      throw new Error(`Missing viem Chain for chainId ${init.chainId}.`)
+    }
+
+    this.address = init.address
     this.chain = chain
-    this.dfnsWallet = dfnsWallet
-    this.walletClient = walletClient
+    this.dfnsWallet = init.dfnsWallet
+    this.walletClient = init.walletClient
+    this.dfnsClient = init.dfnsClient
+    this.chainsById = init.chainsById
+    this.walletsByChain = init.walletsByChain
+  }
+
+  /**
+   * Resolves the DFNS wallet for a chainId, initialises the viem walletClient
+   * and ethers JsonRpcProvider, and constructs a ready-to-use signer.
+   * No WebAuthn / SSO prompt; DfnsWallet.init reads via the authenticated
+   * dfnsClient.
+   */
+  static async createForChain(input: {
+    chainId: number
+    dfnsClient: DfnsApiClient
+    chainsById: ReadonlyMap<number, Chain>
+    walletsByChain: ReadonlyMap<number, string>
+  }): Promise<DfnsEoaSigner> {
+    const { chainId, dfnsClient, chainsById, walletsByChain } = input
+
+    if (!walletsByChain.has(chainId)) {
+      throw new Error(
+        `No DFNS wallet provisioned for chain ${chainId}. ` +
+          `Available: ${
+            Array.from(walletsByChain.keys()).join(', ') || '(none)'
+          }.`
+      )
+    }
+    const chain = chainsById.get(chainId)
+    if (!chain) {
+      throw new Error(`Missing viem Chain for chainId ${chainId}.`)
+    }
+
+    const walletId = walletsByChain.get(chainId) as string
+    const dfnsWallet = await DfnsWallet.init({ walletId, dfnsClient })
+    const walletClient = buildWalletClient(chain, dfnsWallet)
+    const provider = buildProvider(chain)
+
+    return new DfnsEoaSigner({
+      address: getAddress(dfnsWallet.address),
+      chainId,
+      dfnsClient,
+      dfnsWallet,
+      walletClient,
+      provider,
+      chainsById,
+      walletsByChain
+    })
+  }
+
+  getChainId(): number {
+    return this.chain.id
+  }
+
+  getChain(): Chain {
+    return this.chain
+  }
+
+  getSupportedChainIds(): readonly number[] {
+    return Array.from(this.walletsByChain.keys())
+  }
+
+  hasWalletForChain(chainId: number): boolean {
+    return this.walletsByChain.has(chainId)
+  }
+
+  getWalletClient(): DfnsWalletClient {
+    return this.walletClient
+  }
+
+  async createSignerForChain(nextChainId: number): Promise<DfnsEoaSigner> {
+    if (nextChainId === this.chain.id) return this
+    if (!this.walletsByChain.has(nextChainId)) {
+      throw new Error(`No DFNS wallet provisioned for chain ${nextChainId}.`)
+    }
+
+    return DfnsEoaSigner.createForChain({
+      chainId: nextChainId,
+      dfnsClient: this.dfnsClient,
+      chainsById: this.chainsById,
+      walletsByChain: this.walletsByChain
+    })
+  }
+
+  /**
+   * Re-binds the active DFNS signer to a different chain by:
+   *  - resolving the per-chain DFNS walletId,
+   *  - re-initialising DfnsWallet (no WebAuthn prompt; uses live SSO token),
+   *  - rebuilding the viem walletClient,
+   *  - rebuilding the ethers JsonRpcProvider.
+   *
+   * The new signer instance replaces the module-level active reference via
+   * setActiveDfnsEoaSigner so subscribers (useEthersSigner) pick it up on the
+   * next wagmi `change` event. External callers should not retain references
+   * to the prior signer; they should always re-read via getActiveDfnsEoaSigner.
+   */
+  async setChainId(nextChainId: number): Promise<void> {
+    const next = await this.createSignerForChain(nextChainId)
+    if (next === this) return
+    setActiveDfnsEoaSigner(next)
   }
 
   connect(provider: null | Provider): DfnsEoaSigner {
@@ -73,10 +236,13 @@ export class DfnsEoaSigner extends AbstractSigner<JsonRpcProvider> {
 
     return new DfnsEoaSigner({
       address: this.address,
-      chain: this.chain,
+      chainId: this.chain.id,
+      dfnsClient: this.dfnsClient,
       dfnsWallet: this.dfnsWallet,
+      walletClient: this.walletClient,
       provider,
-      walletClient: this.walletClient
+      chainsById: this.chainsById,
+      walletsByChain: this.walletsByChain
     })
   }
 
@@ -125,14 +291,4 @@ export class DfnsEoaSigner extends AbstractSigner<JsonRpcProvider> {
       message: value
     } as Parameters<typeof this.dfnsWallet.signTypedData>[0])
   }
-}
-
-let activeDfnsEoaSigner: DfnsEoaSigner | undefined
-
-export function setActiveDfnsEoaSigner(signer: DfnsEoaSigner | undefined) {
-  activeDfnsEoaSigner = signer
-}
-
-export function getActiveDfnsEoaSigner() {
-  return activeDfnsEoaSigner
 }

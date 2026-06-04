@@ -40,8 +40,7 @@
   .grid {
     display: grid;
     gap: var(--spacer);
-    /* lazy golden ratio */
-    grid-template-columns: 1.618fr 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .description {
@@ -87,13 +86,18 @@
   justify-content: flex-end;
   align-items: flex-end;
   gap: calc(var(--spacer) / 4);
+  min-width: 0;
 }
 
 .tokenSelect {
   width: auto;
-  min-width: 0;
+  min-width: 8rem;
+  max-width: 12rem;
   align-self: flex-end;
   display: inline-flex;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tokenSelect select {

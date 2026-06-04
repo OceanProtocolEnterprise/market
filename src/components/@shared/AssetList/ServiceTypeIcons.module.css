@@ -1,0 +1,37 @@
+.serviceTypes {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacer) / 4);
+}
+
+.serviceIcon {
+  width: 16px;
+  height: 16px;
+  fill: var(--clr-slate-70);
+  display: block;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.empty {
+  color: var(--clr-slate-50);
+}
+
+.servicesHeader {
+  display: inline-flex;
+  align-items: center;
+}
+
+.serviceLegend {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacer) / 4);
+}
+
+.serviceLegendRow {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--spacer) / 3);
+  white-space: nowrap;
+  text-transform: none;
+}

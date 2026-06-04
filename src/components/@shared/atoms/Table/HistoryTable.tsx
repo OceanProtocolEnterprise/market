@@ -174,21 +174,23 @@ export default function HistoryTable({
 
   return (
     <div className={className}>
-      <DataTable
-        columns={columns}
-        data={data}
-        pagination={pagination || data?.length >= 9}
-        paginationPerPage={paginationPerPage || 10}
-        noDataComponent={<Empty message={emptyMessage} />}
-        progressPending={isLoading}
-        progressComponent={<Loader />}
-        paginationComponent={Pagination as unknown as PaginationComponent}
-        defaultSortFieldId={sortField}
-        defaultSortAsc={sortAsc}
-        theme="ocean"
-        customStyles={customStyles}
-        {...props}
-      />
+      <div className={styles.tableContent}>
+        <DataTable
+          columns={columns}
+          data={data}
+          pagination={!showPagination && (pagination || data?.length >= 9)}
+          paginationPerPage={paginationPerPage || 10}
+          noDataComponent={<Empty message={emptyMessage} />}
+          progressPending={isLoading}
+          progressComponent={<Loader />}
+          paginationComponent={Pagination as unknown as PaginationComponent}
+          defaultSortFieldId={sortField}
+          defaultSortAsc={sortAsc}
+          theme="ocean"
+          customStyles={customStyles}
+          {...props}
+        />
+      </div>
       {showPagination && !isLoading && (
         <>
           <Pagination

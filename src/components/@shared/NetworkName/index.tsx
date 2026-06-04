@@ -17,7 +17,9 @@ export default function NetworkName({
 }): ReactElement {
   const { networksList } = useNetworkMetadata()
   const networkData = getNetworkDataById(networksList, networkId)
-  const networkName = getNetworkDisplayName(networkData)
+  const networkName = getNetworkDisplayName(
+    networkData || ({ chainId: networkId } as EthereumListsChain)
+  )
 
   return (
     <span

@@ -63,7 +63,6 @@ export default function TokenSelector({
         type="select"
         options={availableTokens}
         value={value}
-        style={{ width: 'auto', minWidth: '8rem', maxWidth: '12rem' }}
         onChange={(e) => onTokenChange((e.target as HTMLSelectElement).value)}
         className={styles.tokenSelect}
       />

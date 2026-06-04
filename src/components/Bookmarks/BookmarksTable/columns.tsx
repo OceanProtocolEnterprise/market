@@ -1,15 +1,16 @@
 import { ReactElement } from 'react'
-import Link from 'next/link'
 import { TableOceanColumn } from '@shared/atoms/Table'
 import AssetTitle from '@shared/AssetListTitle'
 import AssetType from '@shared/AssetType'
 import NetworkName from '@shared/NetworkName'
 import Time from '@shared/atoms/Time'
 import DeleteIcon from '@images/delete.svg'
-import ExternalIcon from '@images/external.svg'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import styles from '../Bookmarks.module.css'
-import { ServiceTypeIcons, ServicesColumnHeader } from './ServiceTypeIcons'
+import {
+  ServiceTypeIcons,
+  ServicesColumnHeader
+} from '@shared/AssetList/ServiceTypeIcons'
 
 export function buildBookmarkColumns(
   onRemove: (did: string) => void
@@ -17,25 +18,20 @@ export function buildBookmarkColumns(
   return [
     {
       name: 'Name',
-      selector: (row) => (
+      cell: (row) => (
         <div className={styles.nameCell}>
-          <AssetTitle title={row.credentialSubject.metadata.name} asset={row} />
-          <Link
-            className={styles.externalLink}
-            href={`/asset/${row.id}`}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Open asset in a new tab"
-          >
-            <ExternalIcon />
-          </Link>
+          <AssetTitle
+            title={row.credentialSubject.metadata.name}
+            asset={row}
+            openInNewTab
+          />
         </div>
       ),
       grow: 1
     },
     {
       name: 'Type',
-      selector: (row) => (
+      cell: (row) => (
         <AssetType
           className={styles.bookmarkType}
           type={row.credentialSubject.metadata.type}
@@ -46,14 +42,14 @@ export function buildBookmarkColumns(
     },
     {
       name: <ServicesColumnHeader />,
-      selector: (row) => (
+      cell: (row) => (
         <ServiceTypeIcons services={row.credentialSubject?.services} />
       ),
       width: '120px'
     },
     {
       name: 'Network',
-      selector: (row) => (
+      cell: (row) => (
         <NetworkName
           className={styles.bookmarkNetwork}
           networkId={row.credentialSubject?.chainId}
@@ -63,7 +59,7 @@ export function buildBookmarkColumns(
     },
     {
       name: 'Published',
-      selector: (row) =>
+      cell: (row) =>
         row.indexedMetadata?.nft?.created ? (
           <Time date={row.indexedMetadata.nft.created} />
         ) : (
@@ -74,8 +70,9 @@ export function buildBookmarkColumns(
     },
     {
       name: '',
-      selector: (row): ReactElement => (
+      cell: (row): ReactElement => (
         <button
+          type="button"
           className={styles.removeButton}
           onClick={() => onRemove(row.id)}
           title="Remove bookmark"

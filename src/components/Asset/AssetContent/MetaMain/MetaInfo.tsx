@@ -1,7 +1,6 @@
 import AssetType from '@shared/AssetType'
 import Time from '@shared/atoms/Time'
 import Publisher from '@shared/Publisher'
-import { getServiceByName } from '@utils/ddo'
 import { ReactElement } from 'react'
 import styles from './MetaInfo.module.css'
 import { AssetExtended } from 'src/@types/AssetExtended'
@@ -15,15 +14,13 @@ export default function MetaInfo({
   nftPublisher: string
   verifiedServiceProviderName?: string
 }): ReactElement {
-  const isCompute = Boolean(getServiceByName(asset, 'compute'))
-  const accessType = isCompute ? 'compute' : 'access'
   const nftOwner = asset?.indexedMetadata?.nft?.owner
 
   return (
     <div className={styles.wrapper}>
       <AssetType
         type={asset?.credentialSubject?.metadata.type}
-        accessType={accessType}
+        variant="metadata"
         className={styles.assetType}
       />
       <div className={styles.byline}>
