@@ -702,8 +702,6 @@ export function dfnsConnector() {
               return [currentSigner.address]
             }
             if (method === 'personal_sign' || method === 'eth_sign') {
-              // personal_sign is [message, address]; eth_sign is [address, data].
-              // Pick the payload arg per method so we never sign the address.
               const [first, second] = (params as [string, string]) || []
               const requestedAddress = method === 'eth_sign' ? first : second
               const message = method === 'eth_sign' ? second : first

@@ -103,8 +103,6 @@ export function useDfnsConnect() {
 
   const startSso = useCallback(async () => {
     storeReturnPath()
-    // The org is resolved server-side from the authenticated session; no need
-    // to send it from the client (it would be ignored / untrusted anyway).
     const response = await fetch('/api/dfns/initiate-sso', {
       method: 'POST',
       credentials: 'same-origin'
@@ -220,10 +218,6 @@ export function useDfnsSsoReturnHandler(connect: DfnsConnect) {
       return
     }
 
-    // Return the user to the page that started the flow (validated same-origin).
-    // The server callback always lands here on /auth/login; navigating to the
-    // stored path restores a header-initiated reconnect to its origin page.
-    // Falls back to stripping the `dfns` marker from the current route.
     const returnPath = getSafeReturnPath(popReturnPath())
     if (returnPath) {
       router.replace(returnPath)
