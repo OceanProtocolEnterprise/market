@@ -1,6 +1,7 @@
 import { ReactElement } from 'react'
 import Modal from '@shared/atoms/Modal'
 import Button from '@shared/atoms/Button'
+import { authSetupCopy } from '@components/Auth/constants'
 import styles from './index.module.css'
 
 interface WalletChoiceModalProps {
@@ -34,16 +35,18 @@ export default function WalletChoiceModal({
           onClick={onSelectMetaMask}
           className={styles.choice}
         >
-          Browser wallet (MetaMask)
+          {authSetupCopy.connectBrowserWallet}
         </Button>
         <Button
-          style="secondary"
+          style="primary"
           type="button"
           onClick={onSelectDfns}
           disabled={isDfnsConnecting}
           className={styles.choice}
         >
-          {isDfnsConnecting ? 'Connecting…' : 'Dfns Account'}
+          {isDfnsConnecting
+            ? authSetupCopy.dfnsConnecting
+            : authSetupCopy.connectDfnsWallet}
         </Button>
       </div>
     </Modal>
