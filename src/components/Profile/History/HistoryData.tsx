@@ -207,7 +207,6 @@ export default function HistoryData({
             ownAccount
           )
         ])
-        console.log('HERE RESULT', result, summaryResult)
         if (requestId !== latestRequestRef.current || !result) return
         setSummary({
           sales: summaryResult.totalOrders,

@@ -1161,7 +1161,6 @@ export async function getUserSalesAndRevenue(
         filter,
         page
       )
-      console.log('assets', assets)
       if (assets && assets.results) {
         assets.results.forEach((asset) => {
           const assetRevenue = getAssetSalesAndRevenueByToken(

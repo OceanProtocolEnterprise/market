@@ -244,7 +244,6 @@ function ProfileProvider({
     }
     async function getUserSalesNumber() {
       try {
-        console.log('approvedBaseTokens', approvedBaseTokens)
         const tokenSymbolMap =
           approvedBaseTokens?.reduce<Record<string, string>>((map, token) => {
             if (token?.address && token?.symbol) {
@@ -252,19 +251,12 @@ function ProfileProvider({
             }
             return map
           }, {}) || {}
-        const { totalOrders, revenueByToken, revenueByNetwork } =
-          await getUserSalesAndRevenue(
-            accountId,
-            activeChainIds,
-            undefined,
-            undefined,
-            tokenSymbolMap
-          )
-        console.log(
-          'User sales and revenue fetched successfully',
-          totalOrders,
-          revenueByToken,
-          revenueByNetwork
+        const { totalOrders, revenueByToken } = await getUserSalesAndRevenue(
+          accountId,
+          activeChainIds,
+          undefined,
+          undefined,
+          tokenSymbolMap
         )
         setSales(totalOrders)
         setRevenue(revenueByToken)
