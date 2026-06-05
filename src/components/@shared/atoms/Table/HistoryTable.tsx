@@ -13,7 +13,7 @@ import Button from '../Button'
 import styles from './index.module.css'
 import NumberUnit from '@components/Profile/Header/NumberUnit'
 import { AssetExtended } from 'src/@types/AssetExtended'
-import { getBaseTokenSymbol } from '@utils/getBaseTokenSymbol'
+import { resolveServiceTokenSymbol } from '@utils/priceToken'
 
 // Hack in support for returning components for each row, as this works,
 // but is not supported by the typings.
@@ -34,6 +34,7 @@ interface TableOceanProps<T> extends TableProps<T> {
   page?: number
   totalPages?: number
   revenueByToken?: Record<string, number>
+  revenueByNetwork?: Record<string, Record<string, number>>
   revenueTotal?: number
   sales: number
   items: number
@@ -56,6 +57,7 @@ export default function HistoryTable({
   page,
   totalPages,
   revenueByToken,
+  revenueByNetwork,
   revenueTotal,
   sales,
   items,
@@ -64,7 +66,10 @@ export default function HistoryTable({
 }: TableOceanProps<any>): ReactElement {
   const { networksList } = useNetworkMetadata()
   const revenueEntries = Object.entries(revenueByToken || {})
-    .filter(([symbol]) => !!symbol && symbol !== 'UNKNOWN')
+    .filter(
+      ([symbol, amount]) =>
+        !!symbol && symbol !== 'UNKNOWN' && Number(amount || 0) !== 0
+    )
     .sort(([symbolA], [symbolB]) => {
       // Sort with OCEAN first, then alphabetically
       if (symbolA === 'OCEAN') return -1
@@ -74,48 +79,141 @@ export default function HistoryTable({
   const totalRevenueValue =
     revenueTotal ??
     revenueEntries.reduce((acc, [, amount]) => acc + Number(amount || 0), 0)
+  const revenueByNetworkEntries = Object.entries(revenueByNetwork || {})
+    .map(([chainId, revenue]) => {
+      const tokenEntries = Object.entries(revenue || {})
+        .filter(
+          ([symbol, amount]) =>
+            !!symbol && symbol !== 'UNKNOWN' && Number(amount || 0) !== 0
+        )
+        .sort(([symbolA], [symbolB]) => {
+          if (symbolA === 'OCEAN') return -1
+          if (symbolB === 'OCEAN') return 1
+          return symbolA.localeCompare(symbolB)
+        })
+
+      return {
+        chainId: Number(chainId),
+        networkName: getNetworkDisplayName(
+          getNetworkDataById(networksList, Number(chainId))
+        ),
+        tokenEntries
+      }
+    })
+    .filter(({ tokenEntries }) => tokenEntries.length > 0)
+    .sort((a, b) => a.networkName.localeCompare(b.networkName))
+  const formattedRevenueByNetwork = revenueByNetworkEntries.reduce<
+    Record<string, { chainId: number; revenueByToken: Record<string, number> }>
+  >((map, { chainId, networkName, tokenEntries }) => {
+    map[networkName] = {
+      chainId,
+      revenueByToken: tokenEntries.reduce<Record<string, number>>(
+        (tokens, [symbol, amount]) => {
+          tokens[symbol] = Number(amount || 0)
+          return tokens
+        },
+        {}
+      )
+    }
+    return map
+  }, {})
 
   const handleExport = () => {
-    interface PriceEntry {
+    interface ServicePriceEntry {
       baseToken?: { symbol?: string }
       price?: number | string
+      tokenSymbol?: string
     }
 
     interface StatsEntry {
-      prices?: PriceEntry[]
+      datatokenAddress?: string
+      name?: string
+      prices?: ServicePriceEntry[]
       orders?: number
+      serviceId?: string
+      symbol?: string
     }
 
     const exportData = (allResults || []).map((asset) => {
-      const exportedAsset: Record<string, string | number> = {}
+      const exportedAsset: Record<string, unknown> = {}
       const assetWithAccess = asset as AssetExtended
       const access = assetWithAccess.accessDetails?.[0]
-      const statsEntry = assetWithAccess.indexedMetadata?.stats?.[0] as
-        | StatsEntry
-        | undefined
-      const priceEntry = statsEntry?.prices?.[0]
+      const assetIdentifier = assetWithAccess.id || ''
+      const services = assetWithAccess.credentialSubject?.services || []
 
-      const baseTokenSymbol = getBaseTokenSymbol(assetWithAccess)
+      exportedAsset.DID = assetIdentifier
+      exportedAsset.NftAddress =
+        assetWithAccess.credentialSubject?.nftAddress || ''
+      exportedAsset.Time = assetWithAccess.credentialSubject?.metadata?.created
+        ? new Date(
+            assetWithAccess.credentialSubject.metadata.created
+          ).toLocaleString()
+        : ''
+      if (assetWithAccess.indexedMetadata?.event?.txid) {
+        exportedAsset.publishTransactionId =
+          assetWithAccess.indexedMetadata.event.txid
+      }
+      exportedAsset.Services = services.map((service, index) => {
+        const serviceStats = assetWithAccess.indexedMetadata?.stats?.find(
+          (entry: StatsEntry) =>
+            entry.serviceId === service.id ||
+            entry.datatokenAddress?.toLowerCase() ===
+              service.datatokenAddress?.toLowerCase()
+        ) as StatsEntry | undefined
+        const serviceAccess =
+          assetWithAccess.accessDetails?.[index] ||
+          (index === 0 ? access : undefined)
+        const servicePriceEntry = serviceStats?.prices?.[0]
+        const servicePriceValue = Number(
+          serviceAccess?.price ?? servicePriceEntry?.price ?? 0
+        )
+        const servicePrice = Number.isFinite(servicePriceValue)
+          ? servicePriceValue
+          : 0
+        const serviceOrders = serviceStats?.orders || 0
+        const serviceBaseTokenSymbol =
+          serviceAccess?.baseToken?.symbol ||
+          servicePriceEntry?.baseToken?.symbol ||
+          servicePriceEntry?.tokenSymbol ||
+          resolveServiceTokenSymbol(
+            assetWithAccess,
+            index,
+            service.id,
+            undefined,
+            service.datatokenAddress
+          ) ||
+          ''
+        const serviceRevenue = serviceOrders * servicePrice
+        const servicePriceDisplay =
+          servicePrice === 0
+            ? 'Free'
+            : serviceBaseTokenSymbol
+            ? `${servicePrice} ${serviceBaseTokenSymbol}`
+            : servicePrice
+        const serviceRevenueDisplay =
+          serviceRevenue === 0
+            ? 0
+            : serviceBaseTokenSymbol
+            ? `${serviceRevenue} ${serviceBaseTokenSymbol}`
+            : serviceRevenue
 
-      const accessPrice =
-        access?.price && typeof access.price === 'string'
-          ? Number(access.price)
-          : access?.price
-          ? Number(access.price)
-          : undefined
-
-      const priceValue =
-        accessPrice ??
-        (priceEntry?.price
-          ? typeof priceEntry.price === 'string'
-            ? Number(priceEntry.price)
-            : priceEntry.price
-          : undefined) ??
-        0
-
-      const orders = statsEntry?.orders || 0
+        return {
+          serviceId: service.id,
+          name: service.name || serviceStats?.name || '',
+          type: service.type,
+          datatokenAddress:
+            service.datatokenAddress || serviceStats?.datatokenAddress || '',
+          datatokenSymbol:
+            serviceAccess?.datatoken?.symbol || serviceStats?.symbol || '',
+          sales: serviceOrders,
+          price: servicePriceDisplay,
+          revenue: serviceRevenueDisplay
+        }
+      })
 
       columns.forEach((col) => {
+        if (col.name === 'DDO DID') return
+
         const value = col.selector(asset)
 
         if (col.name === 'Dataset') {
@@ -127,19 +225,17 @@ export default function HistoryTable({
             asset.credentialSubject.chainId
           )
           exportedAsset[col.name as string] = getNetworkDisplayName(networkData)
+          exportedAsset.chainId = asset.credentialSubject.chainId
+        } else if (col.name === 'Transaction ID') {
+          exportedAsset[col.name as string] =
+            asset.indexedMetadata?.event?.txid || ''
         } else if (col.name === 'Time') {
-          exportedAsset[col.name as string] = new Date(
-            asset.indexedMetadata?.event?.datetime
-          ).toLocaleString()
-        } else if (col.name === 'Price') {
-          exportedAsset[col.name as string] = baseTokenSymbol
-            ? `${Number(priceValue)} ${baseTokenSymbol}`
-            : Number(priceValue)
-        } else if (col.name === 'Revenue') {
-          const revenueValue = orders * Number(priceValue)
-          exportedAsset[col.name as string] = baseTokenSymbol
-            ? `${revenueValue} ${baseTokenSymbol}`
-            : revenueValue
+          exportedAsset[col.name as string] = asset.credentialSubject?.metadata
+            ?.created
+            ? new Date(
+                asset.credentialSubject.metadata.created
+              ).toLocaleString()
+            : ''
         } else {
           exportedAsset[col.name as string] = value
         }
@@ -151,7 +247,8 @@ export default function HistoryTable({
       dataset: exportData,
       totalSales: sales,
       totalPublished: items,
-      revenueByToken
+      revenueByToken,
+      revenueByNetwork: formattedRevenueByNetwork
     }
 
     const jsonString = JSON.stringify(exportObject, null, 2)
@@ -198,24 +295,9 @@ export default function HistoryTable({
             currentPage={page}
             onChangePage={handlePageChange}
           />
-
-          <div className={styles.totalContainer}>
+          <div className={styles.totalSummaryRow}>
             <NumberUnit label="Total sales" value={sales} />
             <NumberUnit label="Total published" value={items} />
-            {revenueEntries.length > 0 &&
-              revenueEntries.map(([symbol, amount]) => (
-                <NumberUnit
-                  key={symbol}
-                  label={`Total Revenue ${symbol}`}
-                  value={Number(amount || 0)}
-                />
-              ))}
-            {revenueEntries.length === 0 && (
-              <NumberUnit
-                label="Total Revenue"
-                value={Number(totalRevenueValue || 0)}
-              />
-            )}
           </div>
         </>
       )}

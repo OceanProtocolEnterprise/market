@@ -8,7 +8,7 @@ import {
   useRef,
   useState
 } from 'react'
-import { getPublishedAssets } from '@utils/aquarius'
+import { getPublishedAssets, getUserSalesAndRevenue } from '@utils/aquarius'
 import styles from './HistoryData.module.css'
 import { useCancelToken } from '@hooks/useCancelToken'
 import Filter from '@components/Search/Filter'
@@ -16,7 +16,6 @@ import { useMarketMetadata } from '@context/MarketMetadata'
 import { useProfile } from '@context/Profile'
 import { useFilter, Filters } from '@context/Filter'
 import { TableOceanColumn } from '@shared/atoms/Table'
-import Time from '@shared/atoms/Time'
 import AssetTitle from '@shared/AssetListTitle'
 import NetworkName from '@shared/NetworkName'
 import HistoryTable from '@components/@shared/atoms/Table/HistoryTable'
@@ -26,86 +25,44 @@ import useNetworkMetadata, {
 } from '@hooks/useNetworkMetadata'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { getAccessDetails } from '@utils/accessDetailsAndPricing'
-import { getBaseTokenSymbol } from '@utils/getBaseTokenSymbol'
 import TableSkeleton from '@shared/atoms/Table/Skeleton'
+import ExpandIcon from '@images/expand.svg'
+import MinimizeIcon from '@images/minimize.svg'
+import ExpandedServices from './ExpandedServices'
+import { truncateDid } from '@utils/string'
+import ExplorerLink from '@shared/ExplorerLink'
+import Time from '@shared/atoms/Time'
 
-// 7 cols: Dataset | Network | Datatoken | Time | Sales | Price | Revenue
-const headerWidths = ['55%', '70%', '65%', '55%', '60%', '55%', '55%']
+// 6 cols: Dataset | DDO DID | Network | Time | Transaction ID | Sales
+const headerWidths = ['55%', '60%', '70%', '55%', '60%', '50%']
 const rowWidths = [
-  ['80%', '65%', '70%', '55%', '40%', '60%', '60%'],
-  ['70%', '55%', '60%', '65%', '50%', '55%', '70%'],
-  ['85%', '70%', '55%', '50%', '45%', '65%', '65%'],
-  ['75%', '60%', '75%', '60%', '35%', '50%', '55%'],
-  ['65%', '75%', '65%', '55%', '50%', '70%', '60%'],
-  ['80%', '65%', '70%', '65%', '40%', '60%', '65%'],
-  ['70%', '55%', '60%', '50%', '55%', '55%', '60%'],
-  ['85%', '70%', '65%', '60%', '45%', '65%', '55%'],
-  ['75%', '60%', '75%', '55%', '50%', '60%', '65%']
+  ['80%', '60%', '65%', '55%', '70%', '40%'],
+  ['70%', '55%', '55%', '65%', '60%', '50%'],
+  ['85%', '65%', '70%', '50%', '75%', '45%'],
+  ['75%', '60%', '60%', '60%', '65%', '35%'],
+  ['65%', '70%', '75%', '55%', '55%', '50%'],
+  ['80%', '55%', '65%', '65%', '70%', '40%'],
+  ['70%', '65%', '55%', '50%', '60%', '55%'],
+  ['85%', '60%', '70%', '60%', '75%', '45%'],
+  ['75%', '70%', '60%', '55%', '65%', '50%']
 ]
 
 function HistorySkeleton(): ReactElement {
   return (
     <TableSkeleton
       className={styles.skeletonWrapper}
-      gridTemplateColumns="2.2fr 1.2fr 1fr 1.2fr 0.7fr 0.9fr 0.9fr"
+      gridTemplateColumns="2fr 1.2fr 1.2fr 1fr 1.2fr 0.6fr"
       headerWidths={headerWidths}
       rowWidths={rowWidths}
     />
   )
 }
 
-interface PriceEntry {
-  price?: number | string
-  baseToken?: TokenInfo
-}
-
-interface StatsWithPrices {
-  prices?: PriceEntry[]
-  orders?: number
-  symbol?: string
-}
-
-const getPrice = (asset: AssetExtended): number => {
-  const firstAccessDetail = asset.accessDetails?.[0]
-  if (firstAccessDetail?.price) {
-    const priceValue =
-      typeof firstAccessDetail.price === 'string'
-        ? Number(firstAccessDetail.price)
-        : firstAccessDetail.price
-    if (!isNaN(priceValue)) {
-      return priceValue
-    }
-  }
-
-  const stats = asset.indexedMetadata?.stats?.[0] as StatsWithPrices | undefined
-  const priceEntry = stats?.prices?.[0]
-  if (priceEntry?.price) {
-    const priceValue =
-      typeof priceEntry.price === 'string'
-        ? Number(priceEntry.price)
-        : priceEntry.price
-    if (!isNaN(priceValue)) {
-      return priceValue
-    }
-  }
-
-  return 0
-}
-
 const getOrders = (asset: AssetExtended) =>
-  asset.indexedMetadata?.stats?.[0]?.orders || 0
-
-const filterAndSeedRevenue = (
-  revenue: Record<string, number>,
-  approvedBaseTokens?: { symbol: string }[]
-) => {
-  const seeded = { ...(revenue || {}) }
-  approvedBaseTokens?.forEach((token) => {
-    if (!seeded[token.symbol]) seeded[token.symbol] = 0
-  })
-
-  return seeded
-}
+  asset.indexedMetadata?.stats?.reduce(
+    (totalOrders, stats) => totalOrders + (stats?.orders || 0),
+    0
+  ) || 0
 
 export default function HistoryData({
   accountId
@@ -113,7 +70,7 @@ export default function HistoryData({
   accountId: string
 }): ReactElement {
   const { approvedBaseTokens, validatedSupportedChains } = useMarketMetadata()
-  const { ownAccount, sales, revenue } = useProfile()
+  const { ownAccount } = useProfile()
   const { filters, ignorePurgatory } = useFilter()
   const { networksList } = useNetworkMetadata()
 
@@ -121,7 +78,15 @@ export default function HistoryData({
     () => [
       {
         name: 'Dataset',
-        selector: (asset) => <AssetTitle asset={asset} />
+        selector: (asset) => <AssetTitle asset={asset} maxTitleLength={80} />
+      },
+      {
+        name: 'DDO DID',
+        selector: (asset) => (
+          <span className={styles.identifier} title={asset.id}>
+            {truncateDid(asset.id)}
+          </span>
+        )
       },
       {
         name: 'Network',
@@ -139,43 +104,33 @@ export default function HistoryData({
         }
       },
       {
-        name: 'Datatoken',
-        selector: (asset) => asset.indexedMetadata?.stats?.[0]?.symbol || '-'
-      },
-      {
         name: 'Time',
         selector: (asset) => {
-          const unixTime = Math.floor(
-            new Date(asset.credentialSubject.metadata.created).getTime()
-          ).toString()
-          return <Time date={unixTime} relative isUnix />
+          const created = asset.credentialSubject?.metadata?.created
+          return created ? <Time date={created} relative /> : '-'
+        }
+      },
+      {
+        name: 'Transaction ID',
+        selector: (asset) => {
+          const txid = asset.indexedMetadata?.event?.txid
+          if (!txid) return ''
+
+          return (
+            <ExplorerLink
+              networkId={asset.credentialSubject.chainId}
+              path={`/tx/${txid}`}
+              className={styles.identifier}
+            >
+              <span title={txid}>{truncateDid(txid)}</span>
+            </ExplorerLink>
+          )
         }
       },
       {
         name: 'Sales',
         selector: (asset) => getOrders(asset),
         maxWidth: '5rem'
-      },
-      {
-        name: 'Price',
-        selector: (asset) => {
-          const price = getPrice(asset)
-          const tokenSymbol = getBaseTokenSymbol(asset)
-          return tokenSymbol ? `${price} ${tokenSymbol}` : `${price}`
-        },
-        maxWidth: '7rem'
-      },
-      {
-        name: 'Revenue',
-        selector: (asset) => {
-          const price = getPrice(asset)
-          const orders = getOrders(asset)
-          const tokenSymbol = getBaseTokenSymbol(asset)
-          return tokenSymbol
-            ? `${orders * price} ${tokenSymbol}`
-            : `${orders * price}`
-        },
-        maxWidth: '7rem'
       }
     ],
     [networksList]
@@ -188,15 +143,32 @@ export default function HistoryData({
     () => JSON.stringify(activeChainIds || []),
     [activeChainIds]
   )
+  const tokenSymbolMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    approvedBaseTokens?.forEach((token) => {
+      if (!token?.address || !token?.symbol) return
+      map[token.address.toLowerCase()] = token.symbol
+    })
+    return map
+  }, [approvedBaseTokens])
   const filtersKey = useMemo(() => JSON.stringify(filters || {}), [filters])
   const [queryResult, setQueryResult] = useState<PagedAssets>()
+  const [summary, setSummary] = useState<{
+    sales: number
+    revenueByToken: Record<string, number>
+    revenueByNetwork: Record<string, Record<string, number>>
+  }>({
+    sales: 0,
+    revenueByToken: {},
+    revenueByNetwork: {}
+  })
   const [isTableLoading, setIsTableLoading] = useState(false)
   const [page, setPage] = useState<number>(0)
   const [accessDetailsCache, setAccessDetailsCache] = useState<
-    Record<string, AccessDetails>
+    Record<string, AccessDetails[]>
   >({})
   const latestRequestRef = useRef(0)
-  const accessDetailsCacheRef = useRef<Record<string, AccessDetails>>({})
+  const accessDetailsCacheRef = useRef<Record<string, AccessDetails[]>>({})
 
   const newCancelToken = useCancelToken()
 
@@ -215,16 +187,33 @@ export default function HistoryData({
       latestRequestRef.current = requestId
       try {
         setIsTableLoading(true)
-        const result = await getPublishedAssets(
-          account.toLowerCase(),
-          activeChainIds,
-          cancelToken,
-          ownAccount && ignorePurgatory,
-          ownAccount,
-          currentFilters,
-          currentPage
-        )
+        const [result, summaryResult] = await Promise.all([
+          getPublishedAssets(
+            account.toLowerCase(),
+            activeChainIds,
+            cancelToken,
+            ownAccount && ignorePurgatory,
+            ownAccount,
+            currentFilters,
+            currentPage
+          ),
+          getUserSalesAndRevenue(
+            account.toLowerCase(),
+            activeChainIds,
+            currentFilters,
+            cancelToken,
+            tokenSymbolMap,
+            ownAccount && ignorePurgatory,
+            ownAccount
+          )
+        ])
+        console.log('HERE RESULT', result, summaryResult)
         if (requestId !== latestRequestRef.current || !result) return
+        setSummary({
+          sales: summaryResult.totalOrders,
+          revenueByToken: summaryResult.revenueByToken,
+          revenueByNetwork: summaryResult.revenueByNetwork
+        })
         let enrichedResults: AssetExtended[] = []
         if (result?.results) {
           enrichedResults = await Promise.all(
@@ -233,11 +222,15 @@ export default function HistoryData({
                 const cached = accessDetailsCacheRef.current[item.id]
                 const accessDetails =
                   cached ||
-                  (await getAccessDetails(
-                    item.credentialSubject.chainId,
-                    item.credentialSubject.services[0],
-                    account,
-                    newCancelToken()
+                  (await Promise.all(
+                    item.credentialSubject.services.map((service) =>
+                      getAccessDetails(
+                        item.credentialSubject.chainId,
+                        service,
+                        account,
+                        newCancelToken()
+                      )
+                    )
                   ))
                 if (!cached && accessDetails) {
                   setAccessDetailsCache((prev) => ({
@@ -247,7 +240,7 @@ export default function HistoryData({
                 }
                 return {
                   ...item,
-                  accessDetails: [accessDetails]
+                  accessDetails
                 } as AssetExtended
               } catch (err) {
                 const errorMessage =
@@ -283,7 +276,13 @@ export default function HistoryData({
         }
       }
     },
-    [activeChainIdsKey, ignorePurgatory, newCancelToken, ownAccount]
+    [
+      activeChainIds,
+      ignorePurgatory,
+      newCancelToken,
+      ownAccount,
+      tokenSymbolMap
+    ]
   )
 
   useEffect(() => {
@@ -291,11 +290,24 @@ export default function HistoryData({
   }, [page, queryResult])
 
   useEffect(() => {
-    if (!accountId || activeChainIds.length === 0) return
+    if (!accountId || activeChainIds.length === 0) {
+      setQueryResult(undefined)
+      setSummary({ sales: 0, revenueByToken: {}, revenueByNetwork: {} })
+      return
+    }
     const source = axios.CancelToken.source()
     getPublished(accountId, page, filters, source.token)
     return () => source.cancel('history-published-cancelled')
-  }, [accountId, ownAccount, page, getPublished, filtersKey, activeChainIdsKey])
+  }, [
+    accountId,
+    activeChainIds.length,
+    activeChainIdsKey,
+    filters,
+    filtersKey,
+    getPublished,
+    ownAccount,
+    page
+  ])
 
   return accountId ? (
     <div className={styles.containerHistory}>
@@ -323,17 +335,24 @@ export default function HistoryData({
             showPagination={Boolean(queryResult?.results?.length)}
             page={queryResult?.page > 0 ? queryResult?.page - 1 : 1}
             totalPages={queryResult?.totalPages}
-            revenueByToken={filterAndSeedRevenue(
-              revenue || {},
-              approvedBaseTokens
-            )}
-            revenueTotal={Object.values(revenue || {}).reduce(
+            revenueByToken={summary.revenueByToken}
+            revenueByNetwork={summary.revenueByNetwork}
+            revenueTotal={Object.values(summary.revenueByToken).reduce(
               (acc, value) => acc + Number(value || 0),
               0
             )}
-            sales={sales}
+            sales={summary.sales}
             items={queryResult?.totalResults || 0}
             allResults={queryResult?.results || []}
+            expandableRows
+            expandableRowsComponent={ExpandedServices}
+            expandableRowDisabled={(row) =>
+              !row.credentialSubject?.services?.length
+            }
+            expandableIcon={{
+              collapsed: <ExpandIcon className={styles.expanderIcon} />,
+              expanded: <MinimizeIcon className={styles.expanderIcon} />
+            }}
           />
         )}
       </div>

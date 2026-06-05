@@ -6,7 +6,8 @@ import {
   ReactElement,
   useCallback,
   ReactNode,
-  useRef
+  useRef,
+  useMemo
 } from 'react'
 import { useUserPreferences } from '../UserPreferences'
 import { EscrowContract, LoggerInstance } from '@oceanprotocol/lib'
@@ -64,7 +65,8 @@ function ProfileProvider({
   const walletClient = useEthersSigner() // FIX: Replaced useSigner
   const chainId = useChainId() // FIX: Replaced useNetwork
   const { chainIds } = useUserPreferences()
-  const { appConfig, approvedBaseTokens } = useMarketMetadata()
+  const { appConfig, approvedBaseTokens, validatedSupportedChains } =
+    useMarketMetadata()
   const [revenue, setRevenue] = useState<{ [symbol: string]: number }>({})
   const [escrowFundsByToken, setEscrowFundsByToken] = useState<{
     [symbol: string]: EscrowFunds
@@ -140,9 +142,11 @@ function ProfileProvider({
 
   const fetchDownloads = useCallback(
     async (cancelToken: CancelToken, page = 1) => {
-      if (!accountId || !chainIds) return
+      if (!accountId || !validatedSupportedChains?.length) return
 
       const dtList: string[] = []
+      const orderIdsByDatatoken: Record<string, string> = {}
+      const orderTimestampsByDatatoken: Record<string, number> = {}
       let currentPage = 1
       let totalPages = 1
 
@@ -150,7 +154,30 @@ function ProfileProvider({
       while (currentPage <= totalPages) {
         const orders = await getUserOrders(accountId, cancelToken, currentPage)
         orders?.results?.forEach((order) => {
-          if (order.datatokenAddress) dtList.push(order.datatokenAddress)
+          const downloadOrder = order as Asset & {
+            datatokenAddress?: string
+            orderId?: string
+            timestamp?: number
+          }
+          if (!downloadOrder.datatokenAddress) return
+
+          const datatokenAddress = downloadOrder.datatokenAddress.toLowerCase()
+          dtList.push(downloadOrder.datatokenAddress)
+          if (
+            downloadOrder.timestamp &&
+            (!orderTimestampsByDatatoken[datatokenAddress] ||
+              downloadOrder.timestamp >
+                orderTimestampsByDatatoken[datatokenAddress])
+          ) {
+            orderTimestampsByDatatoken[datatokenAddress] =
+              downloadOrder.timestamp
+            orderIdsByDatatoken[datatokenAddress] = downloadOrder.orderId || ''
+          } else if (
+            downloadOrder.orderId &&
+            !orderIdsByDatatoken[datatokenAddress]
+          ) {
+            orderIdsByDatatoken[datatokenAddress] = downloadOrder.orderId
+          }
         })
         // eslint-disable-next-line prefer-destructuring
         totalPages = orders?.totalPages || 0
@@ -159,10 +186,12 @@ function ProfileProvider({
 
       const result = await getDownloadAssets(
         dtList,
-        chainIds,
+        validatedSupportedChains,
         cancelToken,
         ownAccount,
-        page // Only paginate here
+        page, // Only paginate here
+        orderTimestampsByDatatoken,
+        orderIdsByDatatoken
       )
       // Paginate only the download assets
       const downloadedAssets = result?.downloadedAssets || []
@@ -171,7 +200,7 @@ function ProfileProvider({
       setDownloads(downloadedAssets)
       setDownloadsTotal(totalResults)
     },
-    [accountId, chainIds, ownAccount]
+    [accountId, ownAccount, validatedSupportedChains]
   )
 
   const handlePageChange = (page: number) => {
@@ -202,6 +231,11 @@ function ProfileProvider({
   //
   const [sales, setSales] = useState(0)
 
+  const activeChainIds = useMemo(
+    () => validatedSupportedChains || [],
+    [validatedSupportedChains]
+  )
+
   useEffect(() => {
     if (!accountId || chainIds.length === 0) {
       setSales(0)
@@ -210,9 +244,27 @@ function ProfileProvider({
     }
     async function getUserSalesNumber() {
       try {
-        const { totalOrders, revenueByToken } = await getUserSalesAndRevenue(
-          accountId,
-          chainIds
+        console.log('approvedBaseTokens', approvedBaseTokens)
+        const tokenSymbolMap =
+          approvedBaseTokens?.reduce<Record<string, string>>((map, token) => {
+            if (token?.address && token?.symbol) {
+              map[token.address.toLowerCase()] = token.symbol
+            }
+            return map
+          }, {}) || {}
+        const { totalOrders, revenueByToken, revenueByNetwork } =
+          await getUserSalesAndRevenue(
+            accountId,
+            activeChainIds,
+            undefined,
+            undefined,
+            tokenSymbolMap
+          )
+        console.log(
+          'User sales and revenue fetched successfully',
+          totalOrders,
+          revenueByToken,
+          revenueByNetwork
         )
         setSales(totalOrders)
         setRevenue(revenueByToken)
@@ -223,7 +275,7 @@ function ProfileProvider({
       }
     }
     getUserSalesNumber()
-  }, [accountId, chainIds, newCancelToken])
+  }, [accountId, approvedBaseTokens, chainIds, newCancelToken])
 
   async function getEscrowFunds() {
     if (!accountId || !isEthAddress || !walletClient || !chainId) {
