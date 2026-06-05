@@ -39,13 +39,17 @@ interface EscrowFunds {
 interface ProfileProviderValue {
   assets: Asset[]
   assetsTotal: number
+  activeAssetsTotal: number
   isEthAddress: boolean
   downloads: DownloadedAsset[]
   downloadsTotal: number
+  activeDownloadsTotal: number
   isDownloadsLoading: boolean
   sales: number
+  activeSales: number
   ownAccount: boolean
   revenue: { [symbol: string]: number }
+  revenueByNetwork: { [chainId: string]: { [symbol: string]: number } }
   escrowFundsByToken: { [symbol: string]: EscrowFunds }
   handlePageChange: (pageNumber: number) => void
   refreshEscrowFunds?: () => void
@@ -68,6 +72,9 @@ function ProfileProvider({
   const { appConfig, approvedBaseTokens, validatedSupportedChains } =
     useMarketMetadata()
   const [revenue, setRevenue] = useState<{ [symbol: string]: number }>({})
+  const [revenueByNetwork, setRevenueByNetwork] = useState<{
+    [chainId: string]: { [symbol: string]: number }
+  }>({})
   const [escrowFundsByToken, setEscrowFundsByToken] = useState<{
     [symbol: string]: EscrowFunds
   }>({})
@@ -89,6 +96,7 @@ function ProfileProvider({
   //
   const [assets, setAssets] = useState<Asset[]>()
   const [assetsTotal, setAssetsTotal] = useState(0)
+  const [activeAssetsTotal, setActiveAssetsTotal] = useState(0)
   // const [assetsWithPrices, setAssetsWithPrices] = useState<AssetListPrices[]>()
 
   useEffect(() => {
@@ -107,6 +115,19 @@ function ProfileProvider({
         )
         setAssets(result?.results)
         setAssetsTotal(result?.totalResults)
+
+        if (chainId) {
+          const activeChainResult = await getPublishedAssets(
+            accountId,
+            [chainId],
+            cancelTokenSource.token,
+            ownAccount,
+            ownAccount
+          )
+          setActiveAssetsTotal(activeChainResult?.totalResults || 0)
+        } else {
+          setActiveAssetsTotal(0)
+        }
 
         // Hint: this would only make sense if we "search" in all subcomponents
         // against this provider's state, meaning filtering via js rather then sending
@@ -128,6 +149,7 @@ function ProfileProvider({
     accountId,
     appConfig.metadataCacheUri,
     chainIds,
+    chainId,
     isEthAddress,
     ownAccount
   ])
@@ -137,12 +159,22 @@ function ProfileProvider({
   //
   const [downloads, setDownloads] = useState<DownloadedAsset[]>()
   const [downloadsTotal, setDownloadsTotal] = useState(0)
+  const [activeDownloadsTotal, setActiveDownloadsTotal] = useState(0)
   const [isDownloadsLoading, setIsDownloadsLoading] = useState<boolean>()
   const [currentPage, setCurrentPage] = useState(1)
 
-  const fetchDownloads = useCallback(
-    async (cancelToken: CancelToken, page = 1) => {
-      if (!accountId || !validatedSupportedChains?.length) return
+  const fetchDownloadAssetsForChains = useCallback(
+    async (
+      cancelToken: CancelToken,
+      targetChainIds: number[],
+      page = 1
+    ): Promise<{
+      downloadedAssets: DownloadedAsset[]
+      totalResults: number
+    }> => {
+      if (!accountId || !targetChainIds?.length) {
+        return { downloadedAssets: [], totalResults: 0 }
+      }
 
       const dtList: string[] = []
       const orderIdsByDatatoken: Record<string, string> = {}
@@ -186,7 +218,7 @@ function ProfileProvider({
 
       const result = await getDownloadAssets(
         dtList,
-        validatedSupportedChains,
+        targetChainIds,
         cancelToken,
         ownAccount,
         page, // Only paginate here
@@ -197,10 +229,22 @@ function ProfileProvider({
       const downloadedAssets = result?.downloadedAssets || []
       const totalResults = result?.totalResults || 0
 
-      setDownloads(downloadedAssets)
-      setDownloadsTotal(totalResults)
+      return { downloadedAssets, totalResults }
     },
-    [accountId, ownAccount, validatedSupportedChains]
+    [accountId, ownAccount]
+  )
+
+  const fetchDownloads = useCallback(
+    async (cancelToken: CancelToken, page = 1) => {
+      const result = await fetchDownloadAssetsForChains(
+        cancelToken,
+        validatedSupportedChains,
+        page
+      )
+      setDownloads(result.downloadedAssets)
+      setDownloadsTotal(result.totalResults)
+    },
+    [fetchDownloadAssetsForChains, validatedSupportedChains]
   )
 
   const handlePageChange = (page: number) => {
@@ -226,10 +270,37 @@ function ProfileProvider({
     return () => cancelToken.cancel('Request cancelled.')
   }, [currentPage, fetchDownloads])
 
+  useEffect(() => {
+    const cancelToken = axios.CancelToken.source()
+    async function updateActiveDownloadsTotal() {
+      try {
+        if (!chainId) {
+          setActiveDownloadsTotal(0)
+          return
+        }
+
+        const result = await fetchDownloadAssetsForChains(
+          cancelToken.token,
+          [chainId],
+          1
+        )
+        setActiveDownloadsTotal(result.totalResults)
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err)
+        LoggerInstance.log(errorMessage)
+      }
+    }
+
+    updateActiveDownloadsTotal()
+
+    return () => cancelToken.cancel('Request cancelled.')
+  }, [chainId, fetchDownloadAssetsForChains])
+
   //
   // SALES NUMBER
   //
   const [sales, setSales] = useState(0)
+  const [activeSales, setActiveSales] = useState(0)
 
   const activeChainIds = useMemo(
     () => validatedSupportedChains || [],
@@ -237,9 +308,11 @@ function ProfileProvider({
   )
 
   useEffect(() => {
-    if (!accountId || chainIds.length === 0) {
+    if (!accountId || activeChainIds.length === 0) {
       setSales(0)
+      setActiveSales(0)
       setRevenue({})
+      setRevenueByNetwork({})
       return
     }
     async function getUserSalesNumber() {
@@ -251,15 +324,30 @@ function ProfileProvider({
             }
             return map
           }, {}) || {}
-        const { totalOrders, revenueByToken } = await getUserSalesAndRevenue(
-          accountId,
-          activeChainIds,
-          undefined,
-          undefined,
-          tokenSymbolMap
-        )
+        const { totalOrders, revenueByToken, revenueByNetwork } =
+          await getUserSalesAndRevenue(
+            accountId,
+            activeChainIds,
+            undefined,
+            undefined,
+            tokenSymbolMap
+          )
         setSales(totalOrders)
         setRevenue(revenueByToken)
+        setRevenueByNetwork(revenueByNetwork)
+
+        if (chainId) {
+          const activeChainSales = await getUserSalesAndRevenue(
+            accountId,
+            [chainId],
+            undefined,
+            undefined,
+            tokenSymbolMap
+          )
+          setActiveSales(activeChainSales.totalOrders)
+        } else {
+          setActiveSales(0)
+        }
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : String(error)
@@ -267,7 +355,7 @@ function ProfileProvider({
       }
     }
     getUserSalesNumber()
-  }, [accountId, approvedBaseTokens, chainIds, newCancelToken])
+  }, [accountId, activeChainIds, approvedBaseTokens, chainId, newCancelToken])
 
   async function getEscrowFunds() {
     if (!accountId || !isEthAddress || !walletClient || !chainId) {
@@ -402,14 +490,18 @@ function ProfileProvider({
       value={{
         assets,
         assetsTotal,
+        activeAssetsTotal,
         isEthAddress,
         downloads,
         downloadsTotal,
+        activeDownloadsTotal,
         isDownloadsLoading,
         handlePageChange,
         ownAccount,
         sales,
+        activeSales,
         revenue,
+        revenueByNetwork,
         escrowFundsByToken,
         refreshEscrowFunds: getEscrowFunds
       }}

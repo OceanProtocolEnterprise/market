@@ -1049,18 +1049,18 @@ function getRevenueTokenSymbol(
   return (
     accessDetails?.baseToken?.symbol ||
     priceEntry?.baseToken?.symbol ||
+    priceEntry?.tokenSymbol ||
+    serviceStats?.price?.tokenSymbol ||
+    credentialSubjectStats?.price?.tokenSymbol ||
+    (asset.indexedMetadata?.stats?.[serviceIndex] as RevenueServiceStats)?.price
+      ?.tokenSymbol ||
     resolveServiceTokenSymbol(
       asset,
       serviceIndex,
       serviceStats?.serviceId,
       tokenSymbolMap,
       serviceStats?.datatokenAddress
-    ) ||
-    priceEntry?.tokenSymbol ||
-    serviceStats?.price?.tokenSymbol ||
-    credentialSubjectStats?.price?.tokenSymbol ||
-    (asset.indexedMetadata?.stats?.[serviceIndex] as RevenueServiceStats)?.price
-      ?.tokenSymbol
+    )
   )
 }
 

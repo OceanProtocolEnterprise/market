@@ -4,6 +4,12 @@ import styles from './Stats.module.css'
 import { useProfile } from '@context/Profile'
 import EscrowWithdrawModal from './EscrowWithdrawModal'
 import { formatToFixedNoRounding } from '@utils/numbers'
+import { parseTokenSelection } from './TokenSelector'
+import { useChainId } from 'wagmi'
+import useNetworkMetadata, {
+  getNetworkDataById,
+  getNetworkDisplayName
+} from '@hooks/useNetworkMetadata'
 
 function TokenAmount({
   amount,
@@ -43,43 +49,63 @@ export default function Stats({
   selectedToken?: string
 }): ReactElement {
   const {
-    assetsTotal,
-    sales,
-    downloadsTotal,
+    activeAssetsTotal,
+    activeSales,
+    activeDownloadsTotal,
     revenue,
+    revenueByNetwork,
     escrowFundsByToken,
     ownAccount
   } = useProfile()
+  const activeChainId = useChainId()
+  const activeChainIdString = activeChainId?.toString()
+  const { networksList } = useNetworkMetadata()
   const [showModal, setShowModal] = useState(false)
 
   const activeToken =
     selectedToken ||
-    Object.keys(revenue || {})[0] ||
+    Object.keys(revenueByNetwork?.[activeChainIdString] || {}).map(
+      (symbol) => `${activeChainIdString}:${symbol}`
+    )[0] ||
     Object.keys(escrowFundsByToken || {})[0] ||
+    (!activeChainIdString ? Object.keys(revenue || {})[0] : '') ||
     ''
-  const selectedRevenue = revenue?.[activeToken] || 0
-  const selectedEscrow = escrowFundsByToken?.[activeToken] || null
+  const { chainId: selectedChainId, symbol: selectedSymbol } =
+    parseTokenSelection(activeToken)
+  const selectedRevenue = selectedChainId
+    ? revenueByNetwork?.[selectedChainId]?.[selectedSymbol] || 0
+    : revenue?.[selectedSymbol] || 0
+  const selectedEscrow =
+    (!selectedChainId || selectedChainId === activeChainIdString
+      ? escrowFundsByToken?.[selectedSymbol]
+      : null) || null
   const selectedEscrowAvailable = selectedEscrow?.available || '0'
   const selectedEscrowLocked = selectedEscrow?.locked || '0'
   const hasAvailable = Number(selectedEscrowAvailable) > 0
+  const selectedNetworkName = selectedChainId
+    ? getNetworkDisplayName(
+        getNetworkDataById(networksList, Number(selectedChainId))
+      )
+    : ''
 
   return (
     <div className={styles.stats}>
       <NumberUnit
-        label={`Sale${sales === 1 ? '' : 's'}`}
-        value={sales < 0 ? 0 : sales}
+        label={`Sale${activeSales === 1 ? '' : 's'}`}
+        value={activeSales < 0 ? 0 : activeSales}
       />
-      <NumberUnit label="Published" value={assetsTotal} />
-      <NumberUnit label="Downloads" value={downloadsTotal} />
+      <NumberUnit label="Published" value={activeAssetsTotal} />
+      <NumberUnit label="Downloads" value={activeDownloadsTotal} />
       {activeToken && (
         <NumberUnit
           label="Revenue"
           value={
             <TokenAmount
               amount={formatToFixedNoRounding(selectedRevenue, 3)}
-              token={activeToken}
+              token={selectedSymbol}
             />
           }
+          tooltip={selectedNetworkName || undefined}
         />
       )}
       {ownAccount && activeToken && (
@@ -89,8 +115,13 @@ export default function Stats({
             value={
               <TokenAmount
                 amount={formatToFixedNoRounding(selectedEscrowLocked, 3)}
-                token={activeToken}
+                token={selectedSymbol}
               />
+            }
+            tooltip={
+              selectedChainId === activeChainIdString
+                ? selectedNetworkName
+                : undefined
             }
           />
           <div
@@ -102,8 +133,13 @@ export default function Stats({
               value={
                 <TokenAmount
                   amount={formatToFixedNoRounding(selectedEscrowAvailable, 3)}
-                  token={activeToken}
+                  token={selectedSymbol}
                 />
+              }
+              tooltip={
+                selectedChainId === activeChainIdString
+                  ? selectedNetworkName
+                  : undefined
               }
             />
           </div>

@@ -117,6 +117,24 @@ export default function HistoryTable({
     }
     return map
   }, {})
+  const revenueChainCounts = revenueByNetworkEntries.reduce<
+    Record<string, number>
+  >((counts, { tokenEntries }) => {
+    tokenEntries.forEach(([symbol]) => {
+      counts[symbol] = (counts[symbol] || 0) + 1
+    })
+    return counts
+  }, {})
+  const formattedRevenueByToken = revenueByNetworkEntries.reduce<
+    Record<string, number>
+  >((tokens, { networkName, tokenEntries }) => {
+    tokenEntries.forEach(([symbol, amount]) => {
+      const key =
+        revenueChainCounts[symbol] > 1 ? `${symbol} - ${networkName}` : symbol
+      tokens[key] = Number(amount || 0)
+    })
+    return tokens
+  }, {})
 
   const handleExport = () => {
     interface ServicePriceEntry {
@@ -247,7 +265,7 @@ export default function HistoryTable({
       dataset: exportData,
       totalSales: sales,
       totalPublished: items,
-      revenueByToken,
+      revenueByToken: formattedRevenueByToken,
       revenueByNetwork: formattedRevenueByNetwork
     }
 
