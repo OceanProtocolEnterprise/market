@@ -230,13 +230,12 @@ export default function HistoryTable({
       })
 
       columns.forEach((col) => {
-        if (col.name === 'DDO DID') return
+        if (col.name === 'DID') return
 
         const value = col.selector(asset)
 
-        if (col.name === 'Dataset') {
-          exportedAsset[col.name as string] =
-            asset.credentialSubject?.metadata?.name
+        if (col.name === 'Asset') {
+          exportedAsset.Asset = asset.credentialSubject?.metadata?.name
         } else if (col.name === 'Network') {
           const networkData = getNetworkDataById(
             networksList,
@@ -262,7 +261,7 @@ export default function HistoryTable({
     })
 
     const exportObject = {
-      dataset: exportData,
+      asset: exportData,
       totalSales: sales,
       totalPublished: items,
       revenueByToken: formattedRevenueByToken,

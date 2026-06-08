@@ -33,7 +33,7 @@ import { truncateDid } from '@utils/string'
 import ExplorerLink from '@shared/ExplorerLink'
 import Time from '@shared/atoms/Time'
 
-// 6 cols: Dataset | DDO DID | Network | Time | Transaction ID | Sales
+// 6 cols: Asset | DID | Network | Time | Transaction ID | Sales
 const headerWidths = ['55%', '60%', '70%', '55%', '60%', '50%']
 const rowWidths = [
   ['80%', '60%', '65%', '55%', '70%', '40%'],
@@ -64,6 +64,46 @@ const getOrders = (asset: AssetExtended) =>
     0
   ) || 0
 
+function getSelectedBlockchainChainIds(filtersList?: Filters): number[] {
+  return (filtersList?.supportedBlockchain || [])
+    .map((chainId) => Number(chainId))
+    .filter((chainId) => Number.isFinite(chainId))
+}
+
+function filterHistoryResultBySelectedChains(
+  result: PagedAssets | undefined,
+  filtersList: Filters,
+  activeChainIds: number[]
+): PagedAssets | undefined {
+  const selectedChainIds = getSelectedBlockchainChainIds(filtersList)
+  if (!result || selectedChainIds.length === 0) return result
+
+  const effectiveChainIds = activeChainIds.filter((chainId) =>
+    selectedChainIds.includes(chainId)
+  )
+
+  if (effectiveChainIds.length === 0) {
+    return {
+      ...result,
+      results: [],
+      totalPages: 0,
+      totalResults: 0
+    }
+  }
+
+  const results =
+    result.results?.filter((asset) =>
+      effectiveChainIds.includes(asset.credentialSubject?.chainId)
+    ) || []
+
+  return {
+    ...result,
+    results,
+    totalPages: results.length > 0 ? result.totalPages : 0,
+    totalResults: results.length > 0 ? result.totalResults : 0
+  }
+}
+
 export default function HistoryData({
   accountId
 }: {
@@ -77,11 +117,11 @@ export default function HistoryData({
   const columns: TableOceanColumn<AssetExtended>[] = useMemo(
     () => [
       {
-        name: 'Dataset',
+        name: 'Asset',
         selector: (asset) => <AssetTitle asset={asset} maxTitleLength={80} />
       },
       {
-        name: 'DDO DID',
+        name: 'DID',
         selector: (asset) => (
           <span className={styles.identifier} title={asset.id}>
             {truncateDid(asset.id)}
@@ -289,6 +329,25 @@ export default function HistoryData({
   }, [page, queryResult])
 
   useEffect(() => {
+    setPage(1)
+  }, [filtersKey])
+
+  const visibleQueryResult = useMemo(
+    () =>
+      filterHistoryResultBySelectedChains(queryResult, filters, activeChainIds),
+    [activeChainIds, filters, queryResult]
+  )
+  const hasVisibleResults = Boolean(visibleQueryResult?.results?.length)
+  const visibleSummary =
+    getSelectedBlockchainChainIds(filters).length > 0 && !hasVisibleResults
+      ? {
+          sales: 0,
+          revenueByToken: {},
+          revenueByNetwork: {}
+        }
+      : summary
+
+  useEffect(() => {
     if (!accountId || activeChainIds.length === 0) {
       setQueryResult(undefined)
       setSummary({ sales: 0, revenueByToken: {}, revenueByNetwork: {} })
@@ -320,29 +379,31 @@ export default function HistoryData({
           <HistoryTable
             className={styles.historyTableWrapper}
             columns={columns}
-            data={queryResult?.results || []}
+            data={visibleQueryResult?.results || []}
             paginationPerPage={9}
             emptyMessage={
               validatedSupportedChains.length === 0
                 ? 'No network selected'
                 : null
             }
-            exportEnabled={Boolean(queryResult?.results?.length)}
+            exportEnabled={hasVisibleResults}
             onPageChange={(newPage) => {
               setPage(newPage)
             }}
-            showPagination={Boolean(queryResult?.results?.length)}
-            page={queryResult?.page > 0 ? queryResult?.page - 1 : 1}
-            totalPages={queryResult?.totalPages}
-            revenueByToken={summary.revenueByToken}
-            revenueByNetwork={summary.revenueByNetwork}
-            revenueTotal={Object.values(summary.revenueByToken).reduce(
+            showPagination={hasVisibleResults}
+            page={
+              visibleQueryResult?.page > 0 ? visibleQueryResult?.page - 1 : 1
+            }
+            totalPages={visibleQueryResult?.totalPages}
+            revenueByToken={visibleSummary.revenueByToken}
+            revenueByNetwork={visibleSummary.revenueByNetwork}
+            revenueTotal={Object.values(visibleSummary.revenueByToken).reduce(
               (acc, value) => acc + Number(value || 0),
               0
             )}
-            sales={summary.sales}
-            items={queryResult?.totalResults || 0}
-            allResults={queryResult?.results || []}
+            sales={visibleSummary.sales}
+            items={visibleQueryResult?.totalResults || 0}
+            allResults={visibleQueryResult?.results || []}
             expandableRows
             expandableRowsComponent={ExpandedServices}
             expandableRowDisabled={(row) =>

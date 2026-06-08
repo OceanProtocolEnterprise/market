@@ -26,7 +26,7 @@ import useNetworkMetadata, {
 } from '@hooks/useNetworkMetadata'
 import { truncateDid } from '@utils/string'
 
-// 4 cols: Dataset | DDO DID | Network | Time
+// 4 cols: Asset | DID | Network | Time
 const headerWidths = ['55%', '60%', '70%', '55%']
 const rowWidths = [
   ['80%', '60%', '60%', '55%'],
@@ -300,7 +300,7 @@ export default function ComputeDownloads({
       return {
         DID: row.asset.id,
         NftAddress: row.asset.credentialSubject?.nftAddress || '',
-        Dataset: row.asset.credentialSubject?.metadata?.name,
+        Asset: row.asset.credentialSubject?.metadata?.name,
         Network: getNetworkDisplayName(networkData),
         chainId: row.networkId,
         Time: row.asset.credentialSubject?.metadata?.created
@@ -435,12 +435,12 @@ export default function ComputeDownloads({
 
   const columns: TableOceanColumn<DownloadedAsset>[] = [
     {
-      name: 'Dataset',
+      name: 'Asset',
       selector: (row) => <AssetTitle asset={row.asset} maxTitleLength={80} />,
       grow: 2.5
     },
     {
-      name: 'DDO DID',
+      name: 'DID',
       selector: (row) => (
         <span className={historyStyles.identifier} title={row.asset.id}>
           {truncateDid(row.asset.id)}
