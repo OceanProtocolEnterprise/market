@@ -81,3 +81,134 @@
   min-width: 0;
   flex-shrink: 1;
 }
+
+.expanded {
+  padding: 0 0 calc(var(--spacer) / 2) calc(var(--spacer));
+  background: var(--background-body);
+}
+
+.servicesCard {
+  --service-name-width: minmax(10rem, 1.1fr);
+  --service-id-width: minmax(10rem, 1.05fr);
+  --service-type-width: minmax(8rem, 0.9fr);
+  --service-sales-width: minmax(4rem, 0.5fr);
+  --service-price-width: minmax(7rem, 0.8fr);
+  --service-revenue-width: minmax(7rem, 0.8fr);
+
+  background: var(--navy-alpha-5);
+  border: var(--border-size-sm) solid var(--navy-alpha-10);
+  border-top: none;
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  padding: calc(var(--spacer) / 3) calc(var(--spacer) / 2);
+  overflow-x: auto;
+}
+
+.expandedHeader,
+.expandedRow {
+  display: grid;
+  grid-template-columns:
+    var(--service-name-width) var(--service-id-width)
+    var(--service-type-width) var(--service-id-width) var(--service-sales-width)
+    var(--service-price-width) var(--service-revenue-width);
+  align-items: center;
+  column-gap: calc(var(--spacer) / 3);
+  min-width: 70rem;
+}
+
+.downloadsExpandedHeader,
+.downloadsExpandedRow {
+  display: grid;
+  grid-template-columns:
+    var(--service-name-width) var(--service-id-width)
+    var(--service-id-width) var(--service-type-width) var(--service-price-width);
+  align-items: center;
+  column-gap: calc(var(--spacer) / 3);
+  min-width: 46rem;
+}
+
+.expandedHeader {
+  padding: calc(var(--spacer) / 5) 0 calc(var(--spacer) / 4);
+  border-bottom: var(--border-size-sm) solid var(--navy-alpha-10);
+  color: var(--color-secondary);
+  font-size: var(--font-size-mini);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+.downloadsExpandedHeader {
+  padding: calc(var(--spacer) / 5) 0 calc(var(--spacer) / 4);
+  border-bottom: var(--border-size-sm) solid var(--navy-alpha-10);
+  color: var(--color-secondary);
+  font-size: var(--font-size-mini);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+.expandedRow {
+  padding: calc(var(--spacer) / 4) 0;
+  border-bottom: var(--border-size-sm) solid var(--navy-alpha-10);
+  color: var(--text-ink);
+  font-size: var(--font-size-small);
+}
+
+.downloadsExpandedRow {
+  padding: calc(var(--spacer) / 4) 0;
+  border-bottom: var(--border-size-sm) solid var(--navy-alpha-10);
+  color: var(--text-ink);
+  font-size: var(--font-size-small);
+}
+
+.expandedRow:last-child {
+  border-bottom: none;
+}
+
+.downloadsExpandedRow:last-child {
+  border-bottom: none;
+}
+
+.expandedName,
+.expandedType {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacer) / 4);
+  min-width: 0;
+}
+
+.expanderIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.serviceNameText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: var(--font-weight-bold);
+}
+
+.identifier,
+.expandedServiceId {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identifier {
+  display: inline-block;
+  max-width: 100%;
+  color: var(--font-color-did);
+}
+
+.expandedSales,
+.expandedDatatoken,
+.expandedTime,
+.expandedPrice,
+.expandedRevenue {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

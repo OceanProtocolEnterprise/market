@@ -20,6 +20,7 @@ import { isValidDid } from '@utils/ddo'
 import { Filters } from '@context/Filter'
 import { filterSets } from '@components/Search/Filter'
 import { Asset } from 'src/@types/Asset'
+import { resolveServiceTokenSymbol } from '@utils/priceToken'
 
 export const MAXIMUM_NUMBER_OF_PAGES_WITH_RESULTS = 476
 
@@ -527,7 +528,6 @@ export async function queryMetadata(
   const cacheUris = getMetadataCacheUris()
   if (cacheUris.length === 0) return
   const cacheQueries = buildMetadataCacheQueries(cacheUris, query)
-
   const queryResults = (
     await Promise.all(
       cacheQueries.map(({ cacheUri, query }) =>
@@ -961,15 +961,184 @@ export async function getPublishedAssets(
   }
 }
 
+interface RevenueServicePriceEntry {
+  baseToken?: { address?: string; symbol?: string }
+  price?: number | string
+  token?: string | { address?: string; symbol?: string }
+  tokenSymbol?: string
+}
+
+interface RevenueServiceStats {
+  datatokenAddress?: string
+  orders?: number
+  price?: { tokenSymbol?: string }
+  prices?: RevenueServicePriceEntry[]
+  serviceId?: string
+  symbol?: string
+}
+
+interface RevenueCredentialSubjectStats {
+  price?: { tokenSymbol?: string }
+}
+
+function getRevenueNumber(value?: number | string): number {
+  const parsed = typeof value === 'string' ? Number(value) : value
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+function findRevenueAccessDetails(
+  asset: Asset,
+  serviceIndex: number,
+  serviceId?: string,
+  datatokenAddress?: string
+): AccessDetails | undefined {
+  const accessDetails = (asset as Asset & { accessDetails?: AccessDetails[] })
+    ?.accessDetails
+
+  return (
+    accessDetails?.find(
+      (details) =>
+        details?.datatoken?.address &&
+        datatokenAddress &&
+        details.datatoken.address.toLowerCase() ===
+          datatokenAddress.toLowerCase()
+    ) ||
+    accessDetails?.find(
+      (details) =>
+        details?.addressOrId &&
+        serviceId &&
+        details.addressOrId.toLowerCase() === serviceId.toLowerCase()
+    ) ||
+    accessDetails?.[serviceIndex]
+  )
+}
+
+function findRevenueStats(
+  asset: Asset,
+  serviceIndex: number,
+  serviceId?: string,
+  datatokenAddress?: string
+): RevenueServiceStats | undefined {
+  const stats = (asset.indexedMetadata?.stats || []) as RevenueServiceStats[]
+
+  return (
+    stats.find(
+      (entry) =>
+        (serviceId && entry.serviceId === serviceId) ||
+        (datatokenAddress &&
+          entry.datatokenAddress?.toLowerCase() ===
+            datatokenAddress.toLowerCase())
+    ) || stats[serviceIndex]
+  )
+}
+
+function getRevenueTokenSymbol(
+  asset: Asset,
+  serviceIndex: number,
+  serviceStats?: RevenueServiceStats,
+  accessDetails?: AccessDetails,
+  tokenSymbolMap?: Record<string, string>
+): string | undefined {
+  const priceEntry = serviceStats?.prices?.[0]
+  const credentialSubjectStats = (
+    asset.credentialSubject as typeof asset.credentialSubject & {
+      stats?: RevenueCredentialSubjectStats
+    }
+  )?.stats
+
+  return (
+    accessDetails?.baseToken?.symbol ||
+    priceEntry?.baseToken?.symbol ||
+    priceEntry?.tokenSymbol ||
+    serviceStats?.price?.tokenSymbol ||
+    credentialSubjectStats?.price?.tokenSymbol ||
+    (asset.indexedMetadata?.stats?.[serviceIndex] as RevenueServiceStats)?.price
+      ?.tokenSymbol ||
+    resolveServiceTokenSymbol(
+      asset,
+      serviceIndex,
+      serviceStats?.serviceId,
+      tokenSymbolMap,
+      serviceStats?.datatokenAddress
+    )
+  )
+}
+
+export function getAssetSalesAndRevenueByToken(
+  asset: Asset,
+  tokenSymbolMap?: Record<string, string>
+): {
+  totalOrders: number
+  totalRevenue: number
+  revenueByToken: { [symbol: string]: number }
+} {
+  let totalOrders = 0
+  let totalRevenue = 0
+  const revenueByToken: { [symbol: string]: number } = {}
+  const services = asset.credentialSubject?.services || []
+  const stats = (asset.indexedMetadata?.stats || []) as RevenueServiceStats[]
+  const entries = services.length
+    ? services.map((service, index) => ({
+        datatokenAddress: service.datatokenAddress,
+        index,
+        serviceId: service.id
+      }))
+    : stats.map((entry, index) => ({
+        datatokenAddress: entry.datatokenAddress,
+        index,
+        serviceId: entry.serviceId
+      }))
+
+  entries.forEach(({ datatokenAddress, index, serviceId }) => {
+    const serviceStats = findRevenueStats(
+      asset,
+      index,
+      serviceId,
+      datatokenAddress
+    )
+    const accessDetails = findRevenueAccessDetails(
+      asset,
+      index,
+      serviceId,
+      serviceStats?.datatokenAddress || datatokenAddress
+    )
+    const orders = serviceStats?.orders || 0
+    const priceEntry = serviceStats?.prices?.[0]
+    const price = getRevenueNumber(accessDetails?.price ?? priceEntry?.price)
+    const revenue = orders * price
+    const tokenSymbol = getRevenueTokenSymbol(
+      asset,
+      index,
+      serviceStats,
+      accessDetails,
+      tokenSymbolMap
+    )
+
+    totalOrders += orders
+    totalRevenue += revenue
+    if (!tokenSymbol) return
+    if (!revenueByToken[tokenSymbol]) {
+      revenueByToken[tokenSymbol] = 0
+    }
+    revenueByToken[tokenSymbol] += revenue
+  })
+
+  return { totalOrders, totalRevenue, revenueByToken }
+}
+
 export async function getUserSalesAndRevenue(
   accountId: string,
   chainIds: number[],
   filter?: Filters,
-  cancelToken?: CancelToken
+  cancelToken?: CancelToken,
+  tokenSymbolMap?: Record<string, string>,
+  ignorePurgatory = false,
+  ignoreState = false
 ): Promise<{
   totalOrders: number
   totalRevenue: number
   revenueByToken: { [symbol: string]: number }
+  revenueByNetwork: { [chainId: string]: { [symbol: string]: number } }
   results: Asset[]
 }> {
   try {
@@ -977,81 +1146,45 @@ export async function getUserSalesAndRevenue(
     let totalOrders = 0
     let totalRevenue = 0
     const revenueByToken: { [symbol: string]: number } = {}
+    const revenueByNetwork: {
+      [chainId: string]: { [symbol: string]: number }
+    } = {}
     let assets: PagedAssets
     const allResults: Asset[] = []
-
     do {
       assets = await getPublishedAssets(
         accountId,
         chainIds,
         cancelToken || null,
-        false,
-        false,
+        ignorePurgatory,
+        ignoreState,
         filter,
         page
       )
       if (assets && assets.results) {
         assets.results.forEach((asset) => {
-          const orders = asset?.indexedMetadata?.stats[0]?.orders || 0
-
-          const firstAccessDetail = (asset as any)?.accessDetails?.[0]
-          let price = 0
-          if (firstAccessDetail?.price) {
-            const priceValue =
-              typeof firstAccessDetail.price === 'string'
-                ? Number(firstAccessDetail.price)
-                : firstAccessDetail.price
-            if (!isNaN(priceValue)) {
-              price = priceValue
-            }
-          }
-
-          if (price === 0) {
-            const stats = asset?.indexedMetadata?.stats?.[0] as
-              | { prices?: Array<{ price?: number | string }> }
-              | undefined
-            const priceEntry = stats?.prices?.[0]
-            if (priceEntry?.price) {
-              const priceValue =
-                typeof priceEntry.price === 'string'
-                  ? Number(priceEntry.price)
-                  : priceEntry.price
-              if (!isNaN(priceValue)) {
-                price = priceValue
+          const assetRevenue = getAssetSalesAndRevenueByToken(
+            asset,
+            tokenSymbolMap
+          )
+          totalOrders += assetRevenue.totalOrders
+          totalRevenue += assetRevenue.totalRevenue
+          Object.entries(assetRevenue.revenueByToken).forEach(
+            ([symbol, amount]) => {
+              if (!revenueByToken[symbol]) {
+                revenueByToken[symbol] = 0
               }
-            }
-          }
+              revenueByToken[symbol] += amount
 
-          let tokenSymbol: string | undefined
-          if (firstAccessDetail?.baseToken?.symbol) {
-            tokenSymbol = firstAccessDetail.baseToken.symbol
-          } else {
-            const credentialSubjectStats = (asset.credentialSubject as any)
-              ?.stats
-            const { price: credentialPrice } = credentialSubjectStats || {}
-            const { tokenSymbol: credentialTokenSymbol } = credentialPrice || {}
-            if (credentialTokenSymbol) {
-              tokenSymbol = credentialTokenSymbol
-            } else {
-              const stats = asset.indexedMetadata?.stats?.[0] as
-                | { price?: { tokenSymbol?: string } }
-                | undefined
-              const { price: indexedPrice } = stats || {}
-              const { tokenSymbol: indexedTokenSymbol } = indexedPrice || {}
-              if (indexedTokenSymbol) {
-                tokenSymbol = indexedTokenSymbol
+              const chainId = asset.credentialSubject?.chainId?.toString()
+              if (!chainId) return
+              if (!revenueByNetwork[chainId]) revenueByNetwork[chainId] = {}
+              if (!revenueByNetwork[chainId][symbol]) {
+                revenueByNetwork[chainId][symbol] = 0
               }
+              revenueByNetwork[chainId][symbol] += amount
             }
-          }
-
-          totalOrders += orders
-          const revenue = orders * price
-          totalRevenue += revenue
-          if (!tokenSymbol) return
-          if (!revenueByToken[tokenSymbol]) {
-            revenueByToken[tokenSymbol] = 0
-          }
-          revenueByToken[tokenSymbol] += revenue
+          )
         })
         allResults.push(...assets.results)
       }
@@ -1063,13 +1196,20 @@ export async function getUserSalesAndRevenue(
       page <= assets.totalPages
     )
 
-    return { totalOrders, totalRevenue, revenueByToken, results: allResults }
+    return {
+      totalOrders,
+      totalRevenue,
+      revenueByToken,
+      revenueByNetwork,
+      results: allResults
+    }
   } catch (error) {
     LoggerInstance.error('Error in getUserSales', error.message)
     return {
       totalOrders: 0,
       totalRevenue: 0,
       revenueByToken: {},
+      revenueByNetwork: {},
       results: []
     }
   }
@@ -1109,11 +1249,31 @@ export async function getDownloadAssets(
   chainIds: number[],
   cancelToken: CancelToken,
   ignoreState = false,
-  page?: number
+  page?: number,
+  orderTimestampsByDatatoken: Record<string, number> = {},
+  orderIdsByDatatoken: Record<string, string> = {}
 ): Promise<{ downloadedAssets: DownloadedAsset[]; totalResults: number }> {
+  const uniqueDatatokens = [
+    ...new Map(
+      dtList
+        .filter((datatokenAddress) => !!datatokenAddress)
+        .map((datatokenAddress) => [
+          datatokenAddress.toLowerCase(),
+          datatokenAddress
+        ])
+    ).values()
+  ]
+
+  if (uniqueDatatokens.length === 0 || chainIds?.length === 0) {
+    return { downloadedAssets: [], totalResults: 0 }
+  }
+
   const filters: FilterTerm[] = []
   filters.push(
-    getFilterTerm('credentialSubject.services.datatokenAddress.keyword', dtList)
+    getFilterTerm(
+      'credentialSubject.services.datatokenAddress.keyword',
+      uniqueDatatokens
+    )
   )
   filters.push({
     exists: {
@@ -1127,14 +1287,18 @@ export async function getDownloadAssets(
     ignorePurgatory: true,
     ignoreState,
     esPaginationOptions: {
-      from: page || 0,
-      size: 9
+      from: 0,
+      size: uniqueDatatokens.length
     }
   } as BaseQueryParams
   const query = generateBaseQuery(baseQueryparams)
   try {
     const result = await queryMetadata(query, cancelToken)
     let downloadedAssets: DownloadedAsset[] = []
+    const downloadedDatatokens = new Set(
+      uniqueDatatokens.map((datatokenAddress) => datatokenAddress.toLowerCase())
+    )
+
     if (result) {
       downloadedAssets = result?.results
         ?.map((asset) => {
@@ -1145,17 +1309,66 @@ export async function getDownloadAssets(
           const timestamp = timestampStr
             ? new Date(timestampStr).getTime()
             : Date.now()
+          const downloadedServices =
+            asset?.credentialSubject?.services
+              ?.map((service, serviceIndex) => {
+                const stats = asset?.indexedMetadata?.stats?.find(
+                  (entry) =>
+                    entry?.datatokenAddress?.toLowerCase() ===
+                    service?.datatokenAddress?.toLowerCase()
+                )
+
+                return {
+                  datatokenAddress: service.datatokenAddress,
+                  datatokenSymbol: stats?.symbol,
+                  orderId:
+                    orderIdsByDatatoken[service.datatokenAddress.toLowerCase()],
+                  serviceId: service.id,
+                  serviceIndex,
+                  serviceName: service.name,
+                  serviceTimestamp:
+                    orderTimestampsByDatatoken[
+                      service.datatokenAddress.toLowerCase()
+                    ],
+                  serviceType: service.type
+                }
+              })
+              .filter((service) =>
+                downloadedDatatokens.has(service.datatokenAddress.toLowerCase())
+              ) || []
+
+          const serviceTimestamps = downloadedServices
+            .map((service) => service.serviceTimestamp || 0)
+            .filter(Boolean)
+          const latestServiceTimestamp = serviceTimestamps.length
+            ? Math.max(...serviceTimestamps) * 1000
+            : timestamp
 
           return {
             asset,
             networkId: asset?.credentialSubject?.chainId,
-            dtSymbol: asset?.indexedMetadata?.stats[0]?.symbol,
-            timestamp
+            dtSymbol:
+              downloadedServices.length === 1
+                ? downloadedServices[0].datatokenSymbol
+                : `${downloadedServices.length} services`,
+            downloadedServices,
+            timestamp: latestServiceTimestamp
           }
         })
         .sort((a, b) => b.timestamp - a.timestamp)
     }
-    return { downloadedAssets, totalResults: result?.totalResults || 0 }
+
+    const pageSize = 9
+    const currentPage = Math.max(Number(page) || 1, 1)
+    const paginatedAssets = downloadedAssets.slice(
+      (currentPage - 1) * pageSize,
+      currentPage * pageSize
+    )
+
+    return {
+      downloadedAssets: paginatedAssets,
+      totalResults: downloadedAssets.length
+    }
   } catch (error) {
     if (axios.isCancel(error)) {
       LoggerInstance.log(error.message)
