@@ -9,12 +9,14 @@ export default function AssetListTitle({
   asset,
   did,
   title,
-  openInNewTab
+  openInNewTab,
+  maxTitleLength = 16
 }: {
   asset?: Asset
   did?: string
   title?: string
   openInNewTab?: boolean
+  maxTitleLength?: number
 }): ReactElement {
   const { appConfig } = useMarketMetadata()
   const [assetTitle, setAssetTitle] = useState<string>(title)
@@ -25,8 +27,8 @@ export default function AssetListTitle({
       const name = asset.credentialSubject?.metadata.name
       setAssetTitle(name)
 
-      if (name.length > 16) {
-        setAssetTitleTrimmed(name.slice(0, 13) + '...')
+      if (name.length > maxTitleLength) {
+        setAssetTitleTrimmed(name.slice(0, maxTitleLength - 3) + '...')
         return
       }
       setAssetTitleTrimmed(name)
@@ -36,8 +38,8 @@ export default function AssetListTitle({
     const source = axios.CancelToken.source()
 
     async function getAssetName() {
-      if (title.length > 16) {
-        setAssetTitleTrimmed(title.slice(0, 13) + '...')
+      if (title.length > maxTitleLength) {
+        setAssetTitleTrimmed(title.slice(0, maxTitleLength - 3) + '...')
       } else {
         setAssetTitleTrimmed(title)
       }
@@ -47,7 +49,14 @@ export default function AssetListTitle({
     return () => {
       source.cancel()
     }
-  }, [assetTitle, appConfig.metadataCacheUri, asset, did, title])
+  }, [
+    assetTitle,
+    appConfig.metadataCacheUri,
+    asset,
+    did,
+    maxTitleLength,
+    title
+  ])
 
   const assetId = did || asset?.id
   const assetHref = assetId ? `/asset/${assetId}` : undefined
