@@ -35,13 +35,17 @@ export function getPriceTokenAddress(token?: PriceToken): string {
 export function getServiceStats(
   asset: Asset,
   serviceIndex: number,
-  serviceId?: string
+  serviceId?: string,
+  datatokenAddress?: string
 ): ServiceStatsEntry | undefined {
   const stats = (asset.indexedMetadata?.stats || []) as ServiceStatsEntry[]
-  const matched =
-    serviceId != null
-      ? stats.find((stat) => stat?.serviceId === serviceId)
-      : undefined
+  const matched = stats.find(
+    (stat) =>
+      (serviceId != null && stat?.serviceId === serviceId) ||
+      (datatokenAddress &&
+        stat?.datatokenAddress?.toLowerCase() ===
+          datatokenAddress.toLowerCase())
+  )
 
   return matched || stats[serviceIndex]
 }
@@ -52,7 +56,12 @@ export function getAssetPriceTokenAddresses(
   const addresses = new Set<string>()
 
   asset.credentialSubject?.services?.forEach((service, index) => {
-    const stat = getServiceStats(asset, index, service.id)
+    const stat = getServiceStats(
+      asset,
+      index,
+      service.id,
+      service.datatokenAddress
+    )
     const priceEntry = stat?.prices?.[0]
     const offchainStat =
       asset.offchain?.stats?.services?.find(
@@ -77,32 +86,35 @@ export function resolveServiceTokenSymbol(
   asset: Asset,
   serviceIndex: number,
   serviceId?: string,
-  tokenSymbolMap?: TokenSymbolMap
+  tokenSymbolMap?: TokenSymbolMap,
+  datatokenAddress?: string
 ): string | undefined {
-  const stat = getServiceStats(asset, serviceIndex, serviceId)
-
-  if (stat?.price?.tokenSymbol) return stat.price.tokenSymbol
+  const stat = getServiceStats(asset, serviceIndex, serviceId, datatokenAddress)
 
   const priceEntry = stat?.prices?.[0]
-  if (priceEntry?.tokenSymbol) return priceEntry.tokenSymbol
   if (priceEntry?.baseToken?.symbol) return priceEntry.baseToken.symbol
   if (priceEntry?.baseToken?.address) {
-    return tokenSymbolMap?.[priceEntry.baseToken.address.toLowerCase()]
+    const mappedSymbol =
+      tokenSymbolMap?.[priceEntry.baseToken.address.toLowerCase()]
+    if (mappedSymbol) return mappedSymbol
   }
 
   const priceToken = priceEntry?.token
-  if (!priceToken) return undefined
-
   if (typeof priceToken === 'string') {
-    return tokenSymbolMap?.[priceToken.toLowerCase()]
+    const mappedSymbol = tokenSymbolMap?.[priceToken.toLowerCase()]
+    if (mappedSymbol) return mappedSymbol
   }
 
   if (typeof priceToken === 'object') {
     if (priceToken.symbol) return priceToken.symbol
     if (priceToken.address) {
-      return tokenSymbolMap?.[priceToken.address.toLowerCase()]
+      const mappedSymbol = tokenSymbolMap?.[priceToken.address.toLowerCase()]
+      if (mappedSymbol) return mappedSymbol
     }
   }
+
+  if (priceEntry?.tokenSymbol) return priceEntry.tokenSymbol
+  if (stat?.price?.tokenSymbol) return stat.price.tokenSymbol
 
   return undefined
 }
