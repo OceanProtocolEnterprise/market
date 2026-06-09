@@ -4,7 +4,6 @@ import { useRouter } from 'next/router'
 import { toast } from 'react-toastify'
 import { useAuth } from '@hooks/useAuth'
 import { useMarketMetadata } from '@context/MarketMetadata'
-import { getRuntimeConfig } from '@utils/runtimeConfig'
 import {
   DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE,
   dfnsConnector,
@@ -90,8 +89,7 @@ export function useDfnsConnect() {
   const [registrationCode, setRegistrationCode] = useState('')
   const [pendingChainId, setPendingChainId] = useState<number | undefined>()
 
-  const organizationId =
-    user?.organizationId || getRuntimeConfig().NEXT_PUBLIC_DFNS_ORG_ID
+  const organizationId = user?.organizationId
 
   const dfnsChains = useMemo(() => {
     const allChains = getDfnsSelectableChains(wagmiConfig.chains)

@@ -55,7 +55,6 @@ function getDfnsConfig() {
 
   return {
     apiUrl: runtimeConfig.NEXT_PUBLIC_DFNS_API_URL,
-    orgId: runtimeConfig.NEXT_PUBLIC_DFNS_ORG_ID,
     relyingPartyId: runtimeConfig.NEXT_PUBLIC_DFNS_RP_ID
   }
 }
@@ -74,15 +73,17 @@ function assertDfnsConfig() {
     throw new Error(`Missing Dfns configuration: ${missing.join(', ')}`)
   }
 
-  return config as Required<ReturnType<typeof getDfnsConfig>>
+  return config as ReturnType<typeof getDfnsConfig> & {
+    apiUrl: string
+    relyingPartyId: string
+  }
 }
 
-function resolveDfnsOrgId(organizationId?: string, fallbackOrgId?: string) {
+function resolveDfnsOrgId(organizationId?: string) {
   if (organizationId?.trim()) return organizationId.trim()
-  if (fallbackOrgId?.trim()) return fallbackOrgId.trim()
 
   throw new Error(
-    'Missing Dfns organization id. Add orgId to the OIDC session claims, or set NEXT_PUBLIC_DFNS_ORG_ID as fallback.'
+    'Missing Dfns organization id. Add orgId to the OIDC session claims.'
   )
 }
 
@@ -516,10 +517,7 @@ export function dfnsConnector() {
         storeDfnsChain(activeChain)
 
         const dfnsConfig = assertDfnsConfig()
-        const orgId = resolveDfnsOrgId(
-          parameters?.organizationId,
-          dfnsConfig.orgId
-        )
+        const orgId = resolveDfnsOrgId(parameters?.organizationId)
         let registeredUsername: string | undefined
         const webAuthnSigner = new WebAuthnSigner({
           relyingParty: {
