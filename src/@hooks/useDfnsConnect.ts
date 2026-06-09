@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAccount, useConfig, useConnect } from 'wagmi'
 import { useRouter } from 'next/router'
 import { toast } from 'react-toastify'
-import { useAuth } from '@hooks/useAuth'
+import { useAuth, verifyAuthSession } from '@hooks/useAuth'
 import { useMarketMetadata } from '@context/MarketMetadata'
 import {
   DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE,
@@ -16,6 +16,14 @@ import { pickPreferredChainId } from '@utils/wallet/chains'
 const DFNS_RETURN_PATH_KEY = 'dfns_return_path'
 
 type DfnsConnect = (chainId?: number, code?: string) => Promise<void>
+
+async function resolveFreshAuthUser<TUser extends { organizationId?: string }>(
+  currentUser: TUser | null | undefined
+) {
+  if (currentUser?.organizationId) return currentUser
+
+  return verifyAuthSession()
+}
 
 function getCurrentReturnPath() {
   if (typeof window === 'undefined') return undefined
@@ -89,8 +97,6 @@ export function useDfnsConnect() {
   const [registrationCode, setRegistrationCode] = useState('')
   const [pendingChainId, setPendingChainId] = useState<number | undefined>()
 
-  const organizationId = user?.organizationId
-
   const dfnsChains = useMemo(() => {
     const allChains = getDfnsSelectableChains(wagmiConfig.chains)
     if (!validatedSupportedChains?.length) return allChains
@@ -121,6 +127,9 @@ export function useDfnsConnect() {
     async (chainId?: number, code?: string) => {
       setIsConnecting(true)
       try {
+        const authUser = await resolveFreshAuthUser(user)
+        const resolvedOrganizationId = authUser?.organizationId
+
         if (chainId) storeDfnsSelectedChainId(chainId)
 
         await connectAsync({
@@ -128,8 +137,8 @@ export function useDfnsConnect() {
           connector: dfnsConnector(),
           chainId,
           registrationCode: code,
-          username: user?.email || user?.username,
-          organizationId
+          username: authUser?.email || authUser?.username,
+          organizationId: resolvedOrganizationId
         } as Parameters<typeof connectAsync>[0])
       } catch (error) {
         if (
@@ -157,7 +166,7 @@ export function useDfnsConnect() {
         setIsConnecting(false)
       }
     },
-    [connectAsync, organizationId, startSso, user?.email, user?.username]
+    [connectAsync, startSso, user]
   )
 
   /**
