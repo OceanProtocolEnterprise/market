@@ -55,7 +55,6 @@ function getDfnsConfig() {
 
   return {
     apiUrl: runtimeConfig.NEXT_PUBLIC_DFNS_API_URL,
-    orgId: runtimeConfig.NEXT_PUBLIC_DFNS_ORG_ID,
     relyingPartyId: runtimeConfig.NEXT_PUBLIC_DFNS_RP_ID
   }
 }
@@ -74,16 +73,32 @@ function assertDfnsConfig() {
     throw new Error(`Missing Dfns configuration: ${missing.join(', ')}`)
   }
 
-  return config as Required<ReturnType<typeof getDfnsConfig>>
+  return config as ReturnType<typeof getDfnsConfig> & {
+    apiUrl: string
+    relyingPartyId: string
+  }
 }
 
-function resolveDfnsOrgId(organizationId?: string, fallbackOrgId?: string) {
+function resolveDfnsOrgId(organizationId?: string) {
   if (organizationId?.trim()) return organizationId.trim()
-  if (fallbackOrgId?.trim()) return fallbackOrgId.trim()
 
   throw new Error(
-    'Missing Dfns organization id. Add orgId to the OIDC session claims, or set NEXT_PUBLIC_DFNS_ORG_ID as fallback.'
+    'Missing Dfns organization id. Add orgId to the OIDC session claims.'
   )
+}
+
+function assertRequestedAccount(
+  requestedAddress: string | undefined,
+  signerAddress: Address,
+  method: string
+) {
+  if (!requestedAddress) {
+    throw new Error(`${method} requires an account address.`)
+  }
+
+  if (getAddress(requestedAddress) !== getAddress(signerAddress)) {
+    throw new Error(`${method} requested a different account.`)
+  }
 }
 
 function getDefaultUsername(username?: string) {
@@ -502,10 +517,7 @@ export function dfnsConnector() {
         storeDfnsChain(activeChain)
 
         const dfnsConfig = assertDfnsConfig()
-        const orgId = resolveDfnsOrgId(
-          parameters?.organizationId,
-          dfnsConfig.orgId
-        )
+        const orgId = resolveDfnsOrgId(parameters?.organizationId)
         let registeredUsername: string | undefined
         const webAuthnSigner = new WebAuthnSigner({
           relyingParty: {
@@ -688,7 +700,16 @@ export function dfnsConnector() {
               return [currentSigner.address]
             }
             if (method === 'personal_sign' || method === 'eth_sign') {
-              const [message] = (params as [string, string]) || []
+              const [first, second] = (params as [string, string]) || []
+              const requestedAddress = method === 'eth_sign' ? first : second
+              const message = method === 'eth_sign' ? second : first
+              assertRequestedAccount(
+                requestedAddress,
+                currentSigner.address,
+                method
+              )
+              if (!message) throw new Error(`${method} requires a message.`)
+
               const walletClient = currentSigner.getWalletClient()
               return walletClient.signMessage({
                 account: currentSigner.address,
@@ -697,6 +718,11 @@ export function dfnsConnector() {
             }
             if (method === 'eth_sendTransaction') {
               const [tx] = (params as [Record<string, Hex>]) || []
+              if (!tx) {
+                throw new Error('eth_sendTransaction requires a transaction.')
+              }
+              assertRequestedAccount(tx.from, currentSigner.address, method)
+
               const walletClient = currentSigner.getWalletClient()
               const transaction = {
                 account: currentSigner.address,

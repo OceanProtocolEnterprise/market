@@ -31,7 +31,7 @@ export function getDfnsSsoConfig(
   req: NextApiRequest,
   input: DfnsSsoConfigInput = {}
 ) {
-  const orgId = input.orgId || process.env.NEXT_PUBLIC_DFNS_ORG_ID
+  const orgId = input.orgId?.trim()
   const clientId = process.env.NEXT_PUBLIC_OIDC_CLIENT_ID
   const origin = getRequestOrigin(req)
   const redirectUri = origin
@@ -39,7 +39,7 @@ export function getDfnsSsoConfig(
     : process.env.NEXT_PUBLIC_OIDC_REDIRECT_URI
 
   const missing = [
-    !orgId && 'NEXT_PUBLIC_DFNS_ORG_ID',
+    !orgId && 'session orgId',
     !clientId && 'NEXT_PUBLIC_OIDC_CLIENT_ID',
     !redirectUri && 'request origin'
   ].filter(Boolean)

@@ -1,9 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getDfnsSsoConfig } from '@utils/dfnsServerConfig'
-
-type InitiateDfnsSsoBody = {
-  organizationId?: string
-}
+import { getSessionOrgId } from '../auth/_session'
 
 export default async function handler(
   req: NextApiRequest,
@@ -15,10 +12,10 @@ export default async function handler(
   }
 
   try {
-    const body = req.body as InitiateDfnsSsoBody
-    const config = getDfnsSsoConfig(req, {
-      orgId: body.organizationId
-    })
+    // Derive the org from the authenticated session, never from client input.
+    // Falls back to the server-configured default inside getDfnsSsoConfig.
+    const orgId = await getSessionOrgId(req)
+    const config = getDfnsSsoConfig(req, { orgId })
     const response = await fetch(`${config.apiUrl}/auth/login/sso/init`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
