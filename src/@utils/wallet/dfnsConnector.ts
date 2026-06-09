@@ -47,8 +47,11 @@ type DfnsConnectReturn<withCapabilities extends boolean = false> = {
 
 export const DFNS_CONNECTOR_ID = 'dfns'
 const DFNS_SELECTED_CHAIN_ID_KEY = 'dfns_selected_chain_id'
+const DFNS_REQUIRED_TRANSACTION_PERMISSION = 'Wallets:Transactions:Create'
 export const DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE =
   'Dfns registration code is required.'
+export const DFNS_INSUFFICIENT_PERMISSIONS_MESSAGE =
+  'User does not have enough permissions from DFNS'
 
 function getDfnsConfig() {
   const runtimeConfig = getRuntimeConfig()
@@ -85,6 +88,109 @@ function resolveDfnsOrgId(organizationId?: string) {
   throw new Error(
     'Missing Dfns organization id. Add orgId to the OIDC session claims.'
   )
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+function decodeBase64UrlJson(value: string): unknown {
+  if (typeof window === 'undefined' || typeof window.atob !== 'function') {
+    return undefined
+  }
+
+  try {
+    const base64 = value.replace(/-/g, '+').replace(/_/g, '/')
+    const paddedBase64 = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')
+    const binary = window.atob(paddedBase64)
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+    return JSON.parse(new TextDecoder().decode(bytes)) as unknown
+  } catch {
+    return undefined
+  }
+}
+
+function decodeDfnsTokenPayload(token: string): Record<string, unknown> | null {
+  const [, payload] = token.split('.')
+  if (!payload) return null
+
+  const decoded = decodeBase64UrlJson(payload)
+  return isRecord(decoded) ? decoded : null
+}
+
+function getStringField(
+  record: Record<string, unknown> | null | undefined,
+  field: string
+) {
+  const value = record?.[field]
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined
+}
+
+function getDfnsUserIdFromTokenPayload(
+  payload: Record<string, unknown> | null
+) {
+  if (!payload) return undefined
+
+  const customMetadata = payload['https://custom/app_metadata']
+  const customRecord = isRecord(customMetadata) ? customMetadata : null
+
+  return (
+    getStringField(payload, 'userId') ||
+    getStringField(payload, 'linkedUserId') ||
+    getStringField(payload, 'sub') ||
+    getStringField(customRecord, 'userId') ||
+    getStringField(customRecord, 'linkedUserId')
+  )
+}
+
+function collectDfnsOperations(value: unknown, operations = new Set<string>()) {
+  if (Array.isArray(value)) {
+    value.forEach((item) => {
+      if (typeof item === 'string') {
+        operations.add(item)
+      } else {
+        collectDfnsOperations(item, operations)
+      }
+    })
+    return operations
+  }
+
+  if (!isRecord(value)) return operations
+
+  const directFields = ['operations', 'permissions', 'userOperations']
+  directFields.forEach((field) => {
+    collectDfnsOperations(value[field], operations)
+  })
+  collectDfnsOperations(value.permissionAssignments, operations)
+
+  return operations
+}
+
+function hasDfnsTransactionCreatePermission(value: unknown) {
+  return collectDfnsOperations(value).has(DFNS_REQUIRED_TRANSACTION_PERMISSION)
+}
+
+async function assertDfnsTransactionCreatePermission({
+  dfnsClient,
+  token
+}: {
+  dfnsClient: DfnsApiClient
+  token: string
+}) {
+  const tokenPayload = decodeDfnsTokenPayload(token)
+  if (hasDfnsTransactionCreatePermission(tokenPayload)) return
+
+  const userId = getDfnsUserIdFromTokenPayload(tokenPayload)
+  if (userId) {
+    try {
+      const user = await dfnsClient.auth.getUser({ userId })
+      if (hasDfnsTransactionCreatePermission(user)) return
+    } catch {
+      throw new Error(DFNS_INSUFFICIENT_PERMISSIONS_MESSAGE)
+    }
+  }
+
+  throw new Error(DFNS_INSUFFICIENT_PERMISSIONS_MESSAGE)
 }
 
 function assertRequestedAccount(
@@ -535,6 +641,8 @@ export function dfnsConnector() {
           authToken: token,
           signer: webAuthnSigner
         })
+        await assertDfnsTransactionCreatePermission({ dfnsClient, token })
+
         const registrationCode = parameters?.registrationCode?.trim()
 
         try {
