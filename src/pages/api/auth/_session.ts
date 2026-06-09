@@ -71,8 +71,6 @@ export async function getVerifiedSessionClaims(
 export async function getSessionOrgId(
   req: NextApiRequest
 ): Promise<string | undefined> {
-  console.log('request', req)
   const payload = await getVerifiedSessionClaims(req)
-  console.log('payload', payload)
-  return payload ? getOptionalStringClaim(payload, 'orgId') : undefined
+  return payload ? getOptionalStringClaim(payload, 'organizationId') : undefined
 }
