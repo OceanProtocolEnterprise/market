@@ -113,7 +113,6 @@ export default async function handler(
       issuer: metadata.issuer,
       audience: clientId
     })
-    console.log('payload here', payload)
     if (payload.nonce !== expectedNonce) return failRedirect(res)
 
     // Validate required claims — throws if any are missing or empty
