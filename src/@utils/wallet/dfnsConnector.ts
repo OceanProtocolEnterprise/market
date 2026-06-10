@@ -90,75 +90,27 @@ function resolveDfnsOrgId(organizationId?: string) {
   )
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
-}
+async function assertDfnsTransactionCreatePermission(
+  dfnsClient: DfnsApiClient
+) {
+  let paginationToken: string | undefined
 
-function decodeBase64UrlJson(value: string): unknown {
-  if (typeof window === 'undefined' || typeof window.atob !== 'function') {
-    return undefined
-  }
-
-  try {
-    const base64 = value.replace(/-/g, '+').replace(/_/g, '/')
-    const paddedBase64 = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')
-    const binary = window.atob(paddedBase64)
-    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
-    return JSON.parse(new TextDecoder().decode(bytes)) as unknown
-  } catch {
-    return undefined
-  }
-}
-
-function decodeDfnsTokenPayload(token: string): Record<string, unknown> | null {
-  const [, payload] = token.split('.')
-  if (!payload) return null
-
-  const decoded = decodeBase64UrlJson(payload)
-  return isRecord(decoded) ? decoded : null
-}
-
-function collectDfnsOperations(value: unknown, operations = new Set<string>()) {
-  if (typeof value === 'string') {
-    operations.add(value)
-    return operations
-  }
-
-  if (Array.isArray(value)) {
-    value.forEach((item) => {
-      collectDfnsOperations(item, operations)
+  do {
+    const page = await dfnsClient.permissions.listPermissions({
+      query: { limit: 100, paginationToken }
     })
-    return operations
-  }
+    console.log('result here:', page)
 
-  if (!isRecord(value)) return operations
+    const hasPermission = page.items.some(
+      (permission) =>
+        permission.status === 'Active' &&
+        !permission.isArchived &&
+        permission.operations.includes(DFNS_REQUIRED_TRANSACTION_PERMISSION)
+    )
+    if (hasPermission) return
 
-  const directFields = [
-    'operation',
-    'operations',
-    'permission',
-    'permissions',
-    'userOperation',
-    'userOperations'
-  ]
-  directFields.forEach((field) => {
-    collectDfnsOperations(value[field], operations)
-  })
-  collectDfnsOperations(value.permissionAssignments, operations)
-  console.log('poperation here', operations)
-  return operations
-}
-
-function hasDfnsTransactionCreatePermission(value: unknown) {
-  const operations = collectDfnsOperations(value)
-  console.log('operations', operations)
-  return operations.has(DFNS_REQUIRED_TRANSACTION_PERMISSION)
-}
-
-function assertDfnsTransactionCreatePermission(token: string) {
-  const tokenPayload = decodeDfnsTokenPayload(token)
-  console.log('token payload:', tokenPayload)
-  if (hasDfnsTransactionCreatePermission(tokenPayload)) return
+    paginationToken = page.nextPageToken
+  } while (paginationToken)
 
   throw new Error(DFNS_INSUFFICIENT_PERMISSIONS_MESSAGE)
 }
@@ -611,7 +563,7 @@ export function dfnsConnector() {
           authToken: token,
           signer: webAuthnSigner
         })
-        assertDfnsTransactionCreatePermission(token)
+        await assertDfnsTransactionCreatePermission(dfnsClient)
 
         const registrationCode = parameters?.registrationCode?.trim()
 
