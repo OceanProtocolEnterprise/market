@@ -80,6 +80,13 @@ function redirectToDfnsSso(ssoRedirectUrl: string) {
   window.location.assign(redirectUrl.toString())
 }
 
+function isConnectorAlreadyConnectedError(error: unknown) {
+  return (
+    error instanceof Error &&
+    error.message.toLowerCase().includes('connector already connected')
+  )
+}
+
 /**
  * Shared DFNS connect flow, reusable from both the login setup panel and the
  * header reconnect modal. Owns the connect call, the SSO redirect kickoff, and
@@ -89,6 +96,7 @@ function redirectToDfnsSso(ssoRedirectUrl: string) {
  */
 export function useDfnsConnect() {
   const { connectAsync } = useConnect()
+  const account = useAccount()
   const wagmiConfig = useConfig()
   const { user } = useAuth()
   const { validatedSupportedChains } = useMarketMetadata()
@@ -140,6 +148,13 @@ export function useDfnsConnect() {
 
         if (chainId) storeDfnsSelectedChainId(chainId)
 
+        if (
+          account.isConnected &&
+          account.connector?.id === DFNS_CONNECTOR_ID
+        ) {
+          return
+        }
+
         await connectAsync({
           allowRegistrationCodePrompt: false,
           connector: dfnsWagmiConnector,
@@ -149,6 +164,8 @@ export function useDfnsConnect() {
           organizationId: resolvedOrganizationId
         } as Parameters<typeof connectAsync>[0])
       } catch (error) {
+        if (isConnectorAlreadyConnectedError(error)) return
+
         if (
           error instanceof Error &&
           error.message.toLowerCase().includes('dfns sso login')
@@ -174,7 +191,14 @@ export function useDfnsConnect() {
         setIsConnecting(false)
       }
     },
-    [connectAsync, dfnsWagmiConnector, startSso, user]
+    [
+      account.connector?.id,
+      account.isConnected,
+      connectAsync,
+      dfnsWagmiConnector,
+      startSso,
+      user
+    ]
   )
 
   /**
