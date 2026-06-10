@@ -99,7 +99,6 @@ async function assertDfnsTransactionCreatePermission(
     const page = await dfnsClient.permissions.listPermissions({
       query: { limit: 100, paginationToken }
     })
-    console.log('result here:', page)
 
     const hasPermission = page.items.some(
       (permission) =>
