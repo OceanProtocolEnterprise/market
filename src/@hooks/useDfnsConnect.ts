@@ -5,6 +5,7 @@ import { toast } from 'react-toastify'
 import { useAuth, verifyAuthSession } from '@hooks/useAuth'
 import { useMarketMetadata } from '@context/MarketMetadata'
 import {
+  DFNS_CONNECTOR_ID,
   DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE,
   dfnsConnector,
   getDfnsSelectableChains,
@@ -104,6 +105,13 @@ export function useDfnsConnect() {
     const intersection = allChains.filter((chain) => validatedSet.has(chain.id))
     return intersection.length > 0 ? intersection : allChains
   }, [wagmiConfig.chains, validatedSupportedChains])
+  const dfnsWagmiConnector = useMemo(
+    () =>
+      wagmiConfig.connectors.find(
+        (connector) => connector.id === DFNS_CONNECTOR_ID
+      ) || dfnsConnector(),
+    [wagmiConfig.connectors]
+  )
 
   const startSso = useCallback(async () => {
     storeReturnPath()
@@ -134,7 +142,7 @@ export function useDfnsConnect() {
 
         await connectAsync({
           allowRegistrationCodePrompt: false,
-          connector: dfnsConnector(),
+          connector: dfnsWagmiConnector,
           chainId,
           registrationCode: code,
           username: authUser?.email || authUser?.username,
@@ -166,7 +174,7 @@ export function useDfnsConnect() {
         setIsConnecting(false)
       }
     },
-    [connectAsync, startSso, user]
+    [connectAsync, dfnsWagmiConnector, startSso, user]
   )
 
   /**

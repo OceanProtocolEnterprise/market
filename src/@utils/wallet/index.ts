@@ -5,6 +5,7 @@ import { cookieStorage, createConfig, createStorage } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 import { erc20Abi, http } from 'viem'
 import { localhost, type Chain } from 'wagmi/chains'
+import { dfnsConnector } from './dfnsConnector'
 import {
   ethers,
   Contract,
@@ -56,7 +57,7 @@ export function createWagmiConfig() {
     chains,
     ssr: true,
     storage: createStorage({ storage: cookieStorage }),
-    connectors: [injected({ target: 'metaMask' })],
+    connectors: [injected({ target: 'metaMask' }), dfnsConnector()],
     transports: chains.reduce(
       (acc, chain) => ({
         ...acc,

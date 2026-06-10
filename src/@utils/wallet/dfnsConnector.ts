@@ -525,6 +525,81 @@ export function dfnsConnector() {
       await switchQueue
     }
 
+    const createProvider = (): DfnsProvider => ({
+      async request({ method, params }) {
+        const currentSigner = getActiveDfnsEoaSigner()
+        if (!currentSigner) {
+          throw new Error('Dfns wallet is not connected.')
+        }
+
+        if (method === 'eth_chainId') {
+          return numberToHex(currentSigner.getChainId())
+        }
+        if (method === 'eth_accounts' || method === 'eth_requestAccounts') {
+          return [currentSigner.address]
+        }
+        if (method === 'personal_sign' || method === 'eth_sign') {
+          const [first, second] = (params as [string, string]) || []
+          const requestedAddress = method === 'eth_sign' ? first : second
+          const message = method === 'eth_sign' ? second : first
+          assertRequestedAccount(
+            requestedAddress,
+            currentSigner.address,
+            method
+          )
+          if (!message) throw new Error(`${method} requires a message.`)
+
+          const walletClient = currentSigner.getWalletClient()
+          return walletClient.signMessage({
+            account: currentSigner.address,
+            message: isHex(message) ? { raw: message } : message
+          })
+        }
+        if (method === 'eth_sendTransaction') {
+          const [tx] = (params as [Record<string, Hex>]) || []
+          if (!tx) {
+            throw new Error('eth_sendTransaction requires a transaction.')
+          }
+          assertRequestedAccount(tx.from, currentSigner.address, method)
+
+          const walletClient = currentSigner.getWalletClient()
+          const transaction = {
+            account: currentSigner.address,
+            to: tx.to,
+            value: tx.value ? BigInt(tx.value) : undefined,
+            data: tx.data || '0x',
+            gas: tx.gas ? BigInt(tx.gas) : undefined,
+            gasPrice: tx.gasPrice ? BigInt(tx.gasPrice) : undefined,
+            maxFeePerGas: tx.maxFeePerGas ? BigInt(tx.maxFeePerGas) : undefined,
+            maxPriorityFeePerGas: tx.maxPriorityFeePerGas
+              ? BigInt(tx.maxPriorityFeePerGas)
+              : undefined,
+            nonce: tx.nonce ? fromHex(tx.nonce, 'number') : undefined
+          } as unknown as Parameters<typeof walletClient.sendTransaction>[0]
+
+          return walletClient.sendTransaction(transaction)
+        }
+        if (method === 'wallet_switchEthereumChain') {
+          const nextChainId = getRequestedSwitchChainId(params)
+          if (!currentSigner.hasWalletForChain(nextChainId)) {
+            throw new Error(
+              `No DFNS wallet provisioned for chain ${nextChainId}.`
+            )
+          }
+          await switchToChain(nextChainId)
+          return null
+        }
+
+        const chainForRead =
+          chainsById?.get(currentSigner.getChainId()) ??
+          currentSigner.getChain()
+        return rpcRequest(chainForRead, method, params)
+      },
+      on() {},
+      removeListener() {}
+    })
+    const reconnectProvider = createProvider()
+
     return {
       id: DFNS_CONNECTOR_ID,
       name: 'Dfns Account',
@@ -544,7 +619,6 @@ export function dfnsConnector() {
         storeDfnsChain(activeChain)
 
         const dfnsConfig = assertDfnsConfig()
-        const orgId = resolveDfnsOrgId(parameters?.organizationId)
         let registeredUsername: string | undefined
         const webAuthnSigner = new WebAuthnSigner({
           relyingParty: {
@@ -585,7 +659,7 @@ export function dfnsConnector() {
               authenticator,
               registrationCode: registrationCode || promptForRegistrationCode(),
               username,
-              orgId
+              orgId: resolveDfnsOrgId(parameters?.organizationId)
             })
             registeredUsername = username
           }
@@ -618,7 +692,7 @@ export function dfnsConnector() {
           const username = promptForUsername(parameters?.username)
           await registerDfnsUser({
             authenticator,
-            orgId,
+            orgId: resolveDfnsOrgId(parameters?.organizationId),
             registrationCode,
             username
           })
@@ -649,7 +723,7 @@ export function dfnsConnector() {
           const username = promptForUsername(parameters?.username)
           await registerDfnsUser({
             authenticator,
-            orgId,
+            orgId: resolveDfnsOrgId(parameters?.organizationId),
             registrationCode,
             username
           })
@@ -715,81 +789,7 @@ export function dfnsConnector() {
           }
         }
 
-        provider = {
-          async request({ method, params }) {
-            const currentSigner = getActiveDfnsEoaSigner()
-            if (!currentSigner) {
-              throw new Error('Dfns wallet is not connected.')
-            }
-
-            if (method === 'eth_chainId') {
-              return numberToHex(currentSigner.getChainId())
-            }
-            if (method === 'eth_accounts' || method === 'eth_requestAccounts') {
-              return [currentSigner.address]
-            }
-            if (method === 'personal_sign' || method === 'eth_sign') {
-              const [first, second] = (params as [string, string]) || []
-              const requestedAddress = method === 'eth_sign' ? first : second
-              const message = method === 'eth_sign' ? second : first
-              assertRequestedAccount(
-                requestedAddress,
-                currentSigner.address,
-                method
-              )
-              if (!message) throw new Error(`${method} requires a message.`)
-
-              const walletClient = currentSigner.getWalletClient()
-              return walletClient.signMessage({
-                account: currentSigner.address,
-                message: isHex(message) ? { raw: message } : message
-              })
-            }
-            if (method === 'eth_sendTransaction') {
-              const [tx] = (params as [Record<string, Hex>]) || []
-              if (!tx) {
-                throw new Error('eth_sendTransaction requires a transaction.')
-              }
-              assertRequestedAccount(tx.from, currentSigner.address, method)
-
-              const walletClient = currentSigner.getWalletClient()
-              const transaction = {
-                account: currentSigner.address,
-                to: tx.to,
-                value: tx.value ? BigInt(tx.value) : undefined,
-                data: tx.data || '0x',
-                gas: tx.gas ? BigInt(tx.gas) : undefined,
-                gasPrice: tx.gasPrice ? BigInt(tx.gasPrice) : undefined,
-                maxFeePerGas: tx.maxFeePerGas
-                  ? BigInt(tx.maxFeePerGas)
-                  : undefined,
-                maxPriorityFeePerGas: tx.maxPriorityFeePerGas
-                  ? BigInt(tx.maxPriorityFeePerGas)
-                  : undefined,
-                nonce: tx.nonce ? fromHex(tx.nonce, 'number') : undefined
-              } as unknown as Parameters<typeof walletClient.sendTransaction>[0]
-
-              return walletClient.sendTransaction(transaction)
-            }
-            if (method === 'wallet_switchEthereumChain') {
-              const nextChainId = getRequestedSwitchChainId(params)
-              if (!currentSigner.hasWalletForChain(nextChainId)) {
-                throw new Error(
-                  `No DFNS wallet provisioned for chain ${nextChainId}.`
-                )
-              }
-              await switchToChain(nextChainId)
-              return null
-            }
-
-            const chainForRead =
-              chainsById?.get(currentSigner.getChainId()) ??
-              currentSigner.getChain()
-            return rpcRequest(chainForRead, method, params)
-          },
-          on() {},
-          removeListener() {}
-        }
+        provider = createProvider()
 
         config.emitter.emit('connect', { accounts: [account], chainId })
 
@@ -821,11 +821,17 @@ export function dfnsConnector() {
         return chainId ?? config.chains[0].id
       },
       async getProvider() {
-        if (!provider) throw new Error('Dfns wallet is not connected')
-        return provider
+        return provider ?? reconnectProvider
       },
       async isAuthorized() {
-        return connected && Boolean(account)
+        if (connected && account) return true
+
+        try {
+          await getDfnsSsoToken()
+          return true
+        } catch {
+          return false
+        }
       },
       async switchChain({ chainId: nextChainId }) {
         const signer = getActiveDfnsEoaSigner()
