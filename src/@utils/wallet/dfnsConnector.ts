@@ -118,31 +118,6 @@ function decodeDfnsTokenPayload(token: string): Record<string, unknown> | null {
   return isRecord(decoded) ? decoded : null
 }
 
-function getStringField(
-  record: Record<string, unknown> | null | undefined,
-  field: string
-) {
-  const value = record?.[field]
-  return typeof value === 'string' && value.trim() ? value.trim() : undefined
-}
-
-function getDfnsUserIdFromTokenPayload(
-  payload: Record<string, unknown> | null
-) {
-  if (!payload) return undefined
-
-  const customMetadata = payload['https://custom/app_metadata']
-  const customRecord = isRecord(customMetadata) ? customMetadata : null
-
-  return (
-    getStringField(payload, 'userId') ||
-    getStringField(payload, 'linkedUserId') ||
-    getStringField(payload, 'sub') ||
-    getStringField(customRecord, 'userId') ||
-    getStringField(customRecord, 'linkedUserId')
-  )
-}
-
 function collectDfnsOperations(value: unknown, operations = new Set<string>()) {
   if (typeof value === 'string') {
     operations.add(value)
@@ -170,79 +145,20 @@ function collectDfnsOperations(value: unknown, operations = new Set<string>()) {
     collectDfnsOperations(value[field], operations)
   })
   collectDfnsOperations(value.permissionAssignments, operations)
-
+  console.log('poperation here', operations)
   return operations
-}
-
-function getDfnsDebugPayloadSummary(value: unknown) {
-  if (!isRecord(value)) return { type: typeof value }
-
-  const customMetadata = value['https://custom/app_metadata']
-  return {
-    keys: Object.keys(value),
-    customMetadataKeys: isRecord(customMetadata)
-      ? Object.keys(customMetadata)
-      : undefined
-  }
-}
-
-function logDfnsPermissionCheck(
-  source: string,
-  value: unknown,
-  operations: ReadonlySet<string>
-) {
-  console.log('[DFNS] transaction permission check', {
-    source,
-    requiredPermission: DFNS_REQUIRED_TRANSACTION_PERMISSION,
-    hasRequiredPermission: operations.has(DFNS_REQUIRED_TRANSACTION_PERMISSION),
-    operations: [...operations],
-    payloadSummary: getDfnsDebugPayloadSummary(value)
-  })
 }
 
 function hasDfnsTransactionCreatePermission(value: unknown) {
   const operations = collectDfnsOperations(value)
+  console.log('operations', operations)
   return operations.has(DFNS_REQUIRED_TRANSACTION_PERMISSION)
 }
 
-async function assertDfnsTransactionCreatePermission({
-  dfnsClient,
-  token
-}: {
-  dfnsClient: DfnsApiClient
-  token: string
-}) {
+function assertDfnsTransactionCreatePermission(token: string) {
   const tokenPayload = decodeDfnsTokenPayload(token)
-  const tokenOperations = collectDfnsOperations(tokenPayload)
-  logDfnsPermissionCheck('tokenPayload', tokenPayload, tokenOperations)
+  console.log('token payload:', tokenPayload)
   if (hasDfnsTransactionCreatePermission(tokenPayload)) return
-
-  const userId = getDfnsUserIdFromTokenPayload(tokenPayload)
-  console.log('[DFNS] token payload user lookup', {
-    hasTokenPayload: Boolean(tokenPayload),
-    userIdFound: Boolean(userId)
-  })
-
-  if (userId) {
-    try {
-      const user = await dfnsClient.auth.getUser({ userId })
-      const userOperations = collectDfnsOperations(user)
-      logDfnsPermissionCheck('auth.getUser', user, userOperations)
-      if (hasDfnsTransactionCreatePermission(user)) return
-    } catch (error) {
-      console.log('[DFNS] auth.getUser permission lookup failed', {
-        userIdFound: true,
-        error:
-          error instanceof Error
-            ? {
-                name: error.name,
-                message: error.message
-              }
-            : String(error)
-      })
-      throw new Error(DFNS_INSUFFICIENT_PERMISSIONS_MESSAGE)
-    }
-  }
 
   throw new Error(DFNS_INSUFFICIENT_PERMISSIONS_MESSAGE)
 }
@@ -695,7 +611,7 @@ export function dfnsConnector() {
           authToken: token,
           signer: webAuthnSigner
         })
-        await assertDfnsTransactionCreatePermission({ dfnsClient, token })
+        assertDfnsTransactionCreatePermission(token)
 
         const registrationCode = parameters?.registrationCode?.trim()
 
