@@ -7,6 +7,7 @@ import styles from './index.module.css'
 interface WalletChoiceModalProps {
   isOpen: boolean
   isDfnsConnecting?: boolean
+  showDfns?: boolean
   onClose: () => void
   onSelectMetaMask: () => void
   onSelectDfns: () => void
@@ -15,6 +16,7 @@ interface WalletChoiceModalProps {
 export default function WalletChoiceModal({
   isOpen,
   isDfnsConnecting = false,
+  showDfns = true,
   onClose,
   onSelectMetaMask,
   onSelectDfns
@@ -37,17 +39,19 @@ export default function WalletChoiceModal({
         >
           {authSetupCopy.connectBrowserWallet}
         </Button>
-        <Button
-          style="primary"
-          type="button"
-          onClick={onSelectDfns}
-          disabled={isDfnsConnecting}
-          className={styles.choice}
-        >
-          {isDfnsConnecting
-            ? authSetupCopy.dfnsConnecting
-            : authSetupCopy.connectDfnsWallet}
-        </Button>
+        {showDfns && (
+          <Button
+            style="primary"
+            type="button"
+            onClick={onSelectDfns}
+            disabled={isDfnsConnecting}
+            className={styles.choice}
+          >
+            {isDfnsConnecting
+              ? authSetupCopy.dfnsConnecting
+              : authSetupCopy.connectDfnsWallet}
+          </Button>
+        )}
       </div>
     </Modal>
   )
