@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { jwtVerify, type JWTPayload } from 'jose'
-import { DEFAULT_ACCESS_TOKEN_MAX_AGE } from './_cookies'
+import { clearAuthCookies, DEFAULT_ACCESS_TOKEN_MAX_AGE } from './_cookies'
 import { getOidcMetadata } from './_oidc'
 import { introspectAccessToken } from './_introspect'
 import { getLoginSource, getOptionalStringClaim } from './_claims'
@@ -29,6 +29,7 @@ export default async function handler(
   const idToken = req.cookies.id_token
 
   if (!accessToken && !refreshToken) {
+    clearAuthCookies(res)
     return res.status(401).json({
       error: 'No session',
       has_refresh_token: false
@@ -55,6 +56,7 @@ export default async function handler(
   }
 
   if (!idToken) {
+    if (!refreshToken) clearAuthCookies(res)
     return res.status(401).json({
       error: 'Session verification required',
       has_refresh_token: Boolean(refreshToken),
@@ -95,6 +97,7 @@ export default async function handler(
         clientSecret
       )
       if (introspection.status === 'inactive') {
+        clearAuthCookies(res)
         return res.status(401).json({
           error: 'Session terminated',
           has_refresh_token: Boolean(refreshToken)
@@ -143,6 +146,7 @@ export default async function handler(
     })
   } catch (error) {
     console.error('Session id_token verification failed:', error)
+    if (!refreshToken) clearAuthCookies(res)
     return res.status(401).json({
       error: 'Session verification failed',
       has_refresh_token: Boolean(refreshToken),

@@ -268,12 +268,6 @@ export const useAuth = () => {
         return
       }
 
-      if (!hasStoredSessionData()) {
-        applyVerificationResult(null)
-        setSessionVerified(true)
-        return
-      }
-
       setLoading(true)
       try {
         const result = await verifyAuthSessionDetailed()

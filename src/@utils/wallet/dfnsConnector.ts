@@ -144,20 +144,28 @@ function getDfnsUserIdFromTokenPayload(
 }
 
 function collectDfnsOperations(value: unknown, operations = new Set<string>()) {
+  if (typeof value === 'string') {
+    operations.add(value)
+    return operations
+  }
+
   if (Array.isArray(value)) {
     value.forEach((item) => {
-      if (typeof item === 'string') {
-        operations.add(item)
-      } else {
-        collectDfnsOperations(item, operations)
-      }
+      collectDfnsOperations(item, operations)
     })
     return operations
   }
 
   if (!isRecord(value)) return operations
 
-  const directFields = ['operations', 'permissions', 'userOperations']
+  const directFields = [
+    'operation',
+    'operations',
+    'permission',
+    'permissions',
+    'userOperation',
+    'userOperations'
+  ]
   directFields.forEach((field) => {
     collectDfnsOperations(value[field], operations)
   })
@@ -166,8 +174,35 @@ function collectDfnsOperations(value: unknown, operations = new Set<string>()) {
   return operations
 }
 
+function getDfnsDebugPayloadSummary(value: unknown) {
+  if (!isRecord(value)) return { type: typeof value }
+
+  const customMetadata = value['https://custom/app_metadata']
+  return {
+    keys: Object.keys(value),
+    customMetadataKeys: isRecord(customMetadata)
+      ? Object.keys(customMetadata)
+      : undefined
+  }
+}
+
+function logDfnsPermissionCheck(
+  source: string,
+  value: unknown,
+  operations: ReadonlySet<string>
+) {
+  console.log('[DFNS] transaction permission check', {
+    source,
+    requiredPermission: DFNS_REQUIRED_TRANSACTION_PERMISSION,
+    hasRequiredPermission: operations.has(DFNS_REQUIRED_TRANSACTION_PERMISSION),
+    operations: [...operations],
+    payloadSummary: getDfnsDebugPayloadSummary(value)
+  })
+}
+
 function hasDfnsTransactionCreatePermission(value: unknown) {
-  return collectDfnsOperations(value).has(DFNS_REQUIRED_TRANSACTION_PERMISSION)
+  const operations = collectDfnsOperations(value)
+  return operations.has(DFNS_REQUIRED_TRANSACTION_PERMISSION)
 }
 
 async function assertDfnsTransactionCreatePermission({
@@ -178,14 +213,33 @@ async function assertDfnsTransactionCreatePermission({
   token: string
 }) {
   const tokenPayload = decodeDfnsTokenPayload(token)
+  const tokenOperations = collectDfnsOperations(tokenPayload)
+  logDfnsPermissionCheck('tokenPayload', tokenPayload, tokenOperations)
   if (hasDfnsTransactionCreatePermission(tokenPayload)) return
 
   const userId = getDfnsUserIdFromTokenPayload(tokenPayload)
+  console.log('[DFNS] token payload user lookup', {
+    hasTokenPayload: Boolean(tokenPayload),
+    userIdFound: Boolean(userId)
+  })
+
   if (userId) {
     try {
       const user = await dfnsClient.auth.getUser({ userId })
+      const userOperations = collectDfnsOperations(user)
+      logDfnsPermissionCheck('auth.getUser', user, userOperations)
       if (hasDfnsTransactionCreatePermission(user)) return
-    } catch {
+    } catch (error) {
+      console.log('[DFNS] auth.getUser permission lookup failed', {
+        userIdFound: true,
+        error:
+          error instanceof Error
+            ? {
+                name: error.name,
+                message: error.message
+              }
+            : String(error)
+      })
       throw new Error(DFNS_INSUFFICIENT_PERMISSIONS_MESSAGE)
     }
   }
