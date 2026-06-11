@@ -1,5 +1,6 @@
 import { DfnsApiClient, DfnsAuthenticator, DfnsError } from '@dfns/sdk'
 import { WebAuthnSigner } from '@dfns/sdk-browser'
+import { decodeJwt } from 'jose'
 import {
   type Address,
   type Chain,
@@ -9,7 +10,6 @@ import {
   numberToHex
 } from 'viem'
 import { createConnector } from 'wagmi'
-import { UserRejectedRequestError } from 'viem'
 import { getNodeUriMap, getRuntimeConfig } from '../runtimeConfig'
 import {
   dfnsNetworkToChainId,
@@ -53,6 +53,25 @@ export const DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE =
 export const DFNS_INSUFFICIENT_PERMISSIONS_MESSAGE =
   'User does not have enough permissions from DFNS'
 
+function getDfnsTokenUserId(authToken: string) {
+  const payload = decodeJwt(authToken) as Record<string, unknown>
+  const customMetadata = payload['https://custom/app_metadata'] as
+    | Record<string, unknown>
+    | undefined
+  const userId =
+    payload.sub ||
+    payload.userId ||
+    payload.user_id ||
+    customMetadata?.userId ||
+    customMetadata?.user_id
+
+  if (typeof userId !== 'string' || !userId.trim()) {
+    throw new Error('Dfns SSO token does not include a user id.')
+  }
+
+  return userId
+}
+
 function getDfnsConfig() {
   const runtimeConfig = getRuntimeConfig()
 
@@ -90,8 +109,34 @@ function resolveDfnsOrgId(organizationId?: string) {
   )
 }
 
+async function hasDfnsPermissionAssignment(
+  dfnsClient: DfnsApiClient,
+  permissionId: string,
+  userId: string
+) {
+  let paginationToken: string | undefined
+
+  do {
+    const page = await dfnsClient.permissions.listAssignments({
+      permissionId,
+      query: { limit: 100, paginationToken }
+    })
+    console.log('permissions to check', page)
+    console.log('userId to check', userId)
+
+    if (page.items.some((assignment) => assignment.identityId === userId)) {
+      return true
+    }
+
+    paginationToken = page.nextPageToken
+  } while (paginationToken)
+
+  return false
+}
+
 async function assertDfnsTransactionCreatePermission(
-  dfnsClient: DfnsApiClient
+  dfnsClient: DfnsApiClient,
+  userId: string
 ) {
   let paginationToken: string | undefined
 
@@ -100,13 +145,26 @@ async function assertDfnsTransactionCreatePermission(
       query: { limit: 100, paginationToken }
     })
 
-    const hasPermission = page.items.some(
-      (permission) =>
-        permission.status === 'Active' &&
-        !permission.isArchived &&
-        permission.operations.includes(DFNS_REQUIRED_TRANSACTION_PERMISSION)
-    )
-    if (hasPermission) return
+    const permissionIds = page.items
+      .filter(
+        (permission) =>
+          permission.status === 'Active' &&
+          !permission.isArchived &&
+          permission.operations.includes(DFNS_REQUIRED_TRANSACTION_PERMISSION)
+      )
+      .map((permission) => permission.id)
+
+    if (permissionIds.length) {
+      const hasAssignedPermission = (
+        await Promise.all(
+          permissionIds.map((permissionId) =>
+            hasDfnsPermissionAssignment(dfnsClient, permissionId, userId)
+          )
+        )
+      ).some(Boolean)
+
+      if (hasAssignedPermission) return
+    }
 
     paginationToken = page.nextPageToken
   } while (paginationToken)
@@ -143,25 +201,7 @@ function promptForUsername(username?: string) {
   const defaultUsername = getDefaultUsername(username)
   if (defaultUsername) return defaultUsername
 
-  const promptedUsername = window.prompt('Dfns account email')
-  if (!promptedUsername) {
-    throw new UserRejectedRequestError(
-      new Error('Dfns registration cancelled.')
-    )
-  }
-
-  return promptedUsername.trim()
-}
-
-function promptForRegistrationCode() {
-  const registrationCode = window.prompt('Dfns registration code')
-  if (!registrationCode?.trim()) {
-    throw new UserRejectedRequestError(
-      new Error('Dfns registration cancelled.')
-    )
-  }
-
-  return registrationCode.trim()
+  throw new Error('Dfns account email is required.')
 }
 
 function isEvmDfnsWallet(
@@ -406,13 +446,13 @@ async function registerDfnsUser({
 }: {
   authenticator: DfnsAuthenticator
   orgId: string
-  registrationCode?: string
+  registrationCode: string
   username: string
 }) {
   await authenticator.register({
     orgId,
     username,
-    registrationCode: registrationCode?.trim() || promptForRegistrationCode()
+    registrationCode
   })
 }
 
@@ -636,7 +676,10 @@ export function dfnsConnector() {
           authToken: token,
           signer: webAuthnSigner
         })
-        await assertDfnsTransactionCreatePermission(dfnsClient)
+        await assertDfnsTransactionCreatePermission(
+          dfnsClient,
+          getDfnsTokenUserId(token)
+        )
 
         const registrationCode = parameters?.registrationCode?.trim()
 
@@ -647,17 +690,14 @@ export function dfnsConnector() {
           })
 
           if (!hasPasskey) {
-            if (
-              !registrationCode &&
-              parameters?.allowRegistrationCodePrompt === false
-            ) {
+            if (!registrationCode) {
               throw new Error(DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE)
             }
 
             const username = promptForUsername(parameters?.username)
             await createDfnsPasskeyWithCode({
               authenticator,
-              registrationCode: registrationCode || promptForRegistrationCode(),
+              registrationCode,
               username,
               orgId: resolveDfnsOrgId(parameters?.organizationId)
             })
@@ -682,10 +722,7 @@ export function dfnsConnector() {
             throw error
           }
 
-          if (
-            !registrationCode &&
-            parameters?.allowRegistrationCodePrompt === false
-          ) {
+          if (!registrationCode) {
             throw new Error(DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE)
           }
 
@@ -713,10 +750,7 @@ export function dfnsConnector() {
 
           if (!isRegistrationRequiredError(error)) throw error
 
-          if (
-            !registrationCode &&
-            parameters?.allowRegistrationCodePrompt === false
-          ) {
+          if (!registrationCode) {
             throw new Error(DFNS_REGISTRATION_CODE_REQUIRED_MESSAGE)
           }
 
