@@ -4,7 +4,12 @@ import { decodeJwt } from 'jose'
 import { buildClearAuthCookieStrings, clearAuthCookies } from '../_cookies'
 import { isFederatedSource } from '../_federated'
 import { getLoginSource } from '../_claims'
-import { authEnabled, oidcClientId, oidcIssuer } from 'app.config.cjs'
+import {
+  authEnabled,
+  oidcClientId,
+  oidcIssuer,
+  federatedOidcEndSessionUrl
+} from 'app.config.cjs'
 
 const OIDC_CLIENT_SECRET_ENV_KEY = 'OIDC_CLIENT_SECRET'
 const FEDERATED_LOGOUT_CONTINUE_COOKIE = 'federated_logout_continue'
@@ -120,7 +125,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
     issuer
   )}?${oidcParams.toString()}`
 
-  const federationEndSessionUrl = process.env.OIDC_FEDERATION_END_SESSION_URL
+  const federationEndSessionUrl = federatedOidcEndSessionUrl
   const detectedLoginSource =
     login_source || getLoginSourceFromIdToken(id_token)
   const isFederatedLogin = Boolean(

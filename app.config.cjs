@@ -237,6 +237,10 @@ module.exports = {
     getEnv('NEXT_PUBLIC_OIDC_TOKEN_URL') ||
     process.env.NEXT_PUBLIC_OIDC_TOKEN_URL ||
     null,
+  federatedOidcEndSessionUrl:
+    getEnv('NEXT_PUBLIC_FEDERATED_OIDC_END_SESSION_URL') ||
+    process.env.NEXT_PUBLIC_FEDERATED_OIDC_END_SESSION_URL ||
+    null,
   federatedOidcIssuers: parseEnvArray(
     getEnv('NEXT_PUBLIC_FEDERATED_OIDC_ISSUERS') ||
       process.env.NEXT_PUBLIC_FEDERATED_OIDC_ISSUERS,

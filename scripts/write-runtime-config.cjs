@@ -81,6 +81,8 @@ if (authEnabled) {
     process.env.NEXT_PUBLIC_MAX_LICENSE_FILE_SIZE_KB
   config.NEXT_PUBLIC_FEDERATED_OIDC_ISSUERS =
     process.env.NEXT_PUBLIC_FEDERATED_OIDC_ISSUERS
+  config.NEXT_PUBLIC_FEDERATED_OIDC_END_SESSION_URL =
+    process.env.NEXT_PUBLIC_FEDERATED_OIDC_END_SESSION_URL
 }
 
 const outputPath = path.join(process.cwd(), 'public', 'runtime-config.js')
