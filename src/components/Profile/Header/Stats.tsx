@@ -55,6 +55,7 @@ export default function Stats({
     revenue,
     revenueByNetwork,
     escrowFundsByToken,
+    tokenBalancesByToken,
     ownAccount
   } = useProfile()
   const activeChainId = useChainId()
@@ -81,6 +82,7 @@ export default function Stats({
       : null) || null
   const selectedEscrowAvailable = selectedEscrow?.available || '0'
   const selectedEscrowLocked = selectedEscrow?.locked || '0'
+  const selectedBalance = tokenBalancesByToken?.[selectedSymbol]?.balance || '0'
   const hasAvailable = Number(selectedEscrowAvailable) > 0
   const selectedNetworkName = selectedChainId
     ? getNetworkDisplayName(
@@ -110,6 +112,20 @@ export default function Stats({
       )}
       {ownAccount && activeToken && (
         <>
+          <NumberUnit
+            label="Balance"
+            value={
+              <TokenAmount
+                amount={formatToFixedNoRounding(selectedBalance, 3)}
+                token={selectedSymbol}
+              />
+            }
+            tooltip={
+              selectedChainId === activeChainIdString
+                ? selectedNetworkName
+                : undefined
+            }
+          />
           <NumberUnit
             label="Escrow Locked Funds"
             value={

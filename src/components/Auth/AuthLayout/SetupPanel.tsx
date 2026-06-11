@@ -7,6 +7,8 @@ import useSsiChainGuard from '@hooks/useSsiChainGuard'
 import { useAuth } from '@hooks/useAuth'
 import { getPendingAuthMode } from '@utils/authFlow'
 import useSsiConnect from '@hooks/useSsiConnect'
+import { useDfnsConnect } from '@hooks/useDfnsConnect'
+import DfnsRegistrationModal from '@shared/DfnsRegistrationModal'
 import { authSetupCopy } from '../constants'
 import styles from './SetupPanel.module.css'
 
@@ -88,6 +90,7 @@ export default function SetupPanel() {
   const { isConnected } = useAccount()
   const { setOpen } = useModal()
   const { user, logout } = useAuth()
+  const dfns = useDfnsConnect()
   const { connectSsi } = useSsiConnect()
   const { sessionToken, isSsiStateHydrated, isSsiSessionHydrating } =
     useSsiWallet()
@@ -223,23 +226,54 @@ export default function SetupPanel() {
           </div>
         ) : (
           <>
-            {actionLabel && (
-              <button
-                type="button"
-                className={styles.actionButton}
-                onClick={() => {
-                  handleAction().catch((error) => {
-                    console.error('SSI setup action failed:', error)
-                  })
-                }}
-                disabled={isSsiSessionHydrating}
-              >
-                {actionLabel}
-              </button>
+            {currentAction === 'connectWallet' ? (
+              <div className={styles.walletChoices}>
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={() => setOpen(true)}
+                >
+                  {authSetupCopy.connectBrowserWallet}
+                </button>
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={dfns.openConnect}
+                  disabled={dfns.isConnecting}
+                >
+                  {dfns.isConnecting
+                    ? authSetupCopy.dfnsConnecting
+                    : authSetupCopy.connectDfnsWallet}
+                </button>
+              </div>
+            ) : (
+              actionLabel && (
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={() => {
+                    handleAction().catch((error) => {
+                      console.error('SSI setup action failed:', error)
+                    })
+                  }}
+                  disabled={isSsiSessionHydrating}
+                >
+                  {actionLabel}
+                </button>
+              )
             )}
           </>
         )}
       </div>
+
+      <DfnsRegistrationModal
+        isOpen={dfns.isRegistrationModalOpen}
+        registrationCode={dfns.registrationCode}
+        isConnecting={dfns.isConnecting}
+        onChange={dfns.setRegistrationCode}
+        onSubmit={dfns.submitRegistrationCode}
+        onClose={() => dfns.setIsRegistrationModalOpen(false)}
+      />
     </div>
   )
 }

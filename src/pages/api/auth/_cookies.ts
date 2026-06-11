@@ -2,6 +2,7 @@
 import type { NextApiResponse } from 'next'
 
 const AUTH_COOKIE_NAMES = ['access_token', 'refresh_token', 'id_token'] as const
+const EXTRA_SESSION_COOKIE_NAMES = ['dfns_token'] as const
 export const DEFAULT_ACCESS_TOKEN_MAX_AGE = 3600
 const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60
 
@@ -70,6 +71,7 @@ export function buildClearAuthCookieStrings({
 
   return [
     ...authCookieNames.map((name) => serializeCookie(name, '', 0)),
+    ...EXTRA_SESSION_COOKIE_NAMES.map((name) => serializeCookie(name, '', 0)),
     serializeSessionCookie('login_source', '', 0)
   ].filter(Boolean) as string[]
 }

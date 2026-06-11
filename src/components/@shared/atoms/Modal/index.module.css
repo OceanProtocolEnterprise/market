@@ -45,6 +45,7 @@
 
 .header {
   padding-bottom: var(--spacer);
+  padding-right: calc(var(--spacer) * 1.5);
 }
 
 .title {
@@ -70,8 +71,10 @@
   border: 0;
   box-shadow: none;
   outline: 0;
-  top: calc(var(--spacer) / 4);
-  right: calc(var(--spacer) / 2);
+  top: calc(var(--spacer) / 5);
+  right: calc(var(--spacer) / 3);
+  padding: 0;
+  line-height: 1;
   font-size: var(--font-size-h2);
   color: var(--font-color-text);
 }

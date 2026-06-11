@@ -6,7 +6,7 @@ import {
   SsiWalletSession,
   SsiWalletDid
 } from 'src/@types/SsiWallet'
-import { JsonRpcSigner } from 'ethers'
+import { Signer } from 'ethers'
 import appConfig from 'app.config.cjs'
 import { getAllowedErc20ChainIds } from '@utils/runtimeConfig'
 import { LoggerInstance } from '@oceanprotocol/lib'
@@ -55,7 +55,7 @@ function getSsiConnectErrorMessage(error: any): string {
 }
 
 export async function connectToWallet(
-  owner: JsonRpcSigner
+  owner: Signer
 ): Promise<SsiWalletSession> {
   const api = getSsiWalletApi()
   if (!api) {

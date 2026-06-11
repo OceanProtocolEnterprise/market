@@ -14,6 +14,9 @@ import useEnterpriseFeeCollector from '@hooks/useEnterpriseFeeCollector'
 import useTokenApproval from '@hooks/useTokenApproval'
 import useAllowedTokenAddresses from '@hooks/useAllowedTokenAddresses'
 import { useWalletAuthSync } from '@hooks/useWalletAuthSync'
+import { useConnectorSupportedChains } from '@hooks/useDfnsWalletsByChain'
+import { useDfnsSsoReturn } from '@hooks/useDfnsConnect'
+import DfnsRegistrationModal from '@shared/DfnsRegistrationModal'
 import NetworkWarningModal from './NetworkWarningModal'
 import SsiWalletManager from '@components/Header/SsiWallet/SsiWalletManager'
 
@@ -31,11 +34,12 @@ export default function App({
     validatedSupportedChains,
     isValidatingSupportedChains
   } = useMarketMetadata()
-  const { address, isConnected, chainId } = useAccount()
+  const { address, connector, isConnected, chainId } = useAccount()
   const { switchChain, isPending } = useSwitchChain()
   const { isInPurgatory, purgatoryData } = useAccountPurgatory(address)
 
   useWalletAuthSync()
+  const dfnsSsoReturn = useDfnsSsoReturn()
 
   const router = useRouter()
   const isRoot = router.pathname === '/'
@@ -51,6 +55,10 @@ export default function App({
   const [showNoAllowedMessage, setShowNoAllowedMessage] = useState(false)
   const [showNetworkWarning, setShowNetworkWarning] = useState(false)
   const supportedChains = validatedSupportedChains
+  const switchableChains = useConnectorSupportedChains()
+  const isMetaMaskConnector =
+    connector?.id === 'injected' ||
+    (connector as { type?: string } | undefined)?.type === 'injected'
   const supportedChainsLoaded = !isValidatingSupportedChains
 
   const decisionLockedRef = useRef(false)
@@ -79,6 +87,11 @@ export default function App({
       return
     }
 
+    if (!isMetaMaskConnector) {
+      setShowNetworkWarning(false)
+      return
+    }
+
     if (!chainId) {
       setShowNetworkWarning(false)
       return
@@ -101,6 +114,7 @@ export default function App({
     }
   }, [
     isConnected,
+    isMetaMaskConnector,
     chainId,
     isNetworkSupported,
     allowedTokens,
@@ -161,7 +175,7 @@ export default function App({
         chainId={chainId}
         isOpen={showNetworkWarning}
         isPending={isPending}
-        supportedChains={supportedChains}
+        supportedChains={switchableChains}
         onClose={() => setShowNetworkWarning(false)}
         onSwitchChain={handleNetworkSwitch}
       />
@@ -207,6 +221,15 @@ export default function App({
       {appConfig?.privacyPreferenceCenter === 'true' && (
         <PrivacyPreferenceCenter style="small" />
       )}
+
+      <DfnsRegistrationModal
+        isOpen={dfnsSsoReturn.isRegistrationModalOpen}
+        registrationCode={dfnsSsoReturn.registrationCode}
+        isConnecting={dfnsSsoReturn.isConnecting}
+        onChange={dfnsSsoReturn.setRegistrationCode}
+        onSubmit={dfnsSsoReturn.submitRegistrationCode}
+        onClose={() => dfnsSsoReturn.setIsRegistrationModalOpen(false)}
+      />
 
       <ToastContainer position="bottom-right" newestOnTop />
     </div>

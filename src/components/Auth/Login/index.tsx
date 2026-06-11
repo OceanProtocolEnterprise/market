@@ -62,7 +62,9 @@ export default function Login({ content, initialTab = 'login' }: LoginProps) {
       if (!sessionToken) return
     }
 
-    const redirectTo = (callbackUrl as string) || '/profile'
+    const redirectTo =
+      (callbackUrl as string) ||
+      '/search?sort=indexedMetadata.event.block&sortOrder=desc'
     const timeoutId = window.setTimeout(() => {
       clearPendingAuthMode()
       router.replace(redirectTo)

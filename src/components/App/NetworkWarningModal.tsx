@@ -15,6 +15,7 @@ const ALERT_TITLE = 'Unsupported Network'
 const NETWORK_ALERT_SUFFIX =
   'This network either has no approved tokens or is not configured for this marketplace.'
 const CONFIG_ALERT_TITLE = 'Configuration Required'
+const SWITCH_OPTIONS_ALERT_TITLE = 'No Switchable Networks'
 const CONFIG_ALERT_TEXT =
   'NEXT_PUBLIC_ALLOWED_ERC20_ADDRESSES must be set with at least one supported chain and token address.'
 const SWITCH_NETWORK_PROMPT = 'Please switch to one of the supported networks:'
@@ -53,6 +54,7 @@ interface NetworkWarningModalProps {
   isOpen: boolean
   isPending: boolean
   supportedChains: number[]
+  emptySwitchOptionsText?: string
   onClose: () => void
   onSwitchChain: (targetChainId: number) => void
 }
@@ -62,6 +64,7 @@ export default function NetworkWarningModal({
   isOpen,
   isPending,
   supportedChains,
+  emptySwitchOptionsText,
   onClose,
   onSwitchChain
 }: NetworkWarningModalProps) {
@@ -82,10 +85,14 @@ export default function NetworkWarningModal({
   const connectedNetworkName = chainId
     ? getReadableNetworkName(chainId)
     : 'an unknown network'
-  const alertTitle = hasSupportedChains ? ALERT_TITLE : CONFIG_ALERT_TITLE
+  const alertTitle = hasSupportedChains
+    ? ALERT_TITLE
+    : emptySwitchOptionsText
+    ? SWITCH_OPTIONS_ALERT_TITLE
+    : CONFIG_ALERT_TITLE
   const alertText = hasSupportedChains
     ? `You're connected to ${connectedNetworkName}. ${NETWORK_ALERT_SUFFIX}`
-    : CONFIG_ALERT_TEXT
+    : emptySwitchOptionsText || CONFIG_ALERT_TEXT
 
   function handleSwitchClick(targetChainId: number) {
     if (isPending) return
