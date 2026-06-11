@@ -54,18 +54,15 @@ export const DFNS_INSUFFICIENT_PERMISSIONS_MESSAGE =
   'User does not have enough permissions from DFNS'
 
 function getDfnsTokenUserId(authToken: string) {
-  console.log('my token', authToken)
   const payload = decodeJwt(authToken) as Record<string, unknown>
-  console.log('payload', payload)
   const customMetadata = payload['https://custom/app_metadata'] as
     | Record<string, unknown>
     | undefined
   const userId =
-    payload.sub ||
-    payload.userId ||
-    payload.user_id ||
     customMetadata?.userId ||
-    customMetadata?.user_id
+    customMetadata?.user_id ||
+    payload.userId ||
+    payload.user_id
 
   if (typeof userId !== 'string' || !userId.trim()) {
     throw new Error('Dfns SSO token does not include a user id.')
@@ -123,8 +120,6 @@ async function hasDfnsPermissionAssignment(
       permissionId,
       query: { limit: 100, paginationToken }
     })
-    console.log('permissions to check', page)
-    console.log('userId to check', userId)
 
     if (page.items.some((assignment) => assignment.identityId === userId)) {
       return true
