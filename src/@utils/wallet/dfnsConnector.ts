@@ -54,7 +54,9 @@ export const DFNS_INSUFFICIENT_PERMISSIONS_MESSAGE =
   'User does not have enough permissions from DFNS'
 
 function getDfnsTokenUserId(authToken: string) {
+  console.log('my token', authToken)
   const payload = decodeJwt(authToken) as Record<string, unknown>
+  console.log('payload', payload)
   const customMetadata = payload['https://custom/app_metadata'] as
     | Record<string, unknown>
     | undefined
