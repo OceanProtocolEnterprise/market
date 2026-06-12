@@ -21,7 +21,7 @@ import {
   getNetworkDataById,
   getNetworkDisplayName
 } from '@hooks/useNetworkMetadata'
-import { useMarketMetadata } from '@context/MarketMetadata'
+import { useConnectorSupportedChains } from '@hooks/useDfnsWalletsByChain'
 
 const cx = classNames.bind(styles)
 
@@ -83,10 +83,7 @@ export default function Filter({
 }): ReactElement {
   const { filters, setFilters, ignorePurgatory, setIgnorePurgatory } =
     useFilter()
-  const { validatedSupportedChains } = useMarketMetadata()
-  const supportedBlockchainValues = validatedSupportedChains.map((chainId) =>
-    String(chainId)
-  )
+  const connectorSupportedChains = useConnectorSupportedChains()
 
   const router = useRouter()
 
@@ -187,13 +184,13 @@ export default function Filter({
         { label: 'Unlisted', value: State.Unlisted }
       ]
     },
-    ...(validatedSupportedChains.length > 1
+    ...(connectorSupportedChains.length > 1
       ? [
           {
             id: 'supportedBlockchain',
             label: 'Blockchain',
             type: 'filterList',
-            options: validatedSupportedChains.map((chainId: number) => {
+            options: connectorSupportedChains.map((chainId: number) => {
               const network = getNetworkDataById(networkdata, chainId)
 
               return {

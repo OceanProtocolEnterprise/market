@@ -43,7 +43,7 @@ const columns: TableOceanColumn<AssetExtended>[] = [
       )
     },
     grow: 2,
-    width: '600px'
+    minWidth: '12rem'
   },
   {
     name: 'Type',

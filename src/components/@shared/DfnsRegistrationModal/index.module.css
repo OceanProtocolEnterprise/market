@@ -1,0 +1,33 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacer, 1rem) / 2);
+  margin-top: calc(var(--spacer, 1rem) / 2);
+}
+
+.description {
+  margin: 0;
+  color: var(--color-secondary);
+  font-size: var(--font-size-small);
+}
+
+.label {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.input {
+  width: 100%;
+  padding: calc(var(--spacer, 1rem) / 2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--background-content);
+  color: var(--font-color-text);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: calc(var(--spacer, 1rem) / 2);
+  margin-top: calc(var(--spacer, 1rem) / 2);
+}

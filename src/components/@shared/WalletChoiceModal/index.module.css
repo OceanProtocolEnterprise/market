@@ -1,0 +1,11 @@
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: calc(var(--spacer) / 2);
+}
+
+.choice {
+  width: 100%;
+  justify-content: center;
+}

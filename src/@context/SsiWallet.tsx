@@ -63,7 +63,7 @@ export function SsiWalletProvider({
 }: {
   children: ReactNode
 }): ReactElement {
-  const { address, isConnected } = useAccount()
+  const { address, isConnected, status: walletStatus } = useAccount()
   const { setShowSsiWalletModule } = useUserPreferences()
   const { chainId, isSsiChainAllowed, isSsiChainReady } = useSsiAllowedChain()
   const walletClient = useEthersSigner()
@@ -95,6 +95,7 @@ export function SsiWalletProvider({
   const previousChainIdRef = useRef<number>()
   const previousAddressRef = useRef<string>()
   const ssiReconnectInProgressRef = useRef(false)
+  const walletReconnectHydratingRef = useRef(false)
 
   function tryAcquireSsiAutoConnectLock(): boolean {
     if (ssiAutoConnectLockRef.current) return false
@@ -165,6 +166,17 @@ export function SsiWalletProvider({
 
     if (!sessionToken) return
 
+    if (walletStatus === 'connecting' || walletStatus === 'reconnecting') {
+      walletReconnectHydratingRef.current = true
+      setIsSsiSessionHydrating(true)
+      return
+    }
+
+    if (walletReconnectHydratingRef.current) {
+      walletReconnectHydratingRef.current = false
+      setIsSsiSessionHydrating(false)
+    }
+
     const chainChanged =
       previousChainId !== undefined && previousChainId !== chainId
     const accountChanged =
@@ -200,6 +212,7 @@ export function SsiWalletProvider({
     address,
     chainId,
     isConnected,
+    walletStatus,
     isSsiChainAllowed,
     isSsiChainReady,
     sessionToken,

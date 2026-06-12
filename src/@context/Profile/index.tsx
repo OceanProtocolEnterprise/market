@@ -21,9 +21,9 @@ import axios, { CancelToken } from 'axios'
 import { useMarketMetadata } from '../MarketMetadata'
 import { formatUnits, isAddress, Signer } from 'ethers'
 import { Asset } from 'src/@types/Asset'
-import { useChainId } from 'wagmi'
+import { useAccount, useChainId } from 'wagmi'
 import { getOceanConfig } from '@utils/ocean'
-import { getTokenInfo } from '@utils/wallet'
+import { getTokenBalance, getTokenInfo } from '@utils/wallet'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 import { useCancelToken } from '@hooks/useCancelToken'
 import { getComputeEnvironments } from '@utils/provider'
@@ -34,6 +34,14 @@ interface EscrowFunds {
   symbol: string
   address: string
   decimals: number
+}
+
+interface ProfileTokenBalance {
+  balance: string
+  symbol: string
+  address: string
+  decimals: number
+  accountId: string
 }
 
 interface ProfileProviderValue {
@@ -51,6 +59,8 @@ interface ProfileProviderValue {
   revenue: { [symbol: string]: number }
   revenueByNetwork: { [chainId: string]: { [symbol: string]: number } }
   escrowFundsByToken: { [symbol: string]: EscrowFunds }
+  tokenBalancesByToken: { [symbol: string]: ProfileTokenBalance }
+  connectedAccountId?: string
   handlePageChange: (pageNumber: number) => void
   refreshEscrowFunds?: () => void
 }
@@ -67,6 +77,7 @@ function ProfileProvider({
   children: ReactNode
 }): ReactElement {
   const walletClient = useEthersSigner() // FIX: Replaced useSigner
+  const { address: wagmiAccountId } = useAccount()
   const chainId = useChainId() // FIX: Replaced useNetwork
   const { chainIds } = useUserPreferences()
   const { appConfig, approvedBaseTokens, validatedSupportedChains } =
@@ -78,7 +89,12 @@ function ProfileProvider({
   const [escrowFundsByToken, setEscrowFundsByToken] = useState<{
     [symbol: string]: EscrowFunds
   }>({})
+  const [tokenBalancesByToken, setTokenBalancesByToken] = useState<{
+    [symbol: string]: ProfileTokenBalance
+  }>({})
+  const [connectedAccountId, setConnectedAccountId] = useState<string>()
   const tokenInfoCache = useRef<Map<string, TokenInfo>>(new Map())
+  const tokenBalanceFetchKey = useRef<string>()
   const newCancelToken = useCancelToken()
 
   const [isEthAddress, setIsEthAddress] = useState<boolean>()
@@ -357,7 +373,7 @@ function ProfileProvider({
     getUserSalesNumber()
   }, [accountId, activeChainIds, approvedBaseTokens, chainId, newCancelToken])
 
-  async function getEscrowFunds() {
+  const getEscrowFunds = useCallback(async () => {
     if (!accountId || !isEthAddress || !walletClient || !chainId) {
       setEscrowFundsByToken({})
       return
@@ -472,18 +488,170 @@ function ProfileProvider({
         error instanceof Error ? error.message : String(error)
       LoggerInstance.error('[Profile] Error getting escrow funds', errorMessage)
     }
-  }
+  }, [
+    accountId,
+    appConfig?.customProviderUrl,
+    approvedBaseTokens,
+    chainId,
+    isEthAddress,
+    walletClient
+  ])
 
   useEffect(() => {
     getEscrowFunds()
+  }, [getEscrowFunds])
+
+  const getTokenBalances = useCallback(async () => {
+    if (!ownAccount || !walletClient || !chainId) {
+      tokenBalanceFetchKey.current = undefined
+      setConnectedAccountId(undefined)
+      setTokenBalancesByToken({})
+      return
+    }
+
+    try {
+      const signerAddress = await walletClient.getAddress()
+      const balanceAccountId = signerAddress || wagmiAccountId
+
+      if (!balanceAccountId || !isAddress(balanceAccountId)) {
+        tokenBalanceFetchKey.current = undefined
+        setConnectedAccountId(undefined)
+        setTokenBalancesByToken({})
+        return
+      }
+
+      setConnectedAccountId(balanceAccountId)
+
+      const tokenAddresses = new Set<string>()
+      const approvedTokenMap = new Map<string, TokenInfo>()
+      approvedBaseTokens?.forEach((token) => {
+        if (!token?.address) return
+        const normalizedAddress = token.address.toLowerCase()
+        tokenAddresses.add(token.address)
+        approvedTokenMap.set(normalizedAddress, token)
+        tokenInfoCache.current.set(normalizedAddress, token)
+      })
+      Object.values(escrowFundsByToken || {}).forEach((token) => {
+        if (!token?.address) return
+        const normalizedAddress = token.address.toLowerCase()
+        tokenAddresses.add(token.address)
+        tokenInfoCache.current.set(normalizedAddress, {
+          address: token.address,
+          name: token.symbol,
+          symbol: token.symbol,
+          decimals: token.decimals
+        })
+      })
+
+      const oceanTokenAddress = getOceanConfig(chainId)?.oceanTokenAddress
+      if (oceanTokenAddress) tokenAddresses.add(oceanTokenAddress)
+
+      const providerUrl = appConfig?.customProviderUrl
+      if (providerUrl) {
+        try {
+          const computeEnvs = await getComputeEnvironments(providerUrl, chainId)
+          computeEnvs?.forEach((env) => {
+            const envWithFees = env as unknown as {
+              fees?: Record<string, Array<{ feeToken?: string }>>
+            }
+            const fee = envWithFees.fees?.[chainId.toString()]?.[0]
+            if (fee?.feeToken) tokenAddresses.add(fee.feeToken)
+          })
+        } catch (err) {
+          LoggerInstance.warn(
+            '[Profile] Failed to fetch compute token balances',
+            err instanceof Error ? err.message : String(err)
+          )
+        }
+      }
+
+      if (tokenAddresses.size === 0) {
+        tokenBalanceFetchKey.current = undefined
+        setTokenBalancesByToken({})
+        return
+      }
+
+      const nextTokenBalanceFetchKey = JSON.stringify({
+        accountId: balanceAccountId.toLowerCase(),
+        chainId,
+        providerUrl,
+        tokenAddresses: Array.from(tokenAddresses)
+          .map((address) => address.toLowerCase())
+          .sort()
+      })
+      if (tokenBalanceFetchKey.current === nextTokenBalanceFetchKey) return
+      tokenBalanceFetchKey.current = nextTokenBalanceFetchKey
+
+      const balancesMap: { [symbol: string]: ProfileTokenBalance } = {}
+      const results = await Promise.allSettled(
+        Array.from(tokenAddresses).map(async (tokenAddress) => {
+          const normalizedAddress = tokenAddress.toLowerCase()
+          const cachedToken =
+            approvedTokenMap.get(normalizedAddress) ||
+            tokenInfoCache.current.get(normalizedAddress)
+          const tokenDetails =
+            cachedToken ||
+            (await getTokenInfo(tokenAddress, walletClient.provider))
+
+          if (!cachedToken) {
+            tokenInfoCache.current.set(normalizedAddress, tokenDetails)
+          }
+
+          const tokenDecimals = tokenDetails.decimals ?? 18
+          const balance = await getTokenBalance(
+            balanceAccountId,
+            tokenDecimals,
+            tokenAddress,
+            walletClient.provider
+          )
+          const normalizedBalance = balance || '0'
+
+          return {
+            balance: normalizedBalance,
+            symbol: tokenDetails.symbol,
+            address: tokenAddress,
+            decimals: tokenDecimals,
+            accountId: balanceAccountId
+          }
+        })
+      )
+
+      results.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          balancesMap[result.value.symbol] = result.value
+          return
+        }
+
+        LoggerInstance.warn(
+          '[Profile] Failed to get token balance',
+          result.reason?.message || result.reason
+        )
+      })
+
+      setTokenBalancesByToken(balancesMap)
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      LoggerInstance.error(
+        '[Profile] Error getting token balances',
+        errorMessage
+      )
+      tokenBalanceFetchKey.current = undefined
+      setTokenBalancesByToken({})
+    }
   }, [
-    accountId,
-    walletClient,
-    isEthAddress,
-    chainId,
     appConfig?.customProviderUrl,
-    approvedBaseTokens
+    approvedBaseTokens,
+    chainId,
+    escrowFundsByToken,
+    ownAccount,
+    wagmiAccountId,
+    walletClient
   ])
+
+  useEffect(() => {
+    getTokenBalances()
+  }, [getTokenBalances])
 
   return (
     <ProfileContext.Provider
@@ -503,6 +671,8 @@ function ProfileProvider({
         revenue,
         revenueByNetwork,
         escrowFundsByToken,
+        tokenBalancesByToken,
+        connectedAccountId,
         refreshEscrowFunds: getEscrowFunds
       }}
     >

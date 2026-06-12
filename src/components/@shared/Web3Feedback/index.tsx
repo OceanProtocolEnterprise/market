@@ -4,12 +4,19 @@ import styles from './index.module.css'
 import WalletNetworkSwitcher from '../WalletNetworkSwitcher'
 import Warning from '@images/warning.svg'
 import { useModal } from 'connectkit'
+import Tooltip from '@shared/atoms/Tooltip'
+import useNetworkMetadata, {
+  getNetworkDataById,
+  getNetworkDisplayName
+} from '@hooks/useNetworkMetadata'
+import { useAsset } from '@context/Asset'
+import { useChainId } from 'wagmi'
 
 export default function Web3Feedback({
   accountId,
   isAssetNetwork
 }: {
-  accountId: string
+  accountId?: string
   isAssetNetwork?: boolean
 }): ReactElement {
   const [state, setState] = useState<string>()
@@ -18,6 +25,21 @@ export default function Web3Feedback({
   const [showFeedback, setShowFeedback] = useState<boolean>(false)
 
   const { setOpen } = useModal()
+
+  const chainId = useChainId()
+  const { asset } = useAsset()
+  const { networksList } = useNetworkMetadata()
+
+  const ddoNetworkId = asset?.credentialSubject?.chainId
+  const ddoNetworkData = getNetworkDataById(networksList, ddoNetworkId)
+  const walletNetworkData = getNetworkDataById(networksList, chainId)
+
+  const ddoNetworkName = (
+    <strong>{getNetworkDisplayName(ddoNetworkData)}</strong>
+  )
+  const walletNetworkName = (
+    <strong>{getNetworkDisplayName(walletNetworkData)}</strong>
+  )
 
   function handleConnectWallet() {
     setOpen(true)
@@ -49,7 +71,21 @@ export default function Web3Feedback({
           <div className={styles.warningImage}>
             <Warning />
           </div>
-          <h3 className={styles.title}>{title}</h3>
+          {isAssetNetwork === false ? (
+            <Tooltip
+              content={
+                <>
+                  This asset is published on {ddoNetworkName} but your wallet is
+                  connected to {walletNetworkName}. Connect to {ddoNetworkName}
+                  to interact with this asset.
+                </>
+              }
+            >
+              <h3 className={styles.title}>{title}</h3>
+            </Tooltip>
+          ) : (
+            <h3 className={styles.title}>{title}</h3>
+          )}
           {isAssetNetwork === false ? (
             <WalletNetworkSwitcher />
           ) : (
