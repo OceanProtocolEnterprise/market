@@ -60,7 +60,7 @@ export const authConfig = ((): AuthConfig => {
       redirectUri,
       signupFlow,
       scope:
-        'openid profile email offline_access federated_identity organizationId attributes',
+        'openid profile email offline_access federated_identity organizationId walletId signerService',
       responseType: 'code',
       pkceMethod: 'S256'
     }
