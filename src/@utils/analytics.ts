@@ -6,6 +6,15 @@ const DEFAULT_POSTHOG_HOST = 'https://eu.i.posthog.com'
 let initialized = false
 
 /**
+ * Whether PostHog analytics is configured for this deployment. False on
+ * self-hosted instances that have not set NEXT_PUBLIC_POSTHOG_KEY, so the UI
+ * can avoid claiming analytics is active when it is not.
+ */
+export function isAnalyticsConfigured(): boolean {
+  return Boolean(getRuntimeConfig().NEXT_PUBLIC_POSTHOG_KEY)
+}
+
+/**
  * Initialise PostHog product analytics, mirroring the snippet used on
  * oceanenterprise.io. Runs once, client-side only, and fires on load.
  *
