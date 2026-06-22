@@ -2,8 +2,10 @@ import {
   AbstractSigner,
   hexlify,
   JsonRpcProvider,
+  Signature,
   verifyMessage,
   type Provider,
+  type TransactionReceipt,
   type TransactionResponse,
   type TransactionRequest
 } from 'ethers'
@@ -37,24 +39,79 @@ function toHexData(value: TransactionRequest[keyof TransactionRequest]) {
   return value.toString() as Hex
 }
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+function toBigIntValue(value: TransactionRequest[keyof TransactionRequest]) {
+  if (value === null || typeof value === 'undefined') return BigInt(0)
+  return BigInt(value.toString())
 }
 
-async function waitForTransactionResponse(
+function buildSignerServerTransactionResponse(
   provider: JsonRpcProvider,
-  hash: Hex
-): Promise<TransactionResponse> {
-  const deadline = Date.now() + 120_000
-
-  while (Date.now() < deadline) {
-    const transaction = await provider.getTransaction(hash)
-    if (transaction) return transaction
-
-    await sleep(1000)
+  chainId: number,
+  populated: TransactionRequest,
+  result: {
+    hash: Hex
+    from: Address
+    to: Address | null
+    nonce: number
   }
+): TransactionResponse {
+  const response = {
+    provider,
+    blockNumber: null,
+    blockHash: null,
+    index: 0,
+    hash: result.hash,
+    type: Number(populated.type ?? 2),
+    to: result.to,
+    from: getAddress(result.from),
+    nonce: result.nonce,
+    gasLimit: toBigIntValue(populated.gasLimit),
+    gasPrice: toBigIntValue(populated.gasPrice),
+    maxPriorityFeePerGas:
+      typeof populated.maxPriorityFeePerGas === 'undefined'
+        ? null
+        : toBigIntValue(populated.maxPriorityFeePerGas),
+    maxFeePerGas:
+      typeof populated.maxFeePerGas === 'undefined'
+        ? null
+        : toBigIntValue(populated.maxFeePerGas),
+    maxFeePerBlobGas: null,
+    data: toHexData(populated.data),
+    value: toBigIntValue(populated.value),
+    chainId: BigInt(chainId),
+    signature: Signature.from(`0x${'0'.repeat(130)}`),
+    accessList: null,
+    blobVersionedHashes: null,
+    authorizationList: null,
+    wait: (confirms?: number, timeout?: number) =>
+      provider.waitForTransaction(result.hash, confirms, timeout),
+    getTransaction: () => provider.getTransaction(result.hash),
+    getBlock: async () => null,
+    confirmations: async () => {
+      const receipt = await provider.getTransactionReceipt(result.hash)
+      if (!receipt) return 0
+      return receipt.confirmations()
+    },
+    isMined: () => false,
+    isLegacy: () => false,
+    isBerlin: () => false,
+    isLondon: () => false,
+    isCancun: () => false,
+    toJSON: () => ({
+      hash: result.hash,
+      from: result.from,
+      to: result.to,
+      nonce: result.nonce,
+      chainId
+    })
+  } as {
+    wait: (
+      confirms?: number,
+      timeout?: number
+    ) => Promise<TransactionReceipt | null>
+  } & Record<string, unknown>
 
-  throw new Error(`Signer server transaction ${hash} was not found.`)
+  return response as unknown as TransactionResponse
 }
 
 let activeSignerServerEoaSigner: SignerServerEoaSigner | undefined
@@ -194,6 +251,11 @@ export class SignerServerEoaSigner extends AbstractSigner<JsonRpcProvider> {
       data: toHexData(populated.data)
     })
 
-    return waitForTransactionResponse(this.provider, result.hash)
+    return buildSignerServerTransactionResponse(
+      this.provider,
+      this.chain.id,
+      populated,
+      result
+    )
   }
 }
