@@ -894,7 +894,8 @@ export async function buildDdoIpfsUploadPayload(
     data,
     asset.credentialSubject?.chainId,
     providerUrl,
-    owner
+    owner,
+    'publish.ddo-ipfs-payload'
   )
 
   return { encryptedData }
@@ -933,6 +934,13 @@ export async function signAssetAndUploadToIpfs(
   providerUrl: string,
   ssiWalletContext: SsiWalletContext
 ): Promise<IpfsUpload> {
+  console.log('[publish.step2.signAssetAndUploadToIpfs] start', {
+    chainId: asset.credentialSubject.chainId,
+    providerUrl,
+    encryptAsset,
+    nftAddress: asset.credentialSubject.nftAddress,
+    services: asset.credentialSubject.services.length
+  })
   asset.id = makeDid(
     asset.credentialSubject.nftAddress,
     asset.credentialSubject.chainId.toString()
@@ -971,14 +979,22 @@ export async function signAssetAndUploadToIpfs(
     }
   } else {
     credential.issuer = `${await owner.getAddress()}`
+    console.log('[publish.step2.signAssetAndUploadToIpfs] signing VC', {
+      issuer: credential.issuer,
+      did: asset.id
+    })
     jwtVerifiableCredential = await createJwtVerifiableCredential(
       credential as VCDataModel.Credential,
       owner
     )
+    console.log('[publish.step2.signAssetAndUploadToIpfs] VC signed')
   }
   const stringAsset = JSON.stringify(jwtVerifiableCredential)
   const bytes = Buffer.from(stringAsset)
   const metadata = hexlify(bytes)
+  console.log('[publish.step2.signAssetAndUploadToIpfs] encrypt DDO payload', {
+    metadataLength: metadata.length
+  })
   const data = await buildDdoIpfsUploadPayload(
     asset,
     metadata,
@@ -986,7 +1002,11 @@ export async function signAssetAndUploadToIpfs(
     encryptAsset,
     providerUrl
   )
+  console.log('[publish.step2.signAssetAndUploadToIpfs] upload IPFS start')
   const ipfsHash = await uploadToIPFS(data)
+  console.log('[publish.step2.signAssetAndUploadToIpfs] upload IPFS success', {
+    ipfsHash
+  })
   const remoteAsset = {
     remote: {
       type: 'ipfs',
@@ -997,11 +1017,13 @@ export async function signAssetAndUploadToIpfs(
   let flags: number = 0
   let metadataIPFS: string
   if (encryptAsset) {
+    console.log('[publish.step2.signAssetAndUploadToIpfs] encrypt IPFS pointer')
     metadataIPFS = await encryptProviderData(
       remoteAsset,
       asset.credentialSubject?.chainId,
       providerUrl,
-      owner
+      owner,
+      'publish.ipfs-pointer'
     )
     flags = 2
   } else {
@@ -1017,6 +1039,12 @@ export async function signAssetAndUploadToIpfs(
   const stringDDO = JSON.stringify(data)
   const metadataIPFSHash =
     '0x' + createHash('sha256').update(stringDDO).digest('hex')
+
+  console.log('[publish.step2.signAssetAndUploadToIpfs] complete', {
+    flags,
+    metadataIPFSLength: metadataIPFS.length,
+    metadataIPFSHash
+  })
 
   return { metadataIPFS, flags, metadataIPFSHash }
 }

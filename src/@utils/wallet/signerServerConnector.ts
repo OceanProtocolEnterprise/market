@@ -12,8 +12,7 @@ import { pickPreferredChainId } from './chains'
 import {
   getSignerServerAddress,
   getSignerServerNetworks,
-  sendSignerServerTransaction,
-  signSignerServerMessage
+  sendSignerServerTransaction
 } from './signerServerApi'
 import {
   SignerServerEoaSigner,
@@ -236,7 +235,7 @@ export function signerServerConnector() {
             throw new Error(`${method} requires a hex message.`)
           }
 
-          return signSignerServerMessage({ rawMessage: message })
+          return currentSigner.signMessage(fromHex(message, 'bytes'))
         }
         if (method === 'eth_sendTransaction') {
           const [tx] = (params as [Record<string, Hex>]) || []

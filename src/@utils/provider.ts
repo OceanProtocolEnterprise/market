@@ -77,21 +77,39 @@ export async function encryptProviderData(
   data: unknown,
   chainId: number,
   providerUrl: string,
-  signer: Signer
+  signer: Signer,
+  debugLabel = 'provider.encrypt'
 ): Promise<string> {
   let lastError: unknown
 
   for (let attempt = 1; attempt <= PROVIDER_ENCRYPT_RETRIES; attempt++) {
     try {
+      const signerAddress = await signer.getAddress().catch(() => undefined)
+      console.log(`[${debugLabel}] start`, {
+        attempt,
+        chainId,
+        providerUrl,
+        signer: signerAddress,
+        signerType: signer.constructor?.name
+      })
       const response = await ProviderInstance.encrypt(
         data,
         chainId,
         providerUrl,
         signer
       )
-      return normalizeProviderEncryptResponse(response)
+      const encryptedData = normalizeProviderEncryptResponse(response)
+      console.log(`[${debugLabel}] success`, {
+        attempt,
+        responseLength: encryptedData.length
+      })
+      return encryptedData
     } catch (error) {
       lastError = error
+      console.error(`[${debugLabel}] failed`, {
+        attempt,
+        message: getProviderEncryptError(error)
+      })
       if (
         attempt === PROVIDER_ENCRYPT_RETRIES ||
         !shouldRetryProviderEncrypt(error, signer)
