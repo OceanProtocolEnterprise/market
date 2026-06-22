@@ -80,9 +80,7 @@ export function useSignerServerConnect() {
   )
 
   const openConnect = useCallback(() => {
-    connect(defaultChainId).catch((error) =>
-      console.error('Signer server wallet setup failed:', error)
-    )
+    connect(defaultChainId).catch(() => undefined)
   }, [connect, defaultChainId])
 
   return {

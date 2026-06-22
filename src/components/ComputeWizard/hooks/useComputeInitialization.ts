@@ -279,7 +279,7 @@ export function useComputeInitialization({
                 selectedResources.jobDuration.toString(),
                 '10'
               )
-              await waitForTransaction(authorizeTx as any)
+              await waitForTransaction(authorizeTx)
             }
           }
         }

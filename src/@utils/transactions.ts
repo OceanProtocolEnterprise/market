@@ -3,29 +3,33 @@ type WaitableTransaction<TReceipt extends { hash?: string }> = {
   wait?: () => Promise<TReceipt | undefined | null>
 }
 
+function asWaitableTransaction<TReceipt extends { hash?: string }>(
+  transaction: unknown
+): WaitableTransaction<TReceipt> | undefined {
+  if (!transaction || typeof transaction !== 'object') return
+
+  const maybeTransaction = transaction as WaitableTransaction<TReceipt>
+  return typeof maybeTransaction.wait === 'function'
+    ? maybeTransaction
+    : undefined
+}
+
 export async function waitForTransactionReceipt<
   TReceipt extends { hash?: string }
->(
-  transaction: WaitableTransaction<TReceipt> | undefined | null
-): Promise<TReceipt | undefined | null> {
-  const hash = transaction?.hash
-  const startedAt = Date.now()
+>(transaction: unknown): Promise<TReceipt | undefined | null> {
+  const waitableTransaction = asWaitableTransaction<TReceipt>(transaction)
+  const hash =
+    transaction && typeof transaction === 'object'
+      ? (transaction as { hash?: string }).hash
+      : undefined
 
-  if (!transaction?.wait) {
-    console.warn('[tx.wait] skipped: transaction has no wait()', { hash })
-    return
-  }
-
-  console.log('[tx.wait] start', { hash })
+  if (!waitableTransaction) return
 
   // eslint-disable-next-line testing-library/await-async-utils
-  const confirmTransaction = transaction.wait.bind(transaction)
+  const confirmTransaction = () => waitableTransaction.wait?.()
+  let timeoutId: ReturnType<typeof globalThis.setTimeout> | undefined
   const timeout = new Promise<never>((_resolve, reject) => {
-    globalThis.setTimeout(() => {
-      console.error('[tx.wait] timeout', {
-        hash,
-        elapsedMs: Date.now() - startedAt
-      })
+    timeoutId = globalThis.setTimeout(() => {
       reject(
         new Error(
           `Transaction ${
@@ -37,27 +41,20 @@ export async function waitForTransactionReceipt<
   })
 
   try {
-    const receipt = await Promise.race([confirmTransaction(), timeout])
-    console.log('[tx.wait] confirmed', {
-      hash: receipt?.hash || hash,
-      elapsedMs: Date.now() - startedAt
-    })
-    return receipt
-  } catch (error) {
-    console.error('[tx.wait] failed', {
-      hash,
-      elapsedMs: Date.now() - startedAt,
-      error
-    })
-    throw error
+    return await Promise.race([confirmTransaction(), timeout])
+  } finally {
+    if (timeoutId) globalThis.clearTimeout(timeoutId)
   }
 }
 
 export async function waitForTransaction(
-  transaction: WaitableTransaction<{ hash?: string }> | undefined | null
+  transaction: unknown
 ): Promise<string | undefined> {
   const receipt = await waitForTransactionReceipt(transaction)
-  const hash = receipt?.hash || transaction?.hash
-  console.log('[tx.wait] result hash', { hash })
-  return hash
+  return (
+    receipt?.hash ||
+    (transaction && typeof transaction === 'object'
+      ? (transaction as { hash?: string }).hash
+      : undefined)
+  )
 }

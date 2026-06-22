@@ -180,7 +180,7 @@ export async function order(
             marketFeeAddress,
             '0'
           )
-          await waitForTransaction(freTx as any)
+          await waitForTransaction(freTx)
         }
 
         const startOrderTx = await datatoken.startOrder(
@@ -300,7 +300,7 @@ export async function order(
           '1',
           accountId
         )
-        await waitForTransaction(dispenseTx as any)
+        await waitForTransaction(dispenseTx)
         const providerFeeWei =
           orderParams._providerFee?.providerFeeAmount || '0'
         const providerToken = orderParams._providerFee?.providerFeeToken

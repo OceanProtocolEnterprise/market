@@ -90,7 +90,6 @@ function AssetProvider({
           LoggerInstance.error(`[asset] Token is undefined`)
           return
         }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const asset: Asset = await getAsset(did, token)
         parseCredentialPolicies(asset?.credentialSubject?.credentials)
         asset?.credentialSubject?.services?.forEach((service) => {

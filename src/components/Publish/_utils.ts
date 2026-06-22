@@ -35,6 +35,7 @@ import {
   parseEther,
   ethers,
   Signer,
+  TransactionReceipt,
   TransactionResponse
 } from 'ethers'
 import { Asset } from 'src/@types/Asset'
@@ -1080,7 +1081,7 @@ export async function createTokensAndPricing(
         freParams
       )
 
-      const receipt = await waitForTransactionReceipt(
+      const receipt = await waitForTransactionReceipt<TransactionReceipt>(
         result as TransactionResponse
       )
       if (!receipt) throw new Error('Failed to confirm NFT creation.')
@@ -1107,7 +1108,7 @@ export async function createTokensAndPricing(
         ercParams,
         dispenserParams
       )
-      const receipt = await waitForTransactionReceipt(
+      const receipt = await waitForTransactionReceipt<TransactionReceipt>(
         result as TransactionResponse
       )
       if (!receipt) throw new Error('Failed to confirm NFT creation.')
