@@ -2,6 +2,7 @@ import {
   AbstractSigner,
   JsonRpcProvider,
   type Provider,
+  type TransactionResponse,
   type TransactionRequest
 } from 'ethers'
 import { getAddress, type Address, type Chain, type Hex } from 'viem'
@@ -32,6 +33,26 @@ function toStringValue(value: TransactionRequest[keyof TransactionRequest]) {
 function toHexData(value: TransactionRequest[keyof TransactionRequest]) {
   if (value === null || typeof value === 'undefined') return '0x'
   return value.toString() as Hex
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function waitForTransactionResponse(
+  provider: JsonRpcProvider,
+  hash: Hex
+): Promise<TransactionResponse> {
+  const deadline = Date.now() + 120_000
+
+  while (Date.now() < deadline) {
+    const transaction = await provider.getTransaction(hash)
+    if (transaction) return transaction
+
+    await sleep(1000)
+  }
+
+  throw new Error(`Signer server transaction ${hash} was not found.`)
 }
 
 let activeSignerServerEoaSigner: SignerServerEoaSigner | undefined
@@ -102,6 +123,10 @@ export class SignerServerEoaSigner extends AbstractSigner<JsonRpcProvider> {
     return this.chainsById.has(chainId)
   }
 
+  getSupportedChainIds(): number[] {
+    return Array.from(this.chainsById.keys())
+  }
+
   createSignerForChain(nextChainId: number): SignerServerEoaSigner {
     if (nextChainId === this.chain.id) return this
 
@@ -158,17 +183,6 @@ export class SignerServerEoaSigner extends AbstractSigner<JsonRpcProvider> {
       data: toHexData(populated.data)
     })
 
-    const transaction = await this.provider.getTransaction(result.hash)
-    if (transaction) return transaction
-
-    const receipt = await this.provider.getTransactionReceipt(result.hash)
-    if (!receipt) throw new Error('Signer server transaction was not found.')
-
-    const resolvedTransaction = await this.provider.getTransaction(receipt.hash)
-    if (!resolvedTransaction) {
-      throw new Error('Signer server transaction was not found.')
-    }
-
-    return resolvedTransaction
+    return waitForTransactionResponse(this.provider, result.hash)
   }
 }

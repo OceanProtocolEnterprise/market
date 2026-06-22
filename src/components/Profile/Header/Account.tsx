@@ -10,7 +10,6 @@ import { accountTruncate } from '@utils/wallet'
 import { useAddressConfig } from '@hooks/useAddressConfig'
 import { useAuth } from '@hooks/useAuth'
 import { useConnectorSupportedChains } from '@hooks/useDfnsWalletsByChain'
-import { useSignerServerSupportedChains } from '@hooks/useSignerServerSupportedChains'
 import { useAccount } from 'wagmi'
 
 export default function Account({
@@ -19,9 +18,7 @@ export default function Account({
   accountId: string
 }): ReactElement {
   const { debug } = useUserPreferences()
-  const supportedChainIds = useConnectorSupportedChains()
-  const displayedSupportedChainIds =
-    useSignerServerSupportedChains(supportedChainIds)
+  const displayedSupportedChainIds = useConnectorSupportedChains()
   const { verifiedWallets } = useAddressConfig()
   const { user, isAuthenticated, authEnabled } = useAuth()
   const { address: connectedAccountId } = useAccount()

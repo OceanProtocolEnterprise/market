@@ -13,15 +13,12 @@ import useNetworkMetadata, {
 import { useUserPreferences } from '@context/UserPreferences'
 import { useMarketMetadata } from '@context/MarketMetadata'
 import { useConnectorSupportedChains } from '@hooks/useDfnsWalletsByChain'
-import { useSignerServerSupportedChains } from '@hooks/useSignerServerSupportedChains'
 
 export default function Networks(): ReactElement | null {
   const { isValidatingSupportedChains } = useMarketMetadata()
   const { networksList } = useNetworkMetadata()
   const { chainIds } = useUserPreferences()
-  const supportedChainIds = useConnectorSupportedChains()
-  const displayedSupportedChainIds =
-    useSignerServerSupportedChains(supportedChainIds)
+  const displayedSupportedChainIds = useConnectorSupportedChains()
 
   if (isValidatingSupportedChains) return null
   if (displayedSupportedChainIds.length === 0) return null

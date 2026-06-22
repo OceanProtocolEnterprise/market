@@ -15,9 +15,6 @@ export type SignerServerTransactionResult = {
   from: Address
   to: Address | null
   nonce: number
-  blockNumber: number
-  gasUsed: string
-  status: number | null
 }
 
 async function signerServerRequest<T>(
