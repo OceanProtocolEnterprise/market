@@ -27,6 +27,7 @@ import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { getTokenInfo } from './wallet'
 import { getConsumeMarketFeeWei } from './consumeMarketFee'
+import { waitForTransaction } from './transactions'
 
 export async function initializeProvider(
   asset: AssetExtended,
@@ -166,7 +167,7 @@ export async function order(
             orderPriceAndFees?.price,
             false
           )
-          await txApprove.wait()
+          await waitForTransaction(txApprove)
 
           const fre = new FixedRateExchange(
             config.fixedRateExchangeAddress,
@@ -179,7 +180,7 @@ export async function order(
             marketFeeAddress,
             '0'
           )
-          await (freTx as any).wait()
+          await waitForTransaction(freTx as any)
         }
 
         const startOrderTx = await datatoken.startOrder(
@@ -237,9 +238,7 @@ export async function order(
             providerFeeHuman,
             false
           )
-          if (txProv && typeof txProv.wait === 'function') {
-            await txProv.wait()
-          }
+          await waitForTransaction(txProv)
         }
 
         const txBase: any = await approve(
@@ -251,9 +250,7 @@ export async function order(
           totalBaseTokenApprove.toString(),
           false
         )
-        if (txBase && typeof txBase.wait === 'function') {
-          await txBase.wait()
-        }
+        await waitForTransaction(txBase)
 
         // Wait for allowance to propagate
         const decimals = accessDetails.baseToken?.decimals || 18
@@ -261,6 +258,7 @@ export async function order(
           parseUnits(totalBaseTokenApprove.toString(), decimals)
         )
         let currentAllowance = BigInt(0)
+        const allowanceDeadline = Date.now() + 120_000
         while (currentAllowance < parsedApproveAmount) {
           const val = await allowance(
             signer as any,
@@ -269,8 +267,12 @@ export async function order(
             accessDetails.datatoken.address
           )
           currentAllowance = BigInt(parseUnits(val, decimals))
-          if (currentAllowance < parsedApproveAmount)
+          if (currentAllowance < parsedApproveAmount) {
+            if (Date.now() >= allowanceDeadline) {
+              throw new Error('Timed out waiting for token allowance update.')
+            }
             await new Promise((resolve) => setTimeout(resolve, 1000))
+          }
         }
 
         // Adjust freParams to only include cost items paid via the exchange
@@ -293,11 +295,12 @@ export async function order(
       // Template 1 Free logic
       if (accessDetails.templateId === 1) {
         const dispenser = new Dispenser(config.dispenserAddress, signer as any)
-        await dispenser.dispense(
+        const dispenseTx = await dispenser.dispense(
           accessDetails.datatoken.address,
           '1',
           accountId
         )
+        await waitForTransaction(dispenseTx as any)
         const providerFeeWei =
           orderParams._providerFee?.providerFeeAmount || '0'
         const providerToken = orderParams._providerFee?.providerFeeToken
@@ -319,9 +322,7 @@ export async function order(
             providerFeeHuman,
             false
           )
-          if (tx && typeof tx.wait === 'function') {
-            await tx.wait()
-          }
+          await waitForTransaction(tx)
         }
         const startOrderTx = await datatoken.startOrder(
           accessDetails.datatoken.address,
@@ -356,9 +357,7 @@ export async function order(
           providerFeeHuman,
           false
         )
-        if (tx && typeof tx.wait === 'function') {
-          await tx.wait()
-        }
+        await waitForTransaction(tx)
 
         const buyTx = await datatoken.buyFromDispenserAndOrder(
           service.datatokenAddress,
@@ -486,6 +485,7 @@ export async function handleComputeOrder(
 
         if (!txApproveProvider)
           throw new Error('Failed to approve provider fees!')
+        await waitForTransaction(txApproveProvider)
 
         LoggerInstance.log(
           '[compute] Approved provider fees:',
@@ -511,8 +511,9 @@ export async function handleComputeOrder(
         )
         if (!txReuseOrder) throw new Error('Failed to reuse order!')
 
-        const tx = await txReuseOrder.wait()
-        return tx?.hash
+        const txHash = await waitForTransaction(txReuseOrder)
+        if (!txHash) throw new Error('Failed to confirm reused order.')
+        return txHash
       } catch (reuseErr) {
         console.error('reuseOrder failed:', reuseErr)
         throw reuseErr
@@ -541,8 +542,9 @@ export async function handleComputeOrder(
         computeConsumerAddress
       )
 
-      const tx = await txStartOrder.wait()
-      return tx?.hash
+      const txHash = await waitForTransaction(txStartOrder)
+      if (!txHash) throw new Error('Failed to confirm order.')
+      return txHash
     } catch (orderErr: any) {
       console.error('order() call failed:', orderErr)
       console.error('Error details:', {

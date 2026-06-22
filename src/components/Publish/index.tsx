@@ -28,6 +28,7 @@ import { Signer, toBeHex } from 'ethers'
 import { useSsiWallet } from '@context/SsiWallet'
 import ContainerForm from '../@shared/atoms/ContainerForm'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import { waitForTransaction } from '@utils/transactions'
 
 export default function PublishPage({
   content
@@ -229,7 +230,7 @@ export default function PublishPage({
 
       // Set metadata for the NFT
       const nft = new Nft(signer, ddo.credentialSubject.chainId)
-      await nft.setMetadata(
+      const setMetadataTx = await nft.setMetadata(
         erc721Address,
         userAddress,
         0,
@@ -239,6 +240,7 @@ export default function PublishPage({
         ipfsUpload.metadataIPFS,
         ipfsUpload.metadataIPFSHash
       )
+      await waitForTransaction(setMetadataTx)
 
       LoggerInstance.log('Version 5.0.0 Asset published. ID:', ddo.id)
 

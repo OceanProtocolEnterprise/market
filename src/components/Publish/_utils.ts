@@ -75,6 +75,7 @@ import { ComputeEditForm } from '@components/Asset/Edit/_types'
 import { getOceanConfig } from '@utils/ocean'
 import { getDummySigner, getTokenInfo } from '@utils/wallet'
 import { inferNameFromUrl } from './_license'
+import { waitForTransactionReceipt } from '@utils/transactions'
 
 function cleanupVpPolicies(value: any): void {
   if (!value.vp_policies || value.vp_policies.length === 0) {
@@ -1079,7 +1080,10 @@ export async function createTokensAndPricing(
         freParams
       )
 
-      const receipt = await (result as TransactionResponse).wait()
+      const receipt = await waitForTransactionReceipt(
+        result as TransactionResponse
+      )
+      if (!receipt) throw new Error('Failed to confirm NFT creation.')
       const nftCreatedEvent = getEventFromTx(receipt, 'NFTCreated')
       const tokenCreatedEvent = getEventFromTx(receipt, 'TokenCreated')
 
@@ -1103,7 +1107,10 @@ export async function createTokensAndPricing(
         ercParams,
         dispenserParams
       )
-      const receipt = await (result as TransactionResponse).wait()
+      const receipt = await waitForTransactionReceipt(
+        result as TransactionResponse
+      )
+      if (!receipt) throw new Error('Failed to confirm NFT creation.')
       const nftCreatedEvent = getEventFromTx(receipt, 'NFTCreated')
       const tokenCreatedEvent = getEventFromTx(receipt, 'TokenCreated')
 

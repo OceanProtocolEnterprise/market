@@ -44,6 +44,7 @@ import { useSsiWallet } from '@context/SsiWallet'
 import { State } from 'src/@types/ddo/State'
 import { assetStateToNumber } from '@utils/assetState'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import { waitForTransaction } from '@utils/transactions'
 
 export default function EditService({
   asset,
@@ -112,6 +113,7 @@ export default function EditService({
       accessDetails.addressOrId,
       String(newPrice)
     )
+    await waitForTransaction(setPriceResp)
     LoggerInstance.log('[edit] setFixedRate result', setPriceResp)
     if (!setPriceResp) {
       setError(content.form.error)
@@ -173,11 +175,12 @@ export default function EditService({
 
       if (values.paymentCollector !== accessDetails.paymentCollector) {
         const datatoken = new Datatoken(signer)
-        await datatoken.setPaymentCollector(
+        const setPaymentCollectorTx = await datatoken.setPaymentCollector(
           service.datatokenAddress,
           accountId,
           values.paymentCollector
         )
+        await waitForTransaction(setPaymentCollectorTx)
       }
 
       let updatedFiles = service.files
@@ -274,7 +277,7 @@ export default function EditService({
       if (ipfsUpload /* && values.assetState !== assetState */) {
         const nft = new Nft(signer, updatedAsset.credentialSubject.chainId)
 
-        await nft.setMetadata(
+        const setMetadataTx = await nft.setMetadata(
           updatedAsset.credentialSubject.nftAddress,
           await signer.getAddress(),
           0,
@@ -286,6 +289,7 @@ export default function EditService({
           ipfsUpload.metadataIPFS,
           ipfsUpload.metadataIPFSHash
         )
+        await waitForTransaction(setMetadataTx)
 
         LoggerInstance.log('Version 5.0.0 Asset updated. ID:', updatedAsset.id)
       }

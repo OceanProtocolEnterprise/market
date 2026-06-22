@@ -55,6 +55,7 @@ import { getDefaultValues } from '../ConsumerParameters/FormConsumerParameters'
 import { getTokenInfo, getTokenBalance } from '@utils/wallet'
 import useBalance from '@hooks/useBalance'
 import { getConsumeMarketFeeWei } from '@utils/consumeMarketFee'
+import { waitForTransaction } from '@utils/transactions'
 
 export default function Download({
   accountId,
@@ -321,12 +322,12 @@ export default function Download({
           accountId,
           hasDatatoken
         )
-        const tx = await orderTx.wait()
-        if (!tx) {
+        const txHash = await waitForTransaction(orderTx)
+        if (!txHash) {
           throw new Error()
         }
         setIsOwned(true)
-        setValidOrderTx(tx.hash)
+        setValidOrderTx(txHash)
         setJustBought(true)
       }
     } catch (error) {
@@ -345,8 +346,9 @@ export default function Download({
         ? 'Failed to download file!'
         : 'An error occurred, please retry. Check console for more information.'
       toast.error(message)
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   async function handleFormSubmit(values: any) {

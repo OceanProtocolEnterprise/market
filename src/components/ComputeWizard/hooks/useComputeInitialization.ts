@@ -14,6 +14,7 @@ import { ethers, Signer } from 'ethers'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { Service } from 'src/@types/ddo/Service'
 import { ResourceType } from 'src/@types/ResourceType'
+import { waitForTransaction } from '@utils/transactions'
 
 type DatasetServiceSelection = {
   asset: AssetExtended
@@ -252,11 +253,17 @@ export function useComputeInitialization({
               escrowAddress
             if (amountWei !== BigInt(0)) {
               const approveTx = await erc20.approve(escrowSpender, amountWei)
-              await approveTx.wait()
+              await waitForTransaction(approveTx)
+              const allowanceDeadline = Date.now() + 120_000
               while (true) {
                 const allowanceNow = await erc20.allowance(owner, escrowSpender)
                 if (allowanceNow >= amountWei) {
                   break
+                }
+                if (Date.now() >= allowanceDeadline) {
+                  throw new Error(
+                    'Timed out waiting for escrow allowance update.'
+                  )
                 }
                 await new Promise((resolve) => setTimeout(resolve, 2000))
               }
@@ -264,14 +271,15 @@ export function useComputeInitialization({
                 paymentTokenAddress,
                 amountHuman
               )
-              await depositTx.wait()
-              await escrow.authorize(
+              await waitForTransaction(depositTx)
+              const authorizeTx = await escrow.authorize(
                 paymentTokenAddress,
                 selectedComputeEnv.consumerAddress,
                 initializedProvider.payment.amount.toString(),
                 selectedResources.jobDuration.toString(),
                 '10'
               )
+              await waitForTransaction(authorizeTx as any)
             }
           }
         }
