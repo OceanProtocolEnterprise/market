@@ -8,6 +8,7 @@ import { useAuth } from '@hooks/useAuth'
 import { getPendingAuthMode } from '@utils/authFlow'
 import useSsiConnect from '@hooks/useSsiConnect'
 import { useDfnsConnect } from '@hooks/useDfnsConnect'
+import { useSignerServerConnect } from '@hooks/useSignerServerConnect'
 import DfnsRegistrationModal from '@shared/DfnsRegistrationModal'
 import { authSetupCopy } from '../constants'
 import styles from './SetupPanel.module.css'
@@ -91,6 +92,7 @@ export default function SetupPanel() {
   const { setOpen } = useModal()
   const { user, logout } = useAuth()
   const dfns = useDfnsConnect()
+  const signerServer = useSignerServerConnect()
   const { connectSsi } = useSsiConnect()
   const { sessionToken, isSsiStateHydrated, isSsiSessionHydrating } =
     useSsiWallet()
@@ -245,6 +247,18 @@ export default function SetupPanel() {
                     ? authSetupCopy.dfnsConnecting
                     : authSetupCopy.connectDfnsWallet}
                 </button>
+                {signerServer.isConfigured && (
+                  <button
+                    type="button"
+                    className={styles.actionButton}
+                    onClick={signerServer.openConnect}
+                    disabled={signerServer.isConnecting}
+                  >
+                    {signerServer.isConnecting
+                      ? authSetupCopy.signerServerConnecting
+                      : authSetupCopy.connectSignerServer}
+                  </button>
+                )}
               </div>
             ) : (
               actionLabel && (

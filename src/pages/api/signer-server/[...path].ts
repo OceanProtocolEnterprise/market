@@ -1,0 +1,62 @@
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { signerServerUrl } from 'app.config.cjs'
+
+const ALLOWED_METHODS = ['GET', 'POST'] as const
+
+function buildSignerServerUrl(req: NextApiRequest): string {
+  const baseUrl =
+    typeof signerServerUrl === 'string' ? signerServerUrl.trim() : ''
+  if (!baseUrl) throw new Error('Signer server URL is not configured.')
+
+  const path = Array.isArray(req.query.path) ? req.query.path : []
+  const url = new URL(path.map(encodeURIComponent).join('/'), `${baseUrl}/`)
+
+  Object.entries(req.query).forEach(([key, value]) => {
+    if (key === 'path') return
+    if (Array.isArray(value)) {
+      value.forEach((item) => url.searchParams.append(key, item))
+      return
+    }
+    if (typeof value === 'string') url.searchParams.set(key, value)
+  })
+
+  return url.toString()
+}
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  res.setHeader('Cache-Control', 'no-store')
+
+  if (
+    !ALLOWED_METHODS.includes(req.method as (typeof ALLOWED_METHODS)[number])
+  ) {
+    res.setHeader('Allow', ALLOWED_METHODS)
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  const accessToken = req.cookies.access_token
+  if (!accessToken) {
+    return res.status(401).json({ error: 'Signer server login is required.' })
+  }
+
+  try {
+    const response = await fetch(buildSignerServerUrl(req), {
+      method: req.method,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        ...(req.method === 'POST' ? { 'Content-Type': 'application/json' } : {})
+      },
+      body: req.method === 'POST' ? JSON.stringify(req.body ?? {}) : undefined
+    })
+    const text = await response.text()
+    const contentType = response.headers.get('content-type')
+    if (contentType) res.setHeader('Content-Type', contentType)
+
+    return res.status(response.status).send(text)
+  } catch (error) {
+    console.error('Signer server proxy failed:', error)
+    return res.status(502).json({ error: 'Signer server request failed.' })
+  }
+}

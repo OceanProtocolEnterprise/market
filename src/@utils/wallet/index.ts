@@ -7,6 +7,10 @@ import { erc20Abi, http } from 'viem'
 import { localhost, type Chain } from 'wagmi/chains'
 import { dfnsConnector } from './dfnsConnector'
 import {
+  isSignerServerConfigured,
+  signerServerConnector
+} from './signerServerConnector'
+import {
   ethers,
   Contract,
   formatEther,
@@ -57,7 +61,11 @@ export function createWagmiConfig() {
     chains,
     ssr: true,
     storage: createStorage({ storage: cookieStorage }),
-    connectors: [injected({ target: 'metaMask' }), dfnsConnector()],
+    connectors: [
+      injected({ target: 'metaMask' }),
+      dfnsConnector(),
+      ...(isSignerServerConfigured() ? [signerServerConnector()] : [])
+    ],
     transports: chains.reduce(
       (acc, chain) => ({
         ...acc,

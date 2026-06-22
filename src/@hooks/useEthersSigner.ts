@@ -7,6 +7,10 @@ import {
   getActiveDfnsEoaSigner,
   subscribeToActiveDfnsEoaSigner
 } from '@utils/wallet/dfnsEoaSigner'
+import {
+  getActiveSignerServerEoaSigner,
+  subscribeToActiveSignerServerEoaSigner
+} from '@utils/wallet/signerServerEoaSigner'
 
 function clientToSigner(
   client: Client<Transport, Chain, Account>
@@ -33,14 +37,22 @@ export function useEthersSigner() {
     getActiveDfnsEoaSigner,
     () => undefined
   )
+  const activeSignerServerSigner = useSyncExternalStore(
+    subscribeToActiveSignerServerEoaSigner,
+    getActiveSignerServerEoaSigner,
+    () => undefined
+  )
 
   return useMemo(() => {
     if (connector?.id === 'dfns') {
       return activeDfnsSigner
     }
+    if (connector?.id === 'signerServer') {
+      return activeSignerServerSigner
+    }
 
     return data
       ? clientToSigner(data as Client<Transport, Chain, Account>)
       : undefined
-  }, [activeDfnsSigner, connector?.id, data])
+  }, [activeDfnsSigner, activeSignerServerSigner, connector?.id, data])
 }
