@@ -236,7 +236,7 @@ export function signerServerConnector() {
             throw new Error(`${method} requires a hex message.`)
           }
 
-          return signSignerServerMessage(message)
+          return signSignerServerMessage({ rawMessage: message })
         }
         if (method === 'eth_sendTransaction') {
           const [tx] = (params as [Record<string, Hex>]) || []

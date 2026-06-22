@@ -1,5 +1,6 @@
 import {
   AbstractSigner,
+  hexlify,
   JsonRpcProvider,
   type Provider,
   type TransactionResponse,
@@ -155,11 +156,11 @@ export class SignerServerEoaSigner extends AbstractSigner<JsonRpcProvider> {
   }
 
   async signMessage(message: string | Uint8Array): Promise<string> {
-    if (typeof message !== 'string') {
-      throw new Error('Signer server does not support binary messages.')
-    }
-
-    return signSignerServerMessage(message)
+    return signSignerServerMessage(
+      typeof message === 'string'
+        ? { message }
+        : { rawMessage: hexlify(message) as Hex }
+    )
   }
 
   async signTransaction(): Promise<string> {

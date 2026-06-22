@@ -17,6 +17,8 @@ export type SignerServerTransactionResult = {
   nonce: number
 }
 
+export type SignerServerMessageInput = { message: string } | { rawMessage: Hex }
+
 async function signerServerRequest<T>(
   path: string,
   init?: RequestInit
@@ -52,10 +54,10 @@ export async function getSignerServerAddress() {
   return signerServerRequest<SignerServerAddress>('address')
 }
 
-export async function signSignerServerMessage(message: string) {
+export async function signSignerServerMessage(input: SignerServerMessageInput) {
   const result = await signerServerRequest<{ signature: Hex }>('sign-message', {
     method: 'POST',
-    body: JSON.stringify({ message })
+    body: JSON.stringify(input)
   })
 
   return result.signature
