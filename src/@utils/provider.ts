@@ -27,6 +27,7 @@ import {
   PolicyServerInitiateComputeActionData
 } from 'src/@types/PolicyServer'
 import { resolveVerifierSessionId } from './verifierSession'
+import { SignerServerEoaSigner } from './wallet/signerServerEoaSigner'
 
 const ENCRYPTED_PROVIDER_RESPONSE = /^0x[0-9a-fA-F]*$/
 const PROVIDER_ENCRYPT_RETRIES = 3
@@ -61,7 +62,9 @@ function normalizeProviderEncryptResponse(response: string): string {
   throw new Error(getErrorMessage(response))
 }
 
-function shouldRetryProviderEncrypt(error: unknown) {
+function shouldRetryProviderEncrypt(error: unknown, signer: Signer) {
+  if (!(signer instanceof SignerServerEoaSigner)) return false
+
   const message = getProviderEncryptError(error).toLowerCase()
   return (
     message.includes('encrypt for') ||
@@ -91,7 +94,7 @@ export async function encryptProviderData(
       lastError = error
       if (
         attempt === PROVIDER_ENCRYPT_RETRIES ||
-        !shouldRetryProviderEncrypt(error)
+        !shouldRetryProviderEncrypt(error, signer)
       ) {
         break
       }
