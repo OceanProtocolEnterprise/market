@@ -23,6 +23,25 @@ function buildSignerServerUrl(req: NextApiRequest): string {
   return url.toString()
 }
 
+function getBearerToken(req: NextApiRequest): string | undefined {
+  const { authorization } = req.headers
+  if (authorization?.startsWith('Bearer ')) {
+    return authorization.slice('Bearer '.length).trim() || undefined
+  }
+
+  return undefined
+}
+
+function getAccessToken(req: NextApiRequest) {
+  const headerToken = getBearerToken(req)
+  if (headerToken) return headerToken
+
+  const cookieToken = req.cookies.access_token
+  if (cookieToken) return cookieToken
+
+  return undefined
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -36,15 +55,17 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const accessToken = req.cookies.access_token
+  const accessToken = getAccessToken(req)
   if (!accessToken) {
     return res.status(401).json({ error: 'Signer server login is required.' })
   }
 
   try {
-    const response = await fetch(buildSignerServerUrl(req), {
+    const targetUrl = buildSignerServerUrl(req)
+    const response = await fetch(targetUrl, {
       method: req.method,
       headers: {
+        Accept: 'application/json',
         Authorization: `Bearer ${accessToken}`,
         ...(req.method === 'POST' ? { 'Content-Type': 'application/json' } : {})
       },

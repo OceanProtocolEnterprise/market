@@ -13,25 +13,28 @@ import useNetworkMetadata, {
 import { useUserPreferences } from '@context/UserPreferences'
 import { useMarketMetadata } from '@context/MarketMetadata'
 import { useConnectorSupportedChains } from '@hooks/useDfnsWalletsByChain'
+import { useSignerServerSupportedChains } from '@hooks/useSignerServerSupportedChains'
 
 export default function Networks(): ReactElement | null {
   const { isValidatingSupportedChains } = useMarketMetadata()
   const { networksList } = useNetworkMetadata()
   const { chainIds } = useUserPreferences()
   const supportedChainIds = useConnectorSupportedChains()
+  const displayedSupportedChainIds =
+    useSignerServerSupportedChains(supportedChainIds)
 
   if (isValidatingSupportedChains) return null
-  if (supportedChainIds.length <= 1) return null
+  if (displayedSupportedChainIds.length === 0) return null
 
   const networksMain = filterNetworksByType(
     'mainnet',
-    supportedChainIds,
+    displayedSupportedChainIds,
     networksList
   )
 
   const networksTest = filterNetworksByType(
     'testnet',
-    supportedChainIds,
+    displayedSupportedChainIds,
     networksList
   )
 
@@ -59,9 +62,11 @@ export default function Networks(): ReactElement | null {
         <Caret aria-hidden="true" className={stylesIndex.caret} />
 
         <div className={styles.chainsSelected}>
-          {chainIds.map((chainId) => (
-            <span className={styles.chainsSelectedIndicator} key={chainId} />
-          ))}
+          {chainIds
+            .filter((chainId) => displayedSupportedChainIds.includes(chainId))
+            .map((chainId) => (
+              <span className={styles.chainsSelectedIndicator} key={chainId} />
+            ))}
         </div>
       </>
     </Tooltip>
