@@ -157,15 +157,6 @@ export class SignerServerEoaSigner extends AbstractSigner<JsonRpcProvider> {
   }
 
   async signMessage(message: string | Uint8Array): Promise<string> {
-    const messageType = typeof message === 'string' ? 'string' : 'bytes'
-    const messageLength =
-      typeof message === 'string' ? message.length : message.byteLength
-    console.log('[signer-server.signMessage] start', {
-      address: this.address,
-      chainId: this.chain.id,
-      messageType,
-      messageLength
-    })
     const signature = await signSignerServerMessage(
       typeof message === 'string'
         ? { message }
@@ -174,22 +165,10 @@ export class SignerServerEoaSigner extends AbstractSigner<JsonRpcProvider> {
     const recoveredAddress = getAddress(verifyMessage(message, signature))
 
     if (recoveredAddress !== this.address) {
-      console.error('[signer-server.signMessage] verification failed', {
-        recoveredAddress,
-        expectedAddress: this.address,
-        messageType,
-        messageLength
-      })
       throw new Error(
         `Signer server returned a signature for ${recoveredAddress}, expected ${this.address}.`
       )
     }
-
-    console.log('[signer-server.signMessage] verified', {
-      recoveredAddress,
-      messageType,
-      messageLength
-    })
 
     return signature
   }

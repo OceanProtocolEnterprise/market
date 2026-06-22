@@ -56,10 +56,6 @@ export default function PublishPage({
   const [did, setDid] = useState<string>()
   const ssiWalletContext = useSsiWallet()
 
-  function getDebugSignerName() {
-    return signer?.constructor?.name || 'unknown'
-  }
-
   // --------------------------------------------------
   // 1. Create NFT & datatokens & create pricing schema
   // --------------------------------------------------
@@ -139,15 +135,6 @@ export default function PublishPage({
       if (!datatokenAddress || !erc721Address)
         throw new Error('No NFT or Datatoken received. Please try again.')
 
-      console.log('[publish.step2] start', {
-        chainId,
-        erc721Address,
-        datatokenAddress,
-        providerUrl: values?.services[0]?.providerUrl?.url || customProviderUrl,
-        signerType: getDebugSignerName(),
-        encryptAsset: appConfig.encryptAsset
-      })
-
       const ddo: Asset = await transformPublishFormToDdo(
         values,
         datatokenAddress,
@@ -159,11 +146,6 @@ export default function PublishPage({
       if (!ddo) throw new Error('No DDO received. Please try again.')
 
       setDdo(ddo)
-      console.log('[publish.step2] DDO built', {
-        did: ddo.id,
-        chainId: ddo.credentialSubject?.chainId,
-        serviceCount: ddo.credentialSubject?.services?.length
-      })
       LoggerInstance.log('[publish] Got new DDO', ddo)
 
       const ipfsUpload: IpfsUpload = await signAssetAndUploadToIpfs(
@@ -178,11 +160,6 @@ export default function PublishPage({
         throw new Error('No encrypted DDO received. Please try again.')
 
       setIpdsUpload(ipfsUpload)
-      console.log('[publish.step2] success', {
-        flags: ipfsUpload.flags,
-        metadataIPFSLength: ipfsUpload.metadataIPFS?.length,
-        metadataIPFSHash: ipfsUpload.metadataIPFSHash
-      })
       LoggerInstance.log('[publish] Got encrypted DDO', ipfsUpload.metadataIPFS)
 
       setFeedback((prevState) => ({
@@ -195,10 +172,6 @@ export default function PublishPage({
 
       return { ddo, ipfsUpload }
     } catch (error) {
-      console.error('[publish.step2] failed', {
-        message: error.message,
-        signerType: getDebugSignerName()
-      })
       LoggerInstance.error('[publish] error', error.message)
       setFeedback((prevState) => ({
         ...prevState,
@@ -237,30 +210,13 @@ export default function PublishPage({
         throw new Error('Wallet signer is required for blockchain transaction.')
 
       const userAddress = await signer.getAddress()
-      console.log('[publish.step3] start', {
-        chainId: ddo.credentialSubject.chainId,
-        did: ddo.id,
-        erc721Address,
-        userAddress,
-        providerUrl: values?.services[0]?.providerUrl?.url || customProviderUrl,
-        flags: ipfsUpload.flags,
-        metadataIPFSLength: ipfsUpload.metadataIPFS?.length,
-        metadataIPFSHash: ipfsUpload.metadataIPFSHash,
-        signerType: getDebugSignerName()
-      })
       let attempts = 0
       const maxAttempts = 60
 
       while (attempts < maxAttempts) {
         try {
           const nftTemp = new Nft(signer, ddo.credentialSubject.chainId)
-          console.log('[publish.step3] checking NFT permissions', {
-            attempt: attempts + 1
-          })
           await nftTemp.getNftPermissions(erc721Address, userAddress)
-          console.log('[publish.step3] NFT permissions ready', {
-            attempt: attempts + 1
-          })
           break
         } catch (e) {
           attempts++
@@ -273,7 +229,6 @@ export default function PublishPage({
 
       // Set metadata for the NFT
       const nft = new Nft(signer, ddo.credentialSubject.chainId)
-      console.log('[publish.step3] setMetadata start')
       await nft.setMetadata(
         erc721Address,
         userAddress,
@@ -285,7 +240,6 @@ export default function PublishPage({
         ipfsUpload.metadataIPFSHash
       )
 
-      console.log('[publish.step3] setMetadata success', { did: ddo.id })
       LoggerInstance.log('Version 5.0.0 Asset published. ID:', ddo.id)
 
       setFeedback((prevState) => ({
@@ -298,10 +252,6 @@ export default function PublishPage({
 
       return { did: ddo.id }
     } catch (error) {
-      console.error('[publish.step3] failed', {
-        message: error.message,
-        signerType: getDebugSignerName()
-      })
       LoggerInstance.error('[publish] error', error.message)
       setFeedback((prevState) => ({
         ...prevState,

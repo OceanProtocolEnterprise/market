@@ -27,11 +27,8 @@ import {
   PolicyServerInitiateComputeActionData
 } from 'src/@types/PolicyServer'
 import { resolveVerifierSessionId } from './verifierSession'
-import { SignerServerEoaSigner } from './wallet/signerServerEoaSigner'
 
 const ENCRYPTED_PROVIDER_RESPONSE = /^0x[0-9a-fA-F]*$/
-const PROVIDER_ENCRYPT_RETRIES = 3
-const PROVIDER_ENCRYPT_RETRY_DELAY_MS = 1000
 
 export type KnownStorageType =
   | 's3'
@@ -46,82 +43,25 @@ export type KnownStorageType =
 
 export type StorageType = KnownStorageType | (string & unknown)
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-function getProviderEncryptError(error: unknown): string {
-  if (error instanceof Error) return error.message
-  if (typeof error === 'string') return error
-  return 'Provider encrypt failed.'
-}
-
 function normalizeProviderEncryptResponse(response: string): string {
   if (ENCRYPTED_PROVIDER_RESPONSE.test(response)) return response
 
   throw new Error(getErrorMessage(response))
 }
 
-function shouldRetryProviderEncrypt(error: unknown, signer: Signer) {
-  if (!(signer instanceof SignerServerEoaSigner)) return false
-
-  const message = getProviderEncryptError(error).toLowerCase()
-  return (
-    message.includes('encrypt for') ||
-    message.includes('was denied') ||
-    message.includes('could not sign persistent storage request')
-  )
-}
-
 export async function encryptProviderData(
   data: unknown,
   chainId: number,
   providerUrl: string,
-  signer: Signer,
-  debugLabel = 'provider.encrypt'
+  signer: Signer
 ): Promise<string> {
-  let lastError: unknown
-
-  for (let attempt = 1; attempt <= PROVIDER_ENCRYPT_RETRIES; attempt++) {
-    try {
-      const signerAddress = await signer.getAddress().catch(() => undefined)
-      console.log(`[${debugLabel}] start`, {
-        attempt,
-        chainId,
-        providerUrl,
-        signer: signerAddress,
-        signerType: signer.constructor?.name
-      })
-      const response = await ProviderInstance.encrypt(
-        data,
-        chainId,
-        providerUrl,
-        signer
-      )
-      const encryptedData = normalizeProviderEncryptResponse(response)
-      console.log(`[${debugLabel}] success`, {
-        attempt,
-        responseLength: encryptedData.length
-      })
-      return encryptedData
-    } catch (error) {
-      lastError = error
-      console.error(`[${debugLabel}] failed`, {
-        attempt,
-        message: getProviderEncryptError(error)
-      })
-      if (
-        attempt === PROVIDER_ENCRYPT_RETRIES ||
-        !shouldRetryProviderEncrypt(error, signer)
-      ) {
-        break
-      }
-
-      await sleep(PROVIDER_ENCRYPT_RETRY_DELAY_MS * attempt)
-    }
-  }
-
-  throw new Error(getProviderEncryptError(lastError))
+  const response = await ProviderInstance.encrypt(
+    data,
+    chainId,
+    providerUrl,
+    signer
+  )
+  return normalizeProviderEncryptResponse(response)
 }
 
 export async function initializeProviderForComputeMulti(
