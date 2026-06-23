@@ -354,7 +354,15 @@ export function signerServerConnector() {
         return provider ?? reconnectProvider
       },
       async isAuthorized() {
-        return connected && Boolean(account)
+        if (connected && account) return true
+        if (!isSignerServerConfigured()) return false
+
+        try {
+          await getSignerServerAddress()
+          return true
+        } catch {
+          return false
+        }
       },
       async switchChain({ chainId: nextChainId }) {
         const signer = getActiveSignerServerEoaSigner()
