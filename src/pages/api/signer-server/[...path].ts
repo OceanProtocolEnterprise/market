@@ -3,6 +3,10 @@ import { signerServerUrl } from 'app.config.cjs'
 
 const ALLOWED_METHODS = ['GET', 'POST'] as const
 
+export const config = {
+  maxDuration: 60
+}
+
 function buildSignerServerUrl(req: NextApiRequest): string {
   const baseUrl =
     typeof signerServerUrl === 'string' ? signerServerUrl.trim() : ''
