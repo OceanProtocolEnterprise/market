@@ -140,6 +140,12 @@ function storeSignerServerSelectedChainId(chainId: number) {
   }
 }
 
+function isAuthLoginPage() {
+  return (
+    typeof window !== 'undefined' && window.location.pathname === '/auth/login'
+  )
+}
+
 function pickSignerServerChain(
   chains: readonly Chain[],
   requestedChainId?: number
@@ -355,6 +361,7 @@ export function signerServerConnector() {
       },
       async isAuthorized() {
         if (connected && account) return true
+        if (isAuthLoginPage()) return false
         if (!isSignerServerConfigured()) return false
 
         try {
