@@ -55,7 +55,6 @@ import { getDefaultValues } from '../ConsumerParameters/FormConsumerParameters'
 import { getTokenInfo, getTokenBalance } from '@utils/wallet'
 import useBalance from '@hooks/useBalance'
 import { getConsumeMarketFeeWei } from '@utils/consumeMarketFee'
-import { waitForTransaction } from '@utils/transactions'
 
 export default function Download({
   accountId,
@@ -322,12 +321,12 @@ export default function Download({
           accountId,
           hasDatatoken
         )
-        const txHash = await waitForTransaction(orderTx)
-        if (!txHash) {
+        const tx = await orderTx.wait()
+        if (!tx) {
           throw new Error()
         }
         setIsOwned(true)
-        setValidOrderTx(txHash)
+        setValidOrderTx(tx.hash)
         setJustBought(true)
       }
     } catch (error) {

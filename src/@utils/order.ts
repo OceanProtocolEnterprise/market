@@ -27,7 +27,6 @@ import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { getTokenInfo } from './wallet'
 import { getConsumeMarketFeeWei } from './consumeMarketFee'
-import { waitForTransaction } from './transactions'
 
 export async function initializeProvider(
   asset: AssetExtended,
@@ -167,7 +166,7 @@ export async function order(
             orderPriceAndFees?.price,
             false
           )
-          await waitForTransaction(txApprove)
+          await txApprove.wait()
 
           const fre = new FixedRateExchange(
             config.fixedRateExchangeAddress,
@@ -180,7 +179,7 @@ export async function order(
             marketFeeAddress,
             '0'
           )
-          await waitForTransaction(freTx)
+          await (freTx as any).wait()
         }
 
         const startOrderTx = await datatoken.startOrder(
@@ -238,7 +237,9 @@ export async function order(
             providerFeeHuman,
             false
           )
-          await waitForTransaction(txProv)
+          if (txProv && typeof txProv.wait === 'function') {
+            await txProv.wait()
+          }
         }
 
         const txBase: any = await approve(
@@ -250,7 +251,9 @@ export async function order(
           totalBaseTokenApprove.toString(),
           false
         )
-        await waitForTransaction(txBase)
+        if (txBase && typeof txBase.wait === 'function') {
+          await txBase.wait()
+        }
 
         // Wait for allowance to propagate
         const decimals = accessDetails.baseToken?.decimals || 18
@@ -295,12 +298,11 @@ export async function order(
       // Template 1 Free logic
       if (accessDetails.templateId === 1) {
         const dispenser = new Dispenser(config.dispenserAddress, signer as any)
-        const dispenseTx = await dispenser.dispense(
+        await dispenser.dispense(
           accessDetails.datatoken.address,
           '1',
           accountId
         )
-        await waitForTransaction(dispenseTx)
         const providerFeeWei =
           orderParams._providerFee?.providerFeeAmount || '0'
         const providerToken = orderParams._providerFee?.providerFeeToken
@@ -322,7 +324,9 @@ export async function order(
             providerFeeHuman,
             false
           )
-          await waitForTransaction(tx)
+          if (tx && typeof tx.wait === 'function') {
+            await tx.wait()
+          }
         }
         const startOrderTx = await datatoken.startOrder(
           accessDetails.datatoken.address,
@@ -357,7 +361,9 @@ export async function order(
           providerFeeHuman,
           false
         )
-        await waitForTransaction(tx)
+        if (tx && typeof tx.wait === 'function') {
+          await tx.wait()
+        }
 
         const buyTx = await datatoken.buyFromDispenserAndOrder(
           service.datatokenAddress,
@@ -485,7 +491,6 @@ export async function handleComputeOrder(
 
         if (!txApproveProvider)
           throw new Error('Failed to approve provider fees!')
-        await waitForTransaction(txApproveProvider)
 
         LoggerInstance.log(
           '[compute] Approved provider fees:',
@@ -511,9 +516,8 @@ export async function handleComputeOrder(
         )
         if (!txReuseOrder) throw new Error('Failed to reuse order!')
 
-        const txHash = await waitForTransaction(txReuseOrder)
-        if (!txHash) throw new Error('Failed to confirm reused order.')
-        return txHash
+        const tx = await txReuseOrder.wait()
+        return tx?.hash
       } catch (reuseErr) {
         console.error('reuseOrder failed:', reuseErr)
         throw reuseErr
@@ -542,9 +546,8 @@ export async function handleComputeOrder(
         computeConsumerAddress
       )
 
-      const txHash = await waitForTransaction(txStartOrder)
-      if (!txHash) throw new Error('Failed to confirm order.')
-      return txHash
+      const tx = await txStartOrder.wait()
+      return tx?.hash
     } catch (orderErr: any) {
       console.error('order() call failed:', orderErr)
       console.error('Error details:', {

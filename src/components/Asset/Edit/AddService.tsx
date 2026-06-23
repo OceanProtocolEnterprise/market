@@ -59,7 +59,6 @@ import { State } from 'src/@types/ddo/State'
 import { useSsiWallet } from '@context/SsiWallet'
 import { getTokenInfo } from '@utils/wallet'
 import { useEthersSigner } from '@hooks/useEthersSigner'
-import { waitForTransaction } from '@utils/transactions'
 
 export default function AddService({
   asset
@@ -236,7 +235,7 @@ export default function AddService({
         )
       }
 
-      await waitForTransaction(pricingTransactionReceipt)
+      await pricingTransactionReceipt.wait()
       LoggerInstance.log('Pricing scheme created.')
       // --------------------------------------------------
       // 3. Update DDO
@@ -328,7 +327,7 @@ export default function AddService({
       if (ipfsUpload) {
         const nft = new Nft(signer, updatedAsset.credentialSubject.chainId)
 
-        const setMetadataTx = await nft.setMetadata(
+        await nft.setMetadata(
           updatedAsset.credentialSubject.nftAddress,
           await signer.getAddress(),
           0,
@@ -339,7 +338,6 @@ export default function AddService({
           ipfsUpload.metadataIPFS,
           ipfsUpload.metadataIPFSHash
         )
-        await waitForTransaction(setMetadataTx)
 
         LoggerInstance.log('Version 5.0.0 Asset updated. ID:', updatedAsset.id)
       }

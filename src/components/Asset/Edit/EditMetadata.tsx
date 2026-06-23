@@ -31,7 +31,6 @@ import { AdditionalVerifiableCredentials } from 'src/@types/ddo/AdditionalVerifi
 import { useSsiWallet } from '@context/SsiWallet'
 import { State } from 'src/@types/ddo/State'
 import { useEthersSigner } from '@hooks/useEthersSigner'
-import { waitForTransaction } from '@utils/transactions'
 
 export default function Edit({
   asset
@@ -185,7 +184,7 @@ export default function Edit({
 
       if (ipfsUpload /* && values.assetState !== assetState */) {
         const nft = new Nft(signer, updatedAsset.credentialSubject.chainId)
-        const setMetadataTx = await nft.setMetadata(
+        await nft.setMetadata(
           updatedAsset.credentialSubject.nftAddress,
           await signer.getAddress(),
           updatedNft.state,
@@ -196,7 +195,6 @@ export default function Edit({
           ipfsUpload.metadataIPFS,
           ipfsUpload.metadataIPFSHash
         )
-        await waitForTransaction(setMetadataTx)
 
         LoggerInstance.log('Version 5.0.0 Asset updated. ID:', updatedAsset.id)
       }

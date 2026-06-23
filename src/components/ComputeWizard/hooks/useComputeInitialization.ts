@@ -14,7 +14,6 @@ import { ethers, Signer } from 'ethers'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { Service } from 'src/@types/ddo/Service'
 import { ResourceType } from 'src/@types/ResourceType'
-import { waitForTransaction } from '@utils/transactions'
 
 type DatasetServiceSelection = {
   asset: AssetExtended
@@ -253,7 +252,7 @@ export function useComputeInitialization({
               escrowAddress
             if (amountWei !== BigInt(0)) {
               const approveTx = await erc20.approve(escrowSpender, amountWei)
-              await waitForTransaction(approveTx)
+              await approveTx.wait()
               const allowanceDeadline = Date.now() + 120_000
               while (true) {
                 const allowanceNow = await erc20.allowance(owner, escrowSpender)
@@ -271,15 +270,14 @@ export function useComputeInitialization({
                 paymentTokenAddress,
                 amountHuman
               )
-              await waitForTransaction(depositTx)
-              const authorizeTx = await escrow.authorize(
+              await depositTx.wait()
+              await escrow.authorize(
                 paymentTokenAddress,
                 selectedComputeEnv.consumerAddress,
                 initializedProvider.payment.amount.toString(),
                 selectedResources.jobDuration.toString(),
                 '10'
               )
-              await waitForTransaction(authorizeTx)
             }
           }
         }
