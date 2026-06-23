@@ -4,7 +4,7 @@ import { signerServerUrl } from 'app.config.cjs'
 const ALLOWED_METHODS = ['GET', 'POST'] as const
 
 export const config = {
-  maxDuration: 60
+  maxDuration: 120
 }
 
 function buildSignerServerUrl(req: NextApiRequest): string {
