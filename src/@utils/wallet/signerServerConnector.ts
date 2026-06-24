@@ -7,7 +7,6 @@ import {
   numberToHex
 } from 'viem'
 import { createConnector } from 'wagmi'
-import { getRuntimeConfig } from '../runtimeConfig'
 import { pickPreferredChainId } from './chains'
 import {
   getSignerServerAddress,
@@ -42,14 +41,6 @@ export const SIGNER_SERVER_CONNECTOR_ID = 'signerServer'
 export const NO_SIGNER_SERVER_NETWORKS_MESSAGE =
   'No supported networks by Signer Server'
 const SIGNER_SERVER_SELECTED_CHAIN_ID_KEY = 'signer_server_selected_chain_id'
-
-function getSignerServerUrl() {
-  return getRuntimeConfig().NEXT_PUBLIC_SIGNER_SERVER_URL?.trim()
-}
-
-export function isSignerServerConfigured() {
-  return Boolean(getSignerServerUrl())
-}
 
 function isHex(value: unknown): value is Hex {
   return typeof value === 'string' && /^0x[0-9a-fA-F]*$/.test(value)
@@ -290,10 +281,6 @@ export function signerServerConnector() {
       async connect<withCapabilities extends boolean = false>(
         parameters?: SignerServerConnectParameters<withCapabilities>
       ): Promise<SignerServerConnectReturn<withCapabilities>> {
-        if (!isSignerServerConfigured()) {
-          throw new Error('Signer server URL is not configured.')
-        }
-
         const signerNetworks = await getSignerServerNetworks()
         const signerChainIds = new Set(
           signerNetworks
@@ -362,7 +349,6 @@ export function signerServerConnector() {
       async isAuthorized() {
         if (connected && account) return true
         if (isAuthLoginPage()) return false
-        if (!isSignerServerConfigured()) return false
 
         try {
           await getSignerServerAddress()

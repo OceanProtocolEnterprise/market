@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { signerServerUrl } from 'app.config.cjs'
+import { getOptionalStringClaim } from '../auth/_claims'
+import { getVerifiedSessionClaims } from '../auth/_session'
 
 const ALLOWED_METHODS = ['GET', 'POST'] as const
 
@@ -7,13 +8,24 @@ export const config = {
   maxDuration: 120
 }
 
-function buildSignerServerUrl(req: NextApiRequest): string {
-  const baseUrl =
-    typeof signerServerUrl === 'string' ? signerServerUrl.trim() : ''
-  if (!baseUrl) throw new Error('Signer server URL is not configured.')
+function getSessionSignerServerUrl(req: NextApiRequest) {
+  return getVerifiedSessionClaims(req).then((payload) => {
+    if (!payload) return undefined
+    return getOptionalStringClaim(payload, 'signerServer')?.trim()
+  })
+}
+
+function buildSignerServerUrl(req: NextApiRequest, baseUrl: string): string {
+  const parsedBaseUrl = new URL(baseUrl)
+  if (!['http:', 'https:'].includes(parsedBaseUrl.protocol)) {
+    throw new Error('Signer server URL must be HTTP(S).')
+  }
 
   const path = Array.isArray(req.query.path) ? req.query.path : []
-  const url = new URL(path.map(encodeURIComponent).join('/'), `${baseUrl}/`)
+  const url = new URL(
+    path.map(encodeURIComponent).join('/'),
+    `${parsedBaseUrl.toString().replace(/\/$/, '')}/`
+  )
 
   Object.entries(req.query).forEach(([key, value]) => {
     if (key === 'path') return
@@ -65,7 +77,14 @@ export default async function handler(
   }
 
   try {
-    const targetUrl = buildSignerServerUrl(req)
+    const signerServer = await getSessionSignerServerUrl(req)
+    if (!signerServer) {
+      return res.status(401).json({
+        error: 'Signer server is missing from the authenticated session.'
+      })
+    }
+
+    const targetUrl = buildSignerServerUrl(req, signerServer)
     const response = await fetch(targetUrl, {
       method: req.method,
       headers: {

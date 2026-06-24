@@ -6,10 +6,7 @@ import { injected } from 'wagmi/connectors'
 import { erc20Abi, http } from 'viem'
 import { localhost, type Chain } from 'wagmi/chains'
 import { dfnsConnector } from './dfnsConnector'
-import {
-  isSignerServerConfigured,
-  signerServerConnector
-} from './signerServerConnector'
+import { signerServerConnector } from './signerServerConnector'
 import {
   ethers,
   Contract,
@@ -64,7 +61,7 @@ export function createWagmiConfig() {
     connectors: [
       injected({ target: 'metaMask' }),
       dfnsConnector(),
-      ...(isSignerServerConfigured() ? [signerServerConnector()] : [])
+      signerServerConnector()
     ],
     transports: chains.reduce(
       (acc, chain) => ({
