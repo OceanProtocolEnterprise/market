@@ -253,10 +253,16 @@ export function useComputeInitialization({
             if (amountWei !== BigInt(0)) {
               const approveTx = await erc20.approve(escrowSpender, amountWei)
               await approveTx.wait()
+              const allowanceDeadline = Date.now() + 120_000
               while (true) {
                 const allowanceNow = await erc20.allowance(owner, escrowSpender)
                 if (allowanceNow >= amountWei) {
                   break
+                }
+                if (Date.now() >= allowanceDeadline) {
+                  throw new Error(
+                    'Timed out waiting for escrow allowance update.'
+                  )
                 }
                 await new Promise((resolve) => setTimeout(resolve, 2000))
               }

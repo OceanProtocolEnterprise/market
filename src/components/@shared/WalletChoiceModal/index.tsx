@@ -7,19 +7,25 @@ import styles from './index.module.css'
 interface WalletChoiceModalProps {
   isOpen: boolean
   isDfnsConnecting?: boolean
+  isSignerServerConnecting?: boolean
   showDfns?: boolean
+  showSignerServer?: boolean
   onClose: () => void
   onSelectMetaMask: () => void
   onSelectDfns: () => void
+  onSelectSignerServer: () => void
 }
 
 export default function WalletChoiceModal({
   isOpen,
   isDfnsConnecting = false,
+  isSignerServerConnecting = false,
   showDfns = true,
+  showSignerServer = false,
   onClose,
   onSelectMetaMask,
-  onSelectDfns
+  onSelectDfns,
+  onSelectSignerServer
 }: WalletChoiceModalProps): ReactElement {
   if (!isOpen) return null
 
@@ -50,6 +56,19 @@ export default function WalletChoiceModal({
             {isDfnsConnecting
               ? authSetupCopy.dfnsConnecting
               : authSetupCopy.connectDfnsWallet}
+          </Button>
+        )}
+        {showSignerServer && (
+          <Button
+            style="primary"
+            type="button"
+            onClick={onSelectSignerServer}
+            disabled={isSignerServerConnecting}
+            className={styles.choice}
+          >
+            {isSignerServerConnecting
+              ? authSetupCopy.signerServerConnecting
+              : authSetupCopy.connectSignerServer}
           </Button>
         )}
       </div>

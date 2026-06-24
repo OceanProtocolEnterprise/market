@@ -345,8 +345,9 @@ export default function Download({
         ? 'Failed to download file!'
         : 'An error occurred, please retry. Check console for more information.'
       toast.error(message)
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   async function handleFormSubmit(values: any) {

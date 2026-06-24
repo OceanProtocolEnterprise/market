@@ -85,78 +85,83 @@ function AssetProvider({
       LoggerInstance.log('[asset] Fetching asset...')
       setLoading(true)
 
-      if (!token) {
-        LoggerInstance.error(`[asset] Token is undefined`)
-        return
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const asset: Asset = await getAsset(did, token)
-      parseCredentialPolicies(asset?.credentialSubject?.credentials)
-      asset?.credentialSubject?.services?.forEach((service) => {
-        parseCredentialPolicies(service.credentials)
-      })
-
-      const isWhitelisted = isDDOWhitelisted(asset)
-
-      if (!asset) {
-        setError(
-          did +
-            '\n\nWe could not find an asset for this DID in the cache. If you just published a new asset, wait some seconds and refresh this page.'
-        )
-        LoggerInstance.error(`[asset] Failed getting asset for ${did}`, asset)
-        return
-      }
-
-      if (!isWhitelisted) {
-        setError(did + '\n\nThis DID can not be retrieved on this portal.')
-        LoggerInstance.error(`[asset] Failed getting asset for ${did}`, asset)
-        return
-      }
-
-      if (asset.indexedMetadata.nft.state === (1 | 2 | 3)) {
-        setTitle(
-          `This asset has been set as "${assetStateToString(
-            asset.indexedMetadata.nft.state
-          )}" by the publisher`
-        )
-        setError(
-          did + `\n\nPublisher Address: ${asset.indexedMetadata.nft.owner}`
-        )
-        LoggerInstance.error(`[asset] Failed getting asset for ${did}`, asset)
-        return
-      }
-      if (asset) {
-        setError(undefined)
-        if (
-          !asset?.credentialSubject.chainId ||
-          !asset?.credentialSubject.services?.length
-        )
+      try {
+        if (!token) {
+          LoggerInstance.error(`[asset] Token is undefined`)
           return
+        }
+        const asset: Asset = await getAsset(did, token)
+        parseCredentialPolicies(asset?.credentialSubject?.credentials)
+        asset?.credentialSubject?.services?.forEach((service) => {
+          parseCredentialPolicies(service.credentials)
+        })
 
-        const accessDetails = await Promise.all(
-          asset.credentialSubject.services.map((service: Service) =>
-            getAccessDetails(
-              asset.credentialSubject.chainId,
-              service,
-              accountId,
-              token
+        if (!asset) {
+          setError(
+            did +
+              '\n\nWe could not find an asset for this DID in the cache. If you just published a new asset, wait some seconds and refresh this page.'
+          )
+          LoggerInstance.error(`[asset] Failed getting asset for ${did}`, asset)
+          return
+        }
+
+        const isWhitelisted = isDDOWhitelisted(asset)
+
+        if (!isWhitelisted) {
+          setError(did + '\n\nThis DID can not be retrieved on this portal.')
+          LoggerInstance.error(`[asset] Failed getting asset for ${did}`, asset)
+          return
+        }
+
+        if (asset.indexedMetadata.nft.state === (1 | 2 | 3)) {
+          setTitle(
+            `This asset has been set as "${assetStateToString(
+              asset.indexedMetadata.nft.state
+            )}" by the publisher`
+          )
+          setError(
+            did + `\n\nPublisher Address: ${asset.indexedMetadata.nft.owner}`
+          )
+          LoggerInstance.error(`[asset] Failed getting asset for ${did}`, asset)
+          return
+        }
+        if (asset) {
+          setError(undefined)
+          if (
+            !asset?.credentialSubject.chainId ||
+            !asset?.credentialSubject.services?.length
+          )
+            return
+
+          const accessDetails = await Promise.all(
+            asset.credentialSubject.services.map((service: Service) =>
+              getAccessDetails(
+                asset.credentialSubject.chainId,
+                service,
+                accountId,
+                token
+              )
             )
           )
-        )
-        setAsset((prevState) => ({
-          ...prevState,
-          ...asset,
-          accessDetails
-        }))
-        setTitle(asset.credentialSubject?.metadata?.name)
-        setOwner(asset.indexedMetadata.nft?.owner)
-        setIsInPurgatory(asset.indexedMetadata.purgatory?.state)
-        setPurgatoryData(asset.indexedMetadata.purgatory)
-        setAssetState(assetStateToString(asset.indexedMetadata.nft.state))
-        LoggerInstance.log('[asset] Got asset', asset)
+          setAsset((prevState) => ({
+            ...prevState,
+            ...asset,
+            accessDetails
+          }))
+          setTitle(asset.credentialSubject?.metadata?.name)
+          setOwner(asset.indexedMetadata.nft?.owner)
+          setIsInPurgatory(asset.indexedMetadata.purgatory?.state)
+          setPurgatoryData(asset.indexedMetadata.purgatory)
+          setAssetState(assetStateToString(asset.indexedMetadata.nft.state))
+          LoggerInstance.log('[asset] Got asset', asset)
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : `${error}`
+        setError(message)
+        LoggerInstance.error(`[asset] Failed getting asset for ${did}`, message)
+      } finally {
+        setLoading(false)
       }
-
-      setLoading(false)
     },
     [did, accountId]
   )

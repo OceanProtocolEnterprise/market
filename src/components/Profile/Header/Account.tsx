@@ -18,7 +18,7 @@ export default function Account({
   accountId: string
 }): ReactElement {
   const { debug } = useUserPreferences()
-  const supportedChainIds = useConnectorSupportedChains()
+  const displayedSupportedChainIds = useConnectorSupportedChains()
   const { verifiedWallets } = useAddressConfig()
   const { user, isAuthenticated, authEnabled } = useAuth()
   const { address: connectedAccountId } = useAccount()
@@ -70,7 +70,7 @@ export default function Account({
         )}
         <p>
           {accountId &&
-            supportedChainIds.map((value) => (
+            displayedSupportedChainIds.map((value) => (
               <ExplorerLink
                 className={styles.explorer}
                 networkId={value}

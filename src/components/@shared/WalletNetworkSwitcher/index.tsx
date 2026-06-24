@@ -18,12 +18,12 @@ export default function WalletNetworkSwitcher(): ReactElement {
   const ddoNetworkId = asset.credentialSubject?.chainId
   const ddoNetworkData = getNetworkDataById(networksList, ddoNetworkId)
 
-  const { isSupported, isDfns, reason } =
+  const { isSupported, isDfns, isSignerServer, reason } =
     useIsChainSupportedByConnector(ddoNetworkId)
-  const isDfnsBlocked = isDfns && !isSupported
+  const isManagedSignerBlocked = (isDfns || isSignerServer) && !isSupported
 
   const handleSwitchChain = () => {
-    if (!ddoNetworkId || isDfnsBlocked) return
+    if (!ddoNetworkId || isManagedSignerBlocked) return
     switchChain({ chainId: ddoNetworkId })
   }
 
@@ -31,7 +31,7 @@ export default function WalletNetworkSwitcher(): ReactElement {
     <div className={styles.networkWarning}>
       <Tooltip
         content={
-          isDfnsBlocked
+          isManagedSignerBlocked
             ? reason
             : `Click to switch your wallet to ${getNetworkDisplayName(
                 ddoNetworkData
@@ -41,10 +41,14 @@ export default function WalletNetworkSwitcher(): ReactElement {
         <Button
           style="gradient"
           onClick={handleSwitchChain}
-          disabled={isDfnsBlocked}
-          title={isDfnsBlocked ? reason : undefined}
+          disabled={isManagedSignerBlocked}
+          title={isManagedSignerBlocked ? reason : undefined}
         >
-          {isDfnsBlocked ? 'Unavailable on DFNS' : 'Switch Network'}
+          {isManagedSignerBlocked
+            ? isSignerServer
+              ? 'Unavailable on Signer Server'
+              : 'Unavailable on DFNS'
+            : 'Switch Network'}
         </Button>
       </Tooltip>
     </div>

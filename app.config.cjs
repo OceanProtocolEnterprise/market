@@ -160,7 +160,6 @@ module.exports = {
     getEnv('NEXT_PUBLIC_SSI_DEFAULT_POLICIES_URL') ||
     process.env.NEXT_PUBLIC_SSI_DEFAULT_POLICIES_URL ||
     'https://raw.githubusercontent.com/OceanProtocolEnterprise/policy-server/refs/heads/main/default-verification-policies',
-
   ipfsGateway:
     getEnv('NEXT_PUBLIC_IPFS_GATEWAY') || process.env.NEXT_PUBLIC_IPFS_GATEWAY,
   ipfsUploadUrl:

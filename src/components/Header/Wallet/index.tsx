@@ -8,6 +8,7 @@ import { useModal } from 'connectkit'
 import Network from './Network'
 import { useDfnsConnect } from '@hooks/useDfnsConnect'
 import { useAuth } from '@hooks/useAuth'
+import { useSignerServerConnect } from '@hooks/useSignerServerConnect'
 import WalletChoiceModal from '@shared/WalletChoiceModal'
 import DfnsRegistrationModal from '@shared/DfnsRegistrationModal'
 
@@ -19,6 +20,7 @@ export default function Wallet(): ReactElement {
   const { address: accountId } = useAccount()
   const { setOpen } = useModal()
   const dfns = useDfnsConnect()
+  const signerServer = useSignerServerConnect()
   const { authEnabled } = useAuth()
   const [isSsiModalOpen, setIsSsiModalOpen] = useState(false)
   const [isWalletChoiceOpen, setIsWalletChoiceOpen] = useState(false)
@@ -51,7 +53,9 @@ export default function Wallet(): ReactElement {
       <WalletChoiceModal
         isOpen={isWalletChoiceOpen}
         isDfnsConnecting={dfns.isConnecting}
+        isSignerServerConnecting={signerServer.isConnecting}
         showDfns={authEnabled}
+        showSignerServer={signerServer.isConfigured}
         onClose={() => setIsWalletChoiceOpen(false)}
         onSelectMetaMask={() => {
           setIsWalletChoiceOpen(false)
@@ -60,6 +64,10 @@ export default function Wallet(): ReactElement {
         onSelectDfns={() => {
           setIsWalletChoiceOpen(false)
           dfns.openConnect()
+        }}
+        onSelectSignerServer={() => {
+          setIsWalletChoiceOpen(false)
+          signerServer.openConnect()
         }}
       />
 

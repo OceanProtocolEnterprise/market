@@ -1,7 +1,5 @@
 import { ReactElement, useMemo, useState } from 'react'
 import { prettySize } from '@shared/FormInput/InputElement/FilesInput/utils'
-import { IpfsRemoteSource } from '@components/@shared/IpfsRemoteSource'
-import { RemoteObject } from 'src/@types/ddo/RemoteObject'
 import { Service } from 'src/@types/ddo/Service'
 import cleanupContentType from '@utils/cleanupContentType'
 import Badge from '@shared/atoms/Badge'
@@ -33,21 +31,6 @@ function extractFileNameFromUrl(url: string): string {
     const parts = url.split('/')
     return parts[parts.length - 1] || url
   }
-}
-
-function getFormattedFileSize(size?: number): string {
-  if (!size || size < 0) return 'n/a'
-  return prettySize(size)
-}
-
-function getFormattedFileType(type: string): string {
-  if (!type) return 'n/a'
-  return cleanupContentType(type) || type
-}
-
-function getFileTypePillLabel(fileType: string): string {
-  if (!fileType || fileType === 'n/a') return 'FILE'
-  return fileType.toUpperCase()
 }
 
 export default function SampleFilesDropdown({

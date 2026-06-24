@@ -28,6 +28,8 @@ import {
 } from 'src/@types/PolicyServer'
 import { resolveVerifierSessionId } from './verifierSession'
 
+const ENCRYPTED_PROVIDER_RESPONSE = /^0x[0-9a-fA-F]*$/
+
 export type KnownStorageType =
   | 's3'
   | 'ipfs'
@@ -40,6 +42,27 @@ export type KnownStorageType =
   | 'ftp'
 
 export type StorageType = KnownStorageType | (string & unknown)
+
+function normalizeProviderEncryptResponse(response: string): string {
+  if (ENCRYPTED_PROVIDER_RESPONSE.test(response)) return response
+
+  throw new Error(getErrorMessage(response))
+}
+
+export async function encryptProviderData(
+  data: unknown,
+  chainId: number,
+  providerUrl: string,
+  signer: Signer
+): Promise<string> {
+  const response = await ProviderInstance.encrypt(
+    data,
+    chainId,
+    providerUrl,
+    signer
+  )
+  return normalizeProviderEncryptResponse(response)
+}
 
 export async function initializeProviderForComputeMulti(
   datasets:
@@ -161,7 +184,7 @@ export async function getEncryptedFiles(
         return cleanFile
       })
     }
-    const response = await ProviderInstance.encrypt(
+    const response = await encryptProviderData(
       filesForEncryption,
       chainId,
       providerUrl,

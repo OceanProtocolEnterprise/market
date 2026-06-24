@@ -1,7 +1,7 @@
 {
   "name": "@OceanProtocolEnterprise/market",
   "description": "Ocean Protocol Enterprise Marketplace",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "license": "Apache-2.0",
   "homepage": "https://github.com/OceanProtocolEnterprise",
   "type": "module",
@@ -41,7 +41,7 @@
     "@uiw/codemirror-themes": "^4.21.12",
     "@uiw/react-codemirror": "^4.19.5",
     "@urql/exchange-refocus": "1.0.0",
-    "axios": "^1.15.2",
+    "axios": "^1.18.1",
     "base64url": "^3.0.1",
     "classnames": "^2.3.2",
     "connectkit": "^1.9.1",
@@ -126,18 +126,20 @@
     "typescript": "^5.9.3"
   },
   "overrides": {
-    "form-data": ">=4.0.0",
+    "form-data": "^4.0.6",
     "tough-cookie": ">=4.1.3",
     "fast-redact": "3.4.0",
     "tar": "^7.5.3",
-    "ws": "8.17.1",
+    "ws": "8.21.0",
     "semver": "^7.5.2",
     "json5": "^2.2.3",
     "min-document": "2.19.1",
     "axios": "$axios",
     "brace-expansion": "2.0.3",
     "fast-xml-parser": "^5.7.0",
-    "undici": "6.25.0",
+    "undici": "6.27.0",
+    "shell-quote": "1.8.4",
+    "hono": "4.12.27",
     "minimatch": {
       "brace-expansion": "1.1.13"
     },

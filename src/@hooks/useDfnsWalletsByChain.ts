@@ -6,10 +6,19 @@ import {
   getActiveDfnsWalletsByChain,
   subscribeToActiveDfnsWalletsByChain
 } from '@utils/wallet/dfnsConnector'
+import { SIGNER_SERVER_CONNECTOR_ID } from '@utils/wallet/signerServerConnector'
+import {
+  getActiveSignerServerEoaSigner,
+  subscribeToActiveSignerServerEoaSigner
+} from '@utils/wallet/signerServerEoaSigner'
 
 export const DFNS_WALLET_NOT_CONNECTED_REASON = 'DFNS wallet is not connected.'
 export const DFNS_WALLET_UNAVAILABLE_REASON =
   'No DFNS wallet provisioned on this network.'
+export const SIGNER_SERVER_NOT_CONNECTED_REASON =
+  'Signer server wallet is not connected.'
+export const SIGNER_SERVER_UNAVAILABLE_REASON =
+  'Signer server does not support this network.'
 
 /**
  * Returns the `chainId -> walletId` map for the active DFNS connector,
@@ -27,9 +36,20 @@ export function useDfnsWalletsByChain():
   )
 }
 
+export function useSignerServerChainIds(): number[] | undefined {
+  const signer = useSyncExternalStore(
+    subscribeToActiveSignerServerEoaSigner,
+    getActiveSignerServerEoaSigner,
+    () => undefined
+  )
+
+  return useMemo(() => signer?.getSupportedChainIds(), [signer])
+}
+
 export type ChainSupportStatus = {
   isSupported: boolean
   isDfns: boolean
+  isSignerServer: boolean
   reason?: string
 }
 
@@ -47,33 +67,60 @@ export function useIsChainSupportedByConnector(
 ): ChainSupportStatus {
   const { connector } = useAccount()
   const dfnsMap = useDfnsWalletsByChain()
+  const signerServerChainIds = useSignerServerChainIds()
   const isDfns = connector?.id === DFNS_CONNECTOR_ID
+  const isSignerServer = connector?.id === SIGNER_SERVER_CONNECTOR_ID
 
   if (!chainId) {
-    return { isSupported: false, isDfns, reason: 'Missing chain id.' }
+    return {
+      isSupported: false,
+      isDfns,
+      isSignerServer,
+      reason: 'Missing chain id.'
+    }
   }
 
-  if (!isDfns) {
-    return { isSupported: true, isDfns: false }
+  if (!isDfns && !isSignerServer) {
+    return { isSupported: true, isDfns: false, isSignerServer: false }
   }
 
-  if (!dfnsMap) {
+  if (isDfns && !dfnsMap) {
     return {
       isSupported: false,
       isDfns: true,
+      isSignerServer: false,
       reason: DFNS_WALLET_NOT_CONNECTED_REASON
     }
   }
 
-  if (!dfnsMap.has(chainId)) {
+  if (isDfns && !dfnsMap.has(chainId)) {
     return {
       isSupported: false,
       isDfns: true,
+      isSignerServer: false,
       reason: DFNS_WALLET_UNAVAILABLE_REASON
     }
   }
 
-  return { isSupported: true, isDfns: true }
+  if (isSignerServer && !signerServerChainIds) {
+    return {
+      isSupported: false,
+      isDfns: false,
+      isSignerServer: true,
+      reason: SIGNER_SERVER_NOT_CONNECTED_REASON
+    }
+  }
+
+  if (isSignerServer && !signerServerChainIds.includes(chainId)) {
+    return {
+      isSupported: false,
+      isDfns: false,
+      isSignerServer: true,
+      reason: SIGNER_SERVER_UNAVAILABLE_REASON
+    }
+  }
+
+  return { isSupported: true, isDfns, isSignerServer }
 }
 
 /**
@@ -95,11 +142,30 @@ export function useConnectorSupportedChains(): number[] {
   const { validatedSupportedChains } = useMarketMetadata()
   const { connector } = useAccount()
   const dfnsMap = useDfnsWalletsByChain()
+  const signerServerChainIds = useSignerServerChainIds()
   const isDfns = connector?.id === DFNS_CONNECTOR_ID
+  const isSignerServer = connector?.id === SIGNER_SERVER_CONNECTOR_ID
 
   return useMemo(() => {
-    if (!isDfns) return validatedSupportedChains
-    if (!dfnsMap) return []
-    return validatedSupportedChains.filter((chainId) => dfnsMap.has(chainId))
-  }, [isDfns, dfnsMap, validatedSupportedChains])
+    if (isDfns) {
+      if (!dfnsMap) return []
+      return validatedSupportedChains.filter((chainId) => dfnsMap.has(chainId))
+    }
+
+    if (isSignerServer) {
+      if (!signerServerChainIds) return []
+      const signerServerChainIdSet = new Set(signerServerChainIds)
+      return validatedSupportedChains.filter((chainId) =>
+        signerServerChainIdSet.has(chainId)
+      )
+    }
+
+    return validatedSupportedChains
+  }, [
+    isDfns,
+    isSignerServer,
+    dfnsMap,
+    signerServerChainIds,
+    validatedSupportedChains
+  ])
 }
