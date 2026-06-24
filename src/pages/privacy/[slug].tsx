@@ -18,7 +18,7 @@ interface PrivacyPageData extends PageData {
 export default function PageMarkdown(page: PrivacyPageData): ReactElement {
   const router = useRouter()
   const { title, description } = page.frontmatter
-  const { slug, content, headings, fileLastUpdated } = page
+  const { content, headings, fileLastUpdated } = page
 
   if (!page || page.content === '') return null
 
