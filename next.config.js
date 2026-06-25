@@ -1,34 +1,6 @@
 import { createRequire } from 'module'
 const require = createRequire(import.meta.url)
 
-const isDevelopment = process.env.NODE_ENV !== 'production'
-
-const contentSecurityPolicy = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors 'none'",
-  "form-action 'self'",
-  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
-  "font-src 'self' data: https:",
-  "connect-src 'self' https: wss: http://localhost:* http://127.0.0.1:* http://172.15.0.4:* http://172.15.0.5:* http://172.15.0.15:* ws://localhost:* ws://127.0.0.1:*",
-  "worker-src 'self' blob:",
-  "media-src 'self' blob: https:"
-].join('; ')
-
-const securityHeaders = [
-  {
-    key: 'Content-Security-Policy',
-    value: contentSecurityPolicy
-  },
-  {
-    key: 'Strict-Transport-Security',
-    value: 'max-age=63072000; includeSubDomains; preload'
-  }
-]
-
 const nextConfig = {
   output: 'standalone',
   serverExternalPackages: ['wagmi', 'viem', 'connectkit'],
@@ -93,14 +65,6 @@ const nextConfig = {
         source: '/publish',
         destination: '/publish/1',
         permanent: true
-      }
-    ]
-  },
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: securityHeaders
       }
     ]
   },
