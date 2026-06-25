@@ -83,6 +83,11 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   const clientSecret = process.env[OIDC_CLIENT_SECRET_ENV_KEY]
   const issuer = oidcIssuer
 
+  console.log('=== LOGOUT DEBUG ===')
+  console.log('Cookies:', req.cookies)
+  console.log('login_source:', req.cookies.login_source)
+  console.log('id_token exists:', !!req.cookies.id_token)
+
   if (!clientId || !clientSecret || !issuer) {
     console.error('Missing OIDC configuration for logout')
     clearAuthCookies(res)
@@ -134,16 +139,38 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       isFederatedSource(detectedLoginSource)
   )
 
+  console.log('detectedLoginSource:', detectedLoginSource)
+  console.log('federationEndSessionUrl:', federationEndSessionUrl)
+  console.log(
+    'isFederatedSource check:',
+    isFederatedSource(detectedLoginSource)
+  )
+  console.log('isFederatedLogin:', isFederatedLogin)
+
   if (isFederatedLogin) {
+    // Keep the id_token for the federated logout flow
+    console.log(
+      'FEDERATED LOGOUT FLOW - redirecting to:',
+      federationEndSessionUrl
+    )
+
     res.setHeader('Set-Cookie', [
       ...buildClearAuthCookieStrings({ keepIdToken: true }),
       serializeFederatedLogoutContinueCookie('1', 300)
     ])
 
-    const redirectUrl = `${federationEndSessionUrl}?${new URLSearchParams({
-      post_logout_redirect_uri: callbackUrl
-    }).toString()}`
-    return res.redirect(302, redirectUrl)
+    // Build the federated logout URL with proper parameters
+    const federatedLogoutUrl = new URL(federationEndSessionUrl)
+    federatedLogoutUrl.searchParams.set('post_logout_redirect_uri', callbackUrl)
+
+    // If we have the id_token, pass it as id_token_hint to the federated IDP
+    if (id_token) {
+      federatedLogoutUrl.searchParams.set('id_token_hint', id_token)
+    }
+
+    return res.redirect(302, federatedLogoutUrl.toString())
+  } else {
+    console.log('MAIN OIDC LOGOUT FLOW')
   }
 
   clearAuthCookies(res)
