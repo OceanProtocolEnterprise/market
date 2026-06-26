@@ -1,4 +1,5 @@
 import type { Address, Hex } from 'viem'
+import { getCookieValue } from '../cookies'
 
 export type SignerServerNetwork = {
   chainId: number
@@ -21,6 +22,8 @@ export type SignerServerMessageInput = { message: string } | { rawMessage: Hex }
 
 const SIGNER_SERVER_HEALTH_PATH = 'health'
 const SIGNER_SERVER_HEALTHY_STATUS = 'ok'
+const CSRF_COOKIE_NAME = '__Host-csrf_token'
+const CSRF_HEADER_NAME = 'X-CSRF-Token'
 
 type SignerServerHealthResponse = {
   status?: string
@@ -30,11 +33,15 @@ async function signerServerRequest<T>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
+  const method = init?.method?.toUpperCase() || 'GET'
+  const csrfToken = method === 'POST' ? getCookieValue(CSRF_COOKIE_NAME) : ''
+
   const response = await fetch(`/api/signer-server/${path}`, {
     ...init,
     credentials: 'same-origin',
     headers: {
       ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
       ...(init?.headers || {})
     }
   })

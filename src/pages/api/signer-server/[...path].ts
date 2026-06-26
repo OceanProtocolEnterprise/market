@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME } from '../auth/_cookies'
 import { getOptionalStringClaim } from '../auth/_claims'
 import { getVerifiedSessionClaims } from '../auth/_session'
 
@@ -39,23 +40,31 @@ function buildSignerServerUrl(req: NextApiRequest, baseUrl: string): string {
   return url.toString()
 }
 
-function getBearerToken(req: NextApiRequest): string | undefined {
-  const { authorization } = req.headers
-  if (authorization?.startsWith('Bearer ')) {
-    return authorization.slice('Bearer '.length).trim() || undefined
-  }
-
-  return undefined
+function getHeaderValue(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? value[0] || '' : value || ''
 }
 
-function getAccessToken(req: NextApiRequest) {
-  const headerToken = getBearerToken(req)
-  if (headerToken) return headerToken
+function getRequestOrigin(req: NextApiRequest): string {
+  const host = getHeaderValue(req.headers.host)
+  const forwardedProto = getHeaderValue(req.headers['x-forwarded-proto'])
+  const protocol = forwardedProto.split(',')[0]?.trim() || 'https'
 
-  const cookieToken = req.cookies.access_token
-  if (cookieToken) return cookieToken
+  return `${protocol}://${host}`
+}
 
-  return undefined
+function isAllowedOrigin(req: NextApiRequest) {
+  const origin = getHeaderValue(req.headers.origin)
+  if (!origin) return true
+  return origin === getRequestOrigin(req)
+}
+
+function hasValidCsrfToken(req: NextApiRequest) {
+  if (req.method !== 'POST') return true
+
+  const cookieToken = req.cookies[CSRF_COOKIE_NAME]
+  const headerToken = getHeaderValue(req.headers[CSRF_HEADER_NAME])
+
+  return Boolean(cookieToken && headerToken && cookieToken === headerToken)
 }
 
 export default async function handler(
@@ -71,7 +80,11 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const accessToken = getAccessToken(req)
+  if (!isAllowedOrigin(req) || !hasValidCsrfToken(req)) {
+    return res.status(403).json({ error: 'Forbidden' })
+  }
+
+  const accessToken = req.cookies.access_token
   if (!accessToken) {
     return res.status(401).json({ error: 'Signer server login is required.' })
   }
