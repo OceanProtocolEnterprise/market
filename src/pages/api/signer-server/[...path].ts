@@ -4,6 +4,7 @@ import { getOptionalStringClaim } from '../auth/_claims'
 import { getVerifiedSessionClaims } from '../auth/_session'
 
 const ALLOWED_METHODS = ['GET', 'POST'] as const
+const SIGNER_SERVER_API_PREFIX = ['api', 'v1'] as const
 
 export const config = {
   maxDuration: 120
@@ -23,8 +24,22 @@ function buildSignerServerUrl(req: NextApiRequest, baseUrl: string): string {
   }
 
   const path = Array.isArray(req.query.path) ? req.query.path : []
+  const normalizedBasePath = parsedBaseUrl.pathname
+    .replace(/^\/+|\/+$/g, '')
+    .split('/')
+    .filter(Boolean)
+  const hasApiPrefixInBase =
+    normalizedBasePath.slice(-SIGNER_SERVER_API_PREFIX.length).join('/') ===
+    SIGNER_SERVER_API_PREFIX.join('/')
+  const hasApiPrefixInPath =
+    path.slice(0, SIGNER_SERVER_API_PREFIX.length).join('/') ===
+    SIGNER_SERVER_API_PREFIX.join('/')
+  const targetPath =
+    hasApiPrefixInBase || hasApiPrefixInPath
+      ? path
+      : [...SIGNER_SERVER_API_PREFIX, ...path]
   const url = new URL(
-    path.map(encodeURIComponent).join('/'),
+    targetPath.map(encodeURIComponent).join('/'),
     `${parsedBaseUrl.toString().replace(/\/$/, '')}/`
   )
 
