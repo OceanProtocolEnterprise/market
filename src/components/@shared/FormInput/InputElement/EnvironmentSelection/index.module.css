@@ -131,6 +131,14 @@ body .infoButton {
   justify-content: flex-end;
 }
 
+body .selectedButton,
+body .selectedButton:hover,
+body .selectedButton:focus,
+body .selectedButton:active {
+  background: var(--clr-navy);
+  color: var(--brand-white);
+}
+
 .selectedTag {
   background: var(--clr-amber);
   color: var(--clr-navy);

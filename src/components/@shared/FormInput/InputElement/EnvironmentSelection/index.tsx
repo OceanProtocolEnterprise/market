@@ -204,7 +204,12 @@ export default function EnvironmentSelection({
 
                       <div className={styles.cardActions}>
                         {isSelected ? (
-                          <Button style="slim">Selected</Button>
+                          <Button
+                            style="slim"
+                            className={styles.selectedButton}
+                          >
+                            Selected
+                          </Button>
                         ) : (
                           <Button style="slim">Select</Button>
                         )}

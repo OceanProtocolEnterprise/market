@@ -9,6 +9,7 @@ import { Service } from 'src/@types/ddo/Service'
 import { Signer } from 'ethers'
 import { ResourceType } from 'src/@types/ResourceType'
 import { ComputeFlow, FormComputeData } from './_types'
+import { ComputeStartProgressStep } from './progress'
 import SelectEnvironment from './SelectEnvironment'
 import ConfigureEnvironment from './ConfigureEnvironment'
 import Review from './Review'
@@ -51,6 +52,7 @@ interface StepsProps {
   selectedComputeAssetTimeout?: string
   computeEnvs: ComputeEnvironment[]
   stepText: string
+  computeProgressSteps: ComputeStartProgressStep[]
   isConsumable: boolean
   consumableFeedback: string
   datasetOrderPriceAndFees?: OrderPriceAndFees
@@ -131,6 +133,7 @@ export default function Steps({
   selectedComputeAssetTimeout,
   computeEnvs,
   stepText,
+  computeProgressSteps,
   isConsumable,
   consumableFeedback,
   datasetOrderPriceAndFees,
@@ -357,6 +360,7 @@ export default function Steps({
             allResourceValues={allResourceValues}
             setAllResourceValues={setAllResourceValues}
             stepText={stepText}
+            computeProgressSteps={computeProgressSteps}
             isConsumable={isConsumable}
             consumableFeedback={consumableFeedback}
             datasetOrderPriceAndFees={datasetOrderPriceAndFees}
@@ -404,6 +408,7 @@ export default function Steps({
             allResourceValues={allResourceValues}
             setAllResourceValues={setAllResourceValues}
             stepText={stepText}
+            computeProgressSteps={computeProgressSteps}
             isConsumable={isConsumable}
             consumableFeedback={consumableFeedback}
             datasetOrderPriceAndFees={datasetOrderPriceAndFees}
@@ -529,6 +534,7 @@ export default function Steps({
               allResourceValues={allResourceValues}
               setAllResourceValues={setAllResourceValues}
               stepText={stepText}
+              computeProgressSteps={computeProgressSteps}
               isConsumable={isConsumable}
               consumableFeedback={consumableFeedback}
               datasetOrderPriceAndFees={datasetOrderPriceAndFees}
@@ -580,6 +586,7 @@ export default function Steps({
               allResourceValues={allResourceValues}
               setAllResourceValues={setAllResourceValues}
               stepText={stepText}
+              computeProgressSteps={computeProgressSteps}
               isConsumable={isConsumable}
               consumableFeedback={consumableFeedback}
               datasetOrderPriceAndFees={datasetOrderPriceAndFees}
@@ -694,6 +701,8 @@ export default function Steps({
             providerFeesSymbol={providerFeesSymbol}
             allResourceValues={allResourceValues}
             setAllResourceValues={setAllResourceValues}
+            stepText={stepText}
+            computeProgressSteps={computeProgressSteps}
             isConsumable={isConsumable}
             algoOrderPriceAndFees={algoOrderPriceAndFees}
             computeEnvs={computeEnvs}
@@ -730,6 +739,8 @@ export default function Steps({
             providerFeesSymbol={providerFeesSymbol}
             allResourceValues={allResourceValues}
             setAllResourceValues={setAllResourceValues}
+            stepText={stepText}
+            computeProgressSteps={computeProgressSteps}
             isConsumable={isConsumable}
             algoOrderPriceAndFees={algoOrderPriceAndFees}
             computeEnvs={computeEnvs}

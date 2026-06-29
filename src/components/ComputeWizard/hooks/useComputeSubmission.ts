@@ -19,6 +19,12 @@ import { getOrderPriceAndFees } from '@utils/accessDetailsAndPricing'
 import { resolveVerifierSessionId } from '@utils/verifierSession'
 import { FormComputeData } from '../_types'
 import { storeComputeOutputEncryptionKey } from '../outputStorage'
+import {
+  ComputeStartProgressPhase,
+  ComputeStartProgressStatus,
+  createComputeStartProgress,
+  getDatasetProgressPhase
+} from '../progress'
 
 type DatasetResponse = {
   asset: AssetExtended
@@ -150,10 +156,51 @@ function buildResourceRequests(
 export function useComputeSubmission() {
   const [isOrdering, setIsOrdering] = useState(false)
   const [computeStatusText, setComputeStatusText] = useState('')
+  const [computeProgressSteps, setComputeProgressSteps] = useState(
+    createComputeStartProgress
+  )
   const [successJobId, setSuccessJobId] = useState<string>()
   const [showSuccess, setShowSuccess] = useState(false)
   const [retry, setRetry] = useState(false)
   const [submitError, setSubmitError] = useState<string>()
+
+  const resetComputeProgress = useCallback(
+    (datasets: AssetExtended[] = [], algorithmAsset?: AssetExtended) => {
+      setComputeProgressSteps(
+        createComputeStartProgress({
+          datasets: datasets.map((dataset) => ({
+            name: dataset.credentialSubject?.metadata?.name
+          })),
+          algorithm: algorithmAsset
+            ? {
+                name: algorithmAsset.credentialSubject?.metadata?.name
+              }
+            : undefined
+        })
+      )
+    },
+    []
+  )
+
+  const setComputeProgressStep = useCallback(
+    (phase: ComputeStartProgressPhase, status: ComputeStartProgressStatus) => {
+      setComputeProgressSteps((steps) =>
+        steps.map((step) => (step.id === phase ? { ...step, status } : step))
+      )
+    },
+    []
+  )
+
+  const setActiveComputeProgressError = useCallback(() => {
+    setComputeProgressSteps((steps) => {
+      const activeIndex = steps.findIndex((step) => step.status === 'active')
+      if (activeIndex === -1) return steps
+
+      return steps.map((step, index) =>
+        index === activeIndex ? { ...step, status: 'error' } : step
+      )
+    })
+  }, [])
 
   const startJob = useCallback(
     async ({
@@ -238,24 +285,12 @@ export function useComputeSubmission() {
               lookupVerifierSessionId(algorithmAsset.id, algorithmService.id)
             )
 
-        const algorithmOrderTx = await handleComputeOrder(
-          signer,
-          algorithmAsset,
-          algorithmService,
-          algorithmAccessDetails,
-          algoOrderPriceAndFees || algoOrderPriceAndFeesResponse,
-          accountId,
-          initializedProvider?.algorithm,
-          hasAlgoAssetDatatoken,
-          algorithmSession,
-          selectedComputeEnv.consumerAddress
-        )
-        if (!algorithmOrderTx) throw new Error('Failed to order algorithm.')
-
         const datasetInputs = []
         const policyDatasets = []
 
         for (const [i, ds] of datasetResponses.entries()) {
+          const datasetProgressPhase = getDatasetProgressPhase(i)
+          setComputeProgressStep(datasetProgressPhase, 'active')
           const datasetOrderTx = await handleComputeOrder(
             signer,
             ds.asset,
@@ -275,6 +310,7 @@ export function useComputeSubmission() {
 
           if (!datasetOrderTx)
             throw new Error(`Failed to order dataset ${ds.asset.id}.`)
+          setComputeProgressStep(datasetProgressPhase, 'completed')
 
           const paramsPayload = Array.isArray(
             userCustomParameters?.dataServiceParams
@@ -304,6 +340,22 @@ export function useComputeSubmission() {
           })
         }
 
+        setComputeProgressStep('algorithm', 'active')
+        const algorithmOrderTx = await handleComputeOrder(
+          signer,
+          algorithmAsset,
+          algorithmService,
+          algorithmAccessDetails,
+          algoOrderPriceAndFees || algoOrderPriceAndFeesResponse,
+          accountId,
+          initializedProvider?.algorithm,
+          hasAlgoAssetDatatoken,
+          algorithmSession,
+          selectedComputeEnv.consumerAddress
+        )
+        if (!algorithmOrderTx) throw new Error('Failed to order algorithm.')
+        setComputeProgressStep('algorithm', 'completed')
+
         setComputeStatusText(getComputeFeedback()[4])
         const resourceRequests = buildResourceRequests(
           selectedComputeEnv,
@@ -332,6 +384,7 @@ export function useComputeSubmission() {
         }
 
         const policiesServer = [policyServerAlgo, ...policyDatasets]
+        setComputeProgressStep('create', 'active')
 
         let response
         if (selectedResources.mode === 'paid') {
@@ -382,6 +435,7 @@ export function useComputeSubmission() {
           throw new Error(
             'Failed to start compute job, check console for more details.'
           )
+        setComputeProgressStep('create', 'completed')
 
         setSuccessJobId(response?.jobId || response?.id || 'N/A')
         const responseJobId = response?.jobId || response?.id
@@ -394,6 +448,7 @@ export function useComputeSubmission() {
         }
         setShowSuccess(true)
       } catch (error) {
+        setActiveComputeProgressError()
         if (
           (error as Error)?.message?.includes('user rejected transaction') ||
           (error as Error)?.message?.includes('User denied') ||
@@ -402,7 +457,7 @@ export function useComputeSubmission() {
           )
         ) {
           setRetry(true)
-          return
+          throw error
         }
 
         const message =
@@ -414,13 +469,17 @@ export function useComputeSubmission() {
         setIsOrdering(false)
       }
     },
-    []
+    [setActiveComputeProgressError, setComputeProgressStep]
   )
 
   return {
     startJob,
     isOrdering,
     computeStatusText,
+    computeProgressSteps,
+    resetComputeProgress,
+    setComputeProgressStep,
+    setActiveComputeProgressError,
     successJobId,
     showSuccess,
     setShowSuccess,

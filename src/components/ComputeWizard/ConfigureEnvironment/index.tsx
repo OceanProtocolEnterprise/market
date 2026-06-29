@@ -888,9 +888,11 @@ export default function ConfigureEnvironment({
         ) : (
           <div className={styles.outputStorageCard}>
             <p className={styles.outputStorageHint}>
-              The compute job results will remain on the node storage. Select
-              the remote storage option if you want to export encrypted results
-              also to your own destination.
+              The compute job results will remain on the node storage for 30
+              days.
+              <br />
+              Select the remote storage option if you want to export encrypted
+              results also to your own destination.
             </p>
           </div>
         )}
