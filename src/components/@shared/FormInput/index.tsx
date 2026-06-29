@@ -118,6 +118,13 @@ export interface InputProps {
   onAddFile?: (fileInfo: FileInfo) => void
   isAdditionalLicense?: boolean
   onValidationLoadingChange?: (isLoading: boolean) => void
+  // KeyValueInput (type: 'keyValue')
+  uniqueKeys?: boolean
+  keyPlaceholder?: string
+  valuePlaceholder?: string
+  keyLabel?: string
+  valueLabel?: string
+  validateValueAsUrl?: boolean
 }
 
 function checkError(form: any, field: FieldInputProps<any>) {

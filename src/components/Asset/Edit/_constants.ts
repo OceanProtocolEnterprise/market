@@ -25,6 +25,7 @@ import {
 import { convertToPolicyType } from '@components/@shared/PolicyEditor/utils'
 import { AdditionalVerifiableCredentials } from 'src/@types/ddo/AdditionalVerifiableCredentials'
 import { State } from 'src/@types/ddo/State'
+import { recordToKeyValuePairs } from '@utils/links'
 
 export const defaultServiceComputeOptions: Compute = {
   allowRawAlgorithm: false,
@@ -324,8 +325,10 @@ export function getInitialValues(
     descriptionLanguage: metadata?.description?.['@language'] || 'en',
     descriptionDirection: metadata?.description?.['@direction'] || 'ltr',
     type: metadata?.type,
-    links: [{ url: '', type: 'url' }],
+    links: recordToKeyValuePairs(metadata?.links),
     author: metadata?.author,
+    providedBy: metadata?.providedBy || '',
+    copyrightHolder: metadata?.copyrightHolder || '',
     tags: metadata?.tags,
     usesConsumerParameters: metadata?.algorithm?.consumerParameters
       ? Object.values(metadata?.algorithm?.consumerParameters).length > 0

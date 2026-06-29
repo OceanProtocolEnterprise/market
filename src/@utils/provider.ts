@@ -15,7 +15,7 @@ import {
 } from '@oceanprotocol/lib'
 // if customProviderUrl is set, we need to call provider using this custom endpoint
 import { customProviderUrl } from '../../app.config.cjs'
-import { KeyValuePair } from '@shared/FormInput/InputElement/KeyValueInput'
+import type { KeyValuePair } from 'src/@types/KeyValuePair'
 import { Signer } from 'ethers'
 import { getValidUntilTime } from './compute'
 import { toast } from 'react-toastify'

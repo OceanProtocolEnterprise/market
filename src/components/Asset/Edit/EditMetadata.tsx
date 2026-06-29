@@ -12,7 +12,6 @@ import content from '../../../../content/pages/editMetadata.json'
 import DebugEditMetadata from './DebugEditMetadata'
 import EditFeedback from './EditFeedback'
 import { useAsset } from '@context/Asset'
-import { sanitizeUrl } from '@utils/url'
 import { useAccount } from 'wagmi'
 import {
   transformConsumerParameters,
@@ -26,7 +25,7 @@ import { Asset, AssetNft } from 'src/@types/Asset'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { customProviderUrl, encryptAsset } from '../../../../app.config.cjs'
 import { isAddress, Signer, toBeHex } from 'ethers'
-import { convertLinks } from '@utils/links'
+import { keyValuePairsToRecord } from '@utils/links'
 import { AdditionalVerifiableCredentials } from 'src/@types/ddo/AdditionalVerifiableCredentials'
 import { useSsiWallet } from '@context/SsiWallet'
 import { State } from 'src/@types/ddo/State'
@@ -85,9 +84,6 @@ export default function Edit({
         processAddress(values.credentials.denyInputValue, 'deny')
       }
 
-      const linksTransformed = values.links?.length &&
-        values.links[0].valid && [sanitizeUrl(values.links[0].url)]
-
       let { license } = values
       if (!license && !values.useRemoteLicense && values.licenseUrl[0]) {
         license = {
@@ -121,8 +117,10 @@ export default function Edit({
           '@direction': values.descriptionDirection || '',
           '@language': values.descriptionLanguage || ''
         },
-        links: convertLinks(linksTransformed),
+        links: keyValuePairsToRecord(values.links),
         author: values.author,
+        providedBy: values.providedBy || '',
+        copyrightHolder: values.copyrightHolder || '',
         tags: values.tags,
         license,
         additionalInformation: {

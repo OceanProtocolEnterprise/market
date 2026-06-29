@@ -1,0 +1,54 @@
+/* chips flow horizontally and wrap to the next line */
+/* vertical rhythm matching the other metadata sections */
+.section {
+  margin: var(--spacer) 0;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-flow: row wrap;
+  gap: calc(var(--spacer) / 4);
+}
+
+/* outlined navy pill hugging its content, external icon to the right of the title */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacer) / 3);
+  max-width: 100%;
+  padding: calc(var(--spacer) / 6) calc(var(--spacer) / 2);
+  border: 1px solid var(--clr-navy);
+  border-radius: 20px;
+  color: var(--clr-navy);
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+  line-height: 1.4;
+  transition: 0.2s ease-out;
+}
+
+/* fill-on-hover, mirroring the project's outlined (`.ocean`) button */
+.chip:hover,
+.chip:focus {
+  background: var(--clr-navy);
+  color: var(--brand-white);
+}
+
+.chip:hover .icon path,
+.chip:focus .icon path {
+  stroke: var(--brand-white);
+}
+
+.text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}

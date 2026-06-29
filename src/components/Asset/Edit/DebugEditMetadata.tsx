@@ -2,7 +2,6 @@ import { ReactElement, useEffect, useState } from 'react'
 import DebugOutput from '@shared/DebugOutput'
 import { MetadataEditForm } from './_types'
 import { previewDebugPatch } from '@utils/ddo'
-import { sanitizeUrl } from '@utils/url'
 import {
   generateCredentials,
   transformConsumerParameters
@@ -11,7 +10,7 @@ import { Asset, AssetNft } from 'src/@types/Asset'
 import { Metadata } from 'src/@types/ddo/Metadata'
 import { Credential } from 'src/@types/ddo/Credentials'
 import { AssetExtended } from 'src/@types/AssetExtended'
-import { convertLinks } from '@utils/links'
+import { keyValuePairsToRecord } from '@utils/links'
 import { State } from 'src/@types/ddo/State'
 
 export default function DebugEditMetadata({
@@ -26,9 +25,6 @@ export default function DebugEditMetadata({
 
   useEffect(() => {
     function transformValues() {
-      const linksTransformed = values.links?.length &&
-        values.links[0].valid && [sanitizeUrl(values.links[0].url)]
-
       const newMetadata: Metadata = {
         ...asset?.credentialSubject?.metadata,
         name: values.name,
@@ -37,8 +33,10 @@ export default function DebugEditMetadata({
           '@direction': values.descriptionDirection || '',
           '@language': values.descriptionLanguage || ''
         },
-        links: convertLinks(linksTransformed),
+        links: keyValuePairsToRecord(values.links),
         author: values.author,
+        providedBy: values.providedBy || '',
+        copyrightHolder: values.copyrightHolder || '',
         tags: values.tags,
         license: values.license,
         additionalInformation: {

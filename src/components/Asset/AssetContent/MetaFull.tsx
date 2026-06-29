@@ -9,7 +9,9 @@ import { Asset } from 'src/@types/Asset'
 import { IpfsRemoteSource } from '@components/@shared/IpfsRemoteSource'
 import Label from '@components/@shared/FormInput/Label'
 import { assetStateToString } from '@utils/assetState'
+import { safeExternalWebUrl } from '@utils/url'
 import AdditionalLicenseFiles from './AdditionalLicenseFiles'
+import MetaLinks from './MetaLinks'
 
 function truncateMiddle(
   value?: string,
@@ -94,6 +96,28 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
             />
           </span>
         )}
+        {ddo?.credentialSubject.metadata?.copyrightHolder && (
+          <MetaItem
+            title="Copyright Holder"
+            content={ddo.credentialSubject.metadata.copyrightHolder}
+          />
+        )}
+        {ddo?.credentialSubject.metadata?.providedBy && (
+          <MetaItem
+            title="Provided By"
+            content={
+              <a
+                href={safeExternalWebUrl(
+                  ddo.credentialSubject.metadata.providedBy
+                )}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {ddo.credentialSubject.metadata.providedBy}
+              </a>
+            }
+          />
+        )}
         <MetaItem
           title="Owner"
           content={<Publisher account={ddo?.indexedMetadata?.nft?.owner} />}
@@ -126,6 +150,8 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
           />
         )}
       </div>
+
+      <MetaLinks links={ddo?.credentialSubject?.metadata?.links} />
 
       <div className={styles.licenseRow}>
         <Label htmlFor="license">

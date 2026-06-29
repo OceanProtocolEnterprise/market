@@ -8,6 +8,34 @@
   align-items: end;
 }
 
+.fieldCol {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+}
+
+.fieldCol input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* match the standard field label spacing used across the form */
+.fieldCol label {
+  margin-bottom: calc(var(--spacer) / 4);
+}
+
+/* error state for the value (URL) column */
+.valueError input,
+.valueError input:focus {
+  border-color: var(--brand-alert-red);
+  color: var(--brand-alert-red);
+}
+
+.valueError label {
+  color: var(--brand-alert-red);
+}
+
 .pairsContainer:last-child {
   margin-bottom: 0;
 }
@@ -50,7 +78,7 @@
 
 .error {
   composes: error from '../../index.module.css';
-  top: 100%;
+  top: calc(100% + 4px);
 }
 
 .pairsContainer .addButton {

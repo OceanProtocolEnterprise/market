@@ -45,22 +45,14 @@
       },
       {
         "name": "links",
-        "label": "Sample file",
-        "prominentHelp": false,
-        "type": "tabs",
-        "fields": [
-          {
-            "value": "url",
-            "title": "URL",
-            "label": "File",
-            "placeholder": "e.g. https://file.com/file.json",
-            "help": "This URL will be stored encrypted after publishing. **Please make sure that the endpoint is accessible over the internet and is not protected by a firewall or by credentials.**",
-            "computeHelp": "For a compute dataset, your file should match the file type required by the algorithm, and should not exceed 1 GB in file size. ",
-            "prominentHelp": true,
-            "type": "files",
-            "required": false
-          }
-        ],
+        "label": "Links",
+        "type": "keyValue",
+        "keyLabel": "Title",
+        "valueLabel": "URL",
+        "keyPlaceholder": "e.g. Website",
+        "valuePlaceholder": "e.g. https://oceanenterprise.io",
+        "validateValueAsUrl": true,
+        "help": "Related links for this asset as a mapping of titles to URLs. Enter a Title and its URL, then click Add. Repeat to add more (e.g. website, demo).",
         "required": false
       },
       {
@@ -75,6 +67,20 @@
         "label": "New Author",
         "type": "author",
         "placeholder": "e.g. John SRL"
+      },
+      {
+        "name": "copyrightHolder",
+        "label": "Copyright Holder",
+        "placeholder": "e.g. Ocean Enterprise",
+        "help": "The entity holding the legal copyright for this asset.",
+        "required": false
+      },
+      {
+        "name": "providedBy",
+        "label": "Provided By",
+        "placeholder": "e.g. https://oceanenterprise.io/vc.json",
+        "help": "URL where the Verifiable Credential of the entity offering this asset resides.",
+        "required": false
       },
       {
         "name": "usesConsumerParameters",
