@@ -13,6 +13,7 @@ import StepTitle from '@shared/StepTitle'
 import Input from '@shared/FormInput'
 import FormErrorGroup from '@shared/FormInput/CheckboxGroupWithErrors'
 import Loader from '@components/@shared/atoms/Loader'
+import Tooltip from '@components/@shared/atoms/Tooltip'
 import { AssetActionCheckCredentials } from '@components/Asset/AssetActions/CheckCredentials'
 import { AssetActionCheckCredentialsAlgo } from '@components/Asset/AssetActions/CheckCredentials/checkCredentialsAlgo'
 import { CredentialDialogProvider } from '@components/Asset/AssetActions/Compute/CredentialDialogProvider'
@@ -110,17 +111,20 @@ const groupRowsByCurrency = (rows: RowEntry[]) => {
   }))
 }
 
+function getProgressStatusClass(step: ComputeStartProgressStep) {
+  return step.status === 'completed'
+    ? styles.progressStepCompleted
+    : step.status === 'active'
+    ? styles.progressStepActive
+    : step.status === 'skipped'
+    ? styles.progressStepSkipped
+    : step.status === 'error'
+    ? styles.progressStepError
+    : styles.progressStepPending
+}
+
 function getProgressStepClassName(step: ComputeStartProgressStep) {
-  const statusClass =
-    step.status === 'completed'
-      ? styles.progressStepCompleted
-      : step.status === 'active'
-      ? styles.progressStepActive
-      : step.status === 'skipped'
-      ? styles.progressStepSkipped
-      : step.status === 'error'
-      ? styles.progressStepError
-      : styles.progressStepPending
+  const statusClass = getProgressStatusClass(step)
 
   return `${styles.progressCheckpoint} ${statusClass}`
 }
@@ -2479,21 +2483,50 @@ export default function Review({
                 className={styles.computeProgressFill}
                 style={{ width: `${progressPercent}%` }}
               />
+              {computeProgressSteps.map((step, index) => {
+                const position =
+                  computeProgressSteps.length === 1
+                    ? 0
+                    : (index / (computeProgressSteps.length - 1)) * 100
+
+                return (
+                  <span
+                    key={step.id}
+                    className={`${
+                      styles.progressMilestone
+                    } ${getProgressStatusClass(step)}`}
+                    style={{ left: `${position}%` }}
+                    aria-hidden="true"
+                  />
+                )
+              })}
             </div>
             <ol className={styles.computeProgressSteps}>
               {computeProgressSteps.map((step, index) => (
-                <li key={step.id} className={getProgressStepClassName(step)}>
+                <li
+                  key={step.id}
+                  className={getProgressStepClassName(step)}
+                  aria-label={`${step.label}: ${getProgressStatusLabel(
+                    step.status
+                  )}`}
+                >
                   <span className={styles.progressCheckpointMarker}>
                     {index + 1}
                   </span>
-                  <span className={styles.progressCheckpointContent}>
-                    <span className={styles.progressCheckpointLabel}>
-                      {step.label}
-                    </span>
+                  <div className={styles.progressCheckpointContent}>
+                    <div className={styles.progressCheckpointLabel}>
+                      <span className={styles.progressCheckpointName}>
+                        {step.shortLabel}
+                      </span>
+                      <Tooltip
+                        content={step.label}
+                        className={styles.progressCheckpointInfo}
+                      />
+                    </div>
                     <span className={styles.progressCheckpointStatus}>
                       {getProgressStatusLabel(step.status)}
                     </span>
-                  </span>
+                  </div>
                 </li>
               ))}
             </ol>

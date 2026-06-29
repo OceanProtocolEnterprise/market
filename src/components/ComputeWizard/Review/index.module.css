@@ -420,7 +420,6 @@
 .computeProgressTrack {
   position: relative;
   height: 8px;
-  overflow: hidden;
   border-radius: 999px;
   background: var(--neutral-150);
 }
@@ -432,20 +431,54 @@
   transition: width 0.25s ease;
 }
 
+.progressMilestone {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--neutral-250);
+  border-radius: 50%;
+  background: var(--brand-white);
+  transform: translate(-50%, -50%);
+  transition: border-color 0.25s ease, background-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.progressMilestone.progressStepCompleted {
+  border-color: var(--brand-blue);
+  background: var(--brand-blue);
+}
+
+.progressMilestone.progressStepActive {
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 3px rgba(1, 79, 134, 0.16);
+}
+
+.progressMilestone.progressStepSkipped {
+  background: var(--neutral-130);
+}
+
+.progressMilestone.progressStepError {
+  border-color: var(--brand-alert-red);
+  background: var(--brand-alert-red);
+}
+
 .computeProgressSteps {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  overflow-x: auto;
   margin: 0.9rem 0 0;
-  padding: 0;
+  padding: 0 0 0.25rem;
   list-style: none;
 }
 
 .progressCheckpoint {
   display: flex;
-  align-items: flex-start;
-  min-width: 0;
-  gap: 0.5rem;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .progressCheckpointMarker {
@@ -464,24 +497,48 @@
   line-height: 1;
 }
 
+.progressCheckpointInfo {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
 .progressCheckpointContent {
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  gap: 0.2rem;
+  gap: 0.05rem;
 }
 
 .progressCheckpointLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
   color: var(--font-color-heading);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.1;
+}
+
+.progressCheckpointName {
+  display: block;
+  max-width: 8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .progressCheckpointStatus {
   color: var(--brand-grey-light);
-  font-size: 0.72rem;
-  line-height: 1.2;
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
+.progressStepCompleted .progressCheckpointStatus,
+.progressStepActive .progressCheckpointStatus {
+  color: var(--brand-blue);
+}
+
+.progressStepError .progressCheckpointStatus {
+  color: var(--brand-alert-red);
 }
 
 .progressStepCompleted .progressCheckpointMarker {
@@ -490,19 +547,11 @@
   color: var(--brand-white);
 }
 
-.progressStepCompleted .progressCheckpointStatus {
-  color: var(--brand-blue);
-}
-
 .progressStepActive .progressCheckpointMarker {
   border-color: var(--brand-blue);
   background: var(--brand-white);
   color: var(--brand-blue);
   box-shadow: 0 0 0 4px rgba(1, 79, 134, 0.16);
-}
-
-.progressStepActive .progressCheckpointStatus {
-  color: var(--brand-blue);
 }
 
 .progressStepSkipped .progressCheckpointMarker {
@@ -515,14 +564,6 @@
   border-color: var(--brand-alert-red);
   background: var(--brand-alert-red);
   color: var(--brand-white);
-}
-
-.progressStepError .progressCheckpointStatus {
-  color: var(--brand-alert-red);
-}
-
-.progressStepPending .progressCheckpointLabel {
-  color: var(--neutral-700);
 }
 
 .itemNameContainer {

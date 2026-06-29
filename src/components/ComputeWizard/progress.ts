@@ -1,8 +1,7 @@
 export type ComputeStartProgressPhase =
-  | 'escrowApproval'
-  | 'deposit'
-  | 'approvals'
-  | 'buy'
+  | 'escrow'
+  | `dataset:${number}`
+  | 'algorithm'
   | 'create'
 
 export type ComputeStartProgressStatus =
@@ -15,24 +14,59 @@ export type ComputeStartProgressStatus =
 export type ComputeStartProgressStep = {
   id: ComputeStartProgressPhase
   label: string
+  shortLabel: string
   status: ComputeStartProgressStatus
 }
 
-export const computeStartProgressLabels: Record<
-  ComputeStartProgressPhase,
-  string
-> = {
-  escrowApproval: 'Approve escrow funds if necessary',
-  deposit: 'Deposit funds in escrow if necessary',
-  approvals: 'Token approvals',
-  buy: 'Buy datasets and algorithm',
-  create: 'Creating job in progress'
+type ComputeStartProgressAssets = {
+  datasets?: Array<{ name?: string }>
+  algorithm?: { name?: string }
 }
 
-export function createComputeStartProgress(): ComputeStartProgressStep[] {
-  return Object.entries(computeStartProgressLabels).map(([id, label]) => ({
-    id: id as ComputeStartProgressPhase,
-    label,
-    status: 'pending'
-  }))
+function capitalizeFirstLetter(value: string): string {
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : value
+}
+
+export function getDatasetProgressPhase(
+  index: number
+): ComputeStartProgressPhase {
+  return `dataset:${index}`
+}
+
+export function createComputeStartProgress({
+  datasets = [],
+  algorithm
+}: ComputeStartProgressAssets = {}): ComputeStartProgressStep[] {
+  return [
+    {
+      id: 'escrow',
+      label: 'Approve and deposit funds in escrow if necessary',
+      shortLabel: 'Escrow',
+      status: 'pending'
+    },
+    ...datasets.map(({ name }, index) => ({
+      id: getDatasetProgressPhase(index),
+      label: `Approve and buy dataset${name ? `: ${name}` : ` ${index + 1}`}`,
+      shortLabel: capitalizeFirstLetter(name || `Dataset ${index + 1}`),
+      status: 'pending' as const
+    })),
+    ...(algorithm
+      ? [
+          {
+            id: 'algorithm' as const,
+            label: `Approve and buy algorithm${
+              algorithm.name ? `: ${algorithm.name}` : ''
+            }`,
+            shortLabel: capitalizeFirstLetter(algorithm.name || 'Algorithm'),
+            status: 'pending' as const
+          }
+        ]
+      : []),
+    {
+      id: 'create',
+      label: 'Creating job in progress',
+      shortLabel: 'Create job',
+      status: 'pending'
+    }
+  ]
 }

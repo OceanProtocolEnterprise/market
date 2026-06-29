@@ -218,11 +218,10 @@ export function useComputeInitialization({
           selectedResources.mode === 'paid' &&
           Number(selectedResources.price || 0) > 0
         if (!depositRequired || !shouldDepositEscrow) {
-          onProgress?.('escrowApproval', 'skipped')
-          onProgress?.('deposit', 'skipped')
+          onProgress?.('escrow', 'skipped')
         }
         if (Boolean(shouldDepositEscrow) && depositRequired) {
-          onProgress?.('escrowApproval', 'active')
+          onProgress?.('escrow', 'active')
           if (!paymentTokenAddress || !web3Provider) {
             throw new Error('Missing token or provider for escrow payment')
           }
@@ -234,8 +233,7 @@ export function useComputeInitialization({
           const depositKey = `${escrowAddress}:${paymentTokenAddress}:${amountHuman}`
           if (lastEscrowDepositKey.current === depositKey) {
             console.log('escrow deposit skipped (already done)', depositKey)
-            onProgress?.('escrowApproval', 'completed')
-            onProgress?.('deposit', 'completed')
+            onProgress?.('escrow', 'completed')
           } else {
             lastEscrowDepositKey.current = depositKey
             const tokenDetails = await getTokenInfo(
@@ -281,8 +279,6 @@ export function useComputeInitialization({
                 }
                 await new Promise((resolve) => setTimeout(resolve, 2000))
               }
-              onProgress?.('escrowApproval', 'completed')
-              onProgress?.('deposit', 'active')
               const depositTx = await escrow.deposit(
                 paymentTokenAddress,
                 amountHuman
@@ -295,10 +291,9 @@ export function useComputeInitialization({
                 selectedResources.jobDuration.toString(),
                 '10'
               )
-              onProgress?.('deposit', 'completed')
+              onProgress?.('escrow', 'completed')
             } else {
-              onProgress?.('escrowApproval', 'skipped')
-              onProgress?.('deposit', 'skipped')
+              onProgress?.('escrow', 'skipped')
             }
           }
         }

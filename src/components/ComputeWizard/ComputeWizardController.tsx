@@ -698,6 +698,10 @@ export default function ComputeWizardController({
           }
         }
       )
+      resetComputeProgress(
+        datasetsForProvider.map(({ asset }) => asset),
+        actualAlgorithmAsset
+      )
 
       const algoSessionId = resolveVerifierSessionId(
         actualAlgorithmAsset.id,
@@ -923,7 +927,7 @@ export default function ComputeWizardController({
   ): Promise<void> {
     setIsSubmittingJob(true)
     resetComputeProgress()
-    setComputeProgressStep('escrowApproval', 'active')
+    setComputeProgressStep('escrow', 'active')
     try {
       const formValuesForEscrow = formikValues || initialFormValues
       const shouldDepositEscrow = new Decimal(

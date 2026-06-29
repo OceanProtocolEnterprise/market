@@ -22,7 +22,8 @@ import { storeComputeOutputEncryptionKey } from '../outputStorage'
 import {
   ComputeStartProgressPhase,
   ComputeStartProgressStatus,
-  createComputeStartProgress
+  createComputeStartProgress,
+  getDatasetProgressPhase
 } from '../progress'
 
 type DatasetResponse = {
@@ -163,9 +164,23 @@ export function useComputeSubmission() {
   const [retry, setRetry] = useState(false)
   const [submitError, setSubmitError] = useState<string>()
 
-  const resetComputeProgress = useCallback(() => {
-    setComputeProgressSteps(createComputeStartProgress())
-  }, [])
+  const resetComputeProgress = useCallback(
+    (datasets: AssetExtended[] = [], algorithmAsset?: AssetExtended) => {
+      setComputeProgressSteps(
+        createComputeStartProgress({
+          datasets: datasets.map((dataset) => ({
+            name: dataset.credentialSubject?.metadata?.name
+          })),
+          algorithm: algorithmAsset
+            ? {
+                name: algorithmAsset.credentialSubject?.metadata?.name
+              }
+            : undefined
+        })
+      )
+    },
+    []
+  )
 
   const setComputeProgressStep = useCallback(
     (phase: ComputeStartProgressPhase, status: ComputeStartProgressStatus) => {
@@ -243,7 +258,6 @@ export function useComputeSubmission() {
           )[algorithmAccessDetails?.type === 'fixed' ? 2 : 3]
         )
 
-        setComputeProgressStep('approvals', 'active')
         const algoOrderPriceAndFeesResponse =
           algoOrderPriceAndFees ||
           (await setAlgoPrice(
@@ -271,27 +285,12 @@ export function useComputeSubmission() {
               lookupVerifierSessionId(algorithmAsset.id, algorithmService.id)
             )
 
-        setComputeProgressStep('approvals', 'completed')
-        setComputeProgressStep('buy', 'active')
-
-        const algorithmOrderTx = await handleComputeOrder(
-          signer,
-          algorithmAsset,
-          algorithmService,
-          algorithmAccessDetails,
-          algoOrderPriceAndFees || algoOrderPriceAndFeesResponse,
-          accountId,
-          initializedProvider?.algorithm,
-          hasAlgoAssetDatatoken,
-          algorithmSession,
-          selectedComputeEnv.consumerAddress
-        )
-        if (!algorithmOrderTx) throw new Error('Failed to order algorithm.')
-
         const datasetInputs = []
         const policyDatasets = []
 
         for (const [i, ds] of datasetResponses.entries()) {
+          const datasetProgressPhase = getDatasetProgressPhase(i)
+          setComputeProgressStep(datasetProgressPhase, 'active')
           const datasetOrderTx = await handleComputeOrder(
             signer,
             ds.asset,
@@ -311,6 +310,7 @@ export function useComputeSubmission() {
 
           if (!datasetOrderTx)
             throw new Error(`Failed to order dataset ${ds.asset.id}.`)
+          setComputeProgressStep(datasetProgressPhase, 'completed')
 
           const paramsPayload = Array.isArray(
             userCustomParameters?.dataServiceParams
@@ -339,7 +339,22 @@ export function useComputeSubmission() {
             presentationDefinitionUri: ''
           })
         }
-        setComputeProgressStep('buy', 'completed')
+
+        setComputeProgressStep('algorithm', 'active')
+        const algorithmOrderTx = await handleComputeOrder(
+          signer,
+          algorithmAsset,
+          algorithmService,
+          algorithmAccessDetails,
+          algoOrderPriceAndFees || algoOrderPriceAndFeesResponse,
+          accountId,
+          initializedProvider?.algorithm,
+          hasAlgoAssetDatatoken,
+          algorithmSession,
+          selectedComputeEnv.consumerAddress
+        )
+        if (!algorithmOrderTx) throw new Error('Failed to order algorithm.')
+        setComputeProgressStep('algorithm', 'completed')
 
         setComputeStatusText(getComputeFeedback()[4])
         const resourceRequests = buildResourceRequests(
