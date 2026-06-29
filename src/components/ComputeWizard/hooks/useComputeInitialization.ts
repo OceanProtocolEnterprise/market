@@ -14,6 +14,10 @@ import { ethers, Signer } from 'ethers'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { Service } from 'src/@types/ddo/Service'
 import { ResourceType } from 'src/@types/ResourceType'
+import {
+  ComputeStartProgressPhase,
+  ComputeStartProgressStatus
+} from '../progress'
 
 type DatasetServiceSelection = {
   asset: AssetExtended
@@ -39,6 +43,10 @@ type InitializeParams = {
   datasetParams?: Record<string, any>
   accountId?: string
   shouldDepositEscrow?: boolean
+  onProgress?: (
+    phase: ComputeStartProgressPhase,
+    status: ComputeStartProgressStatus
+  ) => void
 }
 
 type InitializeResult = {
@@ -160,7 +168,8 @@ export function useComputeInitialization({
       algoParams,
       datasetParams,
       accountId,
-      shouldDepositEscrow = true
+      shouldDepositEscrow = true,
+      onProgress
     }: InitializeParams): Promise<InitializeResult> => {
       setIsInitLoading(true)
       setInitError(undefined)
@@ -184,7 +193,6 @@ export function useComputeInitialization({
         if (!initializedProvider) {
           throw new Error('Error initializing provider for compute job')
         }
-
         const datasetResponses = await Promise.all(
           datasetsForProvider.map(
             async ({ asset, service, accessDetails }, i) => {
@@ -209,7 +217,12 @@ export function useComputeInitialization({
         const depositRequired =
           selectedResources.mode === 'paid' &&
           Number(selectedResources.price || 0) > 0
+        if (!depositRequired || !shouldDepositEscrow) {
+          onProgress?.('escrowApproval', 'skipped')
+          onProgress?.('deposit', 'skipped')
+        }
         if (Boolean(shouldDepositEscrow) && depositRequired) {
+          onProgress?.('escrowApproval', 'active')
           if (!paymentTokenAddress || !web3Provider) {
             throw new Error('Missing token or provider for escrow payment')
           }
@@ -221,6 +234,8 @@ export function useComputeInitialization({
           const depositKey = `${escrowAddress}:${paymentTokenAddress}:${amountHuman}`
           if (lastEscrowDepositKey.current === depositKey) {
             console.log('escrow deposit skipped (already done)', depositKey)
+            onProgress?.('escrowApproval', 'completed')
+            onProgress?.('deposit', 'completed')
           } else {
             lastEscrowDepositKey.current = depositKey
             const tokenDetails = await getTokenInfo(
@@ -266,6 +281,8 @@ export function useComputeInitialization({
                 }
                 await new Promise((resolve) => setTimeout(resolve, 2000))
               }
+              onProgress?.('escrowApproval', 'completed')
+              onProgress?.('deposit', 'active')
               const depositTx = await escrow.deposit(
                 paymentTokenAddress,
                 amountHuman
@@ -278,6 +295,10 @@ export function useComputeInitialization({
                 selectedResources.jobDuration.toString(),
                 '10'
               )
+              onProgress?.('deposit', 'completed')
+            } else {
+              onProgress?.('escrowApproval', 'skipped')
+              onProgress?.('deposit', 'skipped')
             }
           }
         }

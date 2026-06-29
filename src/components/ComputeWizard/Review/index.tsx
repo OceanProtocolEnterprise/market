@@ -50,6 +50,7 @@ import PricingRow from './PricingRow'
 import styles from './index.module.css'
 import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelection'
 import { ComputeFlow, FormComputeData } from '../_types'
+import { ComputeStartProgressStep } from '../progress'
 import Accordion from '@components/@shared/Accordion'
 import RowItem from './RowItem'
 import CurrencySplitRow from './CurrencySplitRow'
@@ -109,6 +110,54 @@ const groupRowsByCurrency = (rows: RowEntry[]) => {
   }))
 }
 
+function getProgressStepClassName(step: ComputeStartProgressStep) {
+  const statusClass =
+    step.status === 'completed'
+      ? styles.progressStepCompleted
+      : step.status === 'active'
+      ? styles.progressStepActive
+      : step.status === 'skipped'
+      ? styles.progressStepSkipped
+      : step.status === 'error'
+      ? styles.progressStepError
+      : styles.progressStepPending
+
+  return `${styles.progressCheckpoint} ${statusClass}`
+}
+
+function getProgressStatusLabel(status: ComputeStartProgressStep['status']) {
+  if (status === 'completed') return 'Done'
+  if (status === 'active') return 'In progress'
+  if (status === 'error') return 'Needs retry'
+  return 'Pending'
+}
+
+function getProgressPercent(steps: ComputeStartProgressStep[]) {
+  if (!steps.length) return 0
+  if (
+    steps.every(
+      (step) => step.status === 'completed' || step.status === 'skipped'
+    )
+  ) {
+    return 100
+  }
+
+  const activeIndex = steps.findIndex(
+    (step) => step.status === 'active' || step.status === 'error'
+  )
+  const completedIndex = steps.reduce(
+    (lastIndex, step, index) =>
+      step.status === 'completed' ? index : lastIndex,
+    -1
+  )
+  const currentIndex = activeIndex >= 0 ? activeIndex : completedIndex
+
+  if (currentIndex < 0) return 0
+  if (steps.length === 1) return 100
+
+  return Math.round((currentIndex / (steps.length - 1)) * 100)
+}
+
 type ReviewProps = {
   flow: ComputeFlow
   asset: AssetExtended
@@ -160,6 +209,7 @@ type ReviewProps = {
   selectedComputeAssetType?: string
   selectedComputeAssetTimeout?: string
   stepText?: string
+  computeProgressSteps?: ComputeStartProgressStep[]
   consumableFeedback?: string
   retry?: boolean
   datasets?: AssetSelectionAsset[]
@@ -203,7 +253,9 @@ export default function Review({
   datasets,
   selectedDatasetAsset,
   setSelectedDatasetAsset,
-  tokenInfo
+  tokenInfo,
+  stepText,
+  computeProgressSteps = []
 }: ReviewProps): ReactElement {
   const isDatasetFlow = flow === 'dataset'
   const { address: accountId } = useAccount()
@@ -2060,6 +2112,13 @@ export default function Review({
 
   const c2dGroups = groupRowsByCurrency(c2dRows)
   const feeGroups = groupRowsByCurrency(feeRows)
+  const showComputeProgress = computeProgressSteps.some(
+    (step) => step.status !== 'pending'
+  )
+  const activeProgressStep = computeProgressSteps.find(
+    (step) => step.status === 'active' || step.status === 'error'
+  )
+  const progressPercent = getProgressPercent(computeProgressSteps)
 
   if (!isBalanceSufficient) {
     if (insufficientBalances.length > 0) {
@@ -2402,6 +2461,44 @@ export default function Review({
             />
           </FormErrorGroup>
         </div>
+        {showComputeProgress && (
+          <section
+            className={styles.computeProgress}
+            aria-label="Compute job start progress"
+          >
+            <div className={styles.computeProgressHeader}>
+              <span className={styles.computeProgressTitle}>
+                Starting C2D job
+              </span>
+              <span className={styles.computeProgressStatus}>
+                {activeProgressStep?.label || stepText || 'Preparing request'}
+              </span>
+            </div>
+            <div className={styles.computeProgressTrack}>
+              <div
+                className={styles.computeProgressFill}
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <ol className={styles.computeProgressSteps}>
+              {computeProgressSteps.map((step, index) => (
+                <li key={step.id} className={getProgressStepClassName(step)}>
+                  <span className={styles.progressCheckpointMarker}>
+                    {index + 1}
+                  </span>
+                  <span className={styles.progressCheckpointContent}>
+                    <span className={styles.progressCheckpointLabel}>
+                      {step.label}
+                    </span>
+                    <span className={styles.progressCheckpointStatus}>
+                      {getProgressStatusLabel(step.status)}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
         {errorMessages.length > 0 && (
           <div className={styles.errorMessage}>
             <ul>
