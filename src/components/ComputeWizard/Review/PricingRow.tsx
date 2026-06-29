@@ -141,17 +141,19 @@ export default function PricingRow({
       <div className={styles.itemInfo}>
         {label && (
           <span className={styles.datasetLabel}>
-            {label}
             {assetId && (
               <Link
                 href={`/asset/${assetId}`}
                 target="_blank"
                 rel="noreferrer"
                 className={styles.assetLink}
+                aria-label={`Open ${label} asset`}
+                title={`Open ${label} asset`}
               >
                 <External />
               </Link>
             )}
+            {label}
           </span>
         )}
         <div className={styles.itemNameContainer}>

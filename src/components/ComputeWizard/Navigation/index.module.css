@@ -251,7 +251,14 @@
   left: 0;
   bottom: 2px;
   height: 5px;
-  background: #fdd655;
+  background: linear-gradient(
+    135deg,
+    #1f2c50 0%,
+    rgba(10, 75, 112, 0.8) 27.47%,
+    rgba(10, 75, 112, 0.7) 43.49%,
+    rgba(10, 75, 112, 0.8) 55.43%,
+    #1e2e52 100%
+  );
   border-radius: 999px;
   pointer-events: none;
   z-index: 1;
