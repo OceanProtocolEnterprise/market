@@ -99,12 +99,16 @@ export default function InputKeyValue({
   }
 
   useEffect(() => {
-    setPairs(value || [])
+    const incoming = value || []
+    setPairs((prev) =>
+      JSON.stringify(prev) === JSON.stringify(incoming) ? prev : incoming
+    )
   }, [value])
 
   useEffect(() => {
     form.setFieldValue(field.name, pairs)
-  }, [field.name, form, pairs])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pairs])
 
   useEffect(() => {
     setDisabledButton(
