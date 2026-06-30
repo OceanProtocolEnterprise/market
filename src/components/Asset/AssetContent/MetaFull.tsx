@@ -12,23 +12,24 @@ import { assetStateToString } from '@utils/assetState'
 import { safeExternalWebUrl } from '@utils/url'
 import AdditionalLicenseFiles from './AdditionalLicenseFiles'
 import MetaLinks from './MetaLinks'
-
-function truncateMiddle(
-  value?: string,
-  start = 6,
-  end = 6
-): string | undefined {
-  if (!value) return value
-  if (value.length <= start + end) return value
-  return `${value.slice(0, start)}....${value.slice(-end)}`
-}
+import TruncatedMetaValue from './TruncatedMetaValue'
 
 export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
   const { isInPurgatory, assetState } = useAsset()
-  const license =
-    ddo?.credentialSubject?.license || ddo?.credentialSubject?.metadata?.license
+  const credentialSubject = ddo?.credentialSubject
+  const metadata = credentialSubject?.metadata
+  const license = credentialSubject?.license || metadata?.license
   const primaryLicenseDocument = license?.licenseDocuments?.[0]
-  const oeNode = ddo?.credentialSubject?.services?.[0]?.serviceEndpoint
+  const primaryLicenseMirror = primaryLicenseDocument?.mirrors?.[0]
+  const oeNode = credentialSubject?.services?.[0]?.serviceEndpoint
+  const datatokenAddress =
+    ddo?.indexedMetadata?.stats?.[0]?.datatokenAddress ||
+    credentialSubject?.datatokens?.[0]?.address
+  const algorithmContainer = metadata?.algorithm?.container
+  const dockerImage =
+    algorithmContainer?.image && algorithmContainer?.tag
+      ? `${algorithmContainer.image}:${algorithmContainer.tag}`
+      : undefined
 
   const effectiveAssetState =
     assetState ||
@@ -40,80 +41,67 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
   const publisherDid = ddo?.issuer
 
   useEffect(() => {
-    if (!ddo) return
+    if (!ddo) {
+      setPaymentCollector(undefined)
+      return
+    }
+
+    let isCancelled = false
+    setPaymentCollector(undefined)
 
     async function getInitialPaymentCollector() {
       try {
-        const datatokenAddress =
-          ddo.indexedMetadata?.stats?.[0]?.datatokenAddress ||
-          ddo.credentialSubject?.datatokens?.[0]?.address
-
         if (!datatokenAddress) return
 
-        const signer = await getDummySigner(ddo.credentialSubject?.chainId)
-        const datatoken = new Datatoken(signer, ddo.credentialSubject?.chainId)
-        setPaymentCollector(
-          await datatoken.getPaymentCollector(datatokenAddress)
+        const signer = await getDummySigner(credentialSubject?.chainId)
+        const datatoken = new Datatoken(signer, credentialSubject?.chainId)
+        const nextPaymentCollector = await datatoken.getPaymentCollector(
+          datatokenAddress
         )
+        if (!isCancelled) setPaymentCollector(nextPaymentCollector)
       } catch (error) {
-        LoggerInstance.error(
-          '[MetaFull: getInitialPaymentCollector]',
-          error.message
-        )
+        const message = error instanceof Error ? error.message : String(error)
+        LoggerInstance.error('[MetaFull: getInitialPaymentCollector]', message)
       }
     }
     getInitialPaymentCollector()
-  }, [ddo])
 
-  function DockerImage() {
-    const containerInfo = ddo?.credentialSubject.metadata?.algorithm?.container
-    const { image, tag } = containerInfo
-    return <span>{`${image}:${tag}`}</span>
-  }
+    return () => {
+      isCancelled = true
+    }
+  }, [credentialSubject?.chainId, datatokenAddress, ddo])
 
   return ddo ? (
     <>
       <div className={styles.didContainer}>
         <MetaItem
           title="DID"
-          content={
-            <span className={styles.hoverReveal}>
-              <code className={styles.truncated}>
-                {truncateMiddle(ddo?.id, 12, 8)}
-              </code>
-              <span className={styles.fullValue}>{ddo?.id}</span>
-            </span>
-          }
+          content={<TruncatedMetaValue value={ddo.id} start={12} end={8} />}
         />
       </div>
 
       <div className={styles.metaFull}>
-        {!isInPurgatory && (
+        {!isInPurgatory && metadata?.author && (
           <span className={styles.dataAuther}>
-            <MetaItem
-              title="Data Author"
-              content={ddo?.credentialSubject.metadata?.author}
-            />
+            <MetaItem title="Data Author" content={metadata.author} />
           </span>
         )}
-        {ddo?.credentialSubject.metadata?.copyrightHolder && (
+        {metadata?.copyrightHolder && (
           <MetaItem
             title="Copyright Holder"
-            content={ddo.credentialSubject.metadata.copyrightHolder}
+            content={metadata.copyrightHolder}
           />
         )}
-        {ddo?.credentialSubject.metadata?.providedBy && (
+        {metadata?.providedBy && (
           <MetaItem
             title="Provided By"
             content={
               <a
-                href={safeExternalWebUrl(
-                  ddo.credentialSubject.metadata.providedBy
-                )}
+                href={safeExternalWebUrl(metadata.providedBy)}
                 target="_blank"
                 rel="noreferrer"
               >
-                {ddo.credentialSubject.metadata.providedBy}
+                {metadata.providedBy}
               </a>
             }
           />
@@ -122,6 +110,14 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
           title="Owner"
           content={<Publisher account={ddo?.indexedMetadata?.nft?.owner} />}
         />
+        {publisherDid && (
+          <MetaItem
+            title="Publisher DID"
+            content={
+              <TruncatedMetaValue value={publisherDid} start={12} end={12} />
+            }
+          />
+        )}
         {effectiveAssetState !== 'Active' && (
           <MetaItem title="Asset State" content={effectiveAssetState} />
         )}
@@ -132,22 +128,8 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
               content={<Publisher account={paymentCollector} />}
             />
           )}
-        {ddo?.credentialSubject.metadata?.type === 'algorithm' &&
-          ddo?.credentialSubject.metadata?.algorithm && (
-            <MetaItem title="Docker Image" content={<DockerImage />} />
-          )}
-        {publisherDid && (
-          <MetaItem
-            title="Publisher DID"
-            content={
-              <span className={styles.hoverReveal}>
-                <code className={styles.truncated}>
-                  {truncateMiddle(publisherDid, 12, 12)}
-                </code>
-                <span className={styles.fullValue}>{publisherDid}</span>
-              </span>
-            }
-          />
+        {metadata?.type === 'algorithm' && dockerImage && (
+          <MetaItem title="Docker Image" content={dockerImage} />
         )}
       </div>
 
@@ -157,11 +139,10 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
         <Label htmlFor="license">
           <span className={styles.licenceTitle}>License</span>
         </Label>
-        {primaryLicenseDocument?.mirrors?.[0]?.type === 'url' &&
-        primaryLicenseDocument?.mirrors?.[0]?.url ? (
+        {primaryLicenseMirror?.type === 'url' && primaryLicenseMirror?.url ? (
           <a
             target="_blank"
-            href={primaryLicenseDocument.mirrors[0].url}
+            href={safeExternalWebUrl(primaryLicenseMirror.url)}
             rel="noreferrer"
           >
             {primaryLicenseDocument.name}
@@ -169,7 +150,7 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
         ) : (
           <IpfsRemoteSource
             noDocumentLabel="No license document available"
-            remoteSource={primaryLicenseDocument?.mirrors?.at(0)}
+            remoteSource={primaryLicenseMirror}
             name={primaryLicenseDocument?.name}
           />
         )}
