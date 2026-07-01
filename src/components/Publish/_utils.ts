@@ -53,7 +53,7 @@ import {
 } from 'src/@types/ddo/Credentials'
 import { isS3File, getS3Access } from 'src/@types/S3File'
 import * as VCDataModel from 'src/@types/ddo/VerifiableCredential'
-import { convertLinks } from '@utils/links'
+import { convertLinks, keyValuePairsToRecord } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
 import { RemoteObject } from 'src/@types/ddo/RemoteObject'
 import base64url from 'base64url'
@@ -569,6 +569,8 @@ export async function transformPublishFormToDdo(
     description,
     tags,
     author,
+    providedBy,
+    copyrightHolder,
     termsAndConditions,
     dockerImage,
     dockerImageCustom,
@@ -684,6 +686,7 @@ export async function transformPublishFormToDdo(
     },
     tags: transformTags(tags),
     author,
+    links: keyValuePairsToRecord(metadata.links),
     license,
     additionalInformation: {
       termsAndConditions
@@ -715,8 +718,8 @@ export async function transformPublishFormToDdo(
           }
         }
       }),
-    copyrightHolder: '',
-    providedBy: ''
+    copyrightHolder: copyrightHolder || '',
+    providedBy: providedBy || ''
   }
   let fileObject: any
   if (files[0] && isS3File(files[0])) {
