@@ -118,6 +118,7 @@ export default async function handler(
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${accessToken}`,
+        Origin: getRequestOrigin(req),
         ...(req.method === 'POST' ? { 'Content-Type': 'application/json' } : {})
       },
       body: req.method === 'POST' ? JSON.stringify(req.body ?? {}) : undefined
