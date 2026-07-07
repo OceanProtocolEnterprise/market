@@ -1,5 +1,4 @@
 import { useAccount } from 'wagmi'
-import { useModal } from 'connectkit'
 import appConfig from 'app.config.cjs'
 import { useSsiWallet } from '@context/SsiWallet'
 import useSsiAllowedChain from '@hooks/useSsiAllowedChain'
@@ -9,6 +8,7 @@ import { getPendingAuthMode } from '@utils/authFlow'
 import useSsiConnect from '@hooks/useSsiConnect'
 import { useDfnsConnect } from '@hooks/useDfnsConnect'
 import { useSignerServerConnect } from '@hooks/useSignerServerConnect'
+import { useMetaMaskConnect } from '@hooks/useMetaMaskConnect'
 import DfnsRegistrationModal from '@shared/DfnsRegistrationModal'
 import { authSetupCopy } from '../constants'
 import styles from './SetupPanel.module.css'
@@ -89,7 +89,7 @@ function getSetupSubtitle(
 
 export default function SetupPanel() {
   const { isConnected } = useAccount()
-  const { setOpen } = useModal()
+  const metaMask = useMetaMaskConnect()
   const { user, logout } = useAuth()
   const dfns = useDfnsConnect()
   const signerServer = useSignerServerConnect()
@@ -163,7 +163,7 @@ export default function SetupPanel() {
 
   const handleAction = async () => {
     if (currentAction === 'connectWallet') {
-      setOpen(true)
+      await metaMask.connect()
       return
     }
 
@@ -233,7 +233,8 @@ export default function SetupPanel() {
                 <button
                   type="button"
                   className={styles.actionButton}
-                  onClick={() => setOpen(true)}
+                  onClick={metaMask.openConnect}
+                  disabled={metaMask.isConnecting}
                 >
                   {authSetupCopy.connectBrowserWallet}
                 </button>
