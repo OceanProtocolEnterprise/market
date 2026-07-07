@@ -4,11 +4,11 @@ import Details from './Details'
 import Tooltip from '@shared/atoms/Tooltip'
 import styles from './index.module.css'
 import { useAccount } from 'wagmi'
-import { useModal } from 'connectkit'
 import Network from './Network'
 import { useDfnsConnect } from '@hooks/useDfnsConnect'
 import { useAuth } from '@hooks/useAuth'
 import { useSignerServerConnect } from '@hooks/useSignerServerConnect'
+import { useMetaMaskConnect } from '@hooks/useMetaMaskConnect'
 import WalletChoiceModal from '@shared/WalletChoiceModal'
 import DfnsRegistrationModal from '@shared/DfnsRegistrationModal'
 
@@ -18,7 +18,7 @@ type TooltipHandle = {
 
 export default function Wallet(): ReactElement {
   const { address: accountId } = useAccount()
-  const { setOpen } = useModal()
+  const metaMask = useMetaMaskConnect()
   const dfns = useDfnsConnect()
   const signerServer = useSignerServerConnect()
   const { authEnabled } = useAuth()
@@ -59,7 +59,7 @@ export default function Wallet(): ReactElement {
         onClose={() => setIsWalletChoiceOpen(false)}
         onSelectMetaMask={() => {
           setIsWalletChoiceOpen(false)
-          setOpen(true)
+          metaMask.openConnect()
         }}
         onSelectDfns={() => {
           setIsWalletChoiceOpen(false)
