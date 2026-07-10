@@ -41,6 +41,7 @@ export const SIGNER_SERVER_CONNECTOR_ID = 'signerServer'
 export const NO_SIGNER_SERVER_NETWORKS_MESSAGE =
   'No supported networks by Signer Server'
 const SIGNER_SERVER_SELECTED_CHAIN_ID_KEY = 'signer_server_selected_chain_id'
+const SIGNER_SERVER_CONNECTION_KEY = 'signer_server_connected'
 
 function isHex(value: unknown): value is Hex {
   return typeof value === 'string' && /^0x[0-9a-fA-F]*$/.test(value)
@@ -131,10 +132,30 @@ function storeSignerServerSelectedChainId(chainId: number) {
   }
 }
 
-function isAuthLoginPage() {
-  return (
-    typeof window !== 'undefined' && window.location.pathname === '/auth/login'
-  )
+function hasStoredSignerServerConnection() {
+  if (typeof window === 'undefined') return false
+
+  try {
+    return (
+      window.sessionStorage.getItem(SIGNER_SERVER_CONNECTION_KEY) === 'true'
+    )
+  } catch {
+    return false
+  }
+}
+
+function storeSignerServerConnection(isConnected: boolean) {
+  if (typeof window === 'undefined') return
+
+  try {
+    if (isConnected) {
+      window.sessionStorage.setItem(SIGNER_SERVER_CONNECTION_KEY, 'true')
+    } else {
+      window.sessionStorage.removeItem(SIGNER_SERVER_CONNECTION_KEY)
+    }
+  } catch {
+    // Continue without persistence when browser storage is unavailable.
+  }
 }
 
 function pickSignerServerChain(
@@ -314,6 +335,7 @@ export function signerServerConnector() {
         connected = true
         connectionEpoch += 1
         provider = createProvider()
+        storeSignerServerConnection(true)
 
         config.emitter.emit('connect', { accounts: [account], chainId })
 
@@ -335,6 +357,7 @@ export function signerServerConnector() {
         latestRequestedChainId = undefined
         connectionEpoch += 1
         setActiveSignerServerEoaSigner(undefined)
+        storeSignerServerConnection(false)
         config.emitter.emit('disconnect')
       },
       async getAccounts() {
@@ -348,7 +371,7 @@ export function signerServerConnector() {
       },
       async isAuthorized() {
         if (connected && account) return true
-        if (isAuthLoginPage()) return false
+        if (!hasStoredSignerServerConnection()) return false
 
         try {
           await getSignerServerAddress()
@@ -390,6 +413,7 @@ export function signerServerConnector() {
         latestRequestedChainId = undefined
         connectionEpoch += 1
         setActiveSignerServerEoaSigner(undefined)
+        storeSignerServerConnection(false)
         config.emitter.emit('disconnect')
       }
     }
