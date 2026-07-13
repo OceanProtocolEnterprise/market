@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { decodeJwt } from 'jose'
 import { buildClearAuthCookieStrings } from '../_cookies'
 import { authEnabled, oidcClientId, oidcIssuer } from 'app.config.cjs'
 
@@ -65,16 +66,35 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const callbackUrl = `${getRequestOrigin(req)}/auth/callback/logout`
   const oidcParams = new URLSearchParams({
-    client_id: clientId
+    client_id: clientId,
+    post_logout_redirect_uri: callbackUrl,
+    state: 'logout'
   })
+
   const idTokenHint = req.cookies.id_token
 
+  // Only send id_token_hint if it exists and is from the main issuer
   if (idTokenHint) {
-    oidcParams.set('id_token_hint', idTokenHint)
+    try {
+      const decoded = decodeJwt(idTokenHint)
+      if (decoded.iss === issuer) {
+        oidcParams.set('id_token_hint', idTokenHint)
+        console.info('Using id_token_hint for main OIDC logout continuation')
+      } else {
+        console.info('id_token is not from main issuer, skipping id_token_hint')
+      }
+    } catch (error) {
+      console.warn(
+        'Could not decode id_token for main logout continuation:',
+        error
+      )
+    }
   }
-  oidcParams.set('post_logout_redirect_uri', callbackUrl)
-  oidcParams.set('state', 'logout')
+
   console.info('Continuing logout with Main OIDC provider.')
+  console.info(
+    `Redirecting to: ${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
+  )
 
   clearLogoutCookies(res)
   return res.redirect(

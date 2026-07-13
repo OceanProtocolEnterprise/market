@@ -116,18 +116,6 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
 
   const callbackUrl = `${getRequestOrigin(req)}/auth/callback/logout`
 
-  const oidcParams = new URLSearchParams({
-    client_id: clientId,
-    post_logout_redirect_uri: callbackUrl,
-    state: 'logout'
-  })
-
-  if (id_token) {
-    oidcParams.set('id_token_hint', id_token)
-  }
-
-  const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
-
   const detectedLoginSource =
     login_source || getLoginSourceFromIdToken(id_token)
 
@@ -140,6 +128,25 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
 
     clearAuthCookies(res)
 
+    // Only send id_token_hint if it's from the main issuer
+    const oidcParams = new URLSearchParams({
+      client_id: clientId,
+      post_logout_redirect_uri: callbackUrl,
+      state: 'logout'
+    })
+
+    if (id_token) {
+      try {
+        const decoded = decodeJwt(id_token)
+        if (decoded.iss === issuer) {
+          oidcParams.set('id_token_hint', id_token)
+        }
+      } catch (error) {
+        console.warn('Could not decode id_token for main logout:', error)
+      }
+    }
+
+    const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
     return res.redirect(302, mainLogoutUrl)
   }
 
@@ -148,6 +155,25 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
 
     clearAuthCookies(res)
 
+    // Only send id_token_hint if it's from the main issuer
+    const oidcParams = new URLSearchParams({
+      client_id: clientId,
+      post_logout_redirect_uri: callbackUrl,
+      state: 'logout'
+    })
+
+    if (id_token) {
+      try {
+        const decoded = decodeJwt(id_token)
+        if (decoded.iss === issuer) {
+          oidcParams.set('id_token_hint', id_token)
+        }
+      } catch (error) {
+        console.warn('Could not decode id_token for main logout:', error)
+      }
+    }
+
+    const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
     return res.redirect(302, mainLogoutUrl)
   }
 
@@ -158,9 +184,29 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
 
     clearAuthCookies(res)
 
+    // Only send id_token_hint if it's from the main issuer
+    const oidcParams = new URLSearchParams({
+      client_id: clientId,
+      post_logout_redirect_uri: callbackUrl,
+      state: 'logout'
+    })
+
+    if (id_token) {
+      try {
+        const decoded = decodeJwt(id_token)
+        if (decoded.iss === issuer) {
+          oidcParams.set('id_token_hint', id_token)
+        }
+      } catch (error) {
+        console.warn('Could not decode id_token for main logout:', error)
+      }
+    }
+
+    const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
     return res.redirect(302, mainLogoutUrl)
   }
 
+  // Partner logout flow - keep the id_token for continuation but don't send it to partner
   res.setHeader('Set-Cookie', [
     ...buildClearAuthCookieStrings({
       keepIdToken: true
@@ -171,10 +217,13 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   const partnerLogoutUrl = new URL(provider.logout)
   partnerLogoutUrl.searchParams.set('post_logout_redirect_uri', callbackUrl)
 
-  if (id_token) {
-    partnerLogoutUrl.searchParams.set('id_token_hint', id_token)
-  }
-  console.info(`Partner logout for "${detectedLoginSource}".`)
+  // IMPORTANT: Do NOT send id_token_hint to partner IdP
+  // Each IdP should only accept its own tokens
+  // The partner doesn't have a session for the main token
+
+  console.info(
+    `Partner logout for "${detectedLoginSource}". Redirecting to: ${partnerLogoutUrl.toString()}`
+  )
 
   return res.redirect(302, partnerLogoutUrl.toString())
 }
