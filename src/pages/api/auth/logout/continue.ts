@@ -45,6 +45,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (req.cookies[FEDERATED_LOGOUT_CONTINUE_COOKIE] !== '1') {
+    console.info(
+      'No federated logout continuation cookie found. Redirecting to login.'
+    )
     clearLogoutCookies(res)
     return res.redirect(302, '/auth/login?loggedout=1')
   }
@@ -53,18 +56,25 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const issuer = oidcIssuer
 
   if (!clientId || !issuer) {
-    console.error('Missing OIDC configuration for logout continuation')
+    console.error(
+      'Missing Main OIDC configuration during federated logout continuation.'
+    )
     clearLogoutCookies(res)
     return res.redirect(302, '/auth/login?loggedout=1')
   }
 
   const callbackUrl = `${getRequestOrigin(req)}/auth/callback/logout`
-  const oidcParams = new URLSearchParams({ client_id: clientId })
+  const oidcParams = new URLSearchParams({
+    client_id: clientId
+  })
   const idTokenHint = req.cookies.id_token
 
-  if (idTokenHint) oidcParams.set('id_token_hint', idTokenHint)
+  if (idTokenHint) {
+    oidcParams.set('id_token_hint', idTokenHint)
+  }
   oidcParams.set('post_logout_redirect_uri', callbackUrl)
   oidcParams.set('state', 'logout')
+  console.info('Continuing logout with Main OIDC provider.')
 
   clearLogoutCookies(res)
   return res.redirect(

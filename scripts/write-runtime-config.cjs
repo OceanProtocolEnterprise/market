@@ -79,10 +79,8 @@ if (authEnabled) {
   config.NEXT_PUBLIC_OIDC_SIGNUP_FLOW = process.env.NEXT_PUBLIC_OIDC_SIGNUP_FLOW
   config.NEXT_PUBLIC_MAX_LICENSE_FILE_SIZE_KB =
     process.env.NEXT_PUBLIC_MAX_LICENSE_FILE_SIZE_KB
-  config.NEXT_PUBLIC_FEDERATED_OIDC_ISSUERS =
-    process.env.NEXT_PUBLIC_FEDERATED_OIDC_ISSUERS
-  config.NEXT_PUBLIC_FEDERATED_OIDC_END_SESSION_URL =
-    process.env.NEXT_PUBLIC_FEDERATED_OIDC_END_SESSION_URL
+  config.NEXT_PUBLIC_FEDERATED_PROVIDERS =
+    process.env.NEXT_PUBLIC_FEDERATED_PROVIDERS
 }
 
 const outputPath = path.join(process.cwd(), 'public', 'runtime-config.js')

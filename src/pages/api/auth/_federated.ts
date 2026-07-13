@@ -1,27 +1,47 @@
-import { federatedOidcIssuers } from 'app.config.cjs'
+import { federatedProviders } from 'app.config.cjs'
 
-function getIssuerList(value: unknown): unknown[] {
-  if (Array.isArray(value)) return value
-  if (typeof value !== 'string') return []
+export type FederatedProviderType = 'main' | 'partner'
 
-  try {
-    const parsed = JSON.parse(value) as unknown
-    return Array.isArray(parsed) ? parsed : [parsed]
-  } catch {
-    return [value]
-  }
+export interface FederatedProvider {
+  type: FederatedProviderType
+  logout?: string
 }
 
-export function isFederatedSource(loginSource: string): boolean {
-  const normalizedLoginSource = loginSource.trim().toLowerCase()
-  if (!normalizedLoginSource) return false
+type ProviderMap = Record<string, FederatedProvider>
 
-  return getIssuerList(federatedOidcIssuers).some((issuer: unknown) => {
-    if (typeof issuer !== 'string') return false
-    const normalizedIssuer = issuer.trim().toLowerCase()
-    return (
-      normalizedIssuer.length > 0 &&
-      normalizedLoginSource.includes(normalizedIssuer)
-    )
-  })
+function normalize(value?: string): string {
+  return value?.trim().toLowerCase() || ''
+}
+
+function getProviders(): ProviderMap {
+  if (
+    federatedProviders &&
+    typeof federatedProviders === 'object' &&
+    !Array.isArray(federatedProviders)
+  ) {
+    return federatedProviders as ProviderMap
+  }
+  return {}
+}
+
+export function getFederatedProvider(
+  loginSource?: string
+): FederatedProvider | undefined {
+  const normalizedLoginSource = normalize(loginSource)
+  if (!normalizedLoginSource) return undefined
+  const providers = getProviders()
+  for (const [providerName, provider] of Object.entries(providers)) {
+    if (normalize(providerName) === normalizedLoginSource) {
+      return provider
+    }
+  }
+  return undefined
+}
+
+export function isPartnerProvider(loginSource?: string): boolean {
+  return getFederatedProvider(loginSource)?.type === 'partner'
+}
+
+export function isMainProvider(loginSource?: string): boolean {
+  return getFederatedProvider(loginSource)?.type === 'main'
 }

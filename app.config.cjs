@@ -23,6 +23,15 @@ const parseEnvArray = (value, fallback) => {
   }
 }
 
+const parseEnvJson = (value, fallback) => {
+  if (!value) return fallback
+  try {
+    return JSON.parse(value)
+  } catch {
+    return fallback
+  }
+}
+
 module.exports = {
   // URIs of metadata cache instances queried by the marketplace.
   // While ocean.js includes this value for each network as part of its ConfigHelper,
@@ -236,13 +245,18 @@ module.exports = {
     getEnv('NEXT_PUBLIC_OIDC_TOKEN_URL') ||
     process.env.NEXT_PUBLIC_OIDC_TOKEN_URL ||
     null,
-  federatedOidcEndSessionUrl:
-    getEnv('NEXT_PUBLIC_FEDERATED_OIDC_END_SESSION_URL') ||
-    process.env.NEXT_PUBLIC_FEDERATED_OIDC_END_SESSION_URL ||
-    null,
-  federatedOidcIssuers: parseEnvArray(
-    getEnv('NEXT_PUBLIC_FEDERATED_OIDC_ISSUERS') ||
-      process.env.NEXT_PUBLIC_FEDERATED_OIDC_ISSUERS,
-    []
+  // federatedOidcEndSessionUrl:
+  //   getEnv('NEXT_PUBLIC_FEDERATED_OIDC_END_SESSION_URL') ||
+  //   process.env.NEXT_PUBLIC_FEDERATED_OIDC_END_SESSION_URL ||
+  //   null,
+  // federatedOidcIssuers: parseEnvArray(
+  //   getEnv('NEXT_PUBLIC_FEDERATED_OIDC_ISSUERS') ||
+  //     process.env.NEXT_PUBLIC_FEDERATED_OIDC_ISSUERS,
+  //   []
+  // )
+  federatedProviders: parseEnvJson(
+    getEnv('NEXT_PUBLIC_FEDERATED_PROVIDERS') ||
+      process.env.NEXT_PUBLIC_FEDERATED_PROVIDERS,
+    {}
   )
 }
