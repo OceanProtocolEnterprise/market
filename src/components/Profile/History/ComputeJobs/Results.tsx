@@ -1,12 +1,9 @@
-import {
-  ComputeResultType,
-  getErrorMessage,
-  LoggerInstance,
-  Provider
-} from '@oceanprotocol/lib'
-import { ReactElement, useEffect, useState } from 'react'
+import { getErrorMessage, LoggerInstance, Provider } from '@oceanprotocol/lib'
+import type { ComputeResult, ComputeResultType } from '@oceanprotocol/lib'
+import { ReactElement, useEffect, useMemo, useState } from 'react'
 import { ListItem } from '@shared/atoms/Lists'
-import Button from '@shared/atoms/Button'
+import Tooltip from '@shared/atoms/Tooltip'
+import IconDownload from '@images/download2.svg'
 import styles from './Results.module.css'
 import FormHelp from '@shared/FormInput/Help'
 import content from '../../../../../content/pages/history.json'
@@ -19,19 +16,92 @@ import { customProviderUrl } from 'app.config.cjs'
 import { Signer } from 'ethers'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 
+type ComputeJobWithEnvironment = ComputeJobMetaData & {
+  environment?: string
+}
+
+interface ResultDownloadItemProps {
+  result: ComputeResult
+  isPending: boolean
+  isDisabled: boolean
+  onDownload: () => void
+}
+
+function getDownloadButtonValue(type: ComputeResultType, name: string): string {
+  switch (type) {
+    case 'algorithmLog':
+      return 'ALGORITHM LOGS'
+    case 'configrationLog':
+      return 'CONFIGURATION LOGS'
+    case 'publishLog':
+      return 'PUBLISH LOGS'
+    case 'output':
+    default:
+      return `RESULTS (${name})`
+  }
+}
+
+function getErrorMessageFromUnknown(error: unknown): string {
+  return getErrorMessage(error instanceof Error ? error.message : String(error))
+}
+
+function getCompositeJobId(job: ComputeJobMetaData): string {
+  const { environment } = job as ComputeJobWithEnvironment
+  if (!environment) return job.jobId
+
+  return `${environment.split('-')[0]}-${job.jobId}`
+}
+
+function ResultDownloadItem({
+  result,
+  isPending,
+  isDisabled,
+  onDownload
+}: ResultDownloadItemProps): ReactElement {
+  const label = `${getDownloadButtonValue(
+    result.type,
+    result.filename
+  )} - ${prettySize(result.filesize)}`
+
+  return (
+    <div className={styles.resultRow}>
+      <span className={styles.resultLabel}>{label}</span>
+      <Tooltip
+        className={styles.tooltipWrap}
+        placement="top"
+        trigger="mouseenter focusin"
+        content={`Download ${result.filename}`}
+      >
+        <button
+          type="button"
+          className={styles.downloadButton}
+          onClick={onDownload}
+          disabled={isDisabled}
+          aria-busy={isPending}
+          aria-label={`Download ${result.filename}`}
+        >
+          <IconDownload aria-hidden="true" />
+        </button>
+      </Tooltip>
+    </div>
+  )
+}
+
 export default function Results({
   job
 }: {
   job: ComputeJobMetaData
 }): ReactElement {
-  const providerInstance = new Provider()
+  const providerInstance = useMemo(() => new Provider(), [])
   const { address: accountId } = useAccount()
   const walletClient = useEthersSigner()
 
   const [datasetProvider, setDatasetProvider] = useState<string>()
+  const [pendingIndex, setPendingIndex] = useState<number | null>(null)
   const newCancelToken = useCancelToken()
 
   const isFinished = job.dateFinished !== null
+  const results = Array.isArray(job.results) ? job.results : []
 
   useEffect(() => {
     async function getAssetMetadata() {
@@ -49,42 +119,23 @@ export default function Results({
     getAssetMetadata()
   }, [job.assets, newCancelToken])
 
-  function getDownloadButtonValue(
-    type: ComputeResultType,
-    name: string
-  ): string {
-    let buttonName
-    switch (type) {
-      case 'output':
-        buttonName = `RESULTS (${name})`
-        break
-      case 'algorithmLog':
-        buttonName = 'ALGORITHM LOGS'
-        break
-      case 'configrationLog':
-        buttonName = 'CONFIGURATION LOGS'
-        break
-      case 'publishLog':
-        buttonName = 'PUBLISH LOGS'
-        break
-      default:
-        buttonName = `RESULTS (${name})`
-        break
-    }
-    return buttonName
-  }
-
   async function downloadResults(resultIndex: number) {
-    const signer = walletClient as unknown as Signer
-    if (!accountId || !job || !datasetProvider || !walletClient) return
-    try {
-      const envPrefix = (job as any).environment.split('-')[0]
-      const compositeId = `${envPrefix}-${job.jobId}`
+    if (
+      pendingIndex !== null ||
+      !accountId ||
+      !job ||
+      !datasetProvider ||
+      !walletClient
+    )
+      return
 
+    const signer = walletClient as unknown as Signer
+    setPendingIndex(resultIndex)
+    try {
       const jobResultUrl = await providerInstance.getComputeResultUrl(
         datasetProvider,
         signer,
-        compositeId,
+        getCompositeJobId(job),
         resultIndex
       )
 
@@ -102,10 +153,12 @@ export default function Results({
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(blobUrl)
-    } catch (error: any) {
-      const message = getErrorMessage(error.message)
+    } catch (error: unknown) {
+      const message = getErrorMessageFromUnknown(error)
       LoggerInstance.error('[Provider Get c2d results url] Error:', message)
       toast.error(message)
+    } finally {
+      setPendingIndex(null)
     }
   }
 
@@ -114,28 +167,24 @@ export default function Results({
       <div className={styles.title}>Results</div>
       {isFinished ? (
         <ul>
-          {job.results &&
-            Array.isArray(job.results) &&
-            job.results.map((jobResult, i) =>
+          {results.length > 0 ? (
+            results.map((jobResult, i) =>
               jobResult.filename ? (
                 <ListItem key={i}>
-                  <Button
-                    style="text"
-                    size="small"
-                    className={styles.downloadButton}
-                    onClick={() => downloadResults(i)}
-                    download
-                  >
-                    {`${getDownloadButtonValue(
-                      jobResult.type,
-                      jobResult.filename
-                    )} - ${prettySize(jobResult.filesize)}`}
-                  </Button>
+                  <ResultDownloadItem
+                    result={jobResult}
+                    isPending={pendingIndex === i}
+                    isDisabled={pendingIndex !== null}
+                    onDownload={() => downloadResults(i)}
+                  />
                 </ListItem>
               ) : (
                 <ListItem key={i}>No results found.</ListItem>
               )
-            )}
+            )
+          ) : (
+            <ListItem>No results found.</ListItem>
+          )}
         </ul>
       ) : (
         <p> Waiting for results...</p>
