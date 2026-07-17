@@ -6,6 +6,7 @@ import Markdown from '@shared/Markdown'
 import CookieModule from './CookieModule'
 import Button from '@shared/atoms/Button'
 import { useUserPreferences } from '@context/UserPreferences'
+import { isAnalyticsConfigured } from '@utils/analytics'
 import classNames from 'classnames/bind'
 
 const cx = classNames.bind(styles)
@@ -19,6 +20,13 @@ export default function CookieBanner({
   const cookies = useGdprMetadata()
   const { showPPC, setShowPPC } = useUserPreferences()
   const [smallBanner, setSmallBanner] = useState<boolean>(style === 'small')
+
+  // Only disclose analytics when it is actually enabled for this deployment.
+  // Self-hosted instances without a PostHog key keep the essential-only notice.
+  const bannerText =
+    isAnalyticsConfigured() && cookies.analyticsText
+      ? cookies.analyticsText
+      : cookies.text
 
   function closeBanner() {
     setShowPPC(false)
@@ -47,7 +55,7 @@ export default function CookieBanner({
         <div className={styles.container}>
           <div className={styles.cookieInfo}>
             <Markdown text={cookies.title} className={styles.header} />
-            <Markdown text={cookies.text} />
+            <Markdown text={bannerText} />
           </div>
           {cookies?.optionalCookies?.length > 0 && (
             <>

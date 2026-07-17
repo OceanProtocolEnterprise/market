@@ -61,6 +61,7 @@
     "myetherwallet-blockies": "^0.1.1",
     "next": "^15.5.18",
     "normalize-url": "^8.1.0",
+    "posthog-js": "^1.384.1",
     "query-string": "^8.1.0",
     "react": "^18.2.0",
     "react-data-table-component": "^7.5.3",
