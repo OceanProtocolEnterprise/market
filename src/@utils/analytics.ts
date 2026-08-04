@@ -1,9 +1,34 @@
 import posthog from 'posthog-js'
+import appConfig from 'app.config.cjs'
+import Cookies from 'js-cookie'
 import { getRuntimeConfig } from './runtimeConfig'
+import { getCookieValue } from './cookies'
 
 const DEFAULT_POSTHOG_HOST = 'https://eu.i.posthog.com'
 
+export const ANALYTICS_CONSENT_COOKIE = 'AnalyticsCookieConsent'
+
 let initialized = false
+
+function removePostHogStorage(): void {
+  if (typeof window === 'undefined') return
+
+  Object.keys(Cookies.get())
+    .filter((name) => name.startsWith('ph_'))
+    .forEach((name) => Cookies.remove(name, { path: '/' }))
+
+  const storageAreas = [window.localStorage, window.sessionStorage]
+  storageAreas.forEach((storage) => {
+    Object.keys(storage)
+      .filter((name) => name.startsWith('ph_'))
+      .forEach((name) => storage.removeItem(name))
+  })
+}
+
+export function hasAnalyticsConsent(): boolean {
+  if (typeof document === 'undefined') return false
+  return getCookieValue(ANALYTICS_CONSENT_COOKIE) === 'true'
+}
 
 /**
  * Whether PostHog analytics is configured for this deployment. False on
@@ -39,5 +64,25 @@ export function initAnalytics(): void {
     defaults: '2026-01-30'
   })
 
+  if (posthog.has_opted_out_capturing()) posthog.opt_in_capturing()
+
   initialized = true
+}
+
+export function maybeInitAnalytics(): void {
+  if (!isAnalyticsConfigured()) return
+
+  const consentRequired = appConfig?.privacyPreferenceCenter === 'true'
+  if (consentRequired && !hasAnalyticsConsent()) return
+
+  initAnalytics()
+}
+
+export function disableAnalytics(): void {
+  removePostHogStorage()
+  if (!initialized) return
+
+  posthog.opt_out_capturing()
+  posthog.reset(true)
+  initialized = false
 }

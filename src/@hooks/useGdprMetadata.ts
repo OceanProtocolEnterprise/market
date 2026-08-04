@@ -1,4 +1,9 @@
 import gdprContent from '../../content/gdpr.json'
+import { useMemo } from 'react'
+import {
+  ANALYTICS_CONSENT_COOKIE,
+  isAnalyticsConfigured
+} from '@utils/analytics'
 
 export interface UseGdprMetadata {
   title: string
@@ -17,5 +22,15 @@ export interface UseGdprMetadata {
 }
 
 export function useGdprMetadata(): UseGdprMetadata {
-  return { ...gdprContent }
+  const analyticsConfigured = isAnalyticsConfigured()
+  const optionalCookies = useMemo(
+    () =>
+      (gdprContent.optionalCookies || []).filter(
+        (cookie) =>
+          cookie.cookieName !== ANALYTICS_CONSENT_COOKIE || analyticsConfigured
+      ),
+    [analyticsConfigured]
+  )
+
+  return { ...gdprContent, optionalCookies }
 }

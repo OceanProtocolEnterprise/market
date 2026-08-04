@@ -1,10 +1,16 @@
 {
   "title": "Note on the use of cookies",
-  "text": "We use technically essential web storage on this website. Web storage has similar functionality to cookies. We do not use cookies or web storage for marketing, statistics, or tracking purposes. Read more in our [privacy policy](/privacy/en#6-cookies-and-web-storage).",
-  "analyticsText": "We use technically essential web storage on this website, together with privacy-friendly product analytics (PostHog) that help us understand how the marketplace is used and improve it. Web storage has similar functionality to cookies. We do not use cookies or web storage for marketing or advertising purposes. Read more in our [privacy policy](/privacy/en#6-cookies-and-web-storage).",
+  "text": "We use technically essential first-party cookies and web storage on this website. They are only created when you use a feature, and we do not use cookies or web storage for marketing, statistics, or tracking purposes. Read more in our [cookie policy](/privacy/cookie-policy).",
+  "analyticsText": "We use technically essential first-party cookies and web storage on this website. They are only created when you use a feature. With your consent, we additionally use privacy-friendly product analytics (PostHog) that help us understand how the marketplace is used and improve it. We do not use cookies or web storage for marketing or advertising purposes. Read more in our [cookie policy](/privacy/cookie-policy).",
   "close": "Acknowledge",
   "accept": "Accept all",
   "reject": "Only essential",
   "configure": "Customize",
-  "optionalCookies": []
+  "optionalCookies": [
+    {
+      "title": "Statistics",
+      "desc": "Allows us to collect anonymized information about how the website is used (for example which pages are visited) through PostHog analytics, so we can improve the marketplace. If you do not consent, no statistics cookies are set.",
+      "cookieName": "AnalyticsCookieConsent"
+    }
+  ]
 }
