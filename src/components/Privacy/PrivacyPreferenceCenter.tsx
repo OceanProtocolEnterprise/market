@@ -191,6 +191,7 @@ export default function CookieBanner(): ReactElement {
                 <Button
                   size="small"
                   style="text"
+                  className={styles.manageButton}
                   onClick={() => switchView('manage')}
                 >
                   {content.configure || 'Manage'}

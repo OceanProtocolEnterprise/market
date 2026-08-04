@@ -56,6 +56,18 @@
   padding-top: calc(var(--spacer) / 3);
 }
 
+.buttons button.manageButton {
+  color: var(--brand-blue);
+  font-weight: var(--font-weight-bold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.buttons button.manageButton:hover,
+.buttons button.manageButton:focus {
+  opacity: 0.75;
+}
+
 .manageHeader {
   display: flex;
   justify-content: space-between;
