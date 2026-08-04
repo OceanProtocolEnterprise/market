@@ -122,9 +122,9 @@
   width: 36px;
   height: 20px;
   padding: 0;
-  border: 1px solid var(--yellow-500);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
-  background: transparent;
+  background: var(--brand-grey-lighter);
   position: relative;
   cursor: pointer;
   transition: background 180ms ease, border-color 180ms ease;
@@ -132,6 +132,7 @@
 
 .switchOn {
   background: var(--yellow-500);
+  border-color: var(--yellow-500);
 }
 
 .switchKnob {
@@ -142,13 +143,14 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: var(--brand-white);
+  background: var(--yellow-500);
   box-shadow: 0 1px 2px var(--box-shadow-color);
-  transition: left 180ms ease;
+  transition: left 180ms ease, background 180ms ease;
 }
 
 .switchOn .switchKnob {
   left: 18px;
+  background: var(--brand-white);
 }
 
 .footer {
