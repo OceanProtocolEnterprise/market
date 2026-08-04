@@ -14,6 +14,11 @@ export interface UseGdprMetadata {
   close: string
   save?: string
   configure: string
+  manageIntro?: string
+  essential?: {
+    title: string
+    desc: string
+  }
   placeholder?: string
   optionalCookies?: {
     title: string

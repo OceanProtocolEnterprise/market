@@ -4,60 +4,148 @@
   left: var(--spacer);
   z-index: 10;
   width: calc(100vw - (var(--spacer) * 2));
-  max-width: 42rem;
+  max-width: 24rem;
   max-height: calc(100vh - (var(--spacer) * 2));
-  overflow-y: auto;
-  border-radius: var(--radius-xl);
-  box-shadow: 6px 0 17px var(--box-shadow-color);
-  opacity: 1;
-  transition: all 0.3s ease-out;
-}
-
-.banner {
+  overflow: hidden;
   background: var(--background-body-transparent);
   backdrop-filter: blur(4px);
-  padding: calc(var(--spacer) / 2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 6px 17px var(--box-shadow-color);
+  opacity: 1;
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 }
 
-.banner p {
+.wrapper.hidden {
+  opacity: 0;
+  transform: translateY(calc(100% + var(--spacer)));
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.content {
+  padding: calc(var(--spacer) / 2);
+  transition: opacity 160ms ease;
+}
+
+.content.contentHidden {
+  opacity: 0;
+}
+
+.title {
+  margin: 0 0 calc(var(--spacer) / 6);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+}
+
+.text p {
   margin: 0;
   font-size: var(--font-size-small);
 }
 
-.banner a {
+.text a {
   color: var(--brand-blue);
   text-decoration: underline;
-}
-
-.header {
-  font-size: var(--font-size-normal);
-  font-weight: bold;
-  margin-bottom: calc(var(--spacer) / 4);
 }
 
 .buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: calc(var(--spacer) / 3);
+  gap: calc(var(--spacer) / 4);
   align-items: center;
   padding-top: calc(var(--spacer) / 3);
 }
 
-.optionals {
-  margin-top: calc(var(--spacer) / 3);
-  border-top: 1px solid var(--brand-grey-lighter);
+.manageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.closeButton {
-  display: block;
-  margin-top: calc(var(--spacer) / 3);
+.collapseButton {
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  line-height: 0;
+  color: var(--font-color-text);
 }
 
-/* Hide and show the Cookie Banner */
+.collapseButton svg {
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
+}
 
-.wrapper.hidden {
-  left: -100vw;
-  opacity: 0;
-  box-shadow: none;
-  pointer-events: none;
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: calc(var(--spacer) / 3);
+  padding: calc(var(--spacer) / 4) 0;
+  margin-top: calc(var(--spacer) / 4);
+  border-top: 1px solid var(--border-color);
+}
+
+.rowTitle {
+  margin: 0;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.rowDescription {
+  margin: 0;
+  font-size: var(--font-size-mini);
+  color: var(--font-color-text);
+}
+
+.alwaysOn {
+  font-size: var(--font-size-mini);
+  color: var(--font-color-text);
+  white-space: nowrap;
+}
+
+.switch {
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--brand-grey-lighter);
+  position: relative;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.switchOn {
+  background: var(--yellow-500);
+  border-color: var(--yellow-500);
+}
+
+.switchKnob {
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brand-white);
+  box-shadow: 0 1px 2px var(--box-shadow-color);
+  transition: left 180ms ease;
+}
+
+.switchOn .switchKnob {
+  left: 18px;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacer) / 4);
+  align-items: center;
+  padding-top: calc(var(--spacer) / 3);
+  margin-top: calc(var(--spacer) / 4);
+  border-top: 1px solid var(--border-color);
 }
