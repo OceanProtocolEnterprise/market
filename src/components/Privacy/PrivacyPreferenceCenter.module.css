@@ -122,9 +122,9 @@
   width: 36px;
   height: 20px;
   padding: 0;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--yellow-500);
   border-radius: 10px;
-  background: var(--brand-grey-lighter);
+  background: transparent;
   position: relative;
   cursor: pointer;
   transition: background 180ms ease, border-color 180ms ease;
@@ -132,7 +132,6 @@
 
 .switchOn {
   background: var(--yellow-500);
-  border-color: var(--yellow-500);
 }
 
 .switchKnob {
