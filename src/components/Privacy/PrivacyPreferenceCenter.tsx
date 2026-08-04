@@ -46,8 +46,7 @@ export default function CookieBanner({
   }
 
   const styleClasses = cx(styles.wrapper, {
-    hidden: !showPPC,
-    small: smallBanner // style === 'small'
+    hidden: !showPPC
   })
 
   return (
@@ -58,44 +57,43 @@ export default function CookieBanner({
             <Markdown text={cookies.title} className={styles.header} />
             <Markdown text={bannerText} />
           </div>
-          {hasOptionalCookies && (
-            <>
-              <div className={styles.buttons}>
-                <Button
-                  size="small"
-                  style="accent"
-                  onClick={() => {
-                    handleAllCookies(true)
-                  }}
-                >
-                  {cookies.accept || 'Accept all'}
-                </Button>
-                <Button
-                  size="small"
-                  style="outlined"
-                  onClick={() => {
-                    handleAllCookies(false)
-                  }}
-                >
-                  {cookies.reject || 'Reject all'}
-                </Button>
-                <Button
-                  className={styles.configureButton}
-                  size="small"
-                  style="outlined"
-                  onClick={() => {
-                    setSmallBanner(false)
-                  }}
-                >
-                  {cookies.configure || 'Customize'}
-                </Button>
-              </div>
-              <div className={styles.optionals}>
-                {cookies.optionalCookies.map((cookie) => {
-                  return <CookieModule {...cookie} key={cookie.cookieName} />
-                })}
-              </div>
-            </>
+          {hasOptionalCookies && smallBanner && (
+            <div className={styles.buttons}>
+              <Button
+                size="small"
+                style="accent"
+                onClick={() => {
+                  handleAllCookies(true)
+                }}
+              >
+                {cookies.accept || 'Accept all'}
+              </Button>
+              <Button
+                size="small"
+                style="outlined"
+                onClick={() => {
+                  handleAllCookies(false)
+                }}
+              >
+                {cookies.reject || 'Reject all'}
+              </Button>
+              <Button
+                size="small"
+                style="text"
+                onClick={() => {
+                  setSmallBanner(false)
+                }}
+              >
+                {cookies.configure || 'Customize'}
+              </Button>
+            </div>
+          )}
+          {hasOptionalCookies && !smallBanner && (
+            <div className={styles.optionals}>
+              {cookies.optionalCookies.map((cookie) => {
+                return <CookieModule {...cookie} key={cookie.cookieName} />
+              })}
+            </div>
           )}
         </div>
         {(!smallBanner || !hasOptionalCookies) && (

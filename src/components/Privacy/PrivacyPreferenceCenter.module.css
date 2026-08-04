@@ -40,11 +40,7 @@
   flex-wrap: wrap;
   gap: calc(var(--spacer) / 3);
   align-items: center;
-  padding: calc(var(--spacer) / 3) 0 0;
-}
-
-.configureButton {
-  display: none;
+  padding-top: calc(var(--spacer) / 3);
 }
 
 .optionals {
@@ -57,31 +53,6 @@
   margin-top: calc(var(--spacer) / 3);
 }
 
-/* Small Cookie Banner Styles */
-
-.small .buttons {
-  flex-direction: column;
-  gap: calc(var(--spacer) / 6);
-  padding: calc(var(--spacer) / 6);
-}
-
-.small .buttons button {
-  width: 100%;
-  justify-content: center;
-}
-
-.small .configureButton {
-  display: block;
-}
-
-.small .optionals {
-  display: none;
-}
-
-.small .closeButton {
-  margin-top: calc(var(--spacer) / 4);
-}
-
 /* Hide and show the Cookie Banner */
 
 .wrapper.hidden {
@@ -89,12 +60,4 @@
   opacity: 0;
   box-shadow: none;
   pointer-events: none;
-}
-
-/* Adjust for larger screen sizes */
-
-@media screen and (min-width: 38rem) {
-  .small .container {
-    display: flex;
-  }
 }
