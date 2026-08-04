@@ -1,16 +1,27 @@
+.wrapper {
+  position: fixed;
+  bottom: var(--spacer);
+  left: var(--spacer);
+  z-index: 10;
+  width: calc(100vw - (var(--spacer) * 2));
+  max-width: 42rem;
+  max-height: calc(100vh - (var(--spacer) * 2));
+  overflow-y: auto;
+  border-radius: var(--radius-xl);
+  box-shadow: 6px 0 17px var(--box-shadow-color);
+  opacity: 1;
+  transition: all 0.3s ease-out;
+}
+
 .banner {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
   background: var(--background-body-transparent);
   backdrop-filter: blur(4px);
   padding: calc(var(--spacer) / 2);
-  min-height: 100vh;
 }
 
 .banner p {
   margin: 0;
+  font-size: var(--font-size-small);
 }
 
 .banner a {
@@ -18,83 +29,45 @@
   text-decoration: underline;
 }
 
-.buttons {
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: var(--spacer) 0;
-  border-bottom: 1px solid var(--brand-grey-lighter);
+.header {
+  font-size: var(--font-size-normal);
+  font-weight: bold;
+  margin-bottom: calc(var(--spacer) / 4);
 }
-.banner button {
-  background: var(--yellow-500);
-  color: var(--brand-blue);
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacer) / 3);
+  align-items: center;
+  padding: calc(var(--spacer) / 3) 0 0;
 }
 
 .configureButton {
   display: none;
 }
 
+.optionals {
+  margin-top: calc(var(--spacer) / 3);
+  border-top: 1px solid var(--brand-grey-lighter);
+}
+
 .closeButton {
-  margin-top: var(--spacer);
-}
-
-.header {
-  font-size: var(--font-size-large);
-  font-weight: bold;
-  margin-bottom: calc(var(--spacer) / 2);
-}
-
-.wrapper {
-  max-width: 90vw;
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  height: 100vh;
-  z-index: 10;
-  overflow-y: auto;
-  box-shadow: 6px 0 17px var(--box-shadow-color);
-  opacity: 1;
-  transition: all 0.3s ease-out;
+  display: block;
+  margin-top: calc(var(--spacer) / 3);
 }
 
 /* Small Cookie Banner Styles */
 
-.wrapper.small {
-  bottom: var(--spacer);
-  left: var(--spacer);
-  top: auto;
-  width: calc(100vw - (var(--spacer) * 2));
-  max-width: 42rem;
-  overflow: hidden;
-  height: auto;
-  border-radius: var(--radius-xl);
-}
-
-.small .banner {
-  display: block;
-  min-height: 0;
-}
-
-.small .header {
-  font-size: var(--font-size-normal);
-  margin-bottom: calc(var(--spacer) / 4);
-}
-
-.small p {
-  font-size: var(--font-size-small);
-}
-
 .small .buttons {
   flex-direction: column;
-  border: none;
+  gap: calc(var(--spacer) / 6);
   padding: calc(var(--spacer) / 6);
 }
 
 .small .buttons button {
-  margin: calc(var(--spacer) / 6);
   width: 100%;
+  justify-content: center;
 }
 
 .small .configureButton {
@@ -106,25 +79,19 @@
 }
 
 .small .closeButton {
-  margin: calc(var(--spacer) / 4) auto 0;
+  margin-top: calc(var(--spacer) / 4);
 }
 
 /* Hide and show the Cookie Banner */
 
 .wrapper.hidden {
-  left: -25rem;
+  left: -100vw;
   opacity: 0;
   box-shadow: none;
   pointer-events: none;
 }
 
 /* Adjust for larger screen sizes */
-
-@media screen and (min-width: 26rem) {
-  .wrapper {
-    max-width: 25rem;
-  }
-}
 
 @media screen and (min-width: 38rem) {
   .small .container {

@@ -20,6 +20,7 @@ export default function CookieBanner({
   const cookies = useGdprMetadata()
   const { showPPC, setShowPPC } = useUserPreferences()
   const [smallBanner, setSmallBanner] = useState<boolean>(style === 'small')
+  const hasOptionalCookies = cookies?.optionalCookies?.length > 0
 
   // Only disclose analytics when it is actually enabled for this deployment.
   // Self-hosted instances without a PostHog key keep the essential-only notice.
@@ -57,11 +58,12 @@ export default function CookieBanner({
             <Markdown text={cookies.title} className={styles.header} />
             <Markdown text={bannerText} />
           </div>
-          {cookies?.optionalCookies?.length > 0 && (
+          {hasOptionalCookies && (
             <>
               <div className={styles.buttons}>
                 <Button
                   size="small"
+                  style="accent"
                   onClick={() => {
                     handleAllCookies(true)
                   }}
@@ -70,6 +72,7 @@ export default function CookieBanner({
                 </Button>
                 <Button
                   size="small"
+                  style="outlined"
                   onClick={() => {
                     handleAllCookies(false)
                   }}
@@ -79,6 +82,7 @@ export default function CookieBanner({
                 <Button
                   className={styles.configureButton}
                   size="small"
+                  style="outlined"
                   onClick={() => {
                     setSmallBanner(false)
                   }}
@@ -94,18 +98,18 @@ export default function CookieBanner({
             </>
           )}
         </div>
-        {(!smallBanner ||
-          !cookies?.optionalCookies ||
-          cookies?.optionalCookies?.length === 0) && (
+        {(!smallBanner || !hasOptionalCookies) && (
           <Button
             size="small"
-            style="primary"
+            style="accent"
             onClick={() => {
               closeBanner()
             }}
             className={styles.closeButton}
           >
-            {cookies.close || 'Save and close'}
+            {hasOptionalCookies
+              ? cookies.save || 'Save and close'
+              : cookies.close || 'Acknowledge'}
           </Button>
         )}
       </div>

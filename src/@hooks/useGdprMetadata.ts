@@ -12,6 +12,7 @@ export interface UseGdprMetadata {
   accept: string
   reject: string
   close: string
+  save?: string
   configure: string
   placeholder?: string
   optionalCookies?: {

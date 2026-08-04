@@ -1,27 +1,14 @@
-.description {
-  font-size: var(--font-size-small);
+.wrapper {
+  padding-top: calc(var(--spacer) / 3);
 }
 
 .header {
-  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: calc(var(--spacer) / 3);
 }
 
-.header div[class*='radioGroup'] {
-  width: 100%;
-  text-align: right;
-}
-
-.header label {
-  position: absolute;
-  left: 0;
-  padding: 0;
-}
-
-.wrapper {
-  display: block;
-  margin: var(--spacer) 0;
+.description {
+  font-size: var(--font-size-small);
+  margin-top: calc(var(--spacer) / 6);
 }
