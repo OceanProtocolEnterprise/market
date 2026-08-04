@@ -1,5 +1,6 @@
 import {
   ReactElement,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -20,6 +21,7 @@ const cx = classNames.bind(styles)
 const MORPH_DURATION_MS = 300
 const MORPH_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'
 const CONTENT_FADE_MS = 120
+const ENTRANCE_DELAY_MS = 700
 
 type View = 'compact' | 'manage'
 
@@ -42,6 +44,7 @@ export default function CookieBanner(): ReactElement {
 
   const hasOptionalCookies = optionalCookies?.length > 0
   const [view, setView] = useState<View>('compact')
+  const [hasEntered, setHasEntered] = useState(!showPPC)
   const [contentVisible, setContentVisible] = useState(true)
   const [draftConsent, setDraftConsent] = useState<Record<string, boolean>>({})
   const cardRef = useRef<HTMLDivElement>(null)
@@ -54,32 +57,67 @@ export default function CookieBanner(): ReactElement {
       ? content.analyticsText
       : content.text
 
-  function readDraftFromConsent(): Record<string, boolean> {
+  const readDraftFromConsent = useCallback((): Record<string, boolean> => {
     const draft: Record<string, boolean> = {}
     optionalCookies?.forEach((cookie) => {
       draft[cookie.cookieName] =
         cookieConsentStatus[cookie.cookieName] === CookieConsentStatus.APPROVED
     })
     return draft
+  }, [cookieConsentStatus, optionalCookies])
+
+  const switchView = useCallback(
+    (nextView: View) => {
+      if (morphingRef.current || view === nextView) return
+      if (nextView === 'manage') setDraftConsent(readDraftFromConsent())
+
+      if (!cardRef.current || prefersReducedMotion()) {
+        setView(nextView)
+        return
+      }
+
+      morphingRef.current = true
+      startHeightRef.current = cardRef.current.offsetHeight
+      setContentVisible(false)
+      window.setTimeout(() => setView(nextView), CONTENT_FADE_MS)
+    },
+    [readDraftFromConsent, view]
+  )
+
+  const closeBanner = useCallback(() => {
+    setShowPPC(false)
+    window.setTimeout(() => {
+      setView('compact')
+      setContentVisible(true)
+    }, MORPH_DURATION_MS)
+  }, [setShowPPC])
+
+  function handleAllCookies(accepted: boolean) {
+    resetConsentStatus(
+      accepted ? CookieConsentStatus.APPROVED : CookieConsentStatus.REJECTED
+    )
+    closeBanner()
   }
 
-  function switchView(nextView: View) {
-    if (morphingRef.current || view === nextView) return
-    if (nextView === 'manage') setDraftConsent(readDraftFromConsent())
-
-    if (!cardRef.current || prefersReducedMotion()) {
-      setView(nextView)
-      return
-    }
-
-    morphingRef.current = true
-    startHeightRef.current = cardRef.current.offsetHeight
-    setContentVisible(false)
-    window.setTimeout(() => setView(nextView), CONTENT_FADE_MS)
+  function handleSavePreferences() {
+    optionalCookies?.forEach((cookie) => {
+      setConsentStatus(
+        cookie.cookieName,
+        draftConsent[cookie.cookieName]
+          ? CookieConsentStatus.APPROVED
+          : CookieConsentStatus.REJECTED
+      )
+    })
+    closeBanner()
   }
 
-  // Animate the card height between the two views: the bottom edge stays
-  // pinned while the card grows or shrinks in place as one element.
+  function toggleDraftConsent(cookieName: string) {
+    setDraftConsent((currentDraft) => ({
+      ...currentDraft,
+      [cookieName]: !currentDraft[cookieName]
+    }))
+  }
+
   useLayoutEffect(() => {
     const startHeight = startHeightRef.current
     const card = cardRef.current
@@ -109,8 +147,19 @@ export default function CookieBanner(): ReactElement {
     }
   }, [view])
 
-  // Reopening from the footer's Cookie Settings link goes straight to the
-  // expanded preferences view; the compact card is for the first decision.
+  useEffect(() => {
+    if (prefersReducedMotion()) {
+      setHasEntered(true)
+      return
+    }
+
+    const timer = window.setTimeout(
+      () => setHasEntered(true),
+      ENTRANCE_DELAY_MS
+    )
+    return () => window.clearTimeout(timer)
+  }, [])
+
   useEffect(() => {
     if (showPPC && !wasShownRef.current && hasOptionalCookies) {
       setDraftConsent(readDraftFromConsent())
@@ -118,8 +167,7 @@ export default function CookieBanner(): ReactElement {
       setContentVisible(true)
     }
     wasShownRef.current = showPPC
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showPPC, hasOptionalCookies])
+  }, [hasOptionalCookies, readDraftFromConsent, showPPC])
 
   useEffect(() => {
     if (!showPPC || view !== 'manage') return
@@ -130,40 +178,12 @@ export default function CookieBanner(): ReactElement {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showPPC, view])
-
-  function closeBanner() {
-    setShowPPC(false)
-    window.setTimeout(() => {
-      setView('compact')
-      setContentVisible(true)
-    }, MORPH_DURATION_MS)
-  }
-
-  function handleAllCookies(accepted: boolean) {
-    resetConsentStatus(
-      accepted ? CookieConsentStatus.APPROVED : CookieConsentStatus.REJECTED
-    )
-    closeBanner()
-  }
-
-  function handleSavePreferences() {
-    optionalCookies?.forEach((cookie) => {
-      setConsentStatus(
-        cookie.cookieName,
-        draftConsent[cookie.cookieName]
-          ? CookieConsentStatus.APPROVED
-          : CookieConsentStatus.REJECTED
-      )
-    })
-    closeBanner()
-  }
+  }, [showPPC, switchView, view])
 
   return (
     <div
       ref={cardRef}
-      className={cx(styles.wrapper, { hidden: !showPPC })}
+      className={cx(styles.wrapper, { hidden: !showPPC || !hasEntered })}
       role="region"
       aria-label={content.title}
     >
@@ -171,12 +191,17 @@ export default function CookieBanner(): ReactElement {
         {view === 'compact' ? (
           <>
             <p className={styles.title}>{content.title}</p>
-            <Markdown text={bannerText} className={styles.text} />
+            <Markdown
+              text={bannerText}
+              className={styles.text}
+              openLinksInNewTab
+            />
             {hasOptionalCookies ? (
               <div className={styles.buttons}>
                 <Button
                   size="small"
                   style="accent"
+                  className={styles.actionButton}
                   onClick={() => handleAllCookies(true)}
                 >
                   {content.accept || 'Accept all'}
@@ -184,6 +209,7 @@ export default function CookieBanner(): ReactElement {
                 <Button
                   size="small"
                   style="outlined"
+                  className={styles.actionButton}
                   onClick={() => handleAllCookies(false)}
                 >
                   {content.reject || 'Essential only'}
@@ -199,7 +225,12 @@ export default function CookieBanner(): ReactElement {
               </div>
             ) : (
               <div className={styles.buttons}>
-                <Button size="small" style="accent" onClick={closeBanner}>
+                <Button
+                  size="small"
+                  style="accent"
+                  className={styles.actionButton}
+                  onClick={closeBanner}
+                >
                   {content.close || 'Got it'}
                 </Button>
               </div>
@@ -223,6 +254,7 @@ export default function CookieBanner(): ReactElement {
                 content.manageIntro || 'Choose which cookies this site may use.'
               }
               className={styles.text}
+              openLinksInNewTab
             />
             <div className={styles.row}>
               <div>
@@ -250,12 +282,7 @@ export default function CookieBanner(): ReactElement {
                   className={cx(styles.switch, {
                     switchOn: draftConsent[cookie.cookieName] === true
                   })}
-                  onClick={() =>
-                    setDraftConsent((currentDraft) => ({
-                      ...currentDraft,
-                      [cookie.cookieName]: !currentDraft[cookie.cookieName]
-                    }))
-                  }
+                  onClick={() => toggleDraftConsent(cookie.cookieName)}
                 >
                   <span className={styles.switchKnob} />
                 </button>
@@ -265,16 +292,10 @@ export default function CookieBanner(): ReactElement {
               <Button
                 size="small"
                 style="accent"
+                className={styles.actionButton}
                 onClick={handleSavePreferences}
               >
                 {content.save || 'Save preferences'}
-              </Button>
-              <Button
-                size="small"
-                style="outlined"
-                onClick={() => handleAllCookies(true)}
-              >
-                {content.accept || 'Accept all'}
               </Button>
             </div>
           </>
