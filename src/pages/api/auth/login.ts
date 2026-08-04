@@ -64,7 +64,7 @@ export default async function handler(
     redirect_uri: redirectUri,
     response_type: 'code',
     scope:
-      'openid profile email offline_access oe-central-federated_identity oe-organizationId oe-walletId oe-signerServer oe-wellKnownUrl',
+      'openid profile email offline_access federated_identity organizationId walletId signerServer wellKnownUrl',
     code_challenge: codeChallenge,
     code_challenge_method: 'S256',
     state,
