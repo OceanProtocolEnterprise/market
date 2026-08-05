@@ -3,6 +3,8 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { decodeJwt } from 'jose'
 import { buildClearAuthCookieStrings } from '../_cookies'
 import { authEnabled, oidcClientId, oidcIssuer } from 'app.config.cjs'
+import { isMainProviderByName } from '../_federated'
+import { getLoginSource } from '../_claims'
 
 const FEDERATED_LOGOUT_CONTINUE_COOKIE = 'federated_logout_continue'
 
@@ -77,11 +79,13 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (idTokenHint) {
     try {
       const decoded = decodeJwt(idTokenHint)
-      if (decoded.iss === issuer) {
+      const loginSource = getLoginSource(decoded)
+      const isMain = isMainProviderByName(loginSource)
+      if (isMain && decoded.iss === issuer) {
         oidcParams.set('id_token_hint', idTokenHint)
         console.info('Using id_token_hint for main OIDC logout continuation')
       } else {
-        console.info('id_token is not from main issuer, skipping id_token_hint')
+        console.info('Skipping id_token_hint for partner provider continuation')
       }
     } catch (error) {
       console.warn(

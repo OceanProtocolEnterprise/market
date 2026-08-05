@@ -1,9 +1,14 @@
 /* eslint-disable camelcase */
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { decodeJwt } from 'jose'
-import { buildClearAuthCookieStrings, clearAuthCookies } from '../_cookies'
-import { getFederatedProvider } from '../_federated'
-import { getLoginSource } from '../_claims'
+import {
+  buildClearAuthCookieStrings,
+  clearAuthCookies,
+  IDP_END_SESSION_URL_COOKIE
+} from '../_cookies'
+import { getFederatedProvider, isMainProviderByName } from '../_federated'
+import { getLoginSource, getWellKnownUrl } from '../_claims'
+import { getEndSessionUrlFromWellKnown } from '../_oidc'
 import { authEnabled, oidcClientId, oidcIssuer } from 'app.config.cjs'
 
 const OIDC_CLIENT_SECRET_ENV_KEY = 'OIDC_CLIENT_SECRET'
@@ -119,113 +124,123 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   const detectedLoginSource =
     login_source || getLoginSourceFromIdToken(id_token)
 
-  const provider = getFederatedProvider(detectedLoginSource)
+  const isMain = isMainProviderByName(detectedLoginSource)
 
-  if (!provider) {
-    console.warn(
-      `Unknown login source "${detectedLoginSource}", using Main OIDC logout.`
+  if (isMain || !detectedLoginSource) {
+    console.info(`Main logout for "${detectedLoginSource || 'unknown'}".`)
+
+    clearAuthCookies(res)
+
+    // Only send id_token_hint if it's from the main issuer
+    const oidcParams = new URLSearchParams({
+      client_id: clientId,
+      post_logout_redirect_uri: callbackUrl,
+      state: 'logout'
+    })
+
+    if (id_token) {
+      try {
+        const decoded = decodeJwt(id_token)
+        if (decoded.iss === issuer) {
+          oidcParams.set('id_token_hint', id_token)
+        }
+      } catch (error) {
+        console.warn('Could not decode id_token for main logout:', error)
+      }
+    }
+
+    const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
+    return res.redirect(302, mainLogoutUrl)
+  }
+
+  const partnerEndSessionUrl = req.cookies[IDP_END_SESSION_URL_COOKIE]
+
+  if (partnerEndSessionUrl) {
+    res.setHeader('Set-Cookie', [
+      ...buildClearAuthCookieStrings({
+        keepIdToken: true
+      }),
+      serializeFederatedLogoutContinueCookie('1', 300)
+    ])
+
+    const partnerLogoutUrl = new URL(partnerEndSessionUrl)
+    partnerLogoutUrl.searchParams.set('post_logout_redirect_uri', callbackUrl)
+
+    console.info(
+      `Partner logout for "${detectedLoginSource}". Redirecting to: ${partnerLogoutUrl.toString()}`
     )
 
-    clearAuthCookies(res)
-
-    // Only send id_token_hint if it's from the main issuer
-    const oidcParams = new URLSearchParams({
-      client_id: clientId,
-      post_logout_redirect_uri: callbackUrl,
-      state: 'logout'
-    })
-
-    if (id_token) {
-      try {
-        const decoded = decodeJwt(id_token)
-        if (decoded.iss === issuer) {
-          oidcParams.set('id_token_hint', id_token)
-        }
-      } catch (error) {
-        console.warn('Could not decode id_token for main logout:', error)
-      }
-    }
-
-    const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
-    return res.redirect(302, mainLogoutUrl)
+    return res.redirect(302, partnerLogoutUrl.toString())
   }
 
-  if (provider.type === 'main') {
-    console.info(`Main logout for "${detectedLoginSource}".`)
+  if (id_token) {
+    try {
+      const decoded = decodeJwt(id_token)
+      const wellKnownUrl = getWellKnownUrl(decoded)
 
-    clearAuthCookies(res)
+      if (wellKnownUrl) {
+        try {
+          const endSessionUrl = await getEndSessionUrlFromWellKnown(
+            wellKnownUrl
+          )
 
-    // Only send id_token_hint if it's from the main issuer
-    const oidcParams = new URLSearchParams({
-      client_id: clientId,
-      post_logout_redirect_uri: callbackUrl,
-      state: 'logout'
-    })
+          if (endSessionUrl) {
+            res.setHeader('Set-Cookie', [
+              ...buildClearAuthCookieStrings({
+                keepIdToken: true
+              }),
+              serializeFederatedLogoutContinueCookie('1', 300)
+            ])
 
-    if (id_token) {
-      try {
-        const decoded = decodeJwt(id_token)
-        if (decoded.iss === issuer) {
-          oidcParams.set('id_token_hint', id_token)
+            const partnerLogoutUrl = new URL(endSessionUrl)
+            partnerLogoutUrl.searchParams.set(
+              'post_logout_redirect_uri',
+              callbackUrl
+            )
+
+            console.info(
+              `Partner logout for "${detectedLoginSource}" (from well-known). Redirecting to: ${partnerLogoutUrl.toString()}`
+            )
+
+            return res.redirect(302, partnerLogoutUrl.toString())
+          }
+        } catch (error) {
+          console.warn(
+            `Failed to get end_session_url from well-known for ${detectedLoginSource}:`,
+            error
+          )
         }
-      } catch (error) {
-        console.warn('Could not decode id_token for main logout:', error)
       }
+    } catch (error) {
+      console.warn('Could not decode id_token for partner logout:', error)
     }
-
-    const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
-    return res.redirect(302, mainLogoutUrl)
   }
 
-  if (!provider.logout) {
-    console.warn(
-      `Partner "${detectedLoginSource}" has no logout endpoint. Falling back to Main logout.`
-    )
-
-    clearAuthCookies(res)
-
-    // Only send id_token_hint if it's from the main issuer
-    const oidcParams = new URLSearchParams({
-      client_id: clientId,
-      post_logout_redirect_uri: callbackUrl,
-      state: 'logout'
-    })
-
-    if (id_token) {
-      try {
-        const decoded = decodeJwt(id_token)
-        if (decoded.iss === issuer) {
-          oidcParams.set('id_token_hint', id_token)
-        }
-      } catch (error) {
-        console.warn('Could not decode id_token for main logout:', error)
-      }
-    }
-
-    const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
-    return res.redirect(302, mainLogoutUrl)
-  }
-
-  // Partner logout flow - keep the id_token for continuation but don't send it to partner
-  res.setHeader('Set-Cookie', [
-    ...buildClearAuthCookieStrings({
-      keepIdToken: true
-    }),
-    serializeFederatedLogoutContinueCookie('1', 300)
-  ])
-
-  const partnerLogoutUrl = new URL(provider.logout)
-  partnerLogoutUrl.searchParams.set('post_logout_redirect_uri', callbackUrl)
-
-  // IMPORTANT: Do NOT send id_token_hint to partner IdP
-  // Each IdP should only accept its own tokens
-  // The partner doesn't have a session for the main token
-
-  console.info(
-    `Partner logout for "${detectedLoginSource}". Redirecting to: ${partnerLogoutUrl.toString()}`
+  console.warn(
+    `No partner logout endpoint found for "${detectedLoginSource}". Falling back to Main logout.`
   )
 
-  return res.redirect(302, partnerLogoutUrl.toString())
+  clearAuthCookies(res)
+
+  const oidcParams = new URLSearchParams({
+    client_id: clientId,
+    post_logout_redirect_uri: callbackUrl,
+    state: 'logout'
+  })
+
+  if (id_token) {
+    try {
+      const decoded = decodeJwt(id_token)
+      if (decoded.iss === issuer) {
+        oidcParams.set('id_token_hint', id_token)
+      }
+    } catch (error) {
+      console.warn('Could not decode id_token for fallback logout:', error)
+    }
+  }
+
+  const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
+  return res.redirect(302, mainLogoutUrl)
 }
 
 export default async function handler(
