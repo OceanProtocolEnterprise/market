@@ -2,7 +2,6 @@ import {
   LoggerInstance,
   getHash,
   Nft,
-  ProviderInstance,
   MetadataAndTokenURI,
   NftCreateData,
   getErrorMessage
@@ -12,6 +11,7 @@ import { customProviderUrl } from '../../app.config.cjs'
 import { Signer, TransactionResponse } from 'ethers'
 import { toast } from 'react-toastify'
 import { Asset } from 'src/@types/Asset'
+import { encryptProviderData } from './provider'
 
 // https://docs.opensea.io/docs/metadata-standards
 export interface NftMetadata {
@@ -109,7 +109,7 @@ export async function setNftMetadata(
 ): Promise<TransactionResponse> {
   let encryptedDdo
   try {
-    encryptedDdo = await ProviderInstance.encrypt(
+    encryptedDdo = await encryptProviderData(
       asset,
       asset.credentialSubject?.chainId,
       asset?.credentialSubject?.services[0]?.serviceEndpoint ||
@@ -150,7 +150,7 @@ export async function setNFTMetadataAndTokenURI(
 ): Promise<TransactionResponse> {
   let encryptedDdo
   try {
-    encryptedDdo = await ProviderInstance.encrypt(
+    encryptedDdo = await encryptProviderData(
       asset,
       asset.credentialSubject?.chainId,
       asset.credentialSubject?.services[0]?.serviceEndpoint ||

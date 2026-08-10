@@ -10,7 +10,7 @@ import { useAuth } from './useAuth'
 
 export default function useSsiAutoConnectPrompt(): void {
   const router = useRouter()
-  const { isConnected } = useAccount()
+  const { isConnected, status: walletStatus } = useAccount()
   const { isSsiChainAllowed, isSsiChainReady } = useSsiAllowedChain()
   const walletClient = useEthersSigner()
   const { setShowSsiWalletModule } = useUserPreferences()
@@ -25,6 +25,7 @@ export default function useSsiAutoConnectPrompt(): void {
   useEffect(() => {
     if (!appConfig.ssiEnabled) return
     if (!isSsiStateHydrated) return
+    if (walletStatus === 'connecting' || walletStatus === 'reconnecting') return
 
     const isAuthRoute = router.asPath.split('?')[0].startsWith('/auth/')
     if (isAuthRoute) {
@@ -51,6 +52,7 @@ export default function useSsiAutoConnectPrompt(): void {
     setShowSsiWalletModule(true)
   }, [
     isConnected,
+    walletStatus,
     isAuthenticated,
     authEnabled,
     isSsiChainAllowed,

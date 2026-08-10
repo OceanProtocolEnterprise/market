@@ -59,6 +59,29 @@
         "placeholder": "e.g. John SRL"
       },
       {
+        "name": "copyrightHolder",
+        "label": "Copyright Holder",
+        "placeholder": "e.g. Ocean Enterprise",
+        "help": "The entity holding the legal copyright for this asset."
+      },
+      {
+        "name": "providedBy",
+        "label": "Provided By",
+        "placeholder": "e.g. https://oceanenterprise.io/vc.json",
+        "help": "URL where the Verifiable Credential of the entity offering this asset resides."
+      },
+      {
+        "name": "links",
+        "label": "Links",
+        "type": "keyValue",
+        "keyLabel": "Title",
+        "valueLabel": "URL",
+        "keyPlaceholder": "e.g. Website",
+        "valuePlaceholder": "e.g. https://oceanenterprise.io",
+        "validateValueAsUrl": true,
+        "help": "Related links for this asset as a mapping of titles to URLs. Enter a Title and its URL, then click Add. Repeat to add more (e.g. website, demo)."
+      },
+      {
         "name": "license",
         "label": "URL",
         "placeholder": "e.g. https://file.com/license.json",

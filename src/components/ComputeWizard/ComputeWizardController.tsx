@@ -431,6 +431,10 @@ export default function ComputeWizardController({
     startJob: submitComputeJob,
     isOrdering,
     computeStatusText,
+    computeProgressSteps,
+    resetComputeProgress,
+    setComputeProgressStep,
+    setActiveComputeProgressError,
     successJobId,
     showSuccess,
     setShowSuccess,
@@ -694,6 +698,10 @@ export default function ComputeWizardController({
           }
         }
       )
+      resetComputeProgress(
+        datasetsForProvider.map(({ asset }) => asset),
+        actualAlgorithmAsset
+      )
 
       const algoSessionId = resolveVerifierSessionId(
         actualAlgorithmAsset.id,
@@ -755,7 +763,8 @@ export default function ComputeWizardController({
         algoParams,
         datasetParams,
         accountId,
-        shouldDepositEscrow: withEscrow
+        shouldDepositEscrow: withEscrow,
+        onProgress: setComputeProgressStep
       })
 
       if (!initResult)
@@ -917,6 +926,8 @@ export default function ComputeWizardController({
     formikValues?: FormComputeData
   ): Promise<void> {
     setIsSubmittingJob(true)
+    resetComputeProgress()
+    setComputeProgressStep('escrow', 'active')
     try {
       const formValuesForEscrow = formikValues || initialFormValues
       const shouldDepositEscrow = new Decimal(
@@ -980,6 +991,7 @@ export default function ComputeWizardController({
       resetCacheWallet()
       onComputeJobCreated?.()
     } catch (error) {
+      setActiveComputeProgressError()
       if (
         (error as Error)?.message?.includes('user rejected transaction') ||
         (error as Error)?.message?.includes('User denied') ||
@@ -1364,6 +1376,7 @@ export default function ComputeWizardController({
                       allResourceValues={allResourceValues}
                       setAllResourceValues={setAllResourceValues}
                       stepText={computeStatusText}
+                      computeProgressSteps={computeProgressSteps}
                       isConsumable={isConsumablePrice}
                       consumableFeedback={consumableFeedback}
                       datasetOrderPriceAndFees={datasetOrderPriceAndFees}

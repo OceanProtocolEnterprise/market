@@ -1,5 +1,5 @@
 import { forwardRef, ReactElement } from 'react'
-import { useSpring, animated } from 'react-spring'
+import { useSpring, animated } from '@react-spring/web'
 import stylesTooltip from './index.module.css'
 import Info from '@images/info.svg'
 import Tippy, { TippyProps } from '@tippyjs/react/headless'

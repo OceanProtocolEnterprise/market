@@ -13,14 +13,13 @@ import Markdown from '@shared/Markdown'
 import Button from '@shared/atoms/Button'
 import PublishButton from '@shared/PublishButton'
 import { InputProps } from '@shared/FormInput'
+import { isValidWebUrl } from '@utils/url'
 import classNames from 'classnames/bind'
+import type { KeyValuePair } from 'src/@types/KeyValuePair'
 
 const cx = classNames.bind(styles)
 
-export interface KeyValuePair {
-  key: string
-  value: string
-}
+export type { KeyValuePair } from 'src/@types/KeyValuePair'
 
 interface KeyValueInputProps extends Omit<InputProps, 'value'> {
   value: KeyValuePair[]
@@ -29,11 +28,18 @@ interface KeyValueInputProps extends Omit<InputProps, 'value'> {
   valuePlaceholder?: string
 }
 
+function normalizePairKey(key: string): string {
+  return key.trim()
+}
+
 export default function InputKeyValue({
   uniqueKeys = false,
   value,
   keyPlaceholder = 'key',
   valuePlaceholder = 'value',
+  keyLabel,
+  valueLabel,
+  validateValueAsUrl = false,
   disabled = false,
   ...props
 }: KeyValueInputProps): ReactElement {
@@ -46,11 +52,22 @@ export default function InputKeyValue({
 
   const [pairs, setPairs] = useState(value || [])
 
+  const normalizedCurrentKey = normalizePairKey(currentKey)
+  const normalizedCurrentValue = currentValue.trim()
+  const valueInvalid =
+    validateValueAsUrl &&
+    !!normalizedCurrentValue &&
+    !isValidWebUrl(normalizedCurrentValue)
+
   const currentKeyExists = useCallback(() => {
-    return pairs.some((pair) => pair.key === currentKey)
-  }, [currentKey, pairs])
+    return pairs.some(
+      (pair) => normalizePairKey(pair.key) === normalizedCurrentKey
+    )
+  }, [normalizedCurrentKey, pairs])
 
   const addPair = () => {
+    if (!normalizedCurrentKey || !normalizedCurrentValue || valueInvalid) return
+
     if (currentKeyExists()) {
       setHasOnlyUniqueKeys(false)
       if (uniqueKeys) return
@@ -59,8 +76,8 @@ export default function InputKeyValue({
     setPairs((prev) => [
       ...prev,
       {
-        key: currentKey,
-        value: currentValue
+        key: normalizedCurrentKey,
+        value: normalizedCurrentValue
       }
     ])
     setCurrentKey('')
@@ -75,24 +92,39 @@ export default function InputKeyValue({
   }
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
-    const checkType = e.target.name.search('key')
-    checkType > 0
-      ? setCurrentKey(e.target.value)
-      : setCurrentValue(e.target.value)
+    const isKeyField = e.target.name.endsWith('.key')
+    isKeyField ? setCurrentKey(e.target.value) : setCurrentValue(e.target.value)
 
     return e
   }
 
   useEffect(() => {
-    form.setFieldValue(`${field.name}`, pairs)
+    const incoming = value || []
+    setPairs((prev) =>
+      JSON.stringify(prev) === JSON.stringify(incoming) ? prev : incoming
+    )
+  }, [value])
+
+  useEffect(() => {
+    form.setFieldValue(field.name, pairs)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pairs])
 
   useEffect(() => {
     setDisabledButton(
-      !currentKey || !currentValue || (uniqueKeys && currentKeyExists())
+      !normalizedCurrentKey ||
+        !normalizedCurrentValue ||
+        (uniqueKeys && currentKeyExists()) ||
+        valueInvalid
     )
     setHasOnlyUniqueKeys(!currentKeyExists())
-  }, [currentKey, currentValue, uniqueKeys, currentKeyExists])
+  }, [
+    normalizedCurrentKey,
+    normalizedCurrentValue,
+    uniqueKeys,
+    currentKeyExists,
+    valueInvalid
+  ])
 
   return (
     <div
@@ -100,36 +132,49 @@ export default function InputKeyValue({
         hasError: uniqueKeys && !hasOnlyUniqueKeys
       })}
     >
-      <Label htmlFor={props.name}>
-        {label}
-        {props.required && (
-          <span title="Required" className={styles.required}>
-            *
-          </span>
-        )}
-        {help && !prominentHelp && (
-          <Tooltip content={<Markdown text={help} />} />
-        )}
-      </Label>
+      {label && (
+        <Label htmlFor={props.name}>
+          {label}
+          {props.required && (
+            <span title="Required" className={styles.required}>
+              *
+            </span>
+          )}
+          {help && !prominentHelp && (
+            <Tooltip content={<Markdown text={help} />} />
+          )}
+        </Label>
+      )}
 
       <div className={styles.pairsContainer}>
-        <InputElement
-          className={styles.keyInput}
-          name={`${field.name}.key`}
-          placeholder={keyPlaceholder}
-          value={`${currentKey}`}
-          onChange={handleChange}
-          disabled={disabled}
-        />
+        <div className={styles.fieldCol}>
+          {keyLabel && <Label htmlFor={`${field.name}.key`}>{keyLabel}</Label>}
+          <InputElement
+            className={styles.keyInput}
+            name={`${field.name}.key`}
+            placeholder={keyPlaceholder}
+            value={`${currentKey}`}
+            onChange={handleChange}
+            disabled={disabled}
+          />
+        </div>
 
-        <InputElement
-          className={styles.input}
-          name={`${field.name}.value`}
-          placeholder={valuePlaceholder}
-          value={`${currentValue}`}
-          onChange={handleChange}
-          disabled={disabled}
-        />
+        <div className={cx({ fieldCol: true, valueError: valueInvalid })}>
+          {valueLabel && (
+            <Label htmlFor={`${field.name}.value`}>{valueLabel}</Label>
+          )}
+          <InputElement
+            className={styles.input}
+            name={`${field.name}.value`}
+            placeholder={valuePlaceholder}
+            value={`${currentValue}`}
+            onChange={handleChange}
+            disabled={disabled}
+          />
+          {valueInvalid && (
+            <p className={styles.error}>Please enter a valid URL.</p>
+          )}
+        </div>
 
         <PublishButton
           icon="add"

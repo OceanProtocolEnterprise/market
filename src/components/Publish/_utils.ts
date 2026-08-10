@@ -9,12 +9,11 @@ import {
   NftFactory,
   ZERO_ADDRESS,
   getEventFromTx,
-  ProviderInstance,
   FileInfo
 } from '@oceanprotocol/lib'
 import { mapTimeoutStringToSeconds, normalizeFile } from '@utils/ddo'
 import { generateNftCreateData } from '@utils/nft'
-import { getEncryptedFiles } from '@utils/provider'
+import { encryptProviderData, getEncryptedFiles } from '@utils/provider'
 import slugify from 'slugify'
 import { algorithmContainerPresets } from './_constants'
 import {
@@ -54,7 +53,7 @@ import {
 } from 'src/@types/ddo/Credentials'
 import { isS3File, getS3Access } from 'src/@types/S3File'
 import * as VCDataModel from 'src/@types/ddo/VerifiableCredential'
-import { convertLinks } from '@utils/links'
+import { convertLinks, keyValuePairsToRecord } from '@utils/links'
 import { License } from 'src/@types/ddo/License'
 import { RemoteObject } from 'src/@types/ddo/RemoteObject'
 import base64url from 'base64url'
@@ -570,6 +569,8 @@ export async function transformPublishFormToDdo(
     description,
     tags,
     author,
+    providedBy,
+    copyrightHolder,
     termsAndConditions,
     dockerImage,
     dockerImageCustom,
@@ -685,6 +686,7 @@ export async function transformPublishFormToDdo(
     },
     tags: transformTags(tags),
     author,
+    links: keyValuePairsToRecord(metadata.links),
     license,
     additionalInformation: {
       termsAndConditions
@@ -716,8 +718,8 @@ export async function transformPublishFormToDdo(
           }
         }
       }),
-    copyrightHolder: '',
-    providedBy: ''
+    copyrightHolder: copyrightHolder || '',
+    providedBy: providedBy || ''
   }
   let fileObject: any
   if (files[0] && isS3File(files[0])) {
@@ -891,23 +893,12 @@ export async function buildDdoIpfsUploadPayload(
 
   if (!encryptAsset) return data
 
-  let encryptedData: string
-  try {
-    encryptedData = await ProviderInstance.encrypt(
-      data,
-      asset.credentialSubject?.chainId,
-      providerUrl,
-      owner
-    )
-  } catch (error) {
-    LoggerInstance.error(
-      '[Provider Encrypt DDO IPFS Payload] Error:',
-      error instanceof Error ? error.message : error
-    )
-  }
-
-  if (!encryptedData)
-    throw new Error('No encrypted DDO received. Please try again.')
+  const encryptedData = await encryptProviderData(
+    data,
+    asset.credentialSubject?.chainId,
+    providerUrl,
+    owner
+  )
 
   return { encryptedData }
 }
@@ -1009,17 +1000,13 @@ export async function signAssetAndUploadToIpfs(
   let flags: number = 0
   let metadataIPFS: string
   if (encryptAsset) {
-    try {
-      metadataIPFS = await ProviderInstance.encrypt(
-        remoteAsset,
-        asset.credentialSubject?.chainId,
-        providerUrl,
-        owner
-      )
-      flags = 2
-    } catch (error) {
-      LoggerInstance.error('[Provider Encrypt] Error:', error.message)
-    }
+    metadataIPFS = await encryptProviderData(
+      remoteAsset,
+      asset.credentialSubject?.chainId,
+      providerUrl,
+      owner
+    )
+    flags = 2
   } else {
     const stringDDO: string = JSON.stringify(remoteAsset)
     const bytes: Buffer = Buffer.from(stringDDO)

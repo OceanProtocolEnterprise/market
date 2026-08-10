@@ -1,8 +1,4 @@
-import {
-  FormConsumerParameter,
-  FormPublishData,
-  FormPublishService
-} from '@components/Publish/_types'
+import { FormConsumerParameter } from '@components/Publish/_types'
 import * as Yup from 'yup'
 import { SchemaLike } from 'yup/lib/types'
 import { paramTypes } from '.'

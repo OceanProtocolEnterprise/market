@@ -1,5 +1,6 @@
 import { CredentialForm } from '@components/@shared/PolicyEditor/types'
 import { FileInfo } from '@oceanprotocol/lib'
+import type { KeyValuePair } from 'src/@types/KeyValuePair'
 import { NftMetadata } from '@utils/nft'
 import { ReactElement } from 'react'
 import { License } from 'src/@types/ddo/License'
@@ -72,6 +73,9 @@ export interface FormPublishData {
     descriptionLanguage?: string
     descriptionDirection?: string
     author: string
+    providedBy?: string
+    copyrightHolder?: string
+    links?: KeyValuePair[]
     termsAndConditions: boolean
     license?: License
     tags?: string[]

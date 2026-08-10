@@ -36,6 +36,7 @@ export default function MetadataFields(): ReactElement {
   } = useMetadata()
   const primaryUploadedLicenseDocument =
     values.metadata.uploadedLicense?.licenseDocuments?.[0]
+  const linksFieldContent = getFieldContent('links', content.metadata.fields)
 
   return (
     <>
@@ -81,6 +82,27 @@ export default function MetadataFields(): ReactElement {
         component={Input}
         name="metadata.author"
       />
+      <Field
+        {...getFieldContent('copyrightHolder', content.metadata.fields)}
+        component={Input}
+        name="metadata.copyrightHolder"
+      />
+      <Field
+        {...getFieldContent('providedBy', content.metadata.fields)}
+        component={Input}
+        name="metadata.providedBy"
+      />
+      <SectionContainer
+        title={linksFieldContent.label}
+        help={linksFieldContent.help}
+      >
+        <Field
+          {...linksFieldContent}
+          component={Input}
+          name="metadata.links"
+          hideLabel
+        />
+      </SectionContainer>
 
       <Field
         {...getFieldContent('type', content.metadata.fields)}

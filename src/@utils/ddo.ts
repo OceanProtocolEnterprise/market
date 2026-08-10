@@ -104,16 +104,6 @@ export function secondsToString(numberOfSeconds: number): string {
 }
 
 // this is required to make it work properly for preview/publish/edit/debug.
-// TODO: find a way to only have FileInfo interface instead of FileExtended
-interface FileExtended extends FileInfo {
-  url?: string
-  query?: string
-  transactionId?: string
-  address?: string
-  abi?: string
-  headers?: { key: string; value: string }[]
-}
-
 export function normalizeFile(
   storageType: StorageType,
   file: FormFileData | FormFileData[],

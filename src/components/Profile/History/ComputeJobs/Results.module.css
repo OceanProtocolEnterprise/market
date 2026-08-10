@@ -2,7 +2,6 @@
   border: 1px solid var(--ink-alpha-10);
   border-radius: 20px;
   padding: 20px;
-  /* height: 165px; */
   box-shadow: 1px 4px 8px 0 var(--black-alpha-15);
   background: #fff;
   margin-top: 1.5rem;
@@ -16,13 +15,72 @@
   margin-bottom: 1rem;
 }
 
-.downloadButton {
+.resultRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   font-family: var(--font-family);
-  font-weight: 400;
   font-size: 14px;
   line-height: 100%;
-  color: #303031;
   margin-bottom: 0.5rem;
+}
+
+.resultLabel {
+  font-weight: 400;
+  color: #303031;
+}
+
+.resultRow .tooltipWrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.downloadButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  font: inherit;
+  color: var(--clr-navy);
+  cursor: pointer;
+  transition: color 0.15s ease-out, opacity 0.15s ease-out;
+}
+
+.downloadButton::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+}
+
+.downloadButton svg {
+  width: 1em;
+  height: 1em;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.downloadButton svg path {
+  fill: currentColor;
+  transition: fill 0.15s ease-out;
+}
+
+.downloadButton:hover {
+  color: var(--ocean-blue);
+}
+
+.downloadButton:focus-visible {
+  outline: 2px solid var(--clr-navy);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.downloadButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .alert {

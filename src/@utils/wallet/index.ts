@@ -2,6 +2,7 @@
 
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { cookieStorage, createConfig, createStorage } from 'wagmi'
+import { injected } from 'wagmi/connectors'
 import { erc20Abi, http } from 'viem'
 import { localhost, type Chain } from 'wagmi/chains'
 import {
@@ -15,6 +16,7 @@ import {
 import { getOceanConfig } from '../ocean'
 import { getSupportedChains } from './chains'
 import { getAllowedErc20ChainIds, getRuntimeConfig } from '../runtimeConfig'
+import { signerServerConnector } from './signerServerConnector'
 
 export async function getDummySigner(chainId: number): Promise<Wallet> {
   const config = getOceanConfig(chainId)
@@ -55,7 +57,9 @@ export function createWagmiConfig() {
     chains,
     ssr: true,
     storage: createStorage({ storage: cookieStorage }),
-    connectors: [],
+    // Signer Server must exist when Wagmi mounts so its reconnect pass can
+    // restore that connection after a page refresh.
+    connectors: [injected({ target: 'metaMask' }), signerServerConnector()],
     transports: chains.reduce(
       (acc, chain) => ({
         ...acc,

@@ -18,6 +18,7 @@ type SessionResponse = {
     email?: string
     name?: string
     username?: string
+    organizationId?: string
   }
   authMeta?: Record<string, unknown>
   expires_in?: number
@@ -42,12 +43,14 @@ const getUserDataFromSessionResponse = (user: {
   email?: string
   name?: string
   username?: string
+  organizationId?: string
 }): User => {
   return {
     id: user.id || '',
     email: user.email || '',
     name: user.name || '',
     username: user.username,
+    organizationId: user.organizationId,
     avatar: `https://ui-avatars.com/api/?name=${user.name || ''}`,
     isOnboarded: false,
     authProvider: 'oidc'
@@ -261,12 +264,6 @@ export const useAuth = () => {
         typeof window !== 'undefined' &&
         sessionStorage.getItem(OIDC_LOGOUT_PENDING_KEY) === 'true'
       ) {
-        setSessionVerified(true)
-        return
-      }
-
-      if (!hasStoredSessionData()) {
-        applyVerificationResult(null)
         setSessionVerified(true)
         return
       }

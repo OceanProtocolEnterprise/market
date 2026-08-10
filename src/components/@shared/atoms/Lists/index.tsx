@@ -11,9 +11,5 @@ export function ListItem({ children, ol }: ListItemProps): ReactElement {
     ? `${styles.item} ${styles.olItem}`
     : `${styles.item} ${styles.ulItem}`
 
-  return (
-    <li className={classes}>
-      <span>{children}</span>
-    </li>
-  )
+  return <li className={classes}>{children}</li>
 }

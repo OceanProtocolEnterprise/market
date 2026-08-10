@@ -1,4 +1,5 @@
 import Logo from '@images/logo.svg'
+import appConfig from 'app.config.cjs'
 import { authBrandDefaults, type AuthPanelContent } from '../constants'
 import { BrandPanelIcon, BrandPanelWaves } from './BrandPanelArtwork'
 import styles from './BrandPanel.module.css'
@@ -11,6 +12,9 @@ export default function BrandPanel({ content }: BrandPanelProps) {
   const title = content.title || authBrandDefaults.title
   const description = content.description || authBrandDefaults.description
   const featureItems = content.features || authBrandDefaults.features
+  const trustBadges = authBrandDefaults.trustBadges.filter(
+    (badge) => appConfig.ssiEnabled || badge !== 'SSI Verification'
+  )
 
   return (
     <div className={styles.brandPanel}>
@@ -49,7 +53,7 @@ export default function BrandPanel({ content }: BrandPanelProps) {
         <div className={styles.bottom}>
           <p className={styles.trustLabel}>{authBrandDefaults.trustLabel}</p>
           <div className={styles.badges}>
-            {authBrandDefaults.trustBadges.map((badge) => (
+            {trustBadges.map((badge) => (
               <span key={badge} className={styles.badge}>
                 {badge}
               </span>

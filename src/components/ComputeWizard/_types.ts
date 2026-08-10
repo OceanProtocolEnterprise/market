@@ -1,6 +1,6 @@
 import { ReactElement } from 'react'
 import { UserCustomParameters } from '@oceanprotocol/lib'
-import { KeyValuePair } from '@shared/FormInput/InputElement/KeyValueInput'
+import type { KeyValuePair } from 'src/@types/KeyValuePair'
 
 export type ComputeFlow = 'dataset' | 'algorithm'
 export type QueueWaitTimeUnit = 'seconds' | 'minutes' | 'hours'

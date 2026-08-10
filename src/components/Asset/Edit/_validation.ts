@@ -1,9 +1,8 @@
-import { FileInfo } from '@oceanprotocol/lib'
 import * as Yup from 'yup'
 import { isAddress } from 'ethers'
 import { MAX_DECIMALS } from '@utils/constants'
 import { getMaxDecimalsValidation } from '@utils/numbers'
-import { getOriginalValue, testLinks } from '@utils/yup'
+import { getOriginalValue, testOptionalUrl } from '@utils/yup'
 import { validationConsumerParameters } from '@shared/FormInput/InputElement/ConsumerParameters/_validation'
 import { isS3File } from 'src/@types/S3File'
 
@@ -166,17 +165,16 @@ export const metadataValidationSchema = Yup.object().shape({
     .min(4, (param) => `Title must be at least ${param.min} characters`)
     .required('Required'),
   description: Yup.string().required('Required').min(10),
-  links: Yup.array<FileInfo[]>().of(
-    Yup.object().shape({
-      url: testLinks(true),
-      valid: Yup.boolean().test((value, context) => {
-        const { valid, url } = context.parent
-
-        if (!url) return true
-        return valid
+  copyrightHolder: Yup.string().nullable(),
+  providedBy: testOptionalUrl('Provided By must be a valid URL.'),
+  links: Yup.array()
+    .of(
+      Yup.object().shape({
+        key: Yup.string(),
+        value: testOptionalUrl('Each link must be a valid URL.')
       })
-    })
-  ),
+    )
+    .nullable(),
   tags: Yup.array<string[]>().nullable(),
   usesConsumerParameters: Yup.boolean(),
   consumerParameters: Yup.array().when('usesConsumerParameters', {

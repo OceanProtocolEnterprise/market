@@ -1,5 +1,4 @@
 import { useAccount } from 'wagmi'
-import { useModal } from 'connectkit'
 import appConfig from 'app.config.cjs'
 import { useSsiWallet } from '@context/SsiWallet'
 import useSsiAllowedChain from '@hooks/useSsiAllowedChain'
@@ -7,6 +6,10 @@ import useSsiChainGuard from '@hooks/useSsiChainGuard'
 import { useAuth } from '@hooks/useAuth'
 import { getPendingAuthMode } from '@utils/authFlow'
 import useSsiConnect from '@hooks/useSsiConnect'
+import { useDfnsConnect } from '@hooks/useDfnsConnect'
+import { useSignerServerConnect } from '@hooks/useSignerServerConnect'
+import { useMetaMaskConnect } from '@hooks/useMetaMaskConnect'
+import DfnsRegistrationModal from '@shared/DfnsRegistrationModal'
 import { authSetupCopy } from '../constants'
 import styles from './SetupPanel.module.css'
 
@@ -86,8 +89,10 @@ function getSetupSubtitle(
 
 export default function SetupPanel() {
   const { isConnected } = useAccount()
-  const { setOpen } = useModal()
+  const metaMask = useMetaMaskConnect()
   const { user, logout } = useAuth()
+  const dfns = useDfnsConnect()
+  const signerServer = useSignerServerConnect()
   const { connectSsi } = useSsiConnect()
   const { sessionToken, isSsiStateHydrated, isSsiSessionHydrating } =
     useSsiWallet()
@@ -158,7 +163,7 @@ export default function SetupPanel() {
 
   const handleAction = async () => {
     if (currentAction === 'connectWallet') {
-      setOpen(true)
+      await metaMask.connect()
       return
     }
 
@@ -223,23 +228,67 @@ export default function SetupPanel() {
           </div>
         ) : (
           <>
-            {actionLabel && (
-              <button
-                type="button"
-                className={styles.actionButton}
-                onClick={() => {
-                  handleAction().catch((error) => {
-                    console.error('SSI setup action failed:', error)
-                  })
-                }}
-                disabled={isSsiSessionHydrating}
-              >
-                {actionLabel}
-              </button>
+            {currentAction === 'connectWallet' ? (
+              <div className={styles.walletChoices}>
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={metaMask.openConnect}
+                  disabled={metaMask.isConnecting}
+                >
+                  {authSetupCopy.connectBrowserWallet}
+                </button>
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={dfns.openConnect}
+                  disabled={dfns.isConnecting}
+                >
+                  {dfns.isConnecting
+                    ? authSetupCopy.dfnsConnecting
+                    : authSetupCopy.connectDfnsWallet}
+                </button>
+                {signerServer.isConfigured && (
+                  <button
+                    type="button"
+                    className={styles.actionButton}
+                    onClick={signerServer.openConnect}
+                    disabled={signerServer.isConnecting}
+                  >
+                    {signerServer.isConnecting
+                      ? authSetupCopy.signerServerConnecting
+                      : authSetupCopy.connectSignerServer}
+                  </button>
+                )}
+              </div>
+            ) : (
+              actionLabel && (
+                <button
+                  type="button"
+                  className={styles.actionButton}
+                  onClick={() => {
+                    handleAction().catch((error) => {
+                      console.error('SSI setup action failed:', error)
+                    })
+                  }}
+                  disabled={isSsiSessionHydrating}
+                >
+                  {actionLabel}
+                </button>
+              )
             )}
           </>
         )}
       </div>
+
+      <DfnsRegistrationModal
+        isOpen={dfns.isRegistrationModalOpen}
+        registrationCode={dfns.registrationCode}
+        isConnecting={dfns.isConnecting}
+        onChange={dfns.setRegistrationCode}
+        onSubmit={dfns.submitRegistrationCode}
+        onClose={() => dfns.setIsRegistrationModalOpen(false)}
+      />
     </div>
   )
 }

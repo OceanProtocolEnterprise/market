@@ -9,6 +9,7 @@ import styles from './Account.module.css'
 import { accountTruncate } from '@utils/wallet'
 import { useAddressConfig } from '@hooks/useAddressConfig'
 import { useAuth } from '@hooks/useAuth'
+import { useConnectorSupportedChains } from '@hooks/useDfnsWalletsByChain'
 import { useAccount } from 'wagmi'
 
 export default function Account({
@@ -16,7 +17,8 @@ export default function Account({
 }: {
   accountId: string
 }): ReactElement {
-  const { chainIds, debug } = useUserPreferences()
+  const { debug } = useUserPreferences()
+  const displayedSupportedChainIds = useConnectorSupportedChains()
   const { verifiedWallets } = useAddressConfig()
   const { user, isAuthenticated, authEnabled } = useAuth()
   const { address: connectedAccountId } = useAccount()
@@ -68,7 +70,7 @@ export default function Account({
         )}
         <p>
           {accountId &&
-            chainIds.map((value) => (
+            displayedSupportedChainIds.map((value) => (
               <ExplorerLink
                 className={styles.explorer}
                 networkId={value}

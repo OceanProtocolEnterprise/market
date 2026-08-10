@@ -3,9 +3,7 @@ import { Field, Form, useFormikContext } from 'formik'
 import Input from '@shared/FormInput'
 import FormActions from './FormActions'
 import { useAsset } from '@context/Asset'
-import { getFileInfo } from '@utils/provider'
 import { getFieldContent } from '@utils/form'
-import { isGoogleUrl } from '@utils/url'
 import { MetadataEditForm } from './_types'
 import content from '../../../../content/pages/editMetadata.json'
 import consumerParametersContent from '../../../../content/publish/consumerParameters.json'
@@ -30,6 +28,7 @@ import AccessRulesSection from '@components/Publish/AccessPolicies/AccessRulesSe
 import useEditMetadata from './useEditMetadata'
 import styles from './index.module.css'
 import { FILE_UPLOAD_CONFIG } from '@components/@shared/FileUpload/helper'
+import { createLanguageValueObject } from '@utils/jsonLd'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
@@ -74,38 +73,6 @@ export default function FormEditMetadata(): ReactElement {
     }
   ]
 
-  useEffect(() => {
-    const providerUrl = asset.credentialSubject?.services[0].serviceEndpoint
-    let links = []
-    if (asset?.credentialSubject?.metadata?.links) {
-      links = Object.values(asset?.credentialSubject?.metadata?.links)
-    }
-
-    links[0] &&
-      getFileInfo(links[0], providerUrl, 'url').then((checkedFile) => {
-        if (isGoogleUrl(links[0])) {
-          setFieldValue('links', [
-            {
-              url: links[0],
-              valid: false
-            }
-          ])
-          return
-        }
-        setFieldValue('links', [
-          {
-            url: links[0],
-            type: 'url',
-            ...checkedFile[0]
-          }
-        ])
-      })
-  }, [
-    asset.credentialSubject?.metadata?.links,
-    asset.credentialSubject?.services,
-    setFieldValue
-  ])
-
   async function handleLicenseFileUpload(
     fileItem: FileItem,
     onError: () => void
@@ -117,16 +84,16 @@ export default function FormEditMetadata(): ReactElement {
         fileType: fileItem.name.split('.').pop(),
         sha256: fileItem.checksum,
         additionalInformation: {},
-        description: {
-          '@value': '',
-          '@direction': '',
-          '@language': ''
-        },
-        displayName: {
-          '@value': fileItem.name,
-          '@language': '',
-          '@direction': ''
-        },
+        description: createLanguageValueObject(
+          '',
+          values.descriptionLanguage,
+          values.descriptionDirection
+        ),
+        displayName: createLanguageValueObject(
+          fileItem.name,
+          values.descriptionLanguage,
+          values.descriptionDirection
+        ),
         mirrors: [remoteSource]
       }
 
@@ -174,6 +141,7 @@ export default function FormEditMetadata(): ReactElement {
 
   const primaryUploadedLicenseDocument =
     values.uploadedLicense?.licenseDocuments?.[0]
+  const linksFieldContent = getFieldContent('links', data)
 
   return (
     <Form>
@@ -211,12 +179,6 @@ export default function FormEditMetadata(): ReactElement {
           name="descriptionDirection"
           readOnly
         />
-        {/* <Field
-          {...getFieldContent('links', data)}
-          component={Input}
-          name="links"
-        /> */}
-
         <Field
           {...getFieldContent('tags', data)}
           component={Input}
@@ -228,6 +190,27 @@ export default function FormEditMetadata(): ReactElement {
           component={Input}
           name="author"
         />
+        <Field
+          {...getFieldContent('copyrightHolder', data)}
+          component={Input}
+          name="copyrightHolder"
+        />
+        <Field
+          {...getFieldContent('providedBy', data)}
+          component={Input}
+          name="providedBy"
+        />
+        <SectionContainer
+          title={linksFieldContent.label}
+          help={linksFieldContent.help}
+        >
+          <Field
+            {...linksFieldContent}
+            component={Input}
+            name="links"
+            hideLabel
+          />
+        </SectionContainer>
         {asset.credentialSubject?.metadata?.type === 'algorithm' && (
           <>
             <Field
