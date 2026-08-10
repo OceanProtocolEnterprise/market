@@ -28,6 +28,7 @@ import AccessRulesSection from '@components/Publish/AccessPolicies/AccessRulesSe
 import useEditMetadata from './useEditMetadata'
 import styles from './index.module.css'
 import { FILE_UPLOAD_CONFIG } from '@components/@shared/FileUpload/helper'
+import { createLanguageValueObject } from '@utils/jsonLd'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
@@ -83,16 +84,16 @@ export default function FormEditMetadata(): ReactElement {
         fileType: fileItem.name.split('.').pop(),
         sha256: fileItem.checksum,
         additionalInformation: {},
-        description: {
-          '@value': '',
-          '@direction': '',
-          '@language': ''
-        },
-        displayName: {
-          '@value': fileItem.name,
-          '@language': '',
-          '@direction': ''
-        },
+        description: createLanguageValueObject(
+          '',
+          values.descriptionLanguage,
+          values.descriptionDirection
+        ),
+        displayName: createLanguageValueObject(
+          fileItem.name,
+          values.descriptionLanguage,
+          values.descriptionDirection
+        ),
         mirrors: [remoteSource]
       }
 
