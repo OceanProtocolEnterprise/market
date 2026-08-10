@@ -42,6 +42,11 @@ import {
 } from '@utils/computeRerun'
 import { getAsset } from '@utils/aquarius'
 import { toast } from 'react-toastify'
+import {
+  isSsiPolicyConsumptionDisabled,
+  SSI_POLICY_UNSUPPORTED_MESSAGE
+} from '@utils/credentials'
+import Alert from '@shared/atoms/Alert'
 
 function isNftActive(state: unknown): boolean {
   return Number(state) === 0
@@ -88,6 +93,10 @@ export default function AssetActions({
   const [isComputePopupOpen, setIsComputePopupOpen] = useState<boolean>(false)
   const [rerunConfig, setRerunConfig] = useState<ComputeRerunConfig>()
   const processedRerunJobRef = useRef<string | null>(null)
+  const isSsiConsumptionDisabled = isSsiPolicyConsumptionDisabled(
+    asset,
+    appConfig.ssiEnabled
+  )
 
   // TODO: using this for the publish preview works fine, but produces a console warning
   // on asset details page as there is no formik context there:
@@ -252,6 +261,7 @@ export default function AssetActions({
   const salesCount = asset.indexedMetadata?.stats?.[0]?.orders || 0
 
   const handleComputeClick = () => {
+    if (isSsiConsumptionDisabled) return
     setIsComputePopupOpen(true)
   }
 
@@ -285,6 +295,11 @@ export default function AssetActions({
   useEffect(() => {
     if (!router.isReady || !isCompute || !rerunJobId) return
     if (processedRerunJobRef.current === rerunJobId) return
+
+    if (isSsiConsumptionDisabled) {
+      clearRerunQueryFromUrl()
+      return
+    }
 
     processedRerunJobRef.current = rerunJobId
     let cancelled = false
@@ -362,7 +377,8 @@ export default function AssetActions({
     isCompute,
     asset.id,
     clearRerunQueryFromUrl,
-    newCancelToken
+    newCancelToken,
+    isSsiConsumptionDisabled
   ])
 
   function resetCacheWallet() {
@@ -444,7 +460,7 @@ export default function AssetActions({
                 style="primary"
                 onClick={handleComputeClick}
                 className={styles.computeButton}
-                disabled={!isAccountIdWhitelisted}
+                disabled={isSsiConsumptionDisabled || !isAccountIdWhitelisted}
               >
                 Start Compute
               </Button>
@@ -472,7 +488,7 @@ export default function AssetActions({
               style="primary"
               onClick={handleComputeClick}
               className={styles.computeButton}
-              disabled={!isAccountIdWhitelisted}
+              disabled={isSsiConsumptionDisabled || !isAccountIdWhitelisted}
             >
               Start Compute
             </Button>
@@ -494,9 +510,12 @@ export default function AssetActions({
             />
           )}
         </div>
+        {isSsiConsumptionDisabled && (
+          <Alert state="warning" text={SSI_POLICY_UNSUPPORTED_MESSAGE} />
+        )}
       </div>
 
-      {isCompute && isComputePopupOpen && (
+      {!isSsiConsumptionDisabled && isCompute && isComputePopupOpen && (
         <div className={styles.computePopup}>
           <div className={styles.computePopupContent}>
             <button

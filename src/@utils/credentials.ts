@@ -4,6 +4,16 @@ import {
   CredentialPolicyBased
 } from 'src/@types/ddo/Credentials'
 
+interface AssetCredentials {
+  credentialSubject?: {
+    credentials?: Credential
+    services?: { credentials?: Credential }[]
+  }
+}
+
+export const SSI_POLICY_UNSUPPORTED_MESSAGE =
+  'The asset has SSI policies defined and cannot be consumed through this marketplace.'
+
 export function isCredentialAddressBased(
   credential: CredentialAddressBased | CredentialPolicyBased
 ): credential is CredentialAddressBased {
@@ -47,4 +57,26 @@ export function requiresSsi(credentials?: Credential): boolean {
   }
 
   return false
+}
+
+export function hasSsiPolicy(credentials?: Credential): boolean {
+  return Boolean(
+    credentials?.allow?.some((credential) => credential.type === 'SSIpolicy')
+  )
+}
+
+export function assetHasSsiPolicy(asset?: AssetCredentials): boolean {
+  return Boolean(
+    hasSsiPolicy(asset?.credentialSubject?.credentials) ||
+      asset?.credentialSubject?.services?.some((service) =>
+        hasSsiPolicy(service.credentials)
+      )
+  )
+}
+
+export function isSsiPolicyConsumptionDisabled(
+  asset: AssetCredentials,
+  ssiEnabled: boolean
+): boolean {
+  return !ssiEnabled && assetHasSsiPolicy(asset)
 }

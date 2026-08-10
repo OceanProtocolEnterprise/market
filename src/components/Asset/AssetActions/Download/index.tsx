@@ -55,6 +55,7 @@ import { getDefaultValues } from '../ConsumerParameters/FormConsumerParameters'
 import { getTokenInfo, getTokenBalance } from '@utils/wallet'
 import useBalance from '@hooks/useBalance'
 import { getConsumeMarketFeeWei } from '@utils/consumeMarketFee'
+import { isSsiPolicyConsumptionDisabled } from '@utils/credentials'
 
 export default function Download({
   accountId,
@@ -83,6 +84,10 @@ export default function Download({
   fileIsLoading?: boolean
   consumableFeedback?: string
 }): ReactElement {
+  const isSsiConsumptionDisabled = isSsiPolicyConsumptionDisabled(
+    asset,
+    appConfig.ssiEnabled
+  )
   const { isConnected } = useAccount()
   const { isSupportedOceanNetwork } = useNetworkMetadata()
   const { isInPurgatory, isAssetNetwork } = useAsset()
@@ -352,6 +357,8 @@ export default function Download({
 
   async function handleFormSubmit(values: any) {
     try {
+      if (isSsiConsumptionDisabled) return
+
       const skip = lookupVerifierSessionIdSkip(asset.id, service.id)
       if (appConfig.ssiEnabled && !skip) {
         const result = await checkVerifierSessionId(
@@ -391,7 +398,10 @@ export default function Download({
       <ButtonBuy
         action="download"
         disabled={
-          !isValid || !isBalanceSufficient || (isOwned ? !isValid : false)
+          isSsiConsumptionDisabled ||
+          !isValid ||
+          !isBalanceSufficient ||
+          (isOwned ? !isValid : false)
         }
         hasPreviousOrder={isOwned}
         hasDatatoken={hasDatatoken}
@@ -623,6 +633,8 @@ export default function Download({
       validateOnMount
       validationSchema={getDownloadValidationSchema(service.consumerParameters)}
       onSubmit={(values) => {
+        if (isSsiConsumptionDisabled) return
+
         if (
           !(
             lookupVerifierSessionId(asset.id, service.id) ||
