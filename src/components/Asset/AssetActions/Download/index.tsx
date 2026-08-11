@@ -391,6 +391,7 @@ export default function Download({
       onClick={handleFullPrice}
       stepText={statusText}
       isLoading={isLoading}
+      disabled={isSsiConsumptionDisabled}
     />
   )
 
@@ -705,12 +706,14 @@ export default function Download({
               {!isOwner &&
                 (isFullPriceLoading ? (
                   <>
-                    <div className={styles.noMarginAlert}>
-                      <Alert
-                        state="success"
-                        text="SSI credential verification passed"
-                      />
-                    </div>
+                    {appConfig.ssiEnabled && (
+                      <div className={styles.noMarginAlert}>
+                        <Alert
+                          state="success"
+                          text="SSI credential verification passed"
+                        />
+                      </div>
+                    )}
                     <CalculateButton />
                   </>
                 ) : (
