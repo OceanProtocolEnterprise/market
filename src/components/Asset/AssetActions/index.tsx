@@ -95,7 +95,8 @@ export default function AssetActions({
   const processedRerunJobRef = useRef<string | null>(null)
   const isSsiConsumptionDisabled = isSsiPolicyConsumptionDisabled(
     asset,
-    appConfig.ssiEnabled
+    appConfig.ssiEnabled,
+    service
   )
 
   // TODO: using this for the publish preview works fine, but produces a console warning

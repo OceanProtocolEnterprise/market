@@ -86,7 +86,8 @@ export default function Download({
 }): ReactElement {
   const isSsiConsumptionDisabled = isSsiPolicyConsumptionDisabled(
     asset,
-    appConfig.ssiEnabled
+    appConfig.ssiEnabled,
+    service
   )
   const { isConnected } = useAccount()
   const { isSupportedOceanNetwork } = useNetworkMetadata()
