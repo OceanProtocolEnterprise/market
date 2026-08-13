@@ -18,6 +18,26 @@ import {
   PolicyServerPrimitive
 } from 'src/@types/PolicyServer'
 
+const POLICY_SERVER_STATUS_TIMEOUT = 10_000
+
+export async function getIsPolicyServerConfigured(
+  serviceEndpoint: string,
+  signal?: AbortSignal
+): Promise<boolean> {
+  const nodeUrl = serviceEndpoint.replace(/\/+$/, '')
+  const response = await axios.post(
+    `${nodeUrl}/directCommand`,
+    { command: 'status' },
+    { signal, timeout: POLICY_SERVER_STATUS_TIMEOUT }
+  )
+
+  if (typeof response.data?.isPSConfigured !== 'boolean') {
+    throw new Error('Ocean node status returned an invalid response.')
+  }
+
+  return response.data.isPSConfigured
+}
+
 export async function requestCredentialPresentation(
   asset: Asset,
   consumerAddress: string,

@@ -68,7 +68,8 @@ export default function Download({
   setIsBalanceSufficient,
   dtBalance,
   isAccountIdWhitelisted,
-  consumableFeedback
+  consumableFeedback,
+  isPSConfigured
 }: {
   accountId: string
   signer: Signer
@@ -83,12 +84,14 @@ export default function Download({
   isAccountIdWhitelisted: boolean
   fileIsLoading?: boolean
   consumableFeedback?: string
+  isPSConfigured: boolean
 }): ReactElement {
   const isSsiConsumptionDisabled = isSsiPolicyConsumptionDisabled(
     asset,
     appConfig.ssiEnabled,
     service
   )
+  const requiresCredentialCheck = appConfig.ssiEnabled && isPSConfigured
   const { isConnected } = useAccount()
   const { isSupportedOceanNetwork } = useNetworkMetadata()
   const { isInPurgatory, isAssetNetwork } = useAsset()
@@ -361,7 +364,7 @@ export default function Download({
       if (isSsiConsumptionDisabled) return
 
       const skip = lookupVerifierSessionIdSkip(asset.id, service.id)
-      if (appConfig.ssiEnabled && !skip) {
+      if (requiresCredentialCheck && !skip) {
         const result = await checkVerifierSessionId(
           lookupVerifierSessionId(asset.id, service.id)
         )
@@ -642,7 +645,7 @@ export default function Download({
             lookupVerifierSessionId(asset.id, service.id) ||
             lookupVerifierSessionIdSkip(asset.id, service.id)
           ) &&
-          appConfig.ssiEnabled
+          requiresCredentialCheck
         ) {
           return
         }
@@ -675,7 +678,7 @@ export default function Download({
           const hasSession = Boolean(
             sessionId || localSession || credentialCheckComplete
           )
-          const canRenderConsume = !appConfig.ssiEnabled || hasSession
+          const canRenderConsume = !requiresCredentialCheck || hasSession
 
           if (!canRenderConsume) {
             return (
@@ -700,13 +703,13 @@ export default function Download({
           return (
             <aside
               className={`${styles.consume} ${
-                appConfig.ssiEnabled && hasSession ? styles.tighterStack : ''
+                requiresCredentialCheck && hasSession ? styles.tighterStack : ''
               }`}
             >
               {!isOwner &&
                 (isFullPriceLoading ? (
                   <>
-                    {appConfig.ssiEnabled && (
+                    {requiresCredentialCheck && (
                       <div className={styles.noMarginAlert}>
                         <Alert
                           state="success"

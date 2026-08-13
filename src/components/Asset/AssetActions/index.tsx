@@ -42,6 +42,8 @@ import {
 } from '@utils/computeRerun'
 import { getAsset } from '@utils/aquarius'
 import { toast } from 'react-toastify'
+import { getIsPolicyServerConfigured } from '@utils/wallet/policyServer'
+import Loader from '@shared/atoms/Loader'
 import {
   isSsiPolicyConsumptionDisabled,
   SSI_POLICY_UNSUPPORTED_MESSAGE
@@ -93,11 +95,40 @@ export default function AssetActions({
   const [isComputePopupOpen, setIsComputePopupOpen] = useState<boolean>(false)
   const [rerunConfig, setRerunConfig] = useState<ComputeRerunConfig>()
   const processedRerunJobRef = useRef<string | null>(null)
+  const [isPSConfigured, setIsPSConfigured] = useState<boolean | undefined>()
   const isSsiConsumptionDisabled = isSsiPolicyConsumptionDisabled(
     asset,
     appConfig.ssiEnabled,
     service
   )
+
+  useEffect(() => {
+    if (!appConfig.ssiEnabled) {
+      setIsPSConfigured(false)
+      return
+    }
+
+    const controller = new AbortController()
+    setIsPSConfigured(undefined)
+
+    getIsPolicyServerConfigured(service.serviceEndpoint, controller.signal)
+      .then((configured) => {
+        if (!controller.signal.aborted) setIsPSConfigured(configured)
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return
+        LoggerInstance.warn(
+          '[Policy Server Status] Keeping credential verification enabled:',
+          error
+        )
+        setIsPSConfigured(true)
+      })
+
+    return () => controller.abort()
+  }, [service.serviceEndpoint])
+
+  const isPolicyServerStatusLoading =
+    appConfig.ssiEnabled && isPSConfigured === undefined
 
   // TODO: using this for the publish preview works fine, but produces a console warning
   // on asset details page as there is no formik context there:
@@ -455,7 +486,9 @@ export default function AssetActions({
             <span className={styles.ownerMessage}>
               You are the asset owner.
             </span>
-          ) : appConfig.ssiEnabled ? (
+          ) : isPolicyServerStatusLoading ? (
+            <Loader message="Checking credential requirements..." />
+          ) : appConfig.ssiEnabled && isPSConfigured ? (
             isCompute ? (
               <Button
                 style="primary"
@@ -480,6 +513,7 @@ export default function AssetActions({
                 file={fileMetadata}
                 fileIsLoading={fileIsLoading}
                 consumableFeedback={consumableFeedback}
+                isPSConfigured={isPSConfigured === true}
               />
             ) : (
               <AssetActionCheckCredentials asset={asset} service={service} />
@@ -508,6 +542,7 @@ export default function AssetActions({
               file={fileMetadata}
               fileIsLoading={fileIsLoading}
               consumableFeedback={consumableFeedback}
+              isPSConfigured={isPSConfigured === true}
             />
           )}
         </div>
