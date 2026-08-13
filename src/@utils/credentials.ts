@@ -18,6 +18,9 @@ interface ServiceCredentials {
 export const SSI_POLICY_UNSUPPORTED_MESSAGE =
   'The asset has SSI policies defined and cannot be consumed through this marketplace.'
 
+export const SSI_NODE_UNSUPPORTED_MESSAGE =
+  'The asset is encrypted on a node that performs SSI validation and cannot be consumed through this marketplace.'
+
 export function isCredentialAddressBased(
   credential: CredentialAddressBased | CredentialPolicyBased
 ): credential is CredentialAddressBased {
@@ -85,4 +88,11 @@ export function isSsiPolicyConsumptionDisabled(
   selectedService?: ServiceCredentials
 ): boolean {
   return !ssiEnabled && assetHasSsiPolicy(asset, selectedService)
+}
+
+export function isPolicyServerConsumptionDisabled(
+  ssiEnabled: boolean,
+  isPSConfigured: boolean
+): boolean {
+  return !ssiEnabled && isPSConfigured
 }

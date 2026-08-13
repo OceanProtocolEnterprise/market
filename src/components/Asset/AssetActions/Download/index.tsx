@@ -55,7 +55,10 @@ import { getDefaultValues } from '../ConsumerParameters/FormConsumerParameters'
 import { getTokenInfo, getTokenBalance } from '@utils/wallet'
 import useBalance from '@hooks/useBalance'
 import { getConsumeMarketFeeWei } from '@utils/consumeMarketFee'
-import { isSsiPolicyConsumptionDisabled } from '@utils/credentials'
+import {
+  isPolicyServerConsumptionDisabled,
+  isSsiPolicyConsumptionDisabled
+} from '@utils/credentials'
 
 export default function Download({
   accountId,
@@ -92,6 +95,12 @@ export default function Download({
     service
   )
   const requiresCredentialCheck = appConfig.ssiEnabled && isPSConfigured
+  const isPolicyServerUnsupported = isPolicyServerConsumptionDisabled(
+    appConfig.ssiEnabled,
+    isPSConfigured
+  )
+  const isConsumptionDisabled =
+    isSsiConsumptionDisabled || isPolicyServerUnsupported
   const { isConnected } = useAccount()
   const { isSupportedOceanNetwork } = useNetworkMetadata()
   const { isInPurgatory, isAssetNetwork } = useAsset()
@@ -361,7 +370,7 @@ export default function Download({
 
   async function handleFormSubmit(values: any) {
     try {
-      if (isSsiConsumptionDisabled) return
+      if (isConsumptionDisabled) return
 
       const skip = lookupVerifierSessionIdSkip(asset.id, service.id)
       if (requiresCredentialCheck && !skip) {
@@ -394,7 +403,7 @@ export default function Download({
       onClick={handleFullPrice}
       stepText={statusText}
       isLoading={isLoading}
-      disabled={isSsiConsumptionDisabled}
+      disabled={isConsumptionDisabled}
     />
   )
 
@@ -403,7 +412,7 @@ export default function Download({
       <ButtonBuy
         action="download"
         disabled={
-          isSsiConsumptionDisabled ||
+          isConsumptionDisabled ||
           !isValid ||
           !isBalanceSufficient ||
           (isOwned ? !isValid : false)
@@ -638,7 +647,7 @@ export default function Download({
       validateOnMount
       validationSchema={getDownloadValidationSchema(service.consumerParameters)}
       onSubmit={(values) => {
-        if (isSsiConsumptionDisabled) return
+        if (isConsumptionDisabled) return
 
         if (
           !(

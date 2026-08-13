@@ -45,7 +45,9 @@ import { toast } from 'react-toastify'
 import { getIsPolicyServerConfigured } from '@utils/wallet/policyServer'
 import Loader from '@shared/atoms/Loader'
 import {
+  isPolicyServerConsumptionDisabled,
   isSsiPolicyConsumptionDisabled,
+  SSI_NODE_UNSUPPORTED_MESSAGE,
   SSI_POLICY_UNSUPPORTED_MESSAGE
 } from '@utils/credentials'
 import Alert from '@shared/atoms/Alert'
@@ -103,11 +105,6 @@ export default function AssetActions({
   )
 
   useEffect(() => {
-    if (!appConfig.ssiEnabled) {
-      setIsPSConfigured(false)
-      return
-    }
-
     const controller = new AbortController()
     setIsPSConfigured(undefined)
 
@@ -118,7 +115,7 @@ export default function AssetActions({
       .catch((error) => {
         if (controller.signal.aborted) return
         LoggerInstance.warn(
-          '[Policy Server Status] Keeping credential verification enabled:',
+          '[Policy Server Status] Treating policy server as configured:',
           error
         )
         setIsPSConfigured(true)
@@ -127,8 +124,13 @@ export default function AssetActions({
     return () => controller.abort()
   }, [service.serviceEndpoint])
 
-  const isPolicyServerStatusLoading =
-    appConfig.ssiEnabled && isPSConfigured === undefined
+  const isPolicyServerStatusLoading = isPSConfigured === undefined
+  const isPolicyServerUnsupported = isPolicyServerConsumptionDisabled(
+    appConfig.ssiEnabled,
+    isPSConfigured === true
+  )
+  const isConsumptionDisabled =
+    isSsiConsumptionDisabled || isPolicyServerUnsupported
 
   // TODO: using this for the publish preview works fine, but produces a console warning
   // on asset details page as there is no formik context there:
@@ -293,7 +295,7 @@ export default function AssetActions({
   const salesCount = asset.indexedMetadata?.stats?.[0]?.orders || 0
 
   const handleComputeClick = () => {
-    if (isSsiConsumptionDisabled) return
+    if (isConsumptionDisabled) return
     setIsComputePopupOpen(true)
   }
 
@@ -326,9 +328,10 @@ export default function AssetActions({
 
   useEffect(() => {
     if (!router.isReady || !isCompute || !rerunJobId) return
+    if (isPolicyServerStatusLoading) return
     if (processedRerunJobRef.current === rerunJobId) return
 
-    if (isSsiConsumptionDisabled) {
+    if (isConsumptionDisabled) {
       clearRerunQueryFromUrl()
       return
     }
@@ -410,7 +413,8 @@ export default function AssetActions({
     asset.id,
     clearRerunQueryFromUrl,
     newCancelToken,
-    isSsiConsumptionDisabled
+    isConsumptionDisabled,
+    isPolicyServerStatusLoading
   ])
 
   function resetCacheWallet() {
@@ -494,7 +498,7 @@ export default function AssetActions({
                 style="primary"
                 onClick={handleComputeClick}
                 className={styles.computeButton}
-                disabled={isSsiConsumptionDisabled || !isAccountIdWhitelisted}
+                disabled={isConsumptionDisabled || !isAccountIdWhitelisted}
               >
                 Start Compute
               </Button>
@@ -523,7 +527,7 @@ export default function AssetActions({
               style="primary"
               onClick={handleComputeClick}
               className={styles.computeButton}
-              disabled={isSsiConsumptionDisabled || !isAccountIdWhitelisted}
+              disabled={isConsumptionDisabled || !isAccountIdWhitelisted}
             >
               Start Compute
             </Button>
@@ -546,12 +550,14 @@ export default function AssetActions({
             />
           )}
         </div>
-        {isSsiConsumptionDisabled && (
+        {isPolicyServerUnsupported ? (
+          <Alert state="warning" text={SSI_NODE_UNSUPPORTED_MESSAGE} />
+        ) : isSsiConsumptionDisabled ? (
           <Alert state="warning" text={SSI_POLICY_UNSUPPORTED_MESSAGE} />
-        )}
+        ) : null}
       </div>
 
-      {!isSsiConsumptionDisabled && isCompute && isComputePopupOpen && (
+      {!isConsumptionDisabled && isCompute && isComputePopupOpen && (
         <div className={styles.computePopup}>
           <div className={styles.computePopupContent}>
             <button
