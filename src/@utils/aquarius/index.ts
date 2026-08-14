@@ -1238,12 +1238,13 @@ export async function getUserOrders(
   const filters: FilterTerm[] = []
   const filterTermKeyword = filterTerm || 'consumer.keyword'
   filters.push(getFilterTerm(filterTermKeyword, accountId))
+  const size = 1000
   const baseQueryparams = {
     filters,
     ignorePurgatory: true,
     esPaginationOptions: {
-      from: page || 0,
-      size: 1000
+      from: page && page > 0 ? (page - 1) * size : 0,
+      size
     }
   } as BaseQueryParams
   const query = generateBaseQuery(baseQueryparams, 'order', true)
