@@ -96,3 +96,10 @@ export function isPolicyServerConsumptionDisabled(
 ): boolean {
   return !ssiEnabled && isPSConfigured
 }
+
+export function requiresPolicyServerCredentialCheck(
+  ssiEnabled: boolean,
+  isPSConfigured: boolean
+): boolean {
+  return ssiEnabled && isPSConfigured
+}
