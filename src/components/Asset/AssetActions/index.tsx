@@ -42,6 +42,15 @@ import {
 } from '@utils/computeRerun'
 import { getAsset } from '@utils/aquarius'
 import { toast } from 'react-toastify'
+import { getIsPolicyServerConfigured } from '@utils/wallet/policyServer'
+import Loader from '@shared/atoms/Loader'
+import {
+  isPolicyServerConsumptionDisabled,
+  isSsiPolicyConsumptionDisabled,
+  SSI_NODE_UNSUPPORTED_MESSAGE,
+  SSI_POLICY_UNSUPPORTED_MESSAGE
+} from '@utils/credentials'
+import Alert from '@shared/atoms/Alert'
 
 function isNftActive(state: unknown): boolean {
   return Number(state) === 0
@@ -88,6 +97,40 @@ export default function AssetActions({
   const [isComputePopupOpen, setIsComputePopupOpen] = useState<boolean>(false)
   const [rerunConfig, setRerunConfig] = useState<ComputeRerunConfig>()
   const processedRerunJobRef = useRef<string | null>(null)
+  const [isPSConfigured, setIsPSConfigured] = useState<boolean | undefined>()
+  const isSsiConsumptionDisabled = isSsiPolicyConsumptionDisabled(
+    asset,
+    appConfig.ssiEnabled,
+    service
+  )
+
+  useEffect(() => {
+    const controller = new AbortController()
+    setIsPSConfigured(undefined)
+
+    getIsPolicyServerConfigured(service.serviceEndpoint, controller.signal)
+      .then((configured) => {
+        if (!controller.signal.aborted) setIsPSConfigured(configured)
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return
+        LoggerInstance.warn(
+          '[Policy Server Status] Treating policy server as configured:',
+          error
+        )
+        setIsPSConfigured(true)
+      })
+
+    return () => controller.abort()
+  }, [service.serviceEndpoint])
+
+  const isPolicyServerStatusLoading = isPSConfigured === undefined
+  const isPolicyServerUnsupported = isPolicyServerConsumptionDisabled(
+    appConfig.ssiEnabled,
+    isPSConfigured === true
+  )
+  const isConsumptionDisabled =
+    isSsiConsumptionDisabled || isPolicyServerUnsupported
 
   // TODO: using this for the publish preview works fine, but produces a console warning
   // on asset details page as there is no formik context there:
@@ -252,6 +295,7 @@ export default function AssetActions({
   const salesCount = asset.indexedMetadata?.stats?.[0]?.orders || 0
 
   const handleComputeClick = () => {
+    if (isConsumptionDisabled) return
     setIsComputePopupOpen(true)
   }
 
@@ -284,7 +328,13 @@ export default function AssetActions({
 
   useEffect(() => {
     if (!router.isReady || !isCompute || !rerunJobId) return
+    if (isPolicyServerStatusLoading) return
     if (processedRerunJobRef.current === rerunJobId) return
+
+    if (isConsumptionDisabled) {
+      clearRerunQueryFromUrl()
+      return
+    }
 
     processedRerunJobRef.current = rerunJobId
     let cancelled = false
@@ -362,7 +412,9 @@ export default function AssetActions({
     isCompute,
     asset.id,
     clearRerunQueryFromUrl,
-    newCancelToken
+    newCancelToken,
+    isConsumptionDisabled,
+    isPolicyServerStatusLoading
   ])
 
   function resetCacheWallet() {
@@ -438,13 +490,15 @@ export default function AssetActions({
             <span className={styles.ownerMessage}>
               You are the asset owner.
             </span>
-          ) : appConfig.ssiEnabled ? (
+          ) : isPolicyServerStatusLoading ? (
+            <Loader message="Checking credential requirements..." />
+          ) : appConfig.ssiEnabled && isPSConfigured ? (
             isCompute ? (
               <Button
                 style="primary"
                 onClick={handleComputeClick}
                 className={styles.computeButton}
-                disabled={!isAccountIdWhitelisted}
+                disabled={isConsumptionDisabled || !isAccountIdWhitelisted}
               >
                 Start Compute
               </Button>
@@ -463,6 +517,7 @@ export default function AssetActions({
                 file={fileMetadata}
                 fileIsLoading={fileIsLoading}
                 consumableFeedback={consumableFeedback}
+                isPSConfigured={isPSConfigured === true}
               />
             ) : (
               <AssetActionCheckCredentials asset={asset} service={service} />
@@ -472,7 +527,7 @@ export default function AssetActions({
               style="primary"
               onClick={handleComputeClick}
               className={styles.computeButton}
-              disabled={!isAccountIdWhitelisted}
+              disabled={isConsumptionDisabled || !isAccountIdWhitelisted}
             >
               Start Compute
             </Button>
@@ -491,12 +546,18 @@ export default function AssetActions({
               file={fileMetadata}
               fileIsLoading={fileIsLoading}
               consumableFeedback={consumableFeedback}
+              isPSConfigured={isPSConfigured === true}
             />
           )}
         </div>
+        {isPolicyServerUnsupported ? (
+          <Alert state="warning" text={SSI_NODE_UNSUPPORTED_MESSAGE} />
+        ) : isSsiConsumptionDisabled ? (
+          <Alert state="warning" text={SSI_POLICY_UNSUPPORTED_MESSAGE} />
+        ) : null}
       </div>
 
-      {isCompute && isComputePopupOpen && (
+      {!isConsumptionDisabled && isCompute && isComputePopupOpen && (
         <div className={styles.computePopup}>
           <div className={styles.computePopupContent}>
             <button
