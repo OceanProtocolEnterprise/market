@@ -33,7 +33,7 @@
     "@dfns/sdk-browser": "^0.8.21",
     "@loadable/component": "^5.15.3",
     "@oceanprotocol/art": "^3.2.0",
-    "@oceanprotocol/ddo-js": "^0.1.4",
+    "@oceanprotocol/ddo-js": "^0.4.1",
     "@oceanprotocol/lib": "^8.6.2",
     "@oceanprotocol/typographies": "^0.1.0",
     "@react-spring/web": "^9.7.5",
