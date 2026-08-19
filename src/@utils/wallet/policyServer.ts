@@ -2,6 +2,7 @@
 import { ProviderInstance } from '@oceanprotocol/lib'
 import { customProviderUrl } from 'app.config.cjs'
 import axios from 'axios'
+import type { Signer } from 'ethers'
 import { Asset } from 'src/@types/Asset'
 import {
   PolicyServerCheckSessionIdAction,
@@ -41,7 +42,8 @@ export async function getIsPolicyServerConfigured(
 export async function requestCredentialPresentation(
   asset: Asset,
   consumerAddress: string,
-  serviceId: string
+  serviceId: string,
+  signer: Signer
 ): Promise<{
   success: boolean
   openid4vc: PolicyServerInitiateMessage
@@ -63,6 +65,7 @@ export async function requestCredentialPresentation(
     }
     const initializePs = await ProviderInstance.initializePSVerification(
       customProviderUrl,
+      signer,
       command
     )
     const providerSessionId =
