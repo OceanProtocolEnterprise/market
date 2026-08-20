@@ -3,6 +3,7 @@ import gdprContent from '../../content/gdpr.json'
 export interface UseGdprMetadata {
   title: string
   text: string
+  analyticsText?: string
   accept: string
   reject: string
   close: string
