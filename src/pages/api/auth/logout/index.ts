@@ -6,7 +6,7 @@ import {
   clearAuthCookies,
   IDP_END_SESSION_URL_COOKIE
 } from '../_cookies'
-import { getFederatedProvider, isMainProviderByName } from '../_federated'
+import { isMainProviderByName } from '../_federated'
 import { getLoginSource, getWellKnownUrl } from '../_claims'
 import { getEndSessionUrlFromWellKnown } from '../_oidc'
 import { authEnabled, oidcClientId, oidcIssuer } from 'app.config.cjs'
