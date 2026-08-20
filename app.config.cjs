@@ -236,8 +236,8 @@ module.exports = {
     getEnv('NEXT_PUBLIC_OIDC_TOKEN_URL') ||
     process.env.NEXT_PUBLIC_OIDC_TOKEN_URL ||
     null,
-  mainAuthentikName:
-    getEnv('NEXT_PUBLIC_DATASPACE_AUTHENTIK_NAME') ||
-    process.env.NEXT_PUBLIC_DATASPACE_AUTHENTIK_NAME ||
+  centralIdpName:
+    getEnv('NEXT_PUBLIC_CENTRAL_IDP_NAME') ||
+    process.env.NEXT_PUBLIC_CENTRAL_IDP_NAME ||
     null
 }

@@ -1,5 +1,5 @@
 import { getEndSessionUrlFromWellKnown } from './_oidc'
-
+import { centralIdpName } from 'app.config.cjs'
 export type FederatedProviderType = 'main' | 'partner'
 
 export interface FederatedProvider {
@@ -45,7 +45,6 @@ export async function getProviderEndSessionUrl(
 export function isMainProviderByName(loginSource?: string): boolean {
   if (!loginSource) return false
 
-  const mainProviderName =
-    process.env.NEXT_PUBLIC_DATASPACE_AUTHENTIK_NAME || 'main-oidc-app'
+  const mainProviderName = centralIdpName || 'main-oidc-provider'
   return normalize(loginSource) === normalize(mainProviderName)
 }
