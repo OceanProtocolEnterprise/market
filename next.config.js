@@ -88,11 +88,6 @@ const nextConfig = {
     ]
 
     return routes
-  },
-  api: {
-    bodyParser: {
-      sizeLimit: '1mb'
-    }
   }
 }
 
