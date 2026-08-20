@@ -6,7 +6,8 @@ import { buildClearTransientCookieStrings } from './_transient'
 import { getOidcMetadata } from './_oidc'
 import { OIDC_REQUEST_TIMEOUT_MS } from './_constants'
 import { introspectAccessToken } from './_introspect'
-import { getLoginSource } from './_claims'
+import { getLoginSource, getWellKnownUrl } from './_claims'
+import { isMainProviderByName, getProviderEndSessionUrl } from './_federated'
 import {
   authEnabled,
   oidcClientId,
@@ -144,9 +145,28 @@ export default async function handler(
     }
 
     const upstreamIdp = getLoginSource(payload)
+    const isMain = isMainProviderByName(upstreamIdp)
+    let partnerEndSessionUrl: string | undefined
+
+    if (!isMain) {
+      const wellKnownUrl = getWellKnownUrl(payload)
+      if (wellKnownUrl) {
+        try {
+          partnerEndSessionUrl = await getProviderEndSessionUrl(
+            wellKnownUrl,
+            upstreamIdp
+          )
+        } catch (error) {
+          console.warn(
+            `Failed to get end_session_url for partner ${upstreamIdp}:`,
+            error
+          )
+        }
+      }
+    }
 
     res.setHeader('Set-Cookie', [
-      ...buildAuthCookieStrings(data, upstreamIdp),
+      ...buildAuthCookieStrings(data, upstreamIdp, partnerEndSessionUrl),
       ...buildClearTransientCookieStrings()
     ])
 

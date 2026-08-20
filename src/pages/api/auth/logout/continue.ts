@@ -1,7 +1,10 @@
 /* eslint-disable camelcase */
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { decodeJwt } from 'jose'
 import { buildClearAuthCookieStrings } from '../_cookies'
 import { authEnabled, oidcClientId, oidcIssuer } from 'app.config.cjs'
+import { isMainProviderByName } from '../_federated'
+import { getLoginSource } from '../_claims'
 
 const FEDERATED_LOGOUT_CONTINUE_COOKIE = 'federated_logout_continue'
 
@@ -45,6 +48,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (req.cookies[FEDERATED_LOGOUT_CONTINUE_COOKIE] !== '1') {
+    console.info(
+      'No federated logout continuation cookie found. Redirecting to login.'
+    )
     clearLogoutCookies(res)
     return res.redirect(302, '/auth/login?loggedout=1')
   }
@@ -53,18 +59,46 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const issuer = oidcIssuer
 
   if (!clientId || !issuer) {
-    console.error('Missing OIDC configuration for logout continuation')
+    console.error(
+      'Missing Main OIDC configuration during federated logout continuation.'
+    )
     clearLogoutCookies(res)
     return res.redirect(302, '/auth/login?loggedout=1')
   }
 
   const callbackUrl = `${getRequestOrigin(req)}/auth/callback/logout`
-  const oidcParams = new URLSearchParams({ client_id: clientId })
+  const oidcParams = new URLSearchParams({
+    client_id: clientId,
+    post_logout_redirect_uri: callbackUrl,
+    state: 'logout'
+  })
+
   const idTokenHint = req.cookies.id_token
 
-  if (idTokenHint) oidcParams.set('id_token_hint', idTokenHint)
-  oidcParams.set('post_logout_redirect_uri', callbackUrl)
-  oidcParams.set('state', 'logout')
+  // Only send id_token_hint if it exists and is from the main issuer
+  if (idTokenHint) {
+    try {
+      const decoded = decodeJwt(idTokenHint)
+      const loginSource = getLoginSource(decoded)
+      const isMain = isMainProviderByName(loginSource)
+      if (isMain && decoded.iss === issuer) {
+        oidcParams.set('id_token_hint', idTokenHint)
+        console.info('Using id_token_hint for main OIDC logout continuation')
+      } else {
+        console.info('Skipping id_token_hint for partner provider continuation')
+      }
+    } catch (error) {
+      console.warn(
+        'Could not decode id_token for main logout continuation:',
+        error
+      )
+    }
+  }
+
+  console.info('Continuing logout with Main OIDC provider.')
+  console.info(
+    `Redirecting to: ${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
+  )
 
   clearLogoutCookies(res)
   return res.redirect(
