@@ -57,6 +57,7 @@ import useBalance from '@hooks/useBalance'
 import { getConsumeMarketFeeWei } from '@utils/consumeMarketFee'
 import {
   isPolicyServerConsumptionDisabled,
+  requiresPolicyServerCredentialCheck,
   isSsiPolicyConsumptionDisabled
 } from '@utils/credentials'
 
@@ -94,7 +95,10 @@ export default function Download({
     appConfig.ssiEnabled,
     service
   )
-  const requiresCredentialCheck = appConfig.ssiEnabled && isPSConfigured
+  const requiresCredentialCheck = requiresPolicyServerCredentialCheck(
+    appConfig.ssiEnabled,
+    isPSConfigured
+  )
   const isPolicyServerUnsupported = isPolicyServerConsumptionDisabled(
     appConfig.ssiEnabled,
     isPSConfigured
@@ -114,6 +118,8 @@ export default function Download({
   const [statusText, setStatusText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isPriceLoading, setIsPriceLoading] = useState(false)
+  const [initializationError, setInitializationError] = useState<string>()
+  const [initializationRetry, setInitializationRetry] = useState(0)
   const [tokenInfo, setTokenInfo] = useState<TokenInfo | undefined>(undefined)
   const [tokenInfoProviderFee, setTokenInfoProviderFee] = useState<
     TokenInfo | undefined
@@ -241,6 +247,7 @@ export default function Download({
       if (accessDetails.addressOrId === ZERO_ADDRESS) return
 
       try {
+        setInitializationError(undefined)
         !orderPriceAndFees && setIsPriceLoading(true)
         const _orderPriceAndFees = await getOrderPriceAndFees(
           asset,
@@ -251,7 +258,12 @@ export default function Download({
         setOrderPriceAndFees(_orderPriceAndFees)
         !orderPriceAndFees && setIsPriceLoading(false)
       } catch (error) {
-        LoggerInstance.error('getOrderPriceAndFees', error)
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Provider initialization failed.'
+        LoggerInstance.error('[getOrderPriceAndFees] Error:', message)
+        setInitializationError(message)
         setIsPriceLoading(false)
       }
     }
@@ -263,7 +275,8 @@ export default function Download({
     asset,
     isUnsupportedPricing,
     orderPriceAndFees,
-    service
+    service,
+    initializationRetry
   ])
 
   useEffect(() => {
@@ -715,7 +728,24 @@ export default function Download({
                 requiresCredentialCheck && hasSession ? styles.tighterStack : ''
               }`}
             >
+              {initializationError && (
+                <div className={styles.noMarginAlert}>
+                  <Alert
+                    state="error"
+                    action={{
+                      name: 'Retry',
+                      handleAction: (event) => {
+                        event.preventDefault()
+                        setInitializationRetry((value) => value + 1)
+                      }
+                    }}
+                  >
+                    <span>{initializationError}</span>
+                  </Alert>
+                </div>
+              )}
               {!isOwner &&
+                !initializationError &&
                 (isFullPriceLoading ? (
                   <>
                     {requiresCredentialCheck && (

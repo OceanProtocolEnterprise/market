@@ -46,6 +46,7 @@ import { getIsPolicyServerConfigured } from '@utils/wallet/policyServer'
 import Loader from '@shared/atoms/Loader'
 import {
   isPolicyServerConsumptionDisabled,
+  requiresPolicyServerCredentialCheck,
   isSsiPolicyConsumptionDisabled,
   SSI_NODE_UNSUPPORTED_MESSAGE,
   SSI_POLICY_UNSUPPORTED_MESSAGE
@@ -126,6 +127,10 @@ export default function AssetActions({
 
   const isPolicyServerStatusLoading = isPSConfigured === undefined
   const isPolicyServerUnsupported = isPolicyServerConsumptionDisabled(
+    appConfig.ssiEnabled,
+    isPSConfigured === true
+  )
+  const requiresCredentialCheck = requiresPolicyServerCredentialCheck(
     appConfig.ssiEnabled,
     isPSConfigured === true
   )
@@ -492,7 +497,7 @@ export default function AssetActions({
             </span>
           ) : isPolicyServerStatusLoading ? (
             <Loader message="Checking credential requirements..." />
-          ) : appConfig.ssiEnabled && isPSConfigured ? (
+          ) : requiresCredentialCheck ? (
             isCompute ? (
               <Button
                 style="primary"

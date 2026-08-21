@@ -4,8 +4,7 @@ import {
   getErrorMessage,
   LoggerInstance,
   ProviderFees,
-  ProviderInstance,
-  ZERO_ADDRESS
+  ProviderInstance
 } from '@oceanprotocol/lib'
 import { getFixedBuyPrice } from './ocean/fixedRateExchange'
 import {
@@ -13,14 +12,90 @@ import {
   customProviderUrl
 } from '../../app.config.cjs'
 import { Signer } from 'ethers'
-import { toast } from 'react-toastify'
 import { getDummySigner, getTokenInfo } from './wallet'
 import { Service } from '../@types/ddo/Service'
 import { AssetExtended } from '../@types/AssetExtended'
-import { CancelToken } from 'axios'
+import axios, { CancelToken } from 'axios'
 import { getUserOrders } from './aquarius'
 import { AssetPrice } from '../@types/AssetPrice'
 import { getConsumeMarketFeeWei } from './consumeMarketFee'
+
+function getErrorRecordValue(
+  value: unknown,
+  key: 'error' | 'message'
+): string | undefined {
+  if (typeof value !== 'object' || value === null || !(key in value)) return
+  const entry = (value as Record<string, unknown>)[key]
+  return typeof entry === 'string' && entry.trim() ? entry.trim() : undefined
+}
+
+export function getProviderInitializationErrorMessage(error: unknown): string {
+  const responseData =
+    typeof error === 'object' &&
+    error !== null &&
+    'response' in error &&
+    typeof error.response === 'object' &&
+    error.response !== null &&
+    'data' in error.response
+      ? error.response.data
+      : undefined
+
+  const responseMessage =
+    getErrorRecordValue(responseData, 'error') ||
+    getErrorRecordValue(responseData, 'message')
+  if (responseMessage) return responseMessage
+
+  const rawMessage =
+    typeof responseData === 'string' && responseData.trim()
+      ? responseData.trim()
+      : error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+      ? error
+      : 'Provider initialization failed.'
+
+  return rawMessage.trim().startsWith('{')
+    ? getErrorMessage(rawMessage)
+    : rawMessage
+}
+
+export async function recoverProviderInitializationErrorMessage(
+  error: unknown,
+  assetId: string,
+  serviceId: string,
+  accountId: string,
+  serviceEndpoint: string
+): Promise<string> {
+  const originalMessage = getProviderInitializationErrorMessage(error)
+  const isPlainTextParseFailure =
+    originalMessage.includes('Unexpected token') &&
+    originalMessage.includes('not valid JSON')
+
+  if (!isPlainTextParseFailure) return originalMessage
+
+  const nodeUrl = serviceEndpoint.replace(/\/+$/, '')
+  try {
+    const response = await axios.get<string>(
+      `${nodeUrl}/api/services/initialize`,
+      {
+        params: {
+          documentId: assetId,
+          serviceId,
+          fileIndex: 0,
+          consumerAddress: accountId
+        },
+        responseType: 'text',
+        validateStatus: () => true
+      }
+    )
+
+    const responseMessage =
+      typeof response.data === 'string' ? response.data.trim() : ''
+    return responseMessage || originalMessage
+  } catch {
+    return originalMessage
+  }
+}
 
 /**
  * This will be used to get price including fees before ordering
@@ -71,13 +146,13 @@ export async function getOrderPriceAndFees(
     }
     initializeData = !providerFees && initialize
   } catch (error) {
-    if (error.message.includes('Unexpected token')) {
-      // toast.error(
-      //   `Use the initializeCompute endpoint to initialize compute jobs`
-      // )
-      return
-    }
-    const message = getErrorMessage(error.message)
+    let message = await recoverProviderInitializationErrorMessage(
+      error,
+      asset.id,
+      service.id,
+      accountId,
+      service?.serviceEndpoint || customProviderUrl
+    )
     LoggerInstance.error('[Initialize Provider] Error:', message)
 
     // Customize error message for accountId non included in allow list
@@ -86,12 +161,7 @@ export async function getOrderPriceAndFees(
       message.includes('ConsumableCodes.CREDENTIAL_NOT_IN_ALLOW_LIST') ||
       message.includes('denied with code: 3')
     ) {
-      if (accountId !== ZERO_ADDRESS) {
-        toast.error(
-          `Consumer address not found in allow list for service ${asset.id}. Access has been denied.`
-        )
-      }
-      return
+      message = `Consumer address not found in allow list for service ${asset.id}. Access has been denied.`
     }
     // Customize error message for accountId included in deny list
     if (
@@ -99,14 +169,9 @@ export async function getOrderPriceAndFees(
       message.includes('ConsumableCodes.CREDENTIAL_IN_DENY_LIST') ||
       message.includes('denied with code: 4')
     ) {
-      if (accountId !== ZERO_ADDRESS) {
-        toast.error(
-          `Consumer address found in deny list for service ${asset.id}. Access has been denied.`
-        )
-      }
-      return
+      message = `Consumer address found in deny list for service ${asset.id}. Access has been denied.`
     }
-    toast.error(message)
+    throw new Error(message)
   }
   orderPriceAndFee.providerFee = providerFees || initializeData?.providerFee
   // fetch price and swap fees
