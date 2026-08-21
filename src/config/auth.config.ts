@@ -48,8 +48,8 @@ export const authConfig = ((): AuthConfig => {
     : runtimeConfig.NEXT_PUBLIC_OIDC_REDIRECT_URI || null
 
   const signupFlow = isServer()
-    ? oidcSignupFlow || 'self-service-registration'
-    : runtimeConfig.NEXT_PUBLIC_OIDC_SIGNUP_FLOW || 'self-service-registration'
+    ? oidcSignupFlow || ''
+    : runtimeConfig.NEXT_PUBLIC_OIDC_SIGNUP_FLOW || ''
 
   return {
     enabled,
