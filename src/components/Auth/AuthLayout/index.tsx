@@ -67,7 +67,7 @@ export default function AuthLayout({
       <div className={styles.card}>
         <BrandPanel content={content} />
         <div className={styles.formPanel}>
-          {!isAuthenticated && !showLogoutPending && (
+          {!isAuthenticated && !showLogoutPending && signupEnabled && (
             <div className={styles.pillTabs}>
               <button
                 type="button"
@@ -78,17 +78,15 @@ export default function AuthLayout({
               >
                 {authTabLabels.login}
               </button>
-              {signupEnabled && (
-                <button
-                  type="button"
-                  className={`${styles.pillTab} ${
-                    activeTab === 'signup' ? styles.pillTabActive : ''
-                  }`}
-                  onClick={() => setActiveTab('signup')}
-                >
-                  {authTabLabels.signup}
-                </button>
-              )}
+              <button
+                type="button"
+                className={`${styles.pillTab} ${
+                  activeTab === 'signup' ? styles.pillTabActive : ''
+                }`}
+                onClick={() => setActiveTab('signup')}
+              >
+                {authTabLabels.signup}
+              </button>
             </div>
           )}
 
