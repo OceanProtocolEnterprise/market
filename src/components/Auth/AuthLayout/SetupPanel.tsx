@@ -240,16 +240,18 @@ export default function SetupPanel() {
                 >
                   {authSetupCopy.connectBrowserWallet}
                 </button>
-                <button
-                  type="button"
-                  className={styles.actionButton}
-                  onClick={dfns.openConnect}
-                  disabled={!isDfnsEnabled || dfns.isConnecting}
-                >
-                  {dfns.isConnecting
-                    ? authSetupCopy.dfnsConnecting
-                    : authSetupCopy.connectDfnsWallet}
-                </button>
+                {isDfnsEnabled && (
+                  <button
+                    type="button"
+                    className={styles.actionButton}
+                    onClick={dfns.openConnect}
+                    disabled={dfns.isConnecting}
+                  >
+                    {dfns.isConnecting
+                      ? authSetupCopy.dfnsConnecting
+                      : authSetupCopy.connectDfnsWallet}
+                  </button>
+                )}
                 {signerServer.isConfigured && (
                   <button
                     type="button"
@@ -283,14 +285,16 @@ export default function SetupPanel() {
         )}
       </div>
 
-      <DfnsRegistrationModal
-        isOpen={dfns.isRegistrationModalOpen}
-        registrationCode={dfns.registrationCode}
-        isConnecting={dfns.isConnecting}
-        onChange={dfns.setRegistrationCode}
-        onSubmit={dfns.submitRegistrationCode}
-        onClose={() => dfns.setIsRegistrationModalOpen(false)}
-      />
+      {isDfnsEnabled && (
+        <DfnsRegistrationModal
+          isOpen={dfns.isRegistrationModalOpen}
+          registrationCode={dfns.registrationCode}
+          isConnecting={dfns.isConnecting}
+          onChange={dfns.setRegistrationCode}
+          onSubmit={dfns.submitRegistrationCode}
+          onClose={() => dfns.setIsRegistrationModalOpen(false)}
+        />
+      )}
     </div>
   )
 }
