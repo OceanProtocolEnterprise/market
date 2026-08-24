@@ -29,6 +29,10 @@ export interface MetadataEditForm {
   providedBy?: string
   copyrightHolder?: string
   tags?: string[]
+  containerImage?: string
+  containerTag?: string
+  containerChecksum?: string
+  containerEntrypoint?: string
   usesConsumerParameters?: boolean
   consumerParameters?: FormConsumerParameter[]
   credentials: CredentialForm

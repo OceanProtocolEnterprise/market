@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useRef } from 'react'
+import { ReactElement, useEffect, useRef, useState } from 'react'
 import { Field, Form, useFormikContext } from 'formik'
 import Input from '@shared/FormInput'
 import FormActions from './FormActions'
@@ -29,14 +29,26 @@ import useEditMetadata from './useEditMetadata'
 import styles from './index.module.css'
 import { FILE_UPLOAD_CONFIG } from '@components/@shared/FileUpload/helper'
 import { createLanguageValueObject } from '@utils/jsonLd'
+import {
+  getContainerChecksum,
+  normalizeDockerImageReference
+} from '@utils/docker'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
 
 export default function FormEditMetadata(): ReactElement {
   const { asset } = useAsset()
-  const { values, setFieldValue } = useFormikContext<MetadataEditForm>()
+  const { values, setFieldTouched, setFieldValue } =
+    useFormikContext<MetadataEditForm>()
   const firstPageLoad = useRef<boolean>(true)
+  const previousContainerReference = useRef({
+    image: values.containerImage,
+    tag: values.containerTag
+  })
+  const containerChecksumRequest = useRef(0)
+  const [isContainerChecksumLoading, setIsContainerChecksumLoading] =
+    useState(false)
 
   const {
     additionalFiles,
@@ -72,6 +84,59 @@ export default function FormEditMetadata(): ReactElement {
       icon: <IconAlgorithm />
     }
   ]
+
+  useEffect(() => {
+    const image = values.containerImage?.trim() || ''
+    const tag = values.containerTag?.trim() || ''
+    const previousReference = previousContainerReference.current
+
+    if (
+      image === previousReference.image?.trim() &&
+      tag === previousReference.tag?.trim()
+    ) {
+      return
+    }
+
+    previousContainerReference.current = { image, tag }
+    const requestId = ++containerChecksumRequest.current
+    setIsContainerChecksumLoading(false)
+    setFieldValue('containerChecksum', '', false)
+    setFieldTouched('containerChecksum', false, false)
+
+    if (!image || !tag) return
+
+    try {
+      const normalizedReference = normalizeDockerImageReference(image, tag)
+      if (normalizedReference.image !== image) return
+    } catch {
+      return
+    }
+
+    const timeout = window.setTimeout(async () => {
+      setIsContainerChecksumLoading(true)
+      const containerInfo = await getContainerChecksum(image, tag)
+
+      if (requestId !== containerChecksumRequest.current) return
+
+      if (containerInfo.checksum) {
+        setFieldValue('containerChecksum', containerInfo.checksum, false)
+        setFieldTouched('containerChecksum', false, false)
+      }
+      setIsContainerChecksumLoading(false)
+    }, 600)
+
+    return () => {
+      window.clearTimeout(timeout)
+      if (requestId === containerChecksumRequest.current) {
+        containerChecksumRequest.current += 1
+      }
+    }
+  }, [
+    values.containerImage,
+    values.containerTag,
+    setFieldTouched,
+    setFieldValue
+  ])
 
   async function handleLicenseFileUpload(
     fileItem: FileItem,
@@ -213,6 +278,32 @@ export default function FormEditMetadata(): ReactElement {
         </SectionContainer>
         {asset.credentialSubject?.metadata?.type === 'algorithm' && (
           <>
+            <SectionContainer title="Docker configuration" required>
+              <Field
+                {...getFieldContent('containerImage', data)}
+                component={Input}
+                name="containerImage"
+              />
+              <Field
+                {...getFieldContent('containerTag', data)}
+                component={Input}
+                name="containerTag"
+              />
+              <Field
+                {...getFieldContent('containerChecksum', data)}
+                component={Input}
+                name="containerChecksum"
+                disabled={
+                  isContainerChecksumLoading ||
+                  Boolean(values.containerChecksum)
+                }
+              />
+              <Field
+                {...getFieldContent('containerEntrypoint', data)}
+                component={Input}
+                name="containerEntrypoint"
+              />
+            </SectionContainer>
             <Field
               {...getFieldContent('usesConsumerParameters', data)}
               component={Input}
