@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '@hooks/useAuth'
+import { authConfig } from '../../../config/auth.config'
 import LoginForm from '../Login/LoginForm'
 import SignupForm from '../Signup/SignupForm'
 import {
@@ -26,7 +27,9 @@ export default function AuthLayout({
 }: AuthLayoutProps) {
   const { isAuthenticated, isLogoutPending } = useAuth()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<AuthTab>(initialTab)
+  const signupEnabled = Boolean(authConfig.oidc.signupFlow)
+  const resolvedInitialTab = signupEnabled ? initialTab : 'login'
+  const [activeTab, setActiveTab] = useState<AuthTab>(resolvedInitialTab)
   const [storedLogoutPending, setStoredLogoutPending] = useState(
     () =>
       typeof window !== 'undefined' &&
@@ -35,8 +38,8 @@ export default function AuthLayout({
   const showLogoutPending = isLogoutPending || storedLogoutPending
 
   useEffect(() => {
-    setActiveTab(initialTab)
-  }, [initialTab])
+    setActiveTab(resolvedInitialTab)
+  }, [resolvedInitialTab])
 
   // ?loggedout=1 signals a clean logout completed via /api/auth/logout/continue
   useEffect(() => {
@@ -64,7 +67,7 @@ export default function AuthLayout({
       <div className={styles.card}>
         <BrandPanel content={content} />
         <div className={styles.formPanel}>
-          {!isAuthenticated && !showLogoutPending && (
+          {!isAuthenticated && !showLogoutPending && signupEnabled && (
             <div className={styles.pillTabs}>
               <button
                 type="button"
