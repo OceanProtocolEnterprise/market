@@ -100,7 +100,7 @@
         "name": "containerChecksum",
         "label": "Docker Image Checksum",
         "placeholder": "e.g. sha256:...",
-        "help": "Digest of the Docker image. It is recalculated automatically when the image or tag changes; for unsupported third-party registries, enter it manually.",
+        "help": "Digest of the Docker image. It is recalculated when the image or a versioned tag changes. For the latest tag, use Check for updates to compare it with the currently published digest.",
         "required": true
       },
       {
