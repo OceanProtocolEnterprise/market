@@ -44,7 +44,7 @@ import {
   getAlgorithmAssetSelectionListForComputeWizard,
   getAlgorithmsForAsset
 } from '@utils/compute'
-import { getAlgorithmDatasetsForCompute } from '@utils/aquarius'
+import { getAlgorithmDatasetsForComputeSelection } from '@utils/aquarius'
 import { getDummySigner, getTokenInfo } from '@utils/wallet'
 import { checkVerifierSessionId } from '@utils/wallet/policyServer'
 import { getOceanConfig } from '@utils/ocean'
@@ -812,14 +812,15 @@ export default function ComputeWizardController({
       try {
         setIsLoading(true)
         if (isAlgorithmFlow) {
-          const datasetLists = await getAlgorithmDatasetsForCompute(
+          const datasetLists = await getAlgorithmDatasetsForComputeSelection(
             asset.id,
             service.id,
             service.serviceEndpoint,
             accountId,
             asset.credentialSubject?.chainId,
             newCancelToken(),
-            tokenSymbolMap
+            tokenSymbolMap,
+            asset
           )
           if (!cancelled) setDatasetList(datasetLists || [])
         } else {
@@ -859,7 +860,8 @@ export default function ComputeWizardController({
     service,
     isUnsupportedPricing,
     newCancelToken,
-    isAlgorithmFlow
+    isAlgorithmFlow,
+    tokenSymbolMap
   ])
 
   // Output errors in toast UI

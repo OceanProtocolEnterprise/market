@@ -30,6 +30,8 @@ export interface AssetSelectionAsset {
   datetime?: string
   serviceDuration?: number
   serviceType?: string
+  selectionDisabled?: boolean
+  selectionDisabledReason?: string
 }
 
 export interface PublisherTrustedAlgorithmService {

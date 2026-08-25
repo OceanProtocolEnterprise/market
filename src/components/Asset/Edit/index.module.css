@@ -141,6 +141,26 @@
   align-items: center;
 }
 
+.containerChecksumRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sp-3);
+  width: 100%;
+}
+
+.containerChecksumField {
+  flex: 1;
+  min-width: 0;
+}
+
+body .containerUpdateCheckButton {
+  flex: 0 0 auto;
+  min-height: 2.5rem;
+  height: 2.5rem;
+  padding: 0 var(--sp-4);
+  white-space: nowrap;
+}
+
 .licenseitem {
   flex-grow: 1;
   height: 40px;

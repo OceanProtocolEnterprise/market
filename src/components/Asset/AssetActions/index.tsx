@@ -215,7 +215,10 @@ export default function AssetActions({
         setFileIsLoading(false)
       } catch (error) {
         setFileIsLoading(false)
-        LoggerInstance.error(error.message)
+        LoggerInstance.warn(
+          '[Asset File Info] Optional metadata unavailable:',
+          error instanceof Error ? error.message : String(error)
+        )
       }
     }
     initFileInfo()
