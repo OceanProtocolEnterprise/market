@@ -333,7 +333,7 @@ export default function FormEditComputeService({
             >
               {isRefreshingChecksums
                 ? 'Refreshing checksums...'
-                : 'Refresh selected checksums'}
+                : 'refresh checksums for selected algorithms'}
             </Button>
           </div>
         )}
