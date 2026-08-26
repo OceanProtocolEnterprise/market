@@ -23,7 +23,6 @@ import { Asset } from 'src/@types/Asset'
 import { resolveServiceTokenSymbol } from '@utils/priceToken'
 import {
   CONTAINER_UPDATE_REQUIRED_MESSAGE,
-  createLatestContainerUpdateChecker,
   getExplicitTrustedAlgorithm,
   hasTrustedContainerChanged
 } from '@utils/computeContainerUpdates'
@@ -921,56 +920,45 @@ export async function getAlgorithmDatasetsForComputeSelection(
     tokenSymbolMap
   )
 
-  const hasExplicitAllowlistEntry = uniqueAssets.some((dataset: Asset) =>
-    dataset.credentialSubject?.services?.some((datasetService) =>
-      getExplicitTrustedAlgorithm(datasetService, algorithmId, serviceId)
-    )
-  )
+  if (algorithmAsset) {
+    datasets = datasets.map((selection) => {
+      const dataset = uniqueAssets.find(
+        (item: Asset) => item.id === selection.did
+      ) as Asset | undefined
+      const datasetService = dataset?.credentialSubject?.services?.find(
+        (item) => item.id === selection.serviceId
+      )
+      if (!datasetService) return selection
 
-  if (algorithmAsset && hasExplicitAllowlistEntry) {
-    const containerStatus = await createLatestContainerUpdateChecker()(
-      algorithmAsset
-    )
+      const trustedAlgorithm = getExplicitTrustedAlgorithm(
+        datasetService,
+        algorithmId,
+        serviceId
+      )
+      if (!trustedAlgorithm) return selection
 
-    if (containerStatus.isLatest) {
-      datasets = datasets.map((selection) => {
-        const dataset = uniqueAssets.find(
-          (item: Asset) => item.id === selection.did
-        ) as Asset | undefined
-        const datasetService = dataset?.credentialSubject?.services?.find(
-          (item) => item.id === selection.serviceId
-        )
-        if (!datasetService) return selection
+      const selectionDisabled = hasTrustedContainerChanged(
+        trustedAlgorithm,
+        algorithmAsset
+      )
 
-        const trustedAlgorithm = getExplicitTrustedAlgorithm(
-          datasetService,
-          algorithmId,
-          serviceId
-        )
-        if (!trustedAlgorithm) return selection
+      if (selectionDisabled) {
+        console.warn('[C2D container check] Dataset option disabled', {
+          datasetDid: selection.did,
+          datasetServiceId: selection.serviceId,
+          algorithmDid: algorithmId,
+          algorithmServiceId: serviceId
+        })
+      }
 
-        const selectionDisabled =
-          containerStatus.updateRequired ||
-          hasTrustedContainerChanged(trustedAlgorithm, algorithmAsset)
-
-        if (selectionDisabled) {
-          console.warn('[C2D container check] Dataset option disabled', {
-            datasetDid: selection.did,
-            datasetServiceId: selection.serviceId,
-            algorithmDid: algorithmId,
-            algorithmServiceId: serviceId
-          })
-        }
-
-        return {
-          ...selection,
-          selectionDisabled,
-          selectionDisabledReason: selectionDisabled
-            ? CONTAINER_UPDATE_REQUIRED_MESSAGE
-            : undefined
-        }
-      })
-    }
+      return {
+        ...selection,
+        selectionDisabled,
+        selectionDisabledReason: selectionDisabled
+          ? CONTAINER_UPDATE_REQUIRED_MESSAGE
+          : undefined
+      }
+    })
   }
 
   return datasets

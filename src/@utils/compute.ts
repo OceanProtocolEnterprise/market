@@ -32,7 +32,6 @@ import { getSupportedChainIds } from 'chains.config.cjs'
 import { ServiceComputeOptions } from '@oceanprotocol/ddo-js'
 import {
   CONTAINER_UPDATE_REQUIRED_MESSAGE,
-  createLatestContainerUpdateChecker,
   getExplicitTrustedAlgorithm,
   hasTrustedContainerChanged
 } from './computeContainerUpdates'
@@ -237,19 +236,6 @@ export async function getAlgorithmAssetSelectionListForComputeWizard(
         service.compute.publisherTrustedAlgorithmPublishers
       )
 
-    const checkContainerUpdate = createLatestContainerUpdateChecker()
-    const explicitlyTrustedAlgorithms = algorithms.filter((algorithm) =>
-      getExplicitTrustedAlgorithm(service, algorithm.id)
-    )
-    const updateStatuses = new Map(
-      await Promise.all(
-        explicitlyTrustedAlgorithms.map(
-          async (algorithm) =>
-            [algorithm.id, await checkContainerUpdate(algorithm)] as const
-        )
-      )
-    )
-
     algorithmSelectionList = algorithmSelectionList.map((selection) => {
       const trustedAlgorithm = getExplicitTrustedAlgorithm(
         service,
@@ -259,12 +245,12 @@ export async function getAlgorithmAssetSelectionListForComputeWizard(
       if (!trustedAlgorithm) return selection
 
       const algorithm = algorithms.find((item) => item.id === selection.did)
-      const status = updateStatuses.get(selection.did)
-      if (!algorithm || !status?.isLatest) return selection
+      if (!algorithm) return selection
 
-      const selectionDisabled =
-        status.updateRequired ||
-        hasTrustedContainerChanged(trustedAlgorithm, algorithm)
+      const selectionDisabled = hasTrustedContainerChanged(
+        trustedAlgorithm,
+        algorithm
+      )
 
       if (selectionDisabled) {
         console.warn('[C2D container check] Algorithm option disabled', {
