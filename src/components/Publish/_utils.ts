@@ -30,7 +30,7 @@ import appConfig, {
 } from '../../../app.config.cjs'
 import { sanitizeUrl } from '@utils/url'
 import {
-  getContainerChecksum,
+  getConcreteDockerImageTag,
   normalizeDockerImageReference,
   resolveDockerImageReferenceForPreview
 } from '@utils/docker'
@@ -115,10 +115,16 @@ async function getAlgorithmContainerPreset(
   const preset = algorithmContainerPresets.find(
     (preset) => `${preset.image}:${preset.tag}` === dockerImage
   )
-  preset.checksum = await (
-    await getContainerChecksum(preset.image, preset.tag)
-  ).checksum
-  return preset
+  if (!preset) {
+    throw new Error(`Unknown algorithm container preset: ${dockerImage}`)
+  }
+
+  const resolved = await getConcreteDockerImageTag(preset.image, preset.tag)
+  return {
+    ...preset,
+    tag: resolved.tag,
+    checksum: resolved.checksum
+  }
 }
 
 function dateToStringNoMS(date: Date): string {

@@ -12,6 +12,17 @@ export interface DockerImageReference {
   tag: string
 }
 
+export interface ConcreteDockerImageTag {
+  tag: string
+  checksum: string
+}
+
+const CONCRETE_TAG_CACHE_TTL_MS = 5 * 60 * 1000
+const concreteTagRequests = new Map<
+  string,
+  { expiresAt: number; request: Promise<ConcreteDockerImageTag> }
+>()
+
 const dockerTagPattern = /^[\w][\w.-]{0,127}$/
 
 export function parseDockerImageReference(
@@ -117,4 +128,45 @@ export async function getContainerChecksum(
     )
     return containerInfo
   }
+}
+
+export async function getConcreteDockerImageTag(
+  image: string,
+  tag: string
+): Promise<ConcreteDockerImageTag> {
+  if (tag !== 'latest') {
+    const containerInfo = await getContainerChecksum(image, tag)
+    if (!containerInfo.checksum) {
+      throw new Error(`Could not resolve the checksum for ${image}:${tag}.`)
+    }
+    return { tag, checksum: containerInfo.checksum }
+  }
+
+  const cacheKey = `${image}:${tag}`
+  const cachedRequest = concreteTagRequests.get(cacheKey)
+  if (cachedRequest && cachedRequest.expiresAt > Date.now()) {
+    return cachedRequest.request
+  }
+
+  const request = axios
+    .post('/api/docker/concrete-tag', { image, tag })
+    .then((response) => {
+      const result = response?.data?.result as ConcreteDockerImageTag
+      if (!response?.data?.success || !result?.tag || !result?.checksum) {
+        throw new Error(
+          `Could not resolve a concrete version tag for ${image}:${tag}.`
+        )
+      }
+      return result
+    })
+    .catch((error) => {
+      concreteTagRequests.delete(cacheKey)
+      throw error
+    })
+
+  concreteTagRequests.set(cacheKey, {
+    expiresAt: Date.now() + CONCRETE_TAG_CACHE_TTL_MS,
+    request
+  })
+  return request
 }
