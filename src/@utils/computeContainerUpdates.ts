@@ -4,7 +4,7 @@ import { PublisherTrustedAlgorithms, Service } from 'src/@types/ddo/Service'
 import { getContainerChecksum } from './docker'
 
 export const CONTAINER_UPDATE_REQUIRED_MESSAGE =
-  'The latest Docker image changed. The algorithm owner must update the algorithm metadata.'
+  'The latest Docker image changed. The algorithm owner must update the algorithm metadata, and the dataset owner must refresh the selected algorithm checksums.'
 
 export interface LatestContainerUpdateStatus {
   isLatest: boolean

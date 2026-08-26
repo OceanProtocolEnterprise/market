@@ -42,6 +42,10 @@ type ComputeFormLike = {
   publisherTrustedAlgorithms: string[]
   publisherTrustedAlgorithmPublishers: string
   publisherTrustedAlgorithmPublishersAddresses?: string
+  refreshedTrustedAlgorithms?: {
+    selectedAlgorithms: string[]
+    trustedAlgorithms: PublisherTrustedAlgorithms[]
+  }
 }
 
 async function getAssetMetadata(
@@ -491,7 +495,7 @@ export async function getAllComputeJobs(
   return computeResult
 }
 
-async function createTrustedAlgorithmList(
+export async function createTrustedAlgorithmList(
   selectedAlgorithms: string[],
   assetChainId: number,
   cancelToken: CancelToken
@@ -503,26 +507,35 @@ async function createTrustedAlgorithmList(
   if (!selectedAlgorithms || selectedAlgorithms.length === 0)
     return trustedAlgorithms
 
-  const parsed = selectedAlgorithms.map(
-    (s) =>
-      JSON.parse(s) as {
+  const parsed = selectedAlgorithms.map((selection) => {
+    try {
+      return JSON.parse(selection) as {
         algoDid: string
         serviceId: string
       }
-  )
-  const didList = parsed.map((algo) => algo.algoDid)
+    } catch {
+      throw new Error('A selected algorithm has an invalid identifier.')
+    }
+  })
+  const didList = [...new Set(parsed.map((algo) => algo.algoDid))]
   const selectedAssets = await getAssetsFromDids(
     didList,
     [assetChainId],
     cancelToken
   )
-  if (!selectedAssets || selectedAssets.length === 0) return []
+  if (!selectedAssets || selectedAssets.length === 0) {
+    throw new Error('Could not load the selected algorithms.')
+  }
 
   for (const { algoDid, serviceId } of parsed) {
     const asset = selectedAssets.find((a) => a.id === algoDid)
-    if (!asset) continue
+    if (!asset) {
+      throw new Error(`Could not load selected algorithm ${algoDid}.`)
+    }
     const svc = asset.credentialSubject.services.find((s) => s.id === serviceId)
-    if (!svc) continue
+    if (!svc) {
+      throw new Error(`Could not find service ${serviceId} on ${algoDid}.`)
+    }
     const filesChecksum = await getFileDidInfo(
       asset.id,
       svc.id,
@@ -531,8 +544,14 @@ async function createTrustedAlgorithmList(
     )
 
     const container = asset.credentialSubject?.metadata.algorithm.container
+    if (!container?.entrypoint || !container?.checksum) {
+      throw new Error(`Algorithm ${algoDid} has incomplete container metadata.`)
+    }
+    if (!filesChecksum?.[0]?.checksum) {
+      throw new Error(`Could not calculate the file checksum for ${algoDid}.`)
+    }
     const containerSectionChecksum = getHash(
-      container?.entrypoint + container?.checksum
+      container.entrypoint + container.checksum
     )
     const trustedAlgorithm: PublisherTrustedAlgorithms = {
       did: asset.id,
@@ -543,6 +562,17 @@ async function createTrustedAlgorithmList(
     trustedAlgorithms.push(trustedAlgorithm)
   }
   return trustedAlgorithms
+}
+
+function hasMatchingRefreshedAlgorithms(values: ComputeFormLike): boolean {
+  const refreshed = values.refreshedTrustedAlgorithms
+  if (!refreshed) return false
+
+  const selected = values.publisherTrustedAlgorithms || []
+  if (selected.length !== refreshed.selectedAlgorithms.length) return false
+
+  const refreshedSelection = new Set(refreshed.selectedAlgorithms)
+  return selected.every((selection) => refreshedSelection.has(selection))
 }
 
 export async function transformComputeFormToServiceComputeOptions(
@@ -566,6 +596,8 @@ export async function transformComputeFormToServiceComputeOptions(
           serviceId: '*'
         }
       ]
+    : hasMatchingRefreshedAlgorithms(values)
+    ? values.refreshedTrustedAlgorithms.trustedAlgorithms
     : await createTrustedAlgorithmList(
         values.publisherTrustedAlgorithms,
         assetChainId,
