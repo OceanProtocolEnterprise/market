@@ -112,13 +112,14 @@ export function getValidUntilTime(
   return Math.floor(mytime.getTime() / 1000)
 }
 
-function getQueryString(
+export function getAlgorithmAllowlistQuery(
   trustedAlgorithmList: PublisherTrustedAlgorithms[],
   trustedPublishersList: string[],
   chainId?: number,
   allAlgosAllowed?: boolean
 ): SearchQuery {
   const algorithmDidList = trustedAlgorithmList?.map((x) => x.did)
+  const allowlistShould: FilterTerm[] = []
 
   const baseParams = {
     chainIds: [chainId],
@@ -128,21 +129,30 @@ function getQueryString(
       size: 3000
     }
   } as BaseQueryParams
+
   algorithmDidList?.length > 0 &&
     !allAlgosAllowed &&
-    baseParams.filters.push(getFilterTerm('_id', algorithmDidList))
+    allowlistShould.push(getFilterTerm('_id', algorithmDidList))
 
   if (
     trustedPublishersList?.length > 0 &&
     !(trustedPublishersList.length === 1 && trustedPublishersList[0] === '*')
   ) {
-    baseParams.filters.push(
+    allowlistShould.push(
       getFilterTerm(
         'indexedMetadata.nft.owner',
         trustedPublishersList.map((address) => address.toLowerCase())
       )
     )
   }
+
+  if (!allAlgosAllowed && allowlistShould.length > 0) {
+    baseParams.nestedQuery = {
+      should: allowlistShould,
+      minimum_should_match: 1
+    }
+  }
+
   const query = generateBaseQuery(baseParams)
   return query
 }
@@ -182,7 +192,7 @@ export async function getAlgorithmsForAsset(
   }
   const allAlgosAllowed = isAllAlgoAllowed(service.compute)
   const queryResults = await queryMetadata(
-    getQueryString(
+    getAlgorithmAllowlistQuery(
       service.compute.publisherTrustedAlgorithms,
       service.compute.publisherTrustedAlgorithmPublishers,
       asset.credentialSubject?.chainId,
