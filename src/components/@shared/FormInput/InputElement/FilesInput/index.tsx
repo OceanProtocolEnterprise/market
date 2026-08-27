@@ -17,6 +17,7 @@ import { isGoogleUrl } from '@utils/url/index'
 import isUrl from 'is-url-superb'
 import MethodInput from '../MethodInput'
 import DeleteButton from '@shared/DeleteButton/DeleteButton'
+import { createLanguageValueObject } from '@utils/jsonLd'
 
 type FilesInputProps = InputProps & {
   form?: {
@@ -248,6 +249,12 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
         props.name.startsWith('additionalLicense[')
 
       if (isLicenseField) {
+        const descriptionLanguage = isEditPage
+          ? values.descriptionLanguage
+          : values.metadata?.descriptionLanguage
+        const descriptionDirection = isEditPage
+          ? values.descriptionDirection
+          : values.metadata?.descriptionDirection
         let mirrors = []
         if (storageType === 's3') {
           mirrors = [
@@ -275,16 +282,16 @@ export default function FilesInput(props: FilesInputProps): ReactElement {
               size: Number(checkedFileInfo.contentLength)
             }
           }),
-          displayName: {
-            '@value': fileName,
-            '@language': '',
-            '@direction': ''
-          },
-          description: {
-            '@value': '',
-            '@direction': '',
-            '@language': ''
-          },
+          displayName: createLanguageValueObject(
+            fileName,
+            descriptionLanguage,
+            descriptionDirection
+          ),
+          description: createLanguageValueObject(
+            '',
+            descriptionLanguage,
+            descriptionDirection
+          ),
           mirrors
         }
 

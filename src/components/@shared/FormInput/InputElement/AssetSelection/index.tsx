@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import cs from 'classnames'
 import slugify from 'slugify'
 import External from '@images/external.svg'
@@ -30,6 +30,8 @@ export interface AssetSelectionAsset {
   datetime?: string
   serviceDuration?: number
   serviceType?: string
+  selectionDisabled?: boolean
+  selectionDisabledReason?: string
 }
 
 export interface PublisherTrustedAlgorithmService {
@@ -50,6 +52,7 @@ export default function AssetSelection({
   disabled,
   accountId,
   priceOnRight,
+  assetSelectionFooterAction,
   ...props
 }: {
   assets: AssetSelectionAsset[]
@@ -58,6 +61,7 @@ export default function AssetSelection({
   disabled?: boolean
   accountId?: string
   priceOnRight?: boolean
+  assetSelectionFooterAction?: ReactNode
 }): JSX.Element {
   const [searchValue, setSearchValue] = useState('')
   const [filteredAssets, setFilteredAssets] = useState<AssetSelectionAsset[]>(
@@ -215,12 +219,22 @@ export default function AssetSelection({
                 </label>
               </div>
             ))}
-            {totalPages > 1 && (
-              <Pagination
-                totalPages={totalPages}
-                currentPage={currentPage}
-                onChangePage={handlePageOnChange}
-              />
+            {(assetSelectionFooterAction || totalPages > 1) && (
+              <div className={styles.footer}>
+                <div aria-hidden="true" />
+                <div className={styles.footerPagination}>
+                  {totalPages > 1 && (
+                    <Pagination
+                      totalPages={totalPages}
+                      currentPage={currentPage}
+                      onChangePage={handlePageOnChange}
+                    />
+                  )}
+                </div>
+                <div className={styles.footerAction}>
+                  {assetSelectionFooterAction}
+                </div>
+              </div>
             )}
           </>
         )}

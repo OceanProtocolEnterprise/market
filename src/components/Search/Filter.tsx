@@ -4,6 +4,7 @@ import { addExistingParamsToUrl } from './utils'
 import Button from '@shared/atoms/Button'
 import {
   FilterByAccessOptions,
+  FilterByPriceOptions,
   FilterByTimeOptions,
   FilterByTypeOptions
 } from '../../@types/aquarius/SearchQuery'
@@ -73,13 +74,15 @@ export default function Filter({
   showPurgatoryOption,
   expanded,
   className,
-  showTime
+  showTime,
+  showPrice
 }: {
   addFiltersToUrl?: boolean
   showPurgatoryOption?: boolean
   expanded?: boolean
   className?: string
   showTime?: boolean
+  showPrice?: boolean
 }): ReactElement {
   const { filters, setFilters, ignorePurgatory, setIgnorePurgatory } =
     useFilter()
@@ -168,6 +171,19 @@ export default function Filter({
         { label: 'compute', value: FilterByAccessOptions.Compute }
       ]
     },
+    ...(showPrice
+      ? [
+          {
+            id: 'priceType',
+            label: 'Price',
+            type: 'filterList',
+            options: [
+              { label: 'free', value: FilterByPriceOptions.Free },
+              { label: 'paid', value: FilterByPriceOptions.Paid }
+            ]
+          }
+        ]
+      : []),
     {
       id: 'assetState',
       label: 'Asset State',

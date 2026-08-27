@@ -1,15 +1,15 @@
 /* eslint-disable camelcase */
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { decodeJwt } from 'jose'
-import { buildClearAuthCookieStrings, clearAuthCookies } from '../_cookies'
-import { isFederatedSource } from '../_federated'
-import { getLoginSource } from '../_claims'
 import {
-  authEnabled,
-  oidcClientId,
-  oidcIssuer,
-  federatedOidcEndSessionUrl
-} from 'app.config.cjs'
+  buildClearAuthCookieStrings,
+  clearAuthCookies,
+  IDP_END_SESSION_URL_COOKIE
+} from '../_cookies'
+import { isMainProviderByName } from '../_federated'
+import { getLoginSource, getWellKnownUrl } from '../_claims'
+import { getEndSessionUrlFromWellKnown } from '../_oidc'
+import { authEnabled, oidcClientId, oidcIssuer } from 'app.config.cjs'
 
 const OIDC_CLIENT_SECRET_ENV_KEY = 'OIDC_CLIENT_SECRET'
 const FEDERATED_LOGOUT_CONTINUE_COOKIE = 'federated_logout_continue'
@@ -26,8 +26,17 @@ function getRequestOrigin(req: NextApiRequest): string {
   return `${protocol}://${host}`
 }
 
-function getEndSessionUrl(issuer: string) {
+function getEndSessionUrl(issuer: string): string {
   return `${issuer.replace(/\/$/, '')}/end-session/`
+}
+
+function getRevokeUrl(issuer: string): string {
+  if (issuer.includes('/application/o/')) {
+    const base = issuer.split('/application/o/')[0]
+    return `${base}/application/o/revoke/`
+  }
+
+  return `${issuer.replace(/\/$/, '')}/revoke/`
 }
 
 function getLoginSourceFromIdToken(idToken?: string): string | undefined {
@@ -40,18 +49,13 @@ function getLoginSourceFromIdToken(idToken?: string): string | undefined {
   }
 }
 
-function serializeFederatedLogoutContinueCookie(value: string, maxAge: number) {
+function serializeFederatedLogoutContinueCookie(
+  value: string,
+  maxAge: number
+): string {
   return `${FEDERATED_LOGOUT_CONTINUE_COOKIE}=${encodeURIComponent(
     value
   )}; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax; Path=/api/auth/logout`
-}
-
-function getRevokeUrl(issuer: string) {
-  if (issuer.includes('/application/o/')) {
-    const base = issuer.split('/application/o/')[0]
-    return `${base}/application/o/revoke/`
-  }
-  return `${issuer.replace(/\/$/, '')}/revoke/`
 }
 
 async function revokeToken(
@@ -64,7 +68,9 @@ async function revokeToken(
   try {
     await fetch(revokeUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
       body: new URLSearchParams({
         client_id: clientId,
         client_secret: clientSecret,
@@ -74,7 +80,7 @@ async function revokeToken(
       signal: AbortSignal.timeout(5000)
     })
   } catch (err) {
-    console.error(`Token revocation failed (${tokenTypeHint}):`, err)
+    console.error(`Failed to revoke ${tokenTypeHint}:`, err)
   }
 }
 
@@ -84,7 +90,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   const issuer = oidcIssuer
 
   if (!clientId || !clientSecret || !issuer) {
-    console.error('Missing OIDC configuration for logout')
+    console.error('Missing OIDC configuration.')
     clearAuthCookies(res)
     return res.redirect(302, '/auth/login')
   }
@@ -113,47 +119,128 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       : Promise.resolve()
   ])
 
-  // Use /auth/callback/logout as the end-session return URL — this page is
-  // registered in the OIDC provider and continues the final logout redirect.
   const callbackUrl = `${getRequestOrigin(req)}/auth/callback/logout`
 
-  const oidcParams = new URLSearchParams({ client_id: clientId })
-  if (id_token) oidcParams.set('id_token_hint', id_token)
-  oidcParams.set('post_logout_redirect_uri', callbackUrl)
-  oidcParams.set('state', 'logout')
-  const oidcEndSessionUrl = `${getEndSessionUrl(
-    issuer
-  )}?${oidcParams.toString()}`
-
-  const federationEndSessionUrl = federatedOidcEndSessionUrl
   const detectedLoginSource =
     login_source || getLoginSourceFromIdToken(id_token)
-  const isFederatedLogin = Boolean(
-    detectedLoginSource &&
-      federationEndSessionUrl &&
-      isFederatedSource(detectedLoginSource)
-  )
 
-  if (isFederatedLogin) {
+  const isMain = isMainProviderByName(detectedLoginSource)
+
+  if (isMain || !detectedLoginSource) {
+    console.info(`Main logout for "${detectedLoginSource || 'unknown'}".`)
+
+    clearAuthCookies(res)
+
+    // Only send id_token_hint if it's from the main issuer
+    const oidcParams = new URLSearchParams({
+      client_id: clientId,
+      post_logout_redirect_uri: callbackUrl,
+      state: 'logout'
+    })
+
+    if (id_token) {
+      try {
+        const decoded = decodeJwt(id_token)
+        if (decoded.iss === issuer) {
+          oidcParams.set('id_token_hint', id_token)
+        }
+      } catch (error) {
+        console.warn('Could not decode id_token for main logout:', error)
+      }
+    }
+
+    const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
+    return res.redirect(302, mainLogoutUrl)
+  }
+
+  const partnerEndSessionUrl = req.cookies[IDP_END_SESSION_URL_COOKIE]
+
+  if (partnerEndSessionUrl) {
     res.setHeader('Set-Cookie', [
-      ...buildClearAuthCookieStrings({ keepIdToken: true }),
+      ...buildClearAuthCookieStrings({
+        keepIdToken: true
+      }),
       serializeFederatedLogoutContinueCookie('1', 300)
     ])
 
-    const federatedLogoutUrl = new URL(federationEndSessionUrl)
-    federatedLogoutUrl.searchParams.set('post_logout_redirect_uri', callbackUrl)
+    const partnerLogoutUrl = new URL(partnerEndSessionUrl)
+    partnerLogoutUrl.searchParams.set('post_logout_redirect_uri', callbackUrl)
 
-    if (id_token) {
-      federatedLogoutUrl.searchParams.set('id_token_hint', id_token)
-    }
+    console.info(
+      `Partner logout for "${detectedLoginSource}". Redirecting to: ${partnerLogoutUrl.toString()}`
+    )
 
-    return res.redirect(302, federatedLogoutUrl.toString())
-  } else {
-    console.info('MAIN OIDC LOGOUT FLOW!')
+    return res.redirect(302, partnerLogoutUrl.toString())
   }
 
+  if (id_token) {
+    try {
+      const decoded = decodeJwt(id_token)
+      const wellKnownUrl = getWellKnownUrl(decoded)
+
+      if (wellKnownUrl) {
+        try {
+          const endSessionUrl = await getEndSessionUrlFromWellKnown(
+            wellKnownUrl
+          )
+
+          if (endSessionUrl) {
+            res.setHeader('Set-Cookie', [
+              ...buildClearAuthCookieStrings({
+                keepIdToken: true
+              }),
+              serializeFederatedLogoutContinueCookie('1', 300)
+            ])
+
+            const partnerLogoutUrl = new URL(endSessionUrl)
+            partnerLogoutUrl.searchParams.set(
+              'post_logout_redirect_uri',
+              callbackUrl
+            )
+
+            console.info(
+              `Partner logout for "${detectedLoginSource}" (from well-known). Redirecting to: ${partnerLogoutUrl.toString()}`
+            )
+
+            return res.redirect(302, partnerLogoutUrl.toString())
+          }
+        } catch (error) {
+          console.warn(
+            `Failed to get end_session_url from well-known for ${detectedLoginSource}:`,
+            error
+          )
+        }
+      }
+    } catch (error) {
+      console.warn('Could not decode id_token for partner logout:', error)
+    }
+  }
+
+  console.warn(
+    `No partner logout endpoint found for "${detectedLoginSource}". Falling back to Main logout.`
+  )
+
   clearAuthCookies(res)
-  return res.redirect(302, oidcEndSessionUrl)
+
+  const oidcParams = new URLSearchParams({
+    client_id: clientId,
+    post_logout_redirect_uri: callbackUrl,
+    state: 'logout'
+  })
+
+  if (id_token) {
+    try {
+      const decoded = decodeJwt(id_token)
+      if (decoded.iss === issuer) {
+        oidcParams.set('id_token_hint', id_token)
+      }
+    } catch (error) {
+      console.warn('Could not decode id_token for fallback logout:', error)
+    }
+  }
+
+  const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
+  return res.redirect(302, mainLogoutUrl)
 }
 
 export default async function handler(
@@ -161,11 +248,17 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (authEnabled !== 'true') {
-    return res.status(404).json({ error: 'Not found' })
+    return res.status(404).json({
+      error: 'Not found'
+    })
   }
 
-  if (req.method === 'GET') return handleGet(req, res)
+  if (req.method === 'GET') {
+    return handleGet(req, res)
+  }
 
   res.setHeader('Allow', ['GET'])
-  return res.status(405).json({ error: 'Method not allowed' })
+  return res.status(405).json({
+    error: 'Method not allowed'
+  })
 }

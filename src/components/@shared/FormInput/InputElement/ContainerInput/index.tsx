@@ -5,7 +5,10 @@ import { InputProps } from '@shared/FormInput'
 import { FormPublishData } from '@components/Publish/_types'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import ImageInfo from './Info'
-import { getContainerChecksum } from '@utils/docker'
+import {
+  getContainerChecksum,
+  normalizeDockerImageReference
+} from '@utils/docker'
 
 export default function ContainerInput(props: InputProps): ReactElement {
   const [field] = useField(props.name)
@@ -14,20 +17,23 @@ export default function ContainerInput(props: InputProps): ReactElement {
   const { values, setFieldError, setFieldValue } =
     useFormikContext<FormPublishData>()
   const [isLoading, setIsLoading] = useState(false)
-  const [isValid, setIsValid] = useState(false)
-  const [checked, setChecked] = useState(false)
+  const [isValid, setIsValid] = useState(
+    Boolean(values.metadata.dockerImageCustomChecksum)
+  )
+  const [checked, setChecked] = useState(
+    Boolean(
+      values.metadata.dockerImageCustom && values.metadata.dockerImageCustomTag
+    )
+  )
 
   async function handleValidation(e: React.SyntheticEvent, container: string) {
     e.preventDefault()
     try {
       setIsLoading(true)
-      const parsedContainerValue = container?.split(':')
-      const imageName =
-        parsedContainerValue?.length > 1
-          ? parsedContainerValue?.slice(0, -1).join(':')
-          : parsedContainerValue[0]
-      const tag =
-        parsedContainerValue?.length > 1 ? parsedContainerValue?.at(-1) : ''
+      const { image: imageName, tag } = normalizeDockerImageReference(
+        container,
+        values.metadata.dockerImageCustomTag
+      )
       const containerInfo = await getContainerChecksum(imageName, tag)
       setFieldValue('metadata.dockerImageCustom', imageName)
       setFieldValue('metadata.dockerImageCustomTag', tag)
@@ -41,7 +47,7 @@ export default function ContainerInput(props: InputProps): ReactElement {
         setIsValid(true)
       }
     } catch (error) {
-      setFieldError(`${field.name}[0].url`, error.message)
+      setFieldError(field.name, error.message)
       LoggerInstance.error(error.message)
     } finally {
       setIsLoading(false)
@@ -70,12 +76,12 @@ export default function ContainerInput(props: InputProps): ReactElement {
         <UrlInput
           submitText="Use"
           {...props}
-          name={`${field.name}[0].url`}
+          name={field.name}
           checkUrl={false}
           isLoading={isLoading}
           storageType={'url'}
           handleButtonClick={handleValidation}
-          hideButton={true}
+          inputType="text"
         />
       )}
     </>

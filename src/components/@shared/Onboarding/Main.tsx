@@ -1,5 +1,5 @@
 import { ReactElement, useEffect } from 'react'
-import { animated, useSpringRef, useTransition } from 'react-spring'
+import { animated, useSpringRef, useTransition } from '@react-spring/web'
 import styles from './Main.module.css'
 
 const translateMovements = {

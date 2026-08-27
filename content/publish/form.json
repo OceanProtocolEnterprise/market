@@ -129,8 +129,9 @@
       {
         "name": "dockerImageCustom",
         "label": "Custom Docker Image",
-        "placeholder": "e.g. oceanprotocol/algo_dockers:node-vibrant or quay.io/startx/mariadb",
-        "help": "Provide the name and the tag of a public Docker hub image or the custom image if you have it hosted in a 3rd party repository",
+        "placeholder": "e.g. oceanprotocol/algo_dockers:node-vibrant or quay.io/startx/mariadb:latest",
+        "help": "Provide the repository and explicit tag of a public Docker image, including images hosted in a third-party registry.",
+        "type": "container",
         "required": true
       },
       {

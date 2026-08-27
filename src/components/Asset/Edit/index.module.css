@@ -136,6 +136,26 @@
   align-self: stretch;
 }
 
+.containerChecksumRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sp-3);
+  width: 100%;
+}
+
+.containerChecksumField {
+  flex: 1;
+  min-width: 0;
+}
+
+body .containerUpdateCheckButton {
+  flex: 0 0 auto;
+  min-height: 2.5rem;
+  height: 2.5rem;
+  padding: 0 var(--sp-4);
+  white-space: nowrap;
+}
+
 .license {
   display: flex;
   align-items: center;
@@ -283,6 +303,12 @@ body .addAddressButton {
 
 .publisherTrustedAlgorithmPublishersInput {
   margin-bottom: var(--sp-2);
+}
+
+.algorithmChecksumActions {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
 }
 
 .errorMessage {

@@ -5,6 +5,10 @@ import { getMaxDecimalsValidation } from '@utils/numbers'
 import { getOriginalValue, testOptionalUrl } from '@utils/yup'
 import { validationConsumerParameters } from '@shared/FormInput/InputElement/ConsumerParameters/_validation'
 import { isS3File } from 'src/@types/S3File'
+import {
+  normalizeDockerImageReference,
+  parseDockerImageReference
+} from '@utils/docker'
 
 const validationRequestCredentials = {
   format: Yup.string().required('Required'),
@@ -176,6 +180,44 @@ export const metadataValidationSchema = Yup.object().shape({
     )
     .nullable(),
   tags: Yup.array<string[]>().nullable(),
+  containerImage: Yup.string().when('type', {
+    is: 'algorithm',
+    then: Yup.string()
+      .required('Required')
+      .test('docker-image', function (value) {
+        try {
+          const parsedReference = parseDockerImageReference(value)
+          return parsedReference.tag
+            ? this.createError({
+                message: 'Enter the Docker tag in the separate tag field'
+              })
+            : true
+        } catch (error) {
+          return this.createError({ message: error.message })
+        }
+      })
+  }),
+  containerTag: Yup.string().when('type', {
+    is: 'algorithm',
+    then: Yup.string()
+      .required('Required')
+      .test('docker-tag', function (value) {
+        try {
+          normalizeDockerImageReference(this.parent.containerImage, value)
+          return true
+        } catch (error) {
+          return this.createError({ message: error.message })
+        }
+      })
+  }),
+  containerChecksum: Yup.string().when('type', {
+    is: 'algorithm',
+    then: Yup.string().trim().required('Required')
+  }),
+  containerEntrypoint: Yup.string().when('type', {
+    is: 'algorithm',
+    then: Yup.string().trim().required('Required')
+  }),
   usesConsumerParameters: Yup.boolean(),
   consumerParameters: Yup.array().when('usesConsumerParameters', {
     is: true,
