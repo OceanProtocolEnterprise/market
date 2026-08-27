@@ -305,6 +305,12 @@ body .addAddressButton {
   margin-bottom: var(--sp-2);
 }
 
+.algorithmChecksumActions {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
 .errorMessage {
   display: block;
   font-family: var(--font-family-base);

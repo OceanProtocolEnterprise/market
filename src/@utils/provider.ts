@@ -221,9 +221,12 @@ export async function getFileDidInfo(
     )
     return response
   } catch (error) {
-    console.error('Error check did files', error)
     const message = 'Failed to fetch file info from provider'
-    LoggerInstance.error('[Initialize check file did] Error:', message)
+    LoggerInstance.warn('[Provider File Info] Request failed', {
+      did,
+      serviceId,
+      error: error instanceof Error ? error.message : String(error)
+    })
     throw new Error(`[Initialize check file did] Error: ${message}`)
   }
 }

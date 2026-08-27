@@ -9,6 +9,7 @@ import { FileInfo } from '@oceanprotocol/lib'
 import { License } from '../../../@types/ddo/License'
 import { CredentialForm } from '@components/@shared/PolicyEditor/types'
 import { RemoteObject } from '@oceanprotocol/ddo-js'
+import { PublisherTrustedAlgorithms } from 'src/@types/ddo/Service'
 
 export interface FormAdditionalLicenseFile {
   id: string
@@ -67,6 +68,10 @@ export interface ServiceEditForm {
   publisherTrustedAlgorithms: string[]
   publisherTrustedAlgorithmPublishers: string
   publisherTrustedAlgorithmPublishersAddresses?: string
+  refreshedTrustedAlgorithms?: {
+    selectedAlgorithms: string[]
+    trustedAlgorithms: PublisherTrustedAlgorithms[]
+  }
 }
 
 // TODO delete

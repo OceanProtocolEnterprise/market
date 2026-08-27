@@ -27,6 +27,8 @@ import Button from '@shared/atoms/Button'
 import AddAddress from '@images/add_param.svg'
 import { isAddress } from 'ethers'
 import styles from './index.module.css'
+import { refreshTrustedAlgorithmContainerChecksums } from '@utils/compute'
+import { toast } from 'react-toastify'
 
 const ALLOW_ANY_PUBLISHED_ALGORITHMS = 'Allow any published algorithms'
 const ALLOW_SELECTED_ALGORITHMS = 'Allow selected algorithms'
@@ -62,6 +64,7 @@ export default function FormEditComputeService({
   const [addressInputValue, setAddressInputValue] = useState('')
   const [addressList, setAddressList] = useState<string[]>([])
   const [addressError, setAddressError] = useState('')
+  const [isRefreshingChecksums, setIsRefreshingChecksums] = useState(false)
 
   const isPublishFormContext = values.services && Array.isArray(values.services)
 
@@ -78,6 +81,49 @@ export default function FormEditComputeService({
   const allowAllPublishedAlgorithmsStr = coerceAllowAllToString(
     allowAllPublishedAlgorithms
   )
+  const selectedAlgorithms = Array.isArray(values.publisherTrustedAlgorithms)
+    ? values.publisherTrustedAlgorithms
+    : []
+
+  async function handleRefreshChecksums() {
+    setIsRefreshingChecksums(true)
+    try {
+      const trustedAlgorithms = await refreshTrustedAlgorithmContainerChecksums(
+        selectedAlgorithms,
+        serviceCompute.publisherTrustedAlgorithms,
+        chainId,
+        newCancelToken()
+      )
+
+      await setFieldValue(
+        'refreshedTrustedAlgorithms',
+        {
+          selectedAlgorithms: [...selectedAlgorithms],
+          trustedAlgorithms
+        },
+        false
+      )
+      console.info(
+        '[C2D allowlist] Refreshed selected algorithm image checksums',
+        trustedAlgorithms
+      )
+      toast.success(
+        `Image checksums refreshed for ${
+          trustedAlgorithms.length
+        } selected algorithm${
+          trustedAlgorithms.length === 1 ? '' : 's'
+        }. Submit to save the dataset service.`
+      )
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Could not refresh the selected algorithm checksums.'
+      )
+    } finally {
+      setIsRefreshingChecksums(false)
+    }
+  }
 
   useEffect(() => {
     if (allowAllPublishedAlgorithms === undefined) {
@@ -273,6 +319,24 @@ export default function FormEditComputeService({
           disabled={isAllowAnyPublishedAlgorithms(
             allowAllPublishedAlgorithmsStr
           )}
+          assetSelectionFooterAction={
+            !isPublishFormContext &&
+            !isAllowAnyPublishedAlgorithms(allowAllPublishedAlgorithmsStr) &&
+            selectedAlgorithms.length > 0 ? (
+              <div className={styles.algorithmChecksumActions}>
+                <Button
+                  type="button"
+                  style="outlined"
+                  disabled={isRefreshingChecksums}
+                  onClick={handleRefreshChecksums}
+                >
+                  {isRefreshingChecksums
+                    ? 'Refreshing image checksums...'
+                    : 'Refresh image checksum for selected algorithms'}
+                </Button>
+              </div>
+            ) : undefined
+          }
         />
       </SectionContainer>
 

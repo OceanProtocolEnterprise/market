@@ -59,6 +59,20 @@
   box-shadow: 0 4px 8px var(--navy-alpha-20);
 }
 
+.datasetCard.itemDisabled {
+  cursor: not-allowed;
+}
+
+.datasetCard.itemDisabled .cardHeader,
+.datasetCard.itemDisabled .description {
+  opacity: 0.65;
+}
+
+.datasetCard.itemDisabled:hover {
+  background: var(--brand-white);
+  box-shadow: 0 2px 4px var(--black-alpha-10);
+}
+
 .cardHeader {
   display: flex;
   justify-content: space-between;
@@ -174,7 +188,31 @@
 
 .cardActions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 8px;
+}
+
+.updateInfoButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  cursor: help;
+}
+
+.updateInfoButton:focus-visible {
+  outline: 2px solid var(--input-error-text-color);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+.updateInfoIcon {
+  width: 20px;
+  height: 20px;
+  fill: var(--input-error-text-color);
 }
 
 .selectedTag {

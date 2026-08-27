@@ -109,6 +109,7 @@ export interface InputProps {
   onReset?: () => void
   showResetButton?: boolean
   additionalAction?: ReactNode
+  assetSelectionFooterAction?: ReactNode
   showDeleteButton?: boolean
   onDelete?: () => void
   activeFileType?: string
