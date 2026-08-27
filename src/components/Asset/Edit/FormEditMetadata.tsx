@@ -29,15 +29,25 @@ import useEditMetadata from './useEditMetadata'
 import styles from './index.module.css'
 import { FILE_UPLOAD_CONFIG } from '@components/@shared/FileUpload/helper'
 import { createLanguageValueObject } from '@utils/jsonLd'
+import ContainerUpdateCheckButton from './ContainerUpdateCheckButton'
+import {
+  getContainerChecksum,
+  normalizeDockerImageReference
+} from '@utils/docker'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
 
 export default function FormEditMetadata(): ReactElement {
   const { asset } = useAsset()
-  const { values, setFieldValue } = useFormikContext<MetadataEditForm>()
+  const { values, setFieldTouched, setFieldValue } =
+    useFormikContext<MetadataEditForm>()
   const firstPageLoad = useRef<boolean>(true)
-
+  const previousContainerReference = useRef({
+    image: values.containerImage,
+    tag: values.containerTag
+  })
+  const automaticChecksumRequest = useRef(0)
   const {
     additionalFiles,
     additionalFilesUploading,
@@ -72,6 +82,55 @@ export default function FormEditMetadata(): ReactElement {
       icon: <IconAlgorithm />
     }
   ]
+
+  useEffect(() => {
+    const image = values.containerImage?.trim() || ''
+    const tag = values.containerTag?.trim() || ''
+    const previousReference = previousContainerReference.current
+
+    if (
+      image === previousReference.image?.trim() &&
+      tag === previousReference.tag?.trim()
+    ) {
+      return
+    }
+
+    previousContainerReference.current = { image, tag }
+    const requestId = ++automaticChecksumRequest.current
+    setFieldValue('containerChecksum', '', true)
+    setFieldTouched('containerChecksum', false, false)
+
+    if (!image || !tag || tag === 'latest') return
+
+    try {
+      const normalizedReference = normalizeDockerImageReference(image, tag)
+      if (normalizedReference.image !== image) return
+    } catch {
+      return
+    }
+
+    const timeout = window.setTimeout(async () => {
+      const containerInfo = await getContainerChecksum(image, tag)
+
+      if (requestId !== automaticChecksumRequest.current) return
+      if (!containerInfo.checksum) return
+
+      await setFieldValue('containerChecksum', containerInfo.checksum, true)
+      await setFieldTouched('containerChecksum', false, false)
+    }, 600)
+
+    return () => {
+      window.clearTimeout(timeout)
+      if (requestId === automaticChecksumRequest.current) {
+        automaticChecksumRequest.current += 1
+      }
+    }
+  }, [
+    values.containerImage,
+    values.containerTag,
+    setFieldTouched,
+    setFieldValue
+  ])
 
   async function handleLicenseFileUpload(
     fileItem: FileItem,
@@ -213,6 +272,43 @@ export default function FormEditMetadata(): ReactElement {
         </SectionContainer>
         {asset.credentialSubject?.metadata?.type === 'algorithm' && (
           <>
+            <SectionContainer title="Docker configuration" required>
+              <Field
+                {...getFieldContent('containerImage', data)}
+                component={Input}
+                name="containerImage"
+              />
+              <Field
+                {...getFieldContent('containerTag', data)}
+                component={Input}
+                name="containerTag"
+              />
+              <div className={styles.containerChecksumRow}>
+                <div className={styles.containerChecksumField}>
+                  <Field
+                    {...getFieldContent('containerChecksum', data)}
+                    component={Input}
+                    name="containerChecksum"
+                    disabled
+                  />
+                </div>
+                <ContainerUpdateCheckButton
+                  image={values.containerImage || ''}
+                  tag={values.containerTag || ''}
+                  checksum={values.containerChecksum || ''}
+                  className={styles.containerUpdateCheckButton}
+                  onChecksumChange={async (checksum) => {
+                    await setFieldValue('containerChecksum', checksum, true)
+                    await setFieldTouched('containerChecksum', false, false)
+                  }}
+                />
+              </div>
+              <Field
+                {...getFieldContent('containerEntrypoint', data)}
+                component={Input}
+                name="containerEntrypoint"
+              />
+            </SectionContainer>
             <Field
               {...getFieldContent('usesConsumerParameters', data)}
               component={Input}

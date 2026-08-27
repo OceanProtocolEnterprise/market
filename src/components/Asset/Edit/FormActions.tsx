@@ -1,5 +1,5 @@
 import { FormikContextType, useFormikContext } from 'formik'
-import { ReactElement } from 'react'
+import { ReactElement, useEffect } from 'react'
 import { useAsset } from '@context/Asset'
 import Button from '@shared/atoms/Button'
 import styles from './FormActions.module.css'
@@ -12,10 +12,24 @@ export default function FormActions({
   handleClick?: () => void
 }): ReactElement {
   const { isAssetNetwork, asset } = useAsset()
-  const { isValid }: FormikContextType<MetadataEditForm | ServiceEditForm> =
-    useFormikContext()
+  const {
+    errors,
+    isValid,
+    isValidating
+  }: FormikContextType<MetadataEditForm | ServiceEditForm> = useFormikContext()
 
   const isSubmitDisabled = !isValid || !isAssetNetwork
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development' || !isSubmitDisabled) return
+
+    console.warn('[Edit form] Submit disabled', {
+      isValid,
+      isValidating,
+      isAssetNetwork,
+      validationErrors: errors
+    })
+  }, [errors, isAssetNetwork, isSubmitDisabled, isValid, isValidating])
 
   return (
     <footer className={styles.actions}>
