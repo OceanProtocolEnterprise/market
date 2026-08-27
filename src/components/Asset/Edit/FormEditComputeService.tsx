@@ -27,7 +27,7 @@ import Button from '@shared/atoms/Button'
 import AddAddress from '@images/add_param.svg'
 import { isAddress } from 'ethers'
 import styles from './index.module.css'
-import { createTrustedAlgorithmList } from '@utils/compute'
+import { refreshTrustedAlgorithmContainerChecksums } from '@utils/compute'
 import { toast } from 'react-toastify'
 
 const ALLOW_ANY_PUBLISHED_ALGORITHMS = 'Allow any published algorithms'
@@ -88,8 +88,9 @@ export default function FormEditComputeService({
   async function handleRefreshChecksums() {
     setIsRefreshingChecksums(true)
     try {
-      const trustedAlgorithms = await createTrustedAlgorithmList(
+      const trustedAlgorithms = await refreshTrustedAlgorithmContainerChecksums(
         selectedAlgorithms,
+        serviceCompute.publisherTrustedAlgorithms,
         chainId,
         newCancelToken()
       )
@@ -103,11 +104,11 @@ export default function FormEditComputeService({
         false
       )
       console.info(
-        '[C2D allowlist] Refreshed selected algorithm checksums',
+        '[C2D allowlist] Refreshed selected algorithm image checksums',
         trustedAlgorithms
       )
       toast.success(
-        `Checksums refreshed for ${
+        `Image checksums refreshed for ${
           trustedAlgorithms.length
         } selected algorithm${
           trustedAlgorithms.length === 1 ? '' : 's'
@@ -318,25 +319,25 @@ export default function FormEditComputeService({
           disabled={isAllowAnyPublishedAlgorithms(
             allowAllPublishedAlgorithmsStr
           )}
+          assetSelectionFooterAction={
+            !isPublishFormContext &&
+            !isAllowAnyPublishedAlgorithms(allowAllPublishedAlgorithmsStr) &&
+            selectedAlgorithms.length > 0 ? (
+              <div className={styles.algorithmChecksumActions}>
+                <Button
+                  type="button"
+                  style="outlined"
+                  disabled={isRefreshingChecksums}
+                  onClick={handleRefreshChecksums}
+                >
+                  {isRefreshingChecksums
+                    ? 'Refreshing image checksums...'
+                    : 'Refresh image checksum for selected algorithms'}
+                </Button>
+              </div>
+            ) : undefined
+          }
         />
-        {!isPublishFormContext && (
-          <div className={styles.algorithmChecksumActions}>
-            <Button
-              type="button"
-              style="outlined"
-              disabled={
-                isAllowAnyPublishedAlgorithms(allowAllPublishedAlgorithmsStr) ||
-                selectedAlgorithms.length === 0 ||
-                isRefreshingChecksums
-              }
-              onClick={handleRefreshChecksums}
-            >
-              {isRefreshingChecksums
-                ? 'Refreshing checksums...'
-                : 'refresh checksums for selected algorithms'}
-            </Button>
-          </div>
-        )}
       </SectionContainer>
 
       <SectionContainer

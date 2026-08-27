@@ -481,19 +481,8 @@ export async function getAllComputeJobs(
   return computeResult
 }
 
-export async function createTrustedAlgorithmList(
-  selectedAlgorithms: string[],
-  assetChainId: number,
-  cancelToken: CancelToken
-): Promise<PublisherTrustedAlgorithms[]> {
-  const trustedAlgorithms: PublisherTrustedAlgorithms[] = []
-
-  // Condition to prevent app from hitting Aquarius with empty DID list
-  // when nothing is selected in the UI.
-  if (!selectedAlgorithms || selectedAlgorithms.length === 0)
-    return trustedAlgorithms
-
-  const parsed = selectedAlgorithms.map((selection) => {
+function parseSelectedAlgorithms(selectedAlgorithms: string[]) {
+  return selectedAlgorithms.map((selection) => {
     try {
       return JSON.parse(selection) as {
         algoDid: string
@@ -503,6 +492,16 @@ export async function createTrustedAlgorithmList(
       throw new Error('A selected algorithm has an invalid identifier.')
     }
   })
+}
+
+async function loadSelectedAlgorithmServices(
+  selectedAlgorithms: string[],
+  assetChainId: number,
+  cancelToken: CancelToken
+): Promise<{ asset: Asset; service: Service }[]> {
+  if (!selectedAlgorithms?.length) return []
+
+  const parsed = parseSelectedAlgorithms(selectedAlgorithms)
   const didList = [...new Set(parsed.map((algo) => algo.algoDid))]
   const selectedAssets = await getAssetsFromDids(
     didList,
@@ -513,7 +512,7 @@ export async function createTrustedAlgorithmList(
     throw new Error('Could not load the selected algorithms.')
   }
 
-  for (const { algoDid, serviceId } of parsed) {
+  return parsed.map(({ algoDid, serviceId }) => {
     const asset = selectedAssets.find((a) => a.id === algoDid)
     if (!asset) {
       throw new Error(`Could not load selected algorithm ${algoDid}.`)
@@ -522,32 +521,97 @@ export async function createTrustedAlgorithmList(
     if (!svc) {
       throw new Error(`Could not find service ${serviceId} on ${algoDid}.`)
     }
-    const filesChecksum = await getFileDidInfo(
-      asset.id,
-      svc.id,
-      svc.serviceEndpoint,
-      true
-    )
+    return { asset, service: svc }
+  })
+}
 
-    const container = asset.credentialSubject?.metadata.algorithm.container
-    if (!container?.entrypoint || !container?.checksum) {
-      throw new Error(`Algorithm ${algoDid} has incomplete container metadata.`)
-    }
-    if (!filesChecksum?.[0]?.checksum) {
-      throw new Error(`Could not calculate the file checksum for ${algoDid}.`)
-    }
-    const containerSectionChecksum = getHash(
-      container.entrypoint + container.checksum
-    )
-    const trustedAlgorithm: PublisherTrustedAlgorithms = {
-      did: asset.id,
-      containerSectionChecksum,
-      filesChecksum: filesChecksum?.[0]?.checksum,
-      serviceId: svc.id
-    }
-    trustedAlgorithms.push(trustedAlgorithm)
+function getContainerSectionChecksum(asset: Asset): string {
+  const container = asset.credentialSubject?.metadata.algorithm.container
+  if (!container?.entrypoint || !container?.checksum) {
+    throw new Error(`Algorithm ${asset.id} has incomplete container metadata.`)
   }
-  return trustedAlgorithms
+  return getHash(container.entrypoint + container.checksum)
+}
+
+export async function createTrustedAlgorithmList(
+  selectedAlgorithms: string[],
+  assetChainId: number,
+  cancelToken: CancelToken
+): Promise<PublisherTrustedAlgorithms[]> {
+  const selectedAlgorithmServices = await loadSelectedAlgorithmServices(
+    selectedAlgorithms,
+    assetChainId,
+    cancelToken
+  )
+
+  return Promise.all(
+    selectedAlgorithmServices.map(async ({ asset, service }) => {
+      const filesChecksum = await getFileDidInfo(
+        asset.id,
+        service.id,
+        service.serviceEndpoint,
+        true
+      )
+      if (!filesChecksum?.[0]?.checksum) {
+        throw new Error(
+          `Could not calculate the file checksum for ${asset.id}.`
+        )
+      }
+
+      return {
+        did: asset.id,
+        containerSectionChecksum: getContainerSectionChecksum(asset),
+        filesChecksum: filesChecksum[0].checksum,
+        serviceId: service.id
+      }
+    })
+  )
+}
+
+export async function refreshTrustedAlgorithmContainerChecksums(
+  selectedAlgorithms: string[],
+  currentTrustedAlgorithms: PublisherTrustedAlgorithms[],
+  assetChainId: number,
+  cancelToken: CancelToken
+): Promise<PublisherTrustedAlgorithms[]> {
+  const selectedAlgorithmServices = await loadSelectedAlgorithmServices(
+    selectedAlgorithms,
+    assetChainId,
+    cancelToken
+  )
+
+  return Promise.all(
+    selectedAlgorithmServices.map(async ({ asset, service }) => {
+      const current = currentTrustedAlgorithms.find(
+        (algorithm) =>
+          algorithm.did === asset.id && algorithm.serviceId === service.id
+      )
+      let filesChecksum = current?.filesChecksum
+
+      // A newly selected algorithm has no existing allowlist entry to preserve.
+      if (!filesChecksum) {
+        const files = await getFileDidInfo(
+          asset.id,
+          service.id,
+          service.serviceEndpoint,
+          true
+        )
+        filesChecksum = files?.[0]?.checksum
+      }
+      if (!filesChecksum) {
+        throw new Error(
+          `Could not calculate the file checksum for ${asset.id}.`
+        )
+      }
+
+      return {
+        did: asset.id,
+        serviceId: service.id,
+        filesChecksum,
+        containerSectionChecksum: getContainerSectionChecksum(asset)
+      }
+    })
+  )
 }
 
 function hasMatchingRefreshedAlgorithms(values: ComputeFormLike): boolean {
@@ -559,6 +623,22 @@ function hasMatchingRefreshedAlgorithms(values: ComputeFormLike): boolean {
 
   const refreshedSelection = new Set(refreshed.selectedAlgorithms)
   return selected.every((selection) => refreshedSelection.has(selection))
+}
+
+function hasMatchingTrustedAlgorithmSelection(
+  selectedAlgorithms: string[],
+  trustedAlgorithms: PublisherTrustedAlgorithms[]
+): boolean {
+  if (selectedAlgorithms.length !== trustedAlgorithms.length) return false
+
+  const selectedKeys = new Set(
+    parseSelectedAlgorithms(selectedAlgorithms).map(
+      ({ algoDid, serviceId }) => `${algoDid}:${serviceId}`
+    )
+  )
+  return trustedAlgorithms.every(({ did, serviceId }) =>
+    selectedKeys.has(`${did}:${serviceId}`)
+  )
 }
 
 export async function transformComputeFormToServiceComputeOptions(
@@ -584,6 +664,11 @@ export async function transformComputeFormToServiceComputeOptions(
       ]
     : hasMatchingRefreshedAlgorithms(values)
     ? values.refreshedTrustedAlgorithms.trustedAlgorithms
+    : hasMatchingTrustedAlgorithmSelection(
+        values.publisherTrustedAlgorithms,
+        currentOptions.publisherTrustedAlgorithms
+      )
+    ? currentOptions.publisherTrustedAlgorithms
     : await createTrustedAlgorithmList(
         values.publisherTrustedAlgorithms,
         assetChainId,
