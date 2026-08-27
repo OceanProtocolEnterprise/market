@@ -73,6 +73,7 @@ export function parseFilters(
   const filterQueryPath = {
     accessType: 'credentialSubject.services.type',
     serviceType: 'credentialSubject.metadata.type',
+    priceType: 'indexedMetadata.stats.prices.type',
     filterSet: 'credentialSubject.metadata.tags.keyword',
     filterTime: 'credentialSubject.metadata.created',
     assetState: 'indexedMetadata.nft.state',
