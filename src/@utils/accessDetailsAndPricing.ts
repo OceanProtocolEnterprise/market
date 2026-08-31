@@ -20,6 +20,20 @@ import { getUserOrders } from './aquarius'
 import { AssetPrice } from '../@types/AssetPrice'
 import { getConsumeMarketFeeWei } from './consumeMarketFee'
 
+export const tokenInfoCache = new Map<string, TokenInfo>()
+export async function getCachedTokenInfo(
+  address: string,
+  provider: any
+): Promise<TokenInfo> {
+  const key = address.toLowerCase()
+  if (tokenInfoCache.has(key)) {
+    return tokenInfoCache.get(key) as TokenInfo
+  }
+  const info = await getTokenInfo(address, provider)
+  tokenInfoCache.set(key, info)
+  return info
+}
+
 function getErrorRecordValue(
   value: unknown,
   key: 'error' | 'message'
@@ -207,6 +221,13 @@ export async function getAccessDetails(
   const datatoken = new Datatoken(signer, chainId)
   const { datatokenAddress } = service
 
+  const [dtName, dtSymbol, paymentCollector, templateId] = await Promise.all([
+    datatoken.getName(datatokenAddress),
+    datatoken.getSymbol(datatokenAddress),
+    datatoken.getPaymentCollector(datatokenAddress),
+    datatoken.getId(datatokenAddress)
+  ])
+
   const accessDetails: AccessDetails = {
     type: 'NOT_SUPPORTED',
     price: '0',
@@ -219,12 +240,12 @@ export async function getAccessDetails(
     },
     datatoken: {
       address: datatokenAddress,
-      name: await datatoken.getName(datatokenAddress),
-      symbol: await datatoken.getSymbol(datatokenAddress),
+      name: dtName,
+      symbol: dtSymbol,
       decimals: 0
     },
-    paymentCollector: await datatoken.getPaymentCollector(datatokenAddress),
-    templateId: await datatoken.getId(datatokenAddress),
+    paymentCollector,
+    templateId,
     // TODO these 4 records
     isOwned: false,
     validOrderTx: '', // should be possible to get from ocean-node - orders collection in typesense
@@ -294,6 +315,12 @@ export async function getAccessDetails(
 
       const exchange = await fre.getExchange(exchangeId)
       const tokenInfo = await getTokenInfo(exchange.baseToken, signer.provider)
+      // console.log('accessdetails: data token info', tokenInfo)
+      // const testName = await datatoken.getName(exchange.baseToken)
+      // console.log('accessdetails: data token name', testName)
+      // const testSymbol = await datatoken.getSymbol(exchange.baseToken)
+      // console.log('accessdetails: data token symbol', testSymbol)
+
       return {
         ...accessDetails,
         type: 'fixed',
@@ -301,8 +328,8 @@ export async function getAccessDetails(
         price: exchange.fixedRate,
         baseToken: {
           address: exchange.baseToken,
-          name: await datatoken.getName(exchange.baseToken), // reuse the datatoken instance since it is ERC20
-          symbol: await datatoken.getSymbol(exchange.baseToken),
+          name: tokenInfo?.name, // reuse the datatoken instance since it is ERC20
+          symbol: tokenInfo?.symbol,
           decimals: tokenInfo?.decimals || parseInt(exchange.btDecimals)
         }
       }

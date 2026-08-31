@@ -3,11 +3,12 @@ import { EnterpriseFeeCollectorContract } from '@oceanprotocol/lib'
 import { getOceanConfig } from '@utils/ocean'
 import { useChainId } from 'wagmi'
 import { formatUnits } from 'ethers'
-import { getTokenInfo } from '@utils/wallet'
+// import { getTokenInfo } from '@utils/wallet'
 import { Fees } from 'src/@types/feeCollector/FeeCollector.type'
 import { OpcFee } from '@context/MarketMetadata/_types'
 import { useEthersSigner } from './useEthersSigner'
 import { getAllowedErc20ChainIds } from '@utils/runtimeConfig'
+import { getCachedTokenInfo } from '@utils/accessDetailsAndPricing'
 
 function isNetworkChangedError(error: any): boolean {
   if (!error) return false
@@ -52,7 +53,7 @@ function useEnterpriseFeeCollector() {
                 const feesData = await enterpriseFeeColletor.contract.getToken(
                   tokenAddress
                 )
-                const tokenDetails = await getTokenInfo(
+                const tokenDetails = await getCachedTokenInfo(
                   tokenAddress,
                   signer!.provider
                 )
@@ -158,26 +159,22 @@ function useEnterpriseFeeCollector() {
         const config = getOceanConfig(chainId)
         return !!config?.routerFactoryAddress
       })
-      const opcData: OpcFee[] = await Promise.all(
-        validChainIds.map(async (cId) => {
-          // Note: This uses current signer context
-          const currentFeesArray = await fetchFees(enterpriseFeeCollector)
 
-          return {
-            chainId: cId,
-            tokensData: currentFeesArray.map((fee) => ({
-              tokenAddress: fee.tokenAddress,
-              feePercentage: fee.feePercentage,
-              maxFee: fee.maxFee,
-              minFee: fee.minFee,
-              approved: fee.approved
-            }))
-          }
-        })
-      )
-      return opcData
+      // Note: This uses current signer context
+      const currentFeesArray = await fetchFees(enterpriseFeeCollector)
+
+      return validChainIds.map((cId) => ({
+        chainId: cId,
+        tokensData: currentFeesArray.map((fee) => ({
+          tokenAddress: fee.tokenAddress,
+          feePercentage: fee.feePercentage,
+          maxFee: fee.maxFee,
+          minFee: fee.minFee,
+          approved: fee.approved
+        }))
+      }))
     },
-    [enterpriseFeeCollector, fetchFees] // Dependencies for getOpcData
+    [enterpriseFeeCollector, fetchFees]
   )
 
   return { fees, signer, getOpcData, enterpriseFeeCollector }

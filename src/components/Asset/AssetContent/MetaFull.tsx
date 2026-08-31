@@ -1,10 +1,8 @@
-import { ReactElement, useState, useEffect } from 'react'
+import { ReactElement } from 'react'
 import MetaItem from './MetaItem'
 import styles from './MetaFull.module.css'
 import Publisher from '@shared/Publisher'
 import { useAsset } from '@context/Asset'
-import { LoggerInstance, Datatoken } from '@oceanprotocol/lib'
-import { getDummySigner } from '@utils/wallet'
 import { Asset } from 'src/@types/Asset'
 import { IpfsRemoteSource } from '@components/@shared/IpfsRemoteSource'
 import Label from '@components/@shared/FormInput/Label'
@@ -15,7 +13,7 @@ import MetaLinks from './MetaLinks'
 import TruncatedMetaValue from './TruncatedMetaValue'
 
 export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
-  const { isInPurgatory, assetState } = useAsset()
+  const { isInPurgatory, assetState, asset } = useAsset()
   const credentialSubject = ddo?.credentialSubject
   const metadata = credentialSubject?.metadata
   const license = credentialSubject?.license || metadata?.license
@@ -37,39 +35,8 @@ export default function MetaFull({ ddo }: { ddo: Asset }): ReactElement {
       ? assetStateToString(ddo.indexedMetadata.nft.state)
       : 'Active')
 
-  const [paymentCollector, setPaymentCollector] = useState<string>()
+  const paymentCollector = asset?.accessDetails?.[0]?.paymentCollector
   const publisherDid = ddo?.issuer
-
-  useEffect(() => {
-    if (!ddo) {
-      setPaymentCollector(undefined)
-      return
-    }
-
-    let isCancelled = false
-    setPaymentCollector(undefined)
-
-    async function getInitialPaymentCollector() {
-      try {
-        if (!datatokenAddress) return
-
-        const signer = await getDummySigner(credentialSubject?.chainId)
-        const datatoken = new Datatoken(signer, credentialSubject?.chainId)
-        const nextPaymentCollector = await datatoken.getPaymentCollector(
-          datatokenAddress
-        )
-        if (!isCancelled) setPaymentCollector(nextPaymentCollector)
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        LoggerInstance.error('[MetaFull: getInitialPaymentCollector]', message)
-      }
-    }
-    getInitialPaymentCollector()
-
-    return () => {
-      isCancelled = true
-    }
-  }, [credentialSubject?.chainId, datatokenAddress, ddo])
 
   return ddo ? (
     <>
