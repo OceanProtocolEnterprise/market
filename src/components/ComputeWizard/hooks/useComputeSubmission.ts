@@ -388,13 +388,14 @@ export function useComputeSubmission() {
 
         let response
         if (selectedResources.mode === 'paid') {
+          const maxJobDuration = selectedResources.jobDuration * 60
           response = await ProviderInstance.computeStart(
             providerEndpoint,
             signer,
             selectedComputeEnv.id,
             datasetInputs,
             { ...computeAlgorithm, transferTxId: algorithmOrderTx },
-            selectedResources.jobDuration,
+            maxJobDuration,
             paymentToken,
             resourceRequests,
             firstDataset?.asset.credentialSubject.chainId ??
