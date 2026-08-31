@@ -129,10 +129,18 @@ export default function Edit({
       }
 
       if (asset.credentialSubject?.metadata.type === 'algorithm') {
-        updatedMetadata.algorithm.consumerParameters =
-          !values.usesConsumerParameters
+        updatedMetadata.algorithm = {
+          ...updatedMetadata.algorithm,
+          container: {
+            image: values.containerImage?.trim() || '',
+            tag: values.containerTag?.trim() || '',
+            checksum: values.containerChecksum?.trim() || '',
+            entrypoint: values.containerEntrypoint?.trim() || ''
+          },
+          consumerParameters: !values.usesConsumerParameters
             ? undefined
             : transformConsumerParameters(values.consumerParameters)
+        }
       }
 
       const updatedCredentials = generateCredentials(values?.credentials)

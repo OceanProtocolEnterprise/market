@@ -437,6 +437,7 @@ export default function Steps({
           return (
             <SelectPrimaryAsset
               flow="algorithm"
+              datasets={datasets}
               asset={asset}
               service={service}
               accessDetails={accessDetails}
@@ -613,6 +614,7 @@ export default function Steps({
         return (
           <SelectPrimaryAsset
             flow="algorithm"
+            datasets={datasets}
             asset={asset}
             service={service}
             accessDetails={accessDetails}
