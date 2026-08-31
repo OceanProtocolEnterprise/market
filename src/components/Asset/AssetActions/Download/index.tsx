@@ -28,6 +28,7 @@ import {
 import { secondsToString } from '@utils/ddo'
 import { MAX_DECIMALS } from '@utils/constants'
 import { checkVerifierSessionId } from '@utils/wallet/policyServer'
+import { getStoredVerifierSessionId } from '@utils/verifierSession'
 
 import Input from '@shared/FormInput'
 import Button from '@shared/atoms/Button'
@@ -676,27 +677,10 @@ export default function Download({
     >
       <Form>
         {(() => {
-          function getLocalSessionImmediate(
-            did: string,
-            svcId: string
-          ): string {
-            try {
-              if (typeof window === 'undefined') return ''
-              const storage = localStorage.getItem('verifierSessionId')
-              const sessions = storage ? JSON.parse(storage) : {}
-              return (
-                sessions?.[`${did}_${svcId}`] ||
-                sessions?.[`${did}_${svcId}_skip`] ||
-                ''
-              )
-            } catch {
-              return ''
-            }
-          }
           const sessionId =
             lookupVerifierSessionId(asset.id, service.id) ||
             lookupVerifierSessionIdSkip(asset.id, service.id)
-          const localSession = getLocalSessionImmediate(asset.id, service.id)
+          const localSession = getStoredVerifierSessionId(asset.id, service.id)
           const hasSession = Boolean(
             sessionId || localSession || credentialCheckComplete
           )

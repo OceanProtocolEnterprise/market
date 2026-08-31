@@ -35,9 +35,22 @@
   padding-right: 20px;
 }
 
-.link:hover {
+.link:hover,
+.link:focus-visible {
   color: #fdd655;
   text-decoration: underline;
+}
+
+.linkButton {
+  composes: link;
+  background: none;
+  border: 0;
+  margin: 0;
+  padding: 0 20px 0 0;
+  cursor: pointer;
+  text-align: inherit;
+  font-family: inherit;
+  line-height: inherit;
 }
 
 .arrow {

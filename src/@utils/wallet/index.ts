@@ -1,7 +1,7 @@
 'use client'
 
 import { LoggerInstance } from '@oceanprotocol/lib'
-import { cookieStorage, createConfig, createStorage } from 'wagmi'
+import { createConfig } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 import { erc20Abi, http } from 'viem'
 import { localhost, type Chain } from 'wagmi/chains'
@@ -13,6 +13,7 @@ import {
   Provider,
   Wallet
 } from 'ethers'
+import Cookies from 'js-cookie'
 import { getOceanConfig } from '../ocean'
 import { getSupportedChains } from './chains'
 import { getAllowedErc20ChainIds, getRuntimeConfig } from '../runtimeConfig'
@@ -56,7 +57,6 @@ export function createWagmiConfig() {
   return createConfig({
     chains,
     ssr: true,
-    storage: createStorage({ storage: cookieStorage }),
     // Signer Server must exist when Wagmi mounts so its reconnect pass can
     // restore that connection after a page refresh.
     connectors: [injected({ target: 'metaMask' }), signerServerConnector()],
@@ -68,6 +68,14 @@ export function createWagmiConfig() {
       {} as Record<number, ReturnType<typeof http>>
     )
   })
+}
+
+export function removeLegacyWagmiCookies(): void {
+  if (typeof document === 'undefined') return
+
+  Object.keys(Cookies.get())
+    .filter((name) => name.startsWith('wagmi.'))
+    .forEach((name) => Cookies.remove(name, { path: '/' }))
 }
 
 // ConnectKit CSS overrides
