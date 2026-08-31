@@ -65,7 +65,6 @@ import {
   getOutputStorageValidationMessage
 } from './outputStorage'
 import { isComputeEnvironmentConfigured } from './stepCompletion'
-import DockerRegistryAuthFields from './DockerRegistryAuthFields'
 import {
   getDockerRegistryAuth,
   isDockerRegistryAuthError
@@ -1297,7 +1296,6 @@ export default function ComputeWizardController({
           values.user.stepCurrent === stepNumbers.userParameters
         const isOnJobResultsStorageStep =
           values.user.stepCurrent === stepNumbers.jobResultsStorage
-        const isOnReviewStep = values.user.stepCurrent === stepNumbers.review
         const hasMissingRequiredDefaults =
           Array.isArray(values.userUpdatedParameters) &&
           values.userUpdatedParameters.some((entry) =>
@@ -1391,9 +1389,6 @@ export default function ComputeWizardController({
                   />
                 ) : (
                   <CredentialDialogProvider>
-                    {isOnReviewStep && values.dockerRegistryAuthRequired && (
-                      <DockerRegistryAuthFields />
-                    )}
                     <Steps
                       flow={flow}
                       asset={asset}
