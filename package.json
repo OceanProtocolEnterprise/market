@@ -1,7 +1,7 @@
 {
   "name": "@OceanProtocolEnterprise/market",
   "description": "Ocean Protocol Enterprise Marketplace",
-  "version": "1.4.6",
+  "version": "1.5.0",
   "license": "Apache-2.0",
   "homepage": "https://github.com/OceanProtocolEnterprise",
   "type": "module",
