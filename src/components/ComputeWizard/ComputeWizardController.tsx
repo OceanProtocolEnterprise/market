@@ -65,6 +65,11 @@ import {
   getOutputStorageValidationMessage
 } from './outputStorage'
 import { isComputeEnvironmentConfigured } from './stepCompletion'
+import DockerRegistryAuthFields from './DockerRegistryAuthFields'
+import {
+  getDockerRegistryAuth,
+  isDockerRegistryAuthError
+} from './dockerRegistryAuth'
 
 type ParamValue = string | number | boolean | undefined
 
@@ -741,6 +746,7 @@ export default function ComputeWizardController({
         formValues?.outputStorageEnabled,
         formValues?.outputStorage
       )
+      const dockerRegistryAuth = getDockerRegistryAuth(formValues)
 
       const initResult = await initializePricingAndProvider({
         datasetsForProvider,
@@ -762,6 +768,7 @@ export default function ComputeWizardController({
           : undefined,
         algoParams,
         datasetParams,
+        dockerRegistryAuth,
         accountId,
         shouldDepositEscrow: withEscrow,
         onProgress: setComputeProgressStep
@@ -787,7 +794,16 @@ export default function ComputeWizardController({
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to initialize provider.'
-      setError(message)
+      if (isDockerRegistryAuthError(err)) {
+        setError(undefined)
+        await formikRef.current?.setFieldValue(
+          'dockerRegistryAuthRequired',
+          true,
+          false
+        )
+      } else {
+        setError(message)
+      }
       LoggerInstance.error(`[compute] ${message}`)
       throw err
     }
@@ -985,9 +1001,26 @@ export default function ComputeWizardController({
               formikValues.queueMaxWaitTime,
               formikValues.queueMaxWaitTimeUnit
             )
-          : undefined
+          : undefined,
+        dockerRegistryAuth: getDockerRegistryAuth(formValuesForEscrow)
         // oceanTokenAddress --- IGNORE ---
       })
+
+      await formikRef.current?.setFieldValue(
+        'dockerRegistryPassword',
+        '',
+        false
+      )
+      await formikRef.current?.setFieldValue(
+        'dockerRegistryUsername',
+        '',
+        false
+      )
+      await formikRef.current?.setFieldValue(
+        'dockerRegistryAuthRequired',
+        false,
+        false
+      )
 
       await refetchComputeJobs('init')
       resetCacheWallet()
@@ -1190,6 +1223,24 @@ export default function ComputeWizardController({
       return
     }
 
+    if (
+      formikValues.dockerRegistryAuthRequired &&
+      !getDockerRegistryAuth(formikValues)
+    ) {
+      await formikRef.current?.setFieldTouched(
+        'dockerRegistryUsername',
+        true,
+        false
+      )
+      await formikRef.current?.setFieldTouched(
+        'dockerRegistryPassword',
+        true,
+        false
+      )
+      toast.error('Enter both the registry username and password.')
+      return
+    }
+
     try {
       await initPriceAndFees(datasetServices, formikValues, false)
       toast.info('Compute provider initialized successfully.')
@@ -1246,6 +1297,7 @@ export default function ComputeWizardController({
           values.user.stepCurrent === stepNumbers.userParameters
         const isOnJobResultsStorageStep =
           values.user.stepCurrent === stepNumbers.jobResultsStorage
+        const isOnReviewStep = values.user.stepCurrent === stepNumbers.review
         const hasMissingRequiredDefaults =
           Array.isArray(values.userUpdatedParameters) &&
           values.userUpdatedParameters.some((entry) =>
@@ -1339,6 +1391,9 @@ export default function ComputeWizardController({
                   />
                 ) : (
                   <CredentialDialogProvider>
+                    {isOnReviewStep && values.dockerRegistryAuthRequired && (
+                      <DockerRegistryAuthFields />
+                    )}
                     <Steps
                       flow={flow}
                       asset={asset}

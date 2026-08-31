@@ -13,6 +13,7 @@ import {
   S3FileObject,
   FtpFileObject
 } from '@oceanprotocol/lib'
+import type { dockerRegistryAuth as DockerRegistryAuth } from '@oceanprotocol/lib'
 // if customProviderUrl is set, we need to call provider using this custom endpoint
 import { customProviderUrl } from '../../app.config.cjs'
 import type { KeyValuePair } from 'src/@types/KeyValuePair'
@@ -83,7 +84,8 @@ export async function initializeProviderForComputeMulti(
   computeOutput?: ComputeOutput,
   queueMaxWaitTime?: number,
   algoParams?: Record<string, any>,
-  datasetParams?: Record<string, any>
+  datasetParams?: Record<string, any>,
+  dockerRegistryAuth?: DockerRegistryAuth
 ) {
   const safeDatasets = datasets ?? []
   const computeAssets = safeDatasets.map(
@@ -164,7 +166,7 @@ export async function initializeProviderForComputeMulti(
     policiesServer,
     null,
     queueMaxWaitTime,
-    null,
+    dockerRegistryAuth,
     computeOutput
   )
 }

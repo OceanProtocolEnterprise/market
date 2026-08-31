@@ -1,0 +1,29 @@
+.container {
+  max-width: 716px;
+  margin: 0 auto var(--sp-8);
+  padding: var(--sp-6);
+  border: 1px solid var(--brand-alert-yellow);
+  border-radius: var(--border-radius);
+  background: var(--background-highlight);
+}
+
+.container h3 {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--font-size-large);
+}
+
+.container p {
+  margin: 0 0 var(--sp-6);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+
+@media (max-width: 40rem) {
+  .fields {
+    grid-template-columns: 1fr;
+  }
+}

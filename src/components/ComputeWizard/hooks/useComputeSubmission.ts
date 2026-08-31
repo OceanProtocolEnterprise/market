@@ -8,6 +8,7 @@ import {
   ProviderFees,
   ZERO_ADDRESS
 } from '@oceanprotocol/lib'
+import type { dockerRegistryAuth as DockerRegistryAuth } from '@oceanprotocol/lib'
 import { isOrderable } from '@utils/compute'
 import { handleComputeOrder } from '@utils/order'
 import { getComputeFeedback } from '@utils/feedback'
@@ -63,6 +64,7 @@ type StartJobParams = {
   computeOutputEncryptionKey?: string
   computeOutputStorage?: FormComputeData['outputStorage']
   queueMaxWaitTime?: number
+  dockerRegistryAuth?: DockerRegistryAuth
 }
 
 async function setAlgoPrice(
@@ -225,7 +227,8 @@ export function useComputeSubmission() {
       computeOutput,
       computeOutputEncryptionKey,
       computeOutputStorage,
-      queueMaxWaitTime
+      queueMaxWaitTime,
+      dockerRegistryAuth
     }: StartJobParams) => {
       try {
         setIsOrdering(true)
@@ -404,7 +407,8 @@ export function useComputeSubmission() {
             computeOutput,
             policiesServer as any,
             undefined,
-            queueMaxWaitTime
+            queueMaxWaitTime,
+            dockerRegistryAuth
           )
         } else {
           const algorithm: ComputeAlgorithm = {
@@ -427,7 +431,8 @@ export function useComputeSubmission() {
             computeOutput,
             policiesServer as any,
             undefined,
-            queueMaxWaitTime
+            queueMaxWaitTime,
+            dockerRegistryAuth
           )
         }
 
