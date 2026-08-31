@@ -288,7 +288,7 @@ export function useComputeInitialization({
                 paymentTokenAddress,
                 selectedComputeEnv.consumerAddress,
                 initializedProvider.payment.amount.toString(),
-                selectedResources.jobDuration.toString(),
+                initializedProvider.payment.minLockSeconds.toString(),
                 '10'
               )
               onProgress?.('escrow', 'completed')
