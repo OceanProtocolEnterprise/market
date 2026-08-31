@@ -18,7 +18,6 @@ import type { dockerRegistryAuth as DockerRegistryAuth } from '@oceanprotocol/li
 import { customProviderUrl } from '../../app.config.cjs'
 import type { KeyValuePair } from 'src/@types/KeyValuePair'
 import { Signer } from 'ethers'
-import { getValidUntilTime } from './compute'
 import { toast } from 'react-toastify'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
@@ -129,11 +128,7 @@ export async function initializeProviderForComputeMulti(
     }
   ]
 
-  const validUntil = getValidUntilTime(
-    selectedResources.jobDuration,
-    safeDatasets[0]?.service.timeout ?? 0,
-    algorithm.credentialSubject.services[svcIndexAlgo].timeout
-  )
+  const maxJobDuration = selectedResources.jobDuration * 60
 
   const providerUrl =
     safeDatasets[0]?.service.serviceEndpoint ||
@@ -158,7 +153,7 @@ export async function initializeProviderForComputeMulti(
     computeAlgo,
     computeEnv.id,
     paymentTokenAddress,
-    validUntil,
+    maxJobDuration,
     providerUrl,
     await accountId.getAddress(),
     resources,
