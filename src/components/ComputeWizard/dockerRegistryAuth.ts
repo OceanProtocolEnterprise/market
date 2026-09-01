@@ -17,6 +17,20 @@ function getErrorMessage(error: unknown): string {
   }
 }
 
+export function getDockerRegistryAuthErrorMessage(error: unknown): string {
+  const message = getErrorMessage(error)
+  let unwrappedMessage = message
+
+  try {
+    const parsed = JSON.parse(message)
+    if (typeof parsed?.error === 'string') unwrappedMessage = parsed.error
+  } catch {
+    // The provider may already return the error as plain text.
+  }
+
+  return unwrappedMessage.split(/:\s*Failed to get manifest\b/i)[0].trim()
+}
+
 export function isDockerRegistryAuthError(error: unknown): boolean {
   const message = getErrorMessage(error)
   return (

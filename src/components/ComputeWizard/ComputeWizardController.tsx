@@ -66,6 +66,7 @@ import {
 } from './outputStorage'
 import { isComputeEnvironmentConfigured } from './stepCompletion'
 import {
+  getDockerRegistryAuthErrorMessage,
   getDockerRegistryAuth,
   isDockerRegistryAuthError
 } from './dockerRegistryAuth'
@@ -889,7 +890,11 @@ export default function ComputeWizardController({
 
   useEffect(() => {
     if (!initError) return
-    toast.error(initError)
+    toast.error(
+      isDockerRegistryAuthError(initError)
+        ? getDockerRegistryAuthErrorMessage(initError)
+        : initError
+    )
     setInitError(undefined)
   }, [initError, setInitError])
 
@@ -1245,10 +1250,8 @@ export default function ComputeWizardController({
     try {
       await initPriceAndFees(datasetServices, formikValues, false)
       toast.info('Compute provider initialized successfully.')
-    } catch (err) {
-      const message =
-        (err as Error)?.message || 'Failed to initialize provider.'
-      toast.error(message)
+    } catch {
+      // Initialization errors are surfaced once through initError.
     }
   }
 
