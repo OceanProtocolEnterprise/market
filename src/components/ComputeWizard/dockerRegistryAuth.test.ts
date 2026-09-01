@@ -11,7 +11,6 @@ describe('docker registry authentication', () => {
       'Docker image pull access denied; repository may require docker login',
       'Unable to fetch image manifest: 401 Unauthorized',
       'Container registry authentication failed: invalid credentials',
-      'Docker image manifest not found',
       new Error('Forbidden access to Docker repository')
     ])('detects registry authentication failures', (error) => {
       expect(isDockerRegistryAuthError(error)).toBe(true)
@@ -21,6 +20,8 @@ describe('docker registry authentication', () => {
       'Compute environment does not exist',
       'Insufficient escrow funds',
       'Provider initialization failed',
+      'Docker image manifest not found',
+      'Docker image manifest unknown',
       undefined
     ])('ignores unrelated initialization failures', (error) => {
       expect(isDockerRegistryAuthError(error)).toBe(false)

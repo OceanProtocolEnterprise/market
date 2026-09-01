@@ -1039,7 +1039,9 @@ export default function ComputeWizardController({
 
       const message =
         (error as Error)?.message || 'Failed to start compute job.'
-      setError(message)
+      if (!isDockerRegistryAuthError(error)) {
+        setError(message)
+      }
       throw error
     } finally {
       setIsSubmittingJob(false)

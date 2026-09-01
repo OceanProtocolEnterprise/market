@@ -406,7 +406,7 @@ export function useComputeSubmission() {
             null,
             null,
             computeOutput,
-            policiesServer as any,
+            policiesServer,
             undefined,
             queueMaxWaitTime,
             dockerRegistryAuth
@@ -430,7 +430,7 @@ export function useComputeSubmission() {
             null,
             null,
             computeOutput,
-            policiesServer as any,
+            policiesServer,
             undefined,
             queueMaxWaitTime,
             dockerRegistryAuth
