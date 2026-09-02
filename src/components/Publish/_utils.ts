@@ -79,6 +79,7 @@ import { ComputeEditForm } from '@components/Asset/Edit/_types'
 import { getOceanConfig } from '@utils/ocean'
 import { getDummySigner, getTokenInfo } from '@utils/wallet'
 import { inferNameFromUrl } from './_license'
+import { getOpaServerUrl } from '@utils/wallet/policyServer'
 
 function cleanupVpPolicies(value: any): void {
   if (!value.vp_policies || value.vp_policies.length === 0) {
@@ -252,7 +253,7 @@ allow if {
   return result
 }
 
-function generateSsiPolicy(policy: PolicyType): any {
+function generateSsiPolicy(policy: PolicyType, opaServerUrl?: string): any {
   let result
   switch (policy?.type) {
     case 'staticPolicy':
@@ -275,7 +276,7 @@ function generateSsiPolicy(policy: PolicyType): any {
           policy: 'dynamic',
           args: {
             policy_name: policy.name,
-            opa_server: appConfig.opaServer,
+            opa_server: opaServerUrl,
             policy_query: 'data',
             rules: {
               policy_url: policy.policyUrl
@@ -292,7 +293,7 @@ function generateSsiPolicy(policy: PolicyType): any {
           policy: 'dynamic',
           args: {
             policy_name: policy.name,
-            opa_server: appConfig.opaServer,
+            opa_server: opaServerUrl,
             policy_query: 'data',
             rules: {
               rego: generateCustomPolicyScript(policy.name, policy.rules)
@@ -374,7 +375,8 @@ export function stringifyCredentialPolicies(credentials: Credential) {
 }
 
 export function generateCredentials(
-  updatedCredentials: CredentialForm
+  updatedCredentials: CredentialForm,
+  opaServerUrl: string | undefined = appConfig.opaServer
 ): Credential {
   const newCredentials: Credential = {
     allow: [],
@@ -391,7 +393,7 @@ export function generateCredentials(
         (credential) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const policies: any[] = credential?.policies?.map((policy) =>
-            generateSsiPolicy(policy)
+            generateSsiPolicy(policy, opaServerUrl)
           )
           return {
             format: credential.format,
@@ -595,6 +597,9 @@ export async function transformPublishFormToDdo(
 
   const currentTime = dateToStringNoMS(new Date())
   const isPreview = !datatokenAddress && !nftAddress
+  const opaServerUrl = isPreview
+    ? appConfig.opaServer
+    : await getOpaServerUrl(providerUrl.url)
 
   const algorithmContainerPresets =
     type === 'algorithm' && dockerImage !== '' && dockerImage !== 'custom'
@@ -791,7 +796,7 @@ export async function transformPublishFormToDdo(
     })
   }
 
-  const newServiceCredentials = generateCredentials(credentials)
+  const newServiceCredentials = generateCredentials(credentials, opaServerUrl)
   const valuesCompute: ComputeEditForm = {
     allowAllPublishedAlgorithms:
       values.allowAllPublishedAlgorithms === 'Allow any published algorithms',
@@ -837,7 +842,7 @@ export async function transformPublishFormToDdo(
       )
     })
   }
-  const newCredentials = generateCredentials(values.credentials)
+  const newCredentials = generateCredentials(values.credentials, opaServerUrl)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const newDdo: any = {
     '@context': ['https://www.w3.org/ns/credentials/v2'],

@@ -44,6 +44,7 @@ import { useSsiWallet } from '@context/SsiWallet'
 import { State } from 'src/@types/ddo/State'
 import { assetStateToNumber } from '@utils/assetState'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import { getOpaServerUrl } from '@utils/wallet/policyServer'
 
 export default function EditService({
   asset,
@@ -206,7 +207,11 @@ export default function EditService({
         ...(values.credentials || {}),
         vcPolicies: []
       }
-      const updatedCredentials = generateCredentials(serviceCredentials)
+      const opaServerUrl = await getOpaServerUrl(service.serviceEndpoint)
+      const updatedCredentials = generateCredentials(
+        serviceCredentials,
+        opaServerUrl
+      )
       const updatedService: Service = {
         ...service,
         name: values.name,
