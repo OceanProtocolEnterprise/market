@@ -7,6 +7,7 @@ import {
   EscrowContract,
   ZERO_ADDRESS
 } from '@oceanprotocol/lib'
+import type { dockerRegistryAuth as DockerRegistryAuth } from '@oceanprotocol/lib'
 import { initializeProviderForComputeMulti } from '@utils/provider'
 import { getOrderPriceAndFees } from '@utils/accessDetailsAndPricing'
 import { getTokenInfo } from '@utils/wallet'
@@ -41,6 +42,7 @@ type InitializeParams = {
   queueMaxWaitTime?: number
   algoParams?: Record<string, any>
   datasetParams?: Record<string, any>
+  dockerRegistryAuth?: DockerRegistryAuth
   accountId?: string
   shouldDepositEscrow?: boolean
   onProgress?: (
@@ -167,6 +169,7 @@ export function useComputeInitialization({
       queueMaxWaitTime,
       algoParams,
       datasetParams,
+      dockerRegistryAuth,
       accountId,
       shouldDepositEscrow = true,
       onProgress
@@ -187,7 +190,8 @@ export function useComputeInitialization({
           computeOutput,
           queueMaxWaitTime,
           algoParams,
-          datasetParams
+          datasetParams,
+          dockerRegistryAuth
         )
 
         if (!initializedProvider) {

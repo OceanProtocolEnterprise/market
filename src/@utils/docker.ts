@@ -7,6 +7,11 @@ export interface dockerContainerInfo {
   checksum: string
 }
 
+export interface DockerRegistryCredentials {
+  username: string
+  password: string
+}
+
 export interface DockerImageReference {
   image: string
   tag: string
@@ -97,17 +102,46 @@ export function resolveDockerImageReferenceForPreview(
 
 export async function getContainerChecksum(
   image: string,
-  tag: string
+  tag: string,
+  credentials?: DockerRegistryCredentials
 ): Promise<dockerContainerInfo> {
   const containerInfo: dockerContainerInfo = {
     exists: false,
     checksum: null
   }
   try {
-    const response = await axios.post(dockerHubProxyUrl, {
-      image,
-      tag
-    })
+    const response = credentials
+      ? await axios.post(
+          '/api/docker/checksum',
+          {
+            image,
+            tag,
+            username: credentials.username,
+            password: credentials.password
+          },
+          {
+            headers: {
+              'Cache-Control': 'no-store'
+            }
+          }
+        )
+      : await axios.post(dockerHubProxyUrl, {
+          image,
+          tag
+        })
+
+    if (credentials) {
+      const checksum = response?.data?.result?.checksum
+      if (!response?.data?.success || !checksum) {
+        toast.error('Could not resolve the private Docker image checksum.')
+        return containerInfo
+      }
+
+      containerInfo.exists = true
+      containerInfo.checksum = checksum
+      return containerInfo
+    }
+
     if (
       !response ||
       response.status !== 200 ||
@@ -122,9 +156,17 @@ export async function getContainerChecksum(
     containerInfo.checksum = response.data.result.checksum
     return containerInfo
   } catch (error) {
-    LoggerInstance.error(error.message)
+    LoggerInstance.error('Could not resolve Docker image checksum')
+
+    const responseMessage = axios.isAxiosError(error)
+      ? error.response?.data?.error
+      : undefined
     toast.error(
-      'Could not fetch docker hub image informations. If you have it hosted in a 3rd party repository please fill in the container checksum manually.'
+      typeof responseMessage === 'string'
+        ? responseMessage
+        : credentials
+        ? 'Could not resolve the private Docker image checksum.'
+        : 'Could not fetch docker hub image informations. If you have it hosted in a 3rd party repository please fill in the container checksum manually.'
     )
     return containerInfo
   }

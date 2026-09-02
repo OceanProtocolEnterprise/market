@@ -12,14 +12,13 @@ import {
 
 export default function ContainerInput(props: InputProps): ReactElement {
   const [field] = useField(props.name)
-  const [, , helpersChecksum] = useField('metadata.dockerImageCustomChecksum')
+  const [checksumField, , helpersChecksum] = useField(
+    'metadata.dockerImageCustomChecksum'
+  )
 
   const { values, setFieldError, setFieldValue } =
     useFormikContext<FormPublishData>()
   const [isLoading, setIsLoading] = useState(false)
-  const [isValid, setIsValid] = useState(
-    Boolean(values.metadata.dockerImageCustomChecksum)
-  )
   const [checked, setChecked] = useState(
     Boolean(
       values.metadata.dockerImageCustom && values.metadata.dockerImageCustomTag
@@ -44,7 +43,6 @@ export default function ContainerInput(props: InputProps): ReactElement {
           containerInfo.checksum
         )
         helpersChecksum.setTouched(false)
-        setIsValid(true)
       }
     } catch (error) {
       setFieldError(field.name, error.message)
@@ -59,7 +57,6 @@ export default function ContainerInput(props: InputProps): ReactElement {
     setFieldValue('metadata.dockerImageCustomTag', '')
     setFieldValue('metadata.dockerImageCustomChecksum', '')
     setChecked(false)
-    setIsValid(false)
     helpersChecksum.setTouched(true)
   }
 
@@ -69,7 +66,7 @@ export default function ContainerInput(props: InputProps): ReactElement {
         <ImageInfo
           image={values.metadata.dockerImageCustom}
           tag={values.metadata.dockerImageCustomTag}
-          valid={isValid}
+          valid={Boolean(checksumField.value)}
           handleClose={handleClose}
         />
       ) : (

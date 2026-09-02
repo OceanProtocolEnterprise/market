@@ -1,0 +1,29 @@
+.container {
+  width: 100%;
+  padding: var(--sp-5);
+  border: 1px solid var(--brand-alert-yellow);
+  border-radius: var(--radius-xl);
+  background: var(--background-highlight);
+}
+
+.container h4 {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--font-size-large);
+}
+
+.container p {
+  margin: 0 0 var(--sp-5);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+
+@media (max-width: 40rem) {
+  .fields {
+    grid-template-columns: 1fr;
+  }
+}

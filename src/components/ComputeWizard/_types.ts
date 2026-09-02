@@ -122,6 +122,9 @@ export interface FormComputeData {
   queueWaitingEnabled?: boolean
   queueMaxWaitTime?: number | null
   queueMaxWaitTimeUnit?: QueueWaitTimeUnit
+  dockerRegistryAuthRequired: boolean
+  dockerRegistryUsername: string
+  dockerRegistryPassword: string
   outputStorageEnabled?: boolean
   outputStorage?: {
     type?: 'url' | 's3' | 'ftp'
