@@ -34,6 +34,7 @@ import {
   getContainerChecksum,
   normalizeDockerImageReference
 } from '@utils/docker'
+import DockerRegistryChecksum from '@shared/DockerRegistryChecksum'
 
 const { data } = content.form
 const assetTypeOptionsTitles = getFieldContent('type', data).options
@@ -289,7 +290,6 @@ export default function FormEditMetadata(): ReactElement {
                     {...getFieldContent('containerChecksum', data)}
                     component={Input}
                     name="containerChecksum"
-                    disabled
                   />
                 </div>
                 <ContainerUpdateCheckButton
@@ -303,6 +303,18 @@ export default function FormEditMetadata(): ReactElement {
                   }}
                 />
               </div>
+              {values.containerImage &&
+                values.containerTag &&
+                !values.containerChecksum && (
+                  <DockerRegistryChecksum
+                    image={values.containerImage}
+                    tag={values.containerTag}
+                    onChecksumResolved={async (checksum) => {
+                      await setFieldValue('containerChecksum', checksum, true)
+                      await setFieldTouched('containerChecksum', false, false)
+                    }}
+                  />
+                )}
               <Field
                 {...getFieldContent('containerEntrypoint', data)}
                 component={Input}

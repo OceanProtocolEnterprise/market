@@ -36,6 +36,7 @@ export interface InputProps {
   prominentHelp?: boolean
   tag?: string
   type?: string
+  autoComplete?: string
   options?:
     | string[]
     | AssetSelectionAsset[]

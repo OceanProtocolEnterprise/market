@@ -233,6 +233,9 @@ const validationMetadata = {
     })
   }),
   useRemoteLicense: Yup.boolean(),
+  licenseTypeSelection: Yup.string()
+    .oneOf(['URL', 'Upload license file'])
+    .required('Required'),
   licenseUrl: Yup.array().when('useRemoteLicense', {
     is: false,
     then: Yup.array().test('urlTest', (array, context) => {
