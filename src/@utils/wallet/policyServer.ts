@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { ProviderInstance } from '@oceanprotocol/lib'
+import { LoggerInstance, ProviderInstance } from '@oceanprotocol/lib'
 import appConfig, { customProviderUrl } from 'app.config.cjs'
 import axios from 'axios'
 import type { Signer } from 'ethers'
@@ -45,35 +45,43 @@ export async function getOpaServerUrl(
 ): Promise<string | undefined> {
   if (!appConfig.ssiEnabled) return appConfig.opaServer
 
-  const nodeUrl = serviceEndpoint?.replace(/\/+$/, '')
-  if (!nodeUrl) {
-    throw new Error(
-      'Cannot resolve the OPA server URL without an Ocean Node URL.'
+  try {
+    const nodeUrl = serviceEndpoint?.replace(/\/+$/, '')
+    if (!nodeUrl) {
+      throw new Error(
+        'Cannot resolve the OPA server URL without an Ocean Node URL.'
+      )
+    }
+
+    const action: PolicyServerGetOpaServerUrlAction = {
+      action: PolicyServerActions.GET_OPA_SERVER_URL
+    }
+    const response = await axios.post(
+      `${nodeUrl}/api/services/PolicyServerPassthrough`,
+      { policyServerPassthrough: action },
+      { timeout: POLICY_SERVER_REQUEST_TIMEOUT }
     )
-  }
+    const hasMessage =
+      typeof response.data === 'object' &&
+      response.data !== null &&
+      'message' in response.data
+    const result = hasMessage ? response.data.message : response.data
 
-  const action: PolicyServerGetOpaServerUrlAction = {
-    action: PolicyServerActions.GET_OPA_SERVER_URL
-  }
-  const response = await axios.post(
-    `${nodeUrl}/api/services/PolicyServerPassthrough`,
-    { policyServerPassthrough: action },
-    { timeout: POLICY_SERVER_REQUEST_TIMEOUT }
-  )
-  const hasMessage =
-    typeof response.data === 'object' &&
-    response.data !== null &&
-    'message' in response.data
-  const result = hasMessage ? response.data.message : response.data
+    if (result === null || result === undefined || result === '') {
+      return appConfig.opaServer
+    }
+    if (typeof result !== 'string') {
+      throw new Error('Ocean Node returned an invalid OPA server URL response.')
+    }
 
-  if (result === null || result === undefined || result === '') {
+    return result
+  } catch (error) {
+    LoggerInstance.warn(
+      '[Policy Server] Failed to resolve OPA server URL; using the configured fallback.',
+      error
+    )
     return appConfig.opaServer
   }
-  if (typeof result !== 'string') {
-    throw new Error('Ocean Node returned an invalid OPA server URL response.')
-  }
-
-  return result
 }
 
 export async function requestCredentialPresentation(
