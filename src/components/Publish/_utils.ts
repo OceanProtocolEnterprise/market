@@ -597,9 +597,7 @@ export async function transformPublishFormToDdo(
 
   const currentTime = dateToStringNoMS(new Date())
   const isPreview = !datatokenAddress && !nftAddress
-  const opaServerUrl = isPreview
-    ? appConfig.opaServer
-    : await getOpaServerUrl(providerUrl.url)
+  const opaServerUrl = await getOpaServerUrl(providerUrl.url)
 
   const algorithmContainerPresets =
     type === 'algorithm' && dockerImage !== '' && dockerImage !== 'custom'
