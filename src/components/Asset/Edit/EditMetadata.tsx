@@ -30,6 +30,7 @@ import { AdditionalVerifiableCredentials } from 'src/@types/ddo/AdditionalVerifi
 import { useSsiWallet } from '@context/SsiWallet'
 import { State } from 'src/@types/ddo/State'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import { getOpaServerUrl } from '@utils/wallet/policyServer'
 
 export default function Edit({
   asset
@@ -143,7 +144,13 @@ export default function Edit({
         }
       }
 
-      const updatedCredentials = generateCredentials(values?.credentials)
+      const opaServerUrl = await getOpaServerUrl(
+        asset.credentialSubject?.services[0]?.serviceEndpoint
+      )
+      const updatedCredentials = generateCredentials(
+        values?.credentials,
+        opaServerUrl
+      )
       const updatedNft: AssetNft = {
         ...asset.indexedMetadata.nft,
         state: State[values.assetState as unknown as keyof typeof State]
@@ -166,7 +173,7 @@ export default function Edit({
       updatedAsset.credentialSubject.services =
         updatedAsset.credentialSubject.services.map((svc) => ({
           ...svc,
-          credentials: generateCredentials(values?.credentials)
+          credentials: generateCredentials(values?.credentials, opaServerUrl)
         }))
 
       stringifyCredentialPolicies(updatedAsset.credentialSubject.credentials)
