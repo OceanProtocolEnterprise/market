@@ -18,9 +18,9 @@ import { useIsMounted } from '@hooks/useIsMounted'
 import styles from './index.module.css'
 import { FormikContext, FormikContextType } from 'formik'
 import { FormPublishData } from '@components/Publish/_types'
-import { getTokenBalanceFromSymbol } from '@utils/wallet'
+import { getTokenBalanceFromSymbol, getOrCreateProvider } from '@utils/wallet'
 import { isAddressWhitelisted } from '@utils/ddo'
-import { useAccount, useChainId, usePublicClient } from 'wagmi'
+import { useAccount, useChainId } from 'wagmi'
 import useBalance from '@hooks/useBalance'
 import Button from '@components/@shared/atoms/Button'
 import { Service } from 'src/@types/ddo/Service'
@@ -32,7 +32,7 @@ import { AssetActionCheckCredentials } from './CheckCredentials'
 import { useSsiWallet } from '@context/SsiWallet'
 import appConfig from 'app.config.cjs'
 import ComputeWizard from '@components/ComputeWizard'
-import { JsonRpcProvider } from 'ethers'
+// import { JsonRpcProvider } from 'ethers'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 import { useRouter } from 'next/router'
 import {
@@ -79,11 +79,17 @@ export default function AssetActions({
   const signer = useEthersSigner()
   const { balance } = useBalance()
   const chainId = useChainId()
-  const publicClient = usePublicClient()
+  // const publicClient = usePublicClient()
   const rpcUrl = getOceanConfig(chainId)?.nodeUri
 
-  const ethersProvider =
-    publicClient && rpcUrl ? new JsonRpcProvider(rpcUrl) : undefined
+  const ethersProvider = useMemo(() => {
+    if (!rpcUrl) return undefined
+    try {
+      return getOrCreateProvider(chainId)
+    } catch {
+      return undefined
+    }
+  }, [chainId, rpcUrl])
   const { isAssetNetwork, isOwner } = useAsset()
   const newCancelToken = useCancelToken()
   const isMounted = useIsMounted()
