@@ -19,6 +19,7 @@ import {
   ComputeStartProgressPhase,
   ComputeStartProgressStatus
 } from '../progress'
+import { getFirstEscrowAuthorization } from './escrowAuthorization'
 
 type DatasetServiceSelection = {
   asset: AssetExtended
@@ -301,7 +302,7 @@ export function useComputeInitialization({
             owner,
             payee
           )
-          const authorization = authorizations[0]
+          const authorization = getFirstEscrowAuthorization(authorizations)
           const currentLockedAmount = authorization
             ? BigInt(authorization.currentLockedAmount.toString())
             : BigInt(0)
