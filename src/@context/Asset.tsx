@@ -5,7 +5,8 @@ import {
   createContext,
   ReactElement,
   useCallback,
-  ReactNode
+  ReactNode,
+  useRef
 } from 'react'
 import { Config, LoggerInstance } from '@oceanprotocol/lib'
 import { CancelToken } from 'axios'
@@ -195,12 +196,14 @@ function AssetProvider({
   }, [
     asset?.credentialSubject?.chainId,
     asset?.credentialSubject?.services,
-    did
+    did,
+    accountId
   ])
 
   // -----------------------------------
   // 1. Get and set asset based on passed DID
   // -----------------------------------
+
   useEffect(() => {
     if (!isMounted || !appConfig?.metadataCacheUri) return
 
@@ -210,11 +213,16 @@ function AssetProvider({
   // -----------------------------------
   // 2. Attach access details to asset
   // -----------------------------------
+
+  const prevAccountId = useRef(accountId)
   useEffect(() => {
-    if (!isMounted) return
+    if (!isMounted || !asset) return
+
+    if (prevAccountId.current === accountId) return
+    prevAccountId.current = accountId
 
     fetchAccessDetails()
-  }, [accountId, fetchAccessDetails, isMounted])
+  }, [accountId, fetchAccessDetails, isMounted, asset])
 
   // -----------------------------------
   // Check user network against asset network

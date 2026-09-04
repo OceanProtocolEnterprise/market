@@ -2,6 +2,7 @@
 import { ProviderInstance } from '@oceanprotocol/lib'
 import { customProviderUrl } from 'app.config.cjs'
 import axios from 'axios'
+import type { Signer } from 'ethers'
 import { Asset } from 'src/@types/Asset'
 import {
   PolicyServerCheckSessionIdAction,
@@ -18,10 +19,31 @@ import {
   PolicyServerPrimitive
 } from 'src/@types/PolicyServer'
 
+const POLICY_SERVER_STATUS_TIMEOUT = 10_000
+
+export async function getIsPolicyServerConfigured(
+  serviceEndpoint: string,
+  signal?: AbortSignal
+): Promise<boolean> {
+  const nodeUrl = serviceEndpoint.replace(/\/+$/, '')
+  const response = await axios.post(
+    `${nodeUrl}/directCommand`,
+    { command: 'status' },
+    { signal, timeout: POLICY_SERVER_STATUS_TIMEOUT }
+  )
+
+  if (typeof response.data?.isPSConfigured !== 'boolean') {
+    throw new Error('Ocean node status returned an invalid response.')
+  }
+
+  return response.data.isPSConfigured
+}
+
 export async function requestCredentialPresentation(
   asset: Asset,
   consumerAddress: string,
-  serviceId: string
+  serviceId: string,
+  signer: Signer
 ): Promise<{
   success: boolean
   openid4vc: PolicyServerInitiateMessage
@@ -43,6 +65,7 @@ export async function requestCredentialPresentation(
     }
     const initializePs = await ProviderInstance.initializePSVerification(
       customProviderUrl,
+      signer,
       command
     )
     const providerSessionId =

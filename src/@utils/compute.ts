@@ -30,12 +30,21 @@ import { AssetExtended } from 'src/@types/AssetExtended'
 import { customProviderUrl, nodeUriIndex } from 'app.config.cjs'
 import { getSupportedChainIds } from 'chains.config.cjs'
 import { ServiceComputeOptions } from '@oceanprotocol/ddo-js'
+import {
+  CONTAINER_UPDATE_REQUIRED_MESSAGE,
+  getExplicitTrustedAlgorithm,
+  hasTrustedContainerChanged
+} from './computeContainerUpdates'
 // Local form shape needed by compute transform
 type ComputeFormLike = {
   allowAllPublishedAlgorithms: boolean | string
   publisherTrustedAlgorithms: string[]
   publisherTrustedAlgorithmPublishers: string
   publisherTrustedAlgorithmPublishersAddresses?: string
+  refreshedTrustedAlgorithms?: {
+    selectedAlgorithms: string[]
+    trustedAlgorithms: PublisherTrustedAlgorithms[]
+  }
 }
 
 async function getAssetMetadata(
@@ -112,13 +121,14 @@ export function getValidUntilTime(
   return Math.floor(mytime.getTime() / 1000)
 }
 
-function getQueryString(
+export function getAlgorithmAllowlistQuery(
   trustedAlgorithmList: PublisherTrustedAlgorithms[],
   trustedPublishersList: string[],
   chainId?: number,
   allAlgosAllowed?: boolean
 ): SearchQuery {
   const algorithmDidList = trustedAlgorithmList?.map((x) => x.did)
+  const allowlistShould: FilterTerm[] = []
 
   const baseParams = {
     chainIds: [chainId],
@@ -128,21 +138,30 @@ function getQueryString(
       size: 3000
     }
   } as BaseQueryParams
+
   algorithmDidList?.length > 0 &&
     !allAlgosAllowed &&
-    baseParams.filters.push(getFilterTerm('_id', algorithmDidList))
+    allowlistShould.push(getFilterTerm('_id', algorithmDidList))
 
   if (
     trustedPublishersList?.length > 0 &&
     !(trustedPublishersList.length === 1 && trustedPublishersList[0] === '*')
   ) {
-    baseParams.filters.push(
+    allowlistShould.push(
       getFilterTerm(
         'indexedMetadata.nft.owner',
         trustedPublishersList.map((address) => address.toLowerCase())
       )
     )
   }
+
+  if (!allAlgosAllowed && allowlistShould.length > 0) {
+    baseParams.nestedQuery = {
+      should: allowlistShould,
+      minimum_should_match: 1
+    }
+  }
+
   const query = generateBaseQuery(baseParams)
   return query
 }
@@ -182,7 +201,7 @@ export async function getAlgorithmsForAsset(
   }
   const allAlgosAllowed = isAllAlgoAllowed(service.compute)
   const queryResults = await queryMetadata(
-    getQueryString(
+    getAlgorithmAllowlistQuery(
       service.compute.publisherTrustedAlgorithms,
       service.compute.publisherTrustedAlgorithmPublishers,
       asset.credentialSubject?.chainId,
@@ -213,8 +232,42 @@ export async function getAlgorithmAssetSelectionListForComputeWizard(
         accountId,
         service.compute.publisherTrustedAlgorithms,
         undefined,
-        tokenSymbolMap
+        tokenSymbolMap,
+        service.compute.publisherTrustedAlgorithmPublishers
       )
+
+    algorithmSelectionList = algorithmSelectionList.map((selection) => {
+      const trustedAlgorithm = getExplicitTrustedAlgorithm(
+        service,
+        selection.did,
+        selection.serviceId
+      )
+      if (!trustedAlgorithm) return selection
+
+      const algorithm = algorithms.find((item) => item.id === selection.did)
+      if (!algorithm) return selection
+
+      const selectionDisabled = hasTrustedContainerChanged(
+        trustedAlgorithm,
+        algorithm
+      )
+
+      if (selectionDisabled) {
+        console.warn('[C2D container check] Algorithm option disabled', {
+          datasetServiceId: service.id,
+          algorithmDid: selection.did,
+          algorithmServiceId: selection.serviceId
+        })
+      }
+
+      return {
+        ...selection,
+        selectionDisabled,
+        selectionDisabledReason: selectionDisabled
+          ? CONTAINER_UPDATE_REQUIRED_MESSAGE
+          : undefined
+      }
+    })
   }
   return algorithmSelectionList
 }
@@ -428,58 +481,164 @@ export async function getAllComputeJobs(
   return computeResult
 }
 
-async function createTrustedAlgorithmList(
-  selectedAlgorithms: string[],
-  assetChainId: number,
-  cancelToken: CancelToken
-): Promise<PublisherTrustedAlgorithms[]> {
-  const trustedAlgorithms: PublisherTrustedAlgorithms[] = []
-
-  // Condition to prevent app from hitting Aquarius with empty DID list
-  // when nothing is selected in the UI.
-  if (!selectedAlgorithms || selectedAlgorithms.length === 0)
-    return trustedAlgorithms
-
-  const parsed = selectedAlgorithms.map(
-    (s) =>
-      JSON.parse(s) as {
+function parseSelectedAlgorithms(selectedAlgorithms: string[]) {
+  return selectedAlgorithms.map((selection) => {
+    try {
+      return JSON.parse(selection) as {
         algoDid: string
         serviceId: string
       }
-  )
-  const didList = parsed.map((algo) => algo.algoDid)
+    } catch {
+      throw new Error('A selected algorithm has an invalid identifier.')
+    }
+  })
+}
+
+async function loadSelectedAlgorithmServices(
+  selectedAlgorithms: string[],
+  assetChainId: number,
+  cancelToken: CancelToken
+): Promise<{ asset: Asset; service: Service }[]> {
+  if (!selectedAlgorithms?.length) return []
+
+  const parsed = parseSelectedAlgorithms(selectedAlgorithms)
+  const didList = [...new Set(parsed.map((algo) => algo.algoDid))]
   const selectedAssets = await getAssetsFromDids(
     didList,
     [assetChainId],
     cancelToken
   )
-  if (!selectedAssets || selectedAssets.length === 0) return []
-
-  for (const { algoDid, serviceId } of parsed) {
-    const asset = selectedAssets.find((a) => a.id === algoDid)
-    if (!asset) continue
-    const svc = asset.credentialSubject.services.find((s) => s.id === serviceId)
-    if (!svc) continue
-    const filesChecksum = await getFileDidInfo(
-      asset.id,
-      svc.id,
-      svc.serviceEndpoint,
-      true
-    )
-
-    const container = asset.credentialSubject?.metadata.algorithm.container
-    const containerSectionChecksum = getHash(
-      container?.entrypoint + container?.checksum
-    )
-    const trustedAlgorithm: PublisherTrustedAlgorithms = {
-      did: asset.id,
-      containerSectionChecksum,
-      filesChecksum: filesChecksum?.[0]?.checksum,
-      serviceId: svc.id
-    }
-    trustedAlgorithms.push(trustedAlgorithm)
+  if (!selectedAssets || selectedAssets.length === 0) {
+    throw new Error('Could not load the selected algorithms.')
   }
-  return trustedAlgorithms
+
+  return parsed.map(({ algoDid, serviceId }) => {
+    const asset = selectedAssets.find((a) => a.id === algoDid)
+    if (!asset) {
+      throw new Error(`Could not load selected algorithm ${algoDid}.`)
+    }
+    const svc = asset.credentialSubject.services.find((s) => s.id === serviceId)
+    if (!svc) {
+      throw new Error(`Could not find service ${serviceId} on ${algoDid}.`)
+    }
+    return { asset, service: svc }
+  })
+}
+
+function getContainerSectionChecksum(asset: Asset): string {
+  const container = asset.credentialSubject?.metadata.algorithm.container
+  if (!container?.entrypoint || !container?.checksum) {
+    throw new Error(`Algorithm ${asset.id} has incomplete container metadata.`)
+  }
+  return getHash(container.entrypoint + container.checksum)
+}
+
+export async function createTrustedAlgorithmList(
+  selectedAlgorithms: string[],
+  assetChainId: number,
+  cancelToken: CancelToken
+): Promise<PublisherTrustedAlgorithms[]> {
+  const selectedAlgorithmServices = await loadSelectedAlgorithmServices(
+    selectedAlgorithms,
+    assetChainId,
+    cancelToken
+  )
+
+  return Promise.all(
+    selectedAlgorithmServices.map(async ({ asset, service }) => {
+      const filesChecksum = await getFileDidInfo(
+        asset.id,
+        service.id,
+        service.serviceEndpoint,
+        true
+      )
+      if (!filesChecksum?.[0]?.checksum) {
+        throw new Error(
+          `Could not calculate the file checksum for ${asset.id}.`
+        )
+      }
+
+      return {
+        did: asset.id,
+        containerSectionChecksum: getContainerSectionChecksum(asset),
+        filesChecksum: filesChecksum[0].checksum,
+        serviceId: service.id
+      }
+    })
+  )
+}
+
+export async function refreshTrustedAlgorithmContainerChecksums(
+  selectedAlgorithms: string[],
+  currentTrustedAlgorithms: PublisherTrustedAlgorithms[],
+  assetChainId: number,
+  cancelToken: CancelToken
+): Promise<PublisherTrustedAlgorithms[]> {
+  const selectedAlgorithmServices = await loadSelectedAlgorithmServices(
+    selectedAlgorithms,
+    assetChainId,
+    cancelToken
+  )
+
+  return Promise.all(
+    selectedAlgorithmServices.map(async ({ asset, service }) => {
+      const current = currentTrustedAlgorithms.find(
+        (algorithm) =>
+          algorithm.did === asset.id && algorithm.serviceId === service.id
+      )
+      let filesChecksum = current?.filesChecksum
+
+      // A newly selected algorithm has no existing allowlist entry to preserve.
+      if (!filesChecksum) {
+        const files = await getFileDidInfo(
+          asset.id,
+          service.id,
+          service.serviceEndpoint,
+          true
+        )
+        filesChecksum = files?.[0]?.checksum
+      }
+      if (!filesChecksum) {
+        throw new Error(
+          `Could not calculate the file checksum for ${asset.id}.`
+        )
+      }
+
+      return {
+        did: asset.id,
+        serviceId: service.id,
+        filesChecksum,
+        containerSectionChecksum: getContainerSectionChecksum(asset)
+      }
+    })
+  )
+}
+
+function hasMatchingRefreshedAlgorithms(values: ComputeFormLike): boolean {
+  const refreshed = values.refreshedTrustedAlgorithms
+  if (!refreshed) return false
+
+  const selected = values.publisherTrustedAlgorithms || []
+  if (selected.length !== refreshed.selectedAlgorithms.length) return false
+
+  const refreshedSelection = new Set(refreshed.selectedAlgorithms)
+  return selected.every((selection) => refreshedSelection.has(selection))
+}
+
+function hasMatchingTrustedAlgorithmSelection(
+  selectedAlgorithms: string[],
+  trustedAlgorithms: PublisherTrustedAlgorithms[]
+): boolean {
+  if (selectedAlgorithms.length !== trustedAlgorithms.length) return false
+
+  const selectedKeys = new Set(
+    parseSelectedAlgorithms(selectedAlgorithms).map(
+      ({ algoDid, serviceId }) => `${algoDid}:${serviceId}`
+    )
+  )
+  return trustedAlgorithms.every(({ did, serviceId }) =>
+    selectedKeys.has(`${did}:${serviceId}`)
+  )
 }
 
 export async function transformComputeFormToServiceComputeOptions(
@@ -503,6 +662,13 @@ export async function transformComputeFormToServiceComputeOptions(
           serviceId: '*'
         }
       ]
+    : hasMatchingRefreshedAlgorithms(values)
+    ? values.refreshedTrustedAlgorithms.trustedAlgorithms
+    : hasMatchingTrustedAlgorithmSelection(
+        values.publisherTrustedAlgorithms,
+        currentOptions.publisherTrustedAlgorithms
+      )
+    ? currentOptions.publisherTrustedAlgorithms
     : await createTrustedAlgorithmList(
         values.publisherTrustedAlgorithms,
         assetChainId,

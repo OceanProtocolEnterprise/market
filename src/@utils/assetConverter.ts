@@ -302,11 +302,23 @@ export async function transformAssetToAssetSelectionForComputeWizard(
   accountId: string,
   selectedAlgorithms?: PublisherTrustedAlgorithmService[],
   allow?: boolean,
-  tokenSymbolMap?: TokenSymbolMap
+  tokenSymbolMap?: TokenSymbolMap,
+  trustedAlgorithmPublishers?: string[]
 ): Promise<AssetSelectionAsset[]> {
   if (!assets) return []
   const algorithmList: AssetSelectionAsset[] = []
   const seen = new Set<string>()
+  const trustedPublishers = new Set(
+    trustedAlgorithmPublishers
+      ?.filter((publisher) => publisher !== '*')
+      .map((publisher) => publisher.toLowerCase())
+  )
+  const areAllPublishersTrusted =
+    trustedAlgorithmPublishers?.includes('*') ?? false
+  const hasAlgorithmAllowlist =
+    Boolean(selectedAlgorithms?.length) ||
+    Boolean(trustedAlgorithmPublishers?.length)
+
   for (const asset of assets) {
     const algoService =
       getServiceByName(asset, 'compute') || getServiceByName(asset, 'access')
@@ -327,6 +339,9 @@ export async function transformAssetToAssetSelectionForComputeWizard(
       const matches = new Set(
         selectedAlgorithms?.map((a) => `${a.did}|${a.serviceId}`)
       )
+      const isPublisherTrusted =
+        areAllPublishersTrusted ||
+        trustedPublishers.has(asset.indexedMetadata.nft.owner.toLowerCase())
 
       const { services } = asset.credentialSubject
 
@@ -336,11 +351,13 @@ export async function transformAssetToAssetSelectionForComputeWizard(
       const tokenSymbols = new Set<string>()
       services.forEach((service, idx) => {
         const key = `${asset.id}|${service.id}`
+        const isExplicitlyTrusted =
+          matches.has(key) || matches.has(`${asset.id}|*`)
         if (
-          selectedAlgorithms &&
-          selectedAlgorithms.length > 0 &&
+          hasAlgorithmAllowlist &&
           !isAllAlgorithmsAllowed &&
-          !matches.has(key)
+          !isExplicitlyTrusted &&
+          !isPublisherTrusted
         )
           return
         if (service.type === 'compute') {

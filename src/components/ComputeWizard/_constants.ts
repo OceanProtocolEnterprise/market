@@ -52,6 +52,9 @@ export const initialValues: FormComputeData = {
   queueWaitingEnabled: false,
   queueMaxWaitTime: 1,
   queueMaxWaitTimeUnit: 'minutes',
+  dockerRegistryAuthRequired: false,
+  dockerRegistryUsername: '',
+  dockerRegistryPassword: '',
   outputStorageEnabled: false,
   outputStorage: {
     type: 'url',

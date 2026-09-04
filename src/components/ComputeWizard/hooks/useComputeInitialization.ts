@@ -7,6 +7,7 @@ import {
   EscrowContract,
   ZERO_ADDRESS
 } from '@oceanprotocol/lib'
+import type { dockerRegistryAuth as DockerRegistryAuth } from '@oceanprotocol/lib'
 import { initializeProviderForComputeMulti } from '@utils/provider'
 import { getOrderPriceAndFees } from '@utils/accessDetailsAndPricing'
 import { getTokenInfo } from '@utils/wallet'
@@ -18,6 +19,7 @@ import {
   ComputeStartProgressPhase,
   ComputeStartProgressStatus
 } from '../progress'
+import { getFirstEscrowAuthorization } from './escrowAuthorization'
 
 type DatasetServiceSelection = {
   asset: AssetExtended
@@ -41,6 +43,7 @@ type InitializeParams = {
   queueMaxWaitTime?: number
   algoParams?: Record<string, any>
   datasetParams?: Record<string, any>
+  dockerRegistryAuth?: DockerRegistryAuth
   accountId?: string
   shouldDepositEscrow?: boolean
   onProgress?: (
@@ -167,6 +170,7 @@ export function useComputeInitialization({
       queueMaxWaitTime,
       algoParams,
       datasetParams,
+      dockerRegistryAuth,
       accountId,
       shouldDepositEscrow = true,
       onProgress
@@ -187,7 +191,8 @@ export function useComputeInitialization({
           computeOutput,
           queueMaxWaitTime,
           algoParams,
-          datasetParams
+          datasetParams,
+          dockerRegistryAuth
         )
 
         if (!initializedProvider) {
@@ -229,13 +234,17 @@ export function useComputeInitialization({
           const escrowAddress = ethers.getAddress(
             initializedProvider.payment.escrowAddress
           )
+          const owner = await signer.getAddress()
           const amountHuman = String(selectedResources.price || 0)
-          const depositKey = `${escrowAddress}:${paymentTokenAddress}:${amountHuman}`
+          const depositKey = `${owner}:${escrowAddress}:${paymentTokenAddress}:${amountHuman}`
+          const escrow = new EscrowContract(
+            escrowAddress,
+            signer,
+            algorithmAsset.credentialSubject.chainId
+          )
           if (lastEscrowDepositKey.current === depositKey) {
             console.log('escrow deposit skipped (already done)', depositKey)
-            onProgress?.('escrow', 'completed')
           } else {
-            lastEscrowDepositKey.current = depositKey
             const tokenDetails = await getTokenInfo(
               paymentTokenAddress,
               web3Provider
@@ -244,12 +253,6 @@ export function useComputeInitialization({
               amountHuman,
               tokenDetails.decimals
             )
-            const escrow = new EscrowContract(
-              escrowAddress,
-              signer,
-              algorithmAsset.credentialSubject.chainId
-            )
-
             const erc20 = new ethers.Contract(
               paymentTokenAddress,
               [
@@ -259,7 +262,6 @@ export function useComputeInitialization({
               signer
             )
 
-            const owner = await signer.getAddress()
             const escrowSpender =
               (escrow.contract.target ?? escrow.contract.address).toString() ||
               escrowAddress
@@ -284,18 +286,67 @@ export function useComputeInitialization({
                 amountHuman
               )
               await depositTx.wait()
-              await escrow.authorize(
-                paymentTokenAddress,
-                selectedComputeEnv.consumerAddress,
-                initializedProvider.payment.amount.toString(),
-                selectedResources.jobDuration.toString(),
-                '10'
-              )
-              onProgress?.('escrow', 'completed')
+              lastEscrowDepositKey.current = depositKey
             } else {
               onProgress?.('escrow', 'skipped')
             }
           }
+
+          const payee = ethers.getAddress(initializedProvider.payment.payee)
+          const requiredAmount = BigInt(initializedProvider.payment.amount)
+          const requiredLockSeconds = BigInt(
+            initializedProvider.payment.minLockSeconds
+          )
+          const authorizations = await escrow.getAuthorizations(
+            paymentTokenAddress,
+            owner,
+            payee
+          )
+          const authorization = getFirstEscrowAuthorization(authorizations)
+          const currentLockedAmount = authorization
+            ? BigInt(authorization.currentLockedAmount.toString())
+            : BigInt(0)
+          const currentLocks = authorization
+            ? BigInt(authorization.currentLocks.toString())
+            : BigInt(0)
+          const maxLockedAmount = currentLockedAmount + requiredAmount
+          const maxLockCounts =
+            currentLocks + BigInt(1) > BigInt(10)
+              ? currentLocks + BigInt(1)
+              : BigInt(10)
+          const authorizationIsInsufficient =
+            !authorization ||
+            BigInt(authorization.maxLockedAmount.toString()) <
+              maxLockedAmount ||
+            BigInt(authorization.maxLockSeconds.toString()) <
+              requiredLockSeconds ||
+            BigInt(authorization.maxLockCounts.toString()) < maxLockCounts
+          console.log(
+            'is authorization insufficient',
+            authorizationIsInsufficient
+          )
+          console.log('current authorization', authorization)
+          if (authorizationIsInsufficient) {
+            console.log('authorize', {
+              paymentTokenAddress,
+              payee,
+              maxLockedAmount: maxLockedAmount.toString(),
+              requiredLockSeconds: requiredLockSeconds.toString(),
+              maxLockCounts: maxLockCounts.toString()
+            })
+            const authorizationTx = await escrow.contract.authorize(
+              paymentTokenAddress,
+              payee,
+              maxLockedAmount.toString(),
+              requiredLockSeconds.toString(),
+              maxLockCounts.toString()
+            )
+            const authorizationReceipt = await authorizationTx.wait()
+            if (!authorizationReceipt) {
+              throw new Error('Escrow authorization was not confirmed.')
+            }
+          }
+          onProgress?.('escrow', 'completed')
         }
 
         const algoOrderPriceAndFees = await setAlgoPrice(

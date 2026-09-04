@@ -28,6 +28,7 @@ import {
 import { secondsToString } from '@utils/ddo'
 import { MAX_DECIMALS } from '@utils/constants'
 import { checkVerifierSessionId } from '@utils/wallet/policyServer'
+import { getStoredVerifierSessionId } from '@utils/verifierSession'
 
 import Input from '@shared/FormInput'
 import Button from '@shared/atoms/Button'
@@ -55,6 +56,11 @@ import { getDefaultValues } from '../ConsumerParameters/FormConsumerParameters'
 import { getTokenInfo, getTokenBalance } from '@utils/wallet'
 import useBalance from '@hooks/useBalance'
 import { getConsumeMarketFeeWei } from '@utils/consumeMarketFee'
+import {
+  isPolicyServerConsumptionDisabled,
+  requiresPolicyServerCredentialCheck,
+  isSsiPolicyConsumptionDisabled
+} from '@utils/credentials'
 
 export default function Download({
   accountId,
@@ -67,7 +73,8 @@ export default function Download({
   setIsBalanceSufficient,
   dtBalance,
   isAccountIdWhitelisted,
-  consumableFeedback
+  consumableFeedback,
+  isPSConfigured
 }: {
   accountId: string
   signer: Signer
@@ -82,7 +89,23 @@ export default function Download({
   isAccountIdWhitelisted: boolean
   fileIsLoading?: boolean
   consumableFeedback?: string
+  isPSConfigured: boolean
 }): ReactElement {
+  const isSsiConsumptionDisabled = isSsiPolicyConsumptionDisabled(
+    asset,
+    appConfig.ssiEnabled,
+    service
+  )
+  const requiresCredentialCheck = requiresPolicyServerCredentialCheck(
+    appConfig.ssiEnabled,
+    isPSConfigured
+  )
+  const isPolicyServerUnsupported = isPolicyServerConsumptionDisabled(
+    appConfig.ssiEnabled,
+    isPSConfigured
+  )
+  const isConsumptionDisabled =
+    isSsiConsumptionDisabled || isPolicyServerUnsupported
   const { isConnected } = useAccount()
   const { isSupportedOceanNetwork } = useNetworkMetadata()
   const { isInPurgatory, isAssetNetwork } = useAsset()
@@ -96,6 +119,8 @@ export default function Download({
   const [statusText, setStatusText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isPriceLoading, setIsPriceLoading] = useState(false)
+  const [initializationError, setInitializationError] = useState<string>()
+  const [initializationRetry, setInitializationRetry] = useState(0)
   const [tokenInfo, setTokenInfo] = useState<TokenInfo | undefined>(undefined)
   const [tokenInfoProviderFee, setTokenInfoProviderFee] = useState<
     TokenInfo | undefined
@@ -223,6 +248,7 @@ export default function Download({
       if (accessDetails.addressOrId === ZERO_ADDRESS) return
 
       try {
+        setInitializationError(undefined)
         !orderPriceAndFees && setIsPriceLoading(true)
         const _orderPriceAndFees = await getOrderPriceAndFees(
           asset,
@@ -233,7 +259,12 @@ export default function Download({
         setOrderPriceAndFees(_orderPriceAndFees)
         !orderPriceAndFees && setIsPriceLoading(false)
       } catch (error) {
-        LoggerInstance.error('getOrderPriceAndFees', error)
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Provider initialization failed.'
+        LoggerInstance.error('[getOrderPriceAndFees] Error:', message)
+        setInitializationError(message)
         setIsPriceLoading(false)
       }
     }
@@ -245,7 +276,8 @@ export default function Download({
     asset,
     isUnsupportedPricing,
     orderPriceAndFees,
-    service
+    service,
+    initializationRetry
   ])
 
   useEffect(() => {
@@ -352,8 +384,10 @@ export default function Download({
 
   async function handleFormSubmit(values: any) {
     try {
+      if (isConsumptionDisabled) return
+
       const skip = lookupVerifierSessionIdSkip(asset.id, service.id)
-      if (appConfig.ssiEnabled && !skip) {
+      if (requiresCredentialCheck && !skip) {
         const result = await checkVerifierSessionId(
           lookupVerifierSessionId(asset.id, service.id)
         )
@@ -383,6 +417,7 @@ export default function Download({
       onClick={handleFullPrice}
       stepText={statusText}
       isLoading={isLoading}
+      disabled={isConsumptionDisabled}
     />
   )
 
@@ -391,7 +426,10 @@ export default function Download({
       <ButtonBuy
         action="download"
         disabled={
-          !isValid || !isBalanceSufficient || (isOwned ? !isValid : false)
+          isConsumptionDisabled ||
+          !isValid ||
+          !isBalanceSufficient ||
+          (isOwned ? !isValid : false)
         }
         hasPreviousOrder={isOwned}
         hasDatatoken={hasDatatoken}
@@ -623,12 +661,14 @@ export default function Download({
       validateOnMount
       validationSchema={getDownloadValidationSchema(service.consumerParameters)}
       onSubmit={(values) => {
+        if (isConsumptionDisabled) return
+
         if (
           !(
             lookupVerifierSessionId(asset.id, service.id) ||
             lookupVerifierSessionIdSkip(asset.id, service.id)
           ) &&
-          appConfig.ssiEnabled
+          requiresCredentialCheck
         ) {
           return
         }
@@ -637,31 +677,14 @@ export default function Download({
     >
       <Form>
         {(() => {
-          function getLocalSessionImmediate(
-            did: string,
-            svcId: string
-          ): string {
-            try {
-              if (typeof window === 'undefined') return ''
-              const storage = localStorage.getItem('verifierSessionId')
-              const sessions = storage ? JSON.parse(storage) : {}
-              return (
-                sessions?.[`${did}_${svcId}`] ||
-                sessions?.[`${did}_${svcId}_skip`] ||
-                ''
-              )
-            } catch {
-              return ''
-            }
-          }
           const sessionId =
             lookupVerifierSessionId(asset.id, service.id) ||
             lookupVerifierSessionIdSkip(asset.id, service.id)
-          const localSession = getLocalSessionImmediate(asset.id, service.id)
+          const localSession = getStoredVerifierSessionId(asset.id, service.id)
           const hasSession = Boolean(
             sessionId || localSession || credentialCheckComplete
           )
-          const canRenderConsume = !appConfig.ssiEnabled || hasSession
+          const canRenderConsume = !requiresCredentialCheck || hasSession
 
           if (!canRenderConsume) {
             return (
@@ -686,18 +709,37 @@ export default function Download({
           return (
             <aside
               className={`${styles.consume} ${
-                appConfig.ssiEnabled && hasSession ? styles.tighterStack : ''
+                requiresCredentialCheck && hasSession ? styles.tighterStack : ''
               }`}
             >
+              {initializationError && (
+                <div className={styles.noMarginAlert}>
+                  <Alert
+                    state="error"
+                    action={{
+                      name: 'Retry',
+                      handleAction: (event) => {
+                        event.preventDefault()
+                        setInitializationRetry((value) => value + 1)
+                      }
+                    }}
+                  >
+                    <span>{initializationError}</span>
+                  </Alert>
+                </div>
+              )}
               {!isOwner &&
+                !initializationError &&
                 (isFullPriceLoading ? (
                   <>
-                    <div className={styles.noMarginAlert}>
-                      <Alert
-                        state="success"
-                        text="SSI credential verification passed"
-                      />
-                    </div>
+                    {requiresCredentialCheck && (
+                      <div className={styles.noMarginAlert}>
+                        <Alert
+                          state="success"
+                          text="SSI credential verification passed"
+                        />
+                      </div>
+                    )}
                     <CalculateButton />
                   </>
                 ) : (

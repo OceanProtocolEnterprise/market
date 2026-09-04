@@ -186,10 +186,24 @@
 }
 
 .footer {
-  display: flex;
-  gap: var(--spacer);
-  justify-content: space-between;
-  margin-top: calc(var(--spacer) / 12);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-4);
+  margin-top: var(--spacer);
+}
+
+.footerAction {
+  justify-self: end;
+  min-width: 0;
+}
+
+.footerPagination {
+  justify-self: center;
+}
+
+.footerPagination > :global([class*='paginationWrapper']) {
+  margin-top: 0;
 }
 
 .price {
@@ -226,4 +240,18 @@
   padding: var(--spacer) calc(var(--spacer) / 2);
   text-align: center;
   color: var(--color-secondary);
+}
+
+@media screen and (max-width: 37.5rem) {
+  .footer {
+    grid-template-columns: 1fr;
+  }
+
+  .footerPagination {
+    grid-row: 1;
+  }
+
+  .footerAction {
+    grid-row: 2;
+  }
 }

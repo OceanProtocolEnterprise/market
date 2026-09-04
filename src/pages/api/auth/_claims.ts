@@ -20,3 +20,7 @@ export function getLoginSource(payload: JWTPayload): string | undefined {
       : undefined)
   )
 }
+
+export function getWellKnownUrl(payload: JWTPayload): string | undefined {
+  return getOptionalStringClaim(payload, 'wellKnownUrl')
+}

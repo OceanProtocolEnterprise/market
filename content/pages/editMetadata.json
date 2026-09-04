@@ -83,6 +83,34 @@
         "required": false
       },
       {
+        "name": "containerImage",
+        "label": "Docker Image",
+        "placeholder": "e.g. deltadao/yolo5_road_damage_detection",
+        "help": "Docker image repository without the tag.",
+        "required": true
+      },
+      {
+        "name": "containerTag",
+        "label": "Docker Image Tag",
+        "placeholder": "e.g. v1.0.3",
+        "help": "Exact Docker image tag used to run the algorithm.",
+        "required": true
+      },
+      {
+        "name": "containerChecksum",
+        "label": "Docker Image Checksum",
+        "placeholder": "e.g. sha256:...",
+        "help": "Digest of the Docker image. It is recalculated when the image or a versioned tag changes. For the latest tag, use Check for updates to compare it with the currently published digest.",
+        "required": true
+      },
+      {
+        "name": "containerEntrypoint",
+        "label": "Docker Image Entrypoint",
+        "placeholder": "e.g. python3 /data/transformations/algorithm",
+        "help": "Command used to start the algorithm.",
+        "required": true
+      },
+      {
         "name": "usesConsumerParameters",
         "label": "Algorithm custom parameters",
         "help": "Algorithm custom parameters are used to define required consumer input before running the algorithm in a Compute-to-Data environment.",

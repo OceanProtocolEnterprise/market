@@ -11,11 +11,11 @@ import { MarketMetadataProviderValue, OpcFee } from './_types'
 import siteContent from '../../../content/site.json'
 import appConfig from '../../../app.config.cjs'
 import { useConnect, useChainId } from 'wagmi'
-import { getTokenInfo } from '@utils/wallet'
 import useEnterpriseFeeColletor from '@hooks/useEnterpriseFeeCollector'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 import useAllowedTokenAddresses from '@hooks/useAllowedTokenAddresses'
 import useValidatedSupportedChains from '@hooks/useValidatedSupportedChains'
+import { getCachedTokenInfo } from '@utils/accessDetailsAndPricing'
 
 const MarketMetadataContext = createContext({} as MarketMetadataProviderValue)
 
@@ -88,11 +88,23 @@ function MarketMetadataProvider({
   // ---------------------------
 
   useEffect(() => {
+    const sessionKey = `approvedTokens_${chainId}`
     async function fetchTokenInfoSafe() {
       try {
         if (isLoading) return
         if (!chainId || !signer) return
         if (!enterpriseFeeCollector) return
+
+        const cached = sessionStorage.getItem(sessionKey)
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached)
+            if (parsed && parsed.length > 0) {
+              setApprovedBaseTokens(parsed)
+              return
+            }
+          } catch {}
+        }
 
         if (!envAllowedAddresses || envAllowedAddresses.length === 0) {
           setApprovedBaseTokens([])
@@ -120,10 +132,13 @@ function MarketMetadataProvider({
         }
         const tokenDetails = await Promise.all(
           contractAllowedAddresses.map((address) =>
-            getTokenInfo(address, signer.provider)
+            getCachedTokenInfo(address, signer.provider)
           )
         )
         const validTokens = tokenDetails.filter(Boolean)
+        try {
+          sessionStorage.setItem(sessionKey, JSON.stringify(validTokens))
+        } catch {}
 
         setApprovedBaseTokens(validTokens)
       } catch (error: any) {

@@ -133,6 +133,17 @@ export const validationSchema: Yup.SchemaOf<FormComputeData> = Yup.object()
         then: (schema) => schema.required('Waiting time unit is required'),
         otherwise: (schema) => schema.notRequired()
       }),
+    dockerRegistryAuthRequired: Yup.boolean().required(),
+    dockerRegistryUsername: Yup.string().when('dockerRegistryAuthRequired', {
+      is: true,
+      then: (schema) => schema.trim().required('Registry username is required'),
+      otherwise: (schema) => schema.notRequired()
+    }),
+    dockerRegistryPassword: Yup.string().when('dockerRegistryAuthRequired', {
+      is: true,
+      then: (schema) => schema.required('Registry password is required'),
+      otherwise: (schema) => schema.notRequired()
+    }),
     outputStorageEnabled: Yup.boolean(),
     outputStorage: Yup.mixed().nullable()
   })
