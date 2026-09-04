@@ -321,8 +321,19 @@ export function useComputeInitialization({
             BigInt(authorization.maxLockSeconds.toString()) <
               requiredLockSeconds ||
             BigInt(authorization.maxLockCounts.toString()) < maxLockCounts
-
+          console.log(
+            'is authorization insufficient',
+            authorizationIsInsufficient
+          )
+          console.log('current authorization', authorization)
           if (authorizationIsInsufficient) {
+            console.log('authorize', {
+              paymentTokenAddress,
+              payee,
+              maxLockedAmount: maxLockedAmount.toString(),
+              requiredLockSeconds: requiredLockSeconds.toString(),
+              maxLockCounts: maxLockCounts.toString()
+            })
             const authorizationTx = await escrow.contract.authorize(
               paymentTokenAddress,
               payee,
