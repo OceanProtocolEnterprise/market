@@ -35,7 +35,9 @@ function EscrowAvailableLabel({
 }): ReactElement {
   return (
     <>
-      <span>Escrow Available Funds</span>
+      <span className={styles.escrowAvailableLabel}>
+        Escrow Available Funds
+      </span>
       {hasAvailable && (
         <span className={styles.withdrawHint}>👉 Click to Withdraw 👈</span>
       )}
