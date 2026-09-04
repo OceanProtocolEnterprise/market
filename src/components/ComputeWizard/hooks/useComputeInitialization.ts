@@ -7,6 +7,7 @@ import {
   EscrowContract,
   ZERO_ADDRESS
 } from '@oceanprotocol/lib'
+import type { dockerRegistryAuth as DockerRegistryAuth } from '@oceanprotocol/lib'
 import { initializeProviderForComputeMulti } from '@utils/provider'
 import { getOrderPriceAndFees } from '@utils/accessDetailsAndPricing'
 import { getTokenInfo } from '@utils/wallet'
@@ -18,6 +19,7 @@ import {
   ComputeStartProgressPhase,
   ComputeStartProgressStatus
 } from '../progress'
+import { getFirstEscrowAuthorization } from './escrowAuthorization'
 
 type DatasetServiceSelection = {
   asset: AssetExtended
@@ -41,6 +43,7 @@ type InitializeParams = {
   queueMaxWaitTime?: number
   algoParams?: Record<string, any>
   datasetParams?: Record<string, any>
+  dockerRegistryAuth?: DockerRegistryAuth
   accountId?: string
   shouldDepositEscrow?: boolean
   onProgress?: (
@@ -167,6 +170,7 @@ export function useComputeInitialization({
       queueMaxWaitTime,
       algoParams,
       datasetParams,
+      dockerRegistryAuth,
       accountId,
       shouldDepositEscrow = true,
       onProgress
@@ -187,7 +191,8 @@ export function useComputeInitialization({
           computeOutput,
           queueMaxWaitTime,
           algoParams,
-          datasetParams
+          datasetParams,
+          dockerRegistryAuth
         )
 
         if (!initializedProvider) {
@@ -297,7 +302,7 @@ export function useComputeInitialization({
             owner,
             payee
           )
-          const authorization = authorizations[0]
+          const authorization = getFirstEscrowAuthorization(authorizations)
           const currentLockedAmount = authorization
             ? BigInt(authorization.currentLockedAmount.toString())
             : BigInt(0)
@@ -316,8 +321,19 @@ export function useComputeInitialization({
             BigInt(authorization.maxLockSeconds.toString()) <
               requiredLockSeconds ||
             BigInt(authorization.maxLockCounts.toString()) < maxLockCounts
-
+          console.log(
+            'is authorization insufficient',
+            authorizationIsInsufficient
+          )
+          console.log('current authorization', authorization)
           if (authorizationIsInsufficient) {
+            console.log('authorize', {
+              paymentTokenAddress,
+              payee,
+              maxLockedAmount: maxLockedAmount.toString(),
+              requiredLockSeconds: requiredLockSeconds.toString(),
+              maxLockCounts: maxLockCounts.toString()
+            })
             const authorizationTx = await escrow.contract.authorize(
               paymentTokenAddress,
               payee,
