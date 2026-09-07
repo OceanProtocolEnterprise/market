@@ -31,6 +31,7 @@ import { useSsiWallet } from '@context/SsiWallet'
 import { State } from 'src/@types/ddo/State'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 import { getOpaServerUrl } from '@utils/wallet/policyServer'
+import { useOpaServerChangeNotification } from './useOpaServerChangeNotification'
 
 export default function Edit({
   asset
@@ -48,6 +49,13 @@ export default function Edit({
   const [success, setSuccess] = useState<string>()
   const [error, setError] = useState<string>()
   const hasFeedback = error || success
+
+  useOpaServerChangeNotification(
+    asset.id,
+    asset.credentialSubject?.services[0]?.serviceEndpoint,
+    asset.credentialSubject?.credentials,
+    'The OPA server URL has changed. Save this asset to update it.'
+  )
 
   async function handleSubmit(values: MetadataEditForm, resetForm: () => void) {
     try {

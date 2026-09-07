@@ -39,13 +39,13 @@ import DebugEditService from './DebugEditService'
 import styles from './index.module.css'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
-import { customProviderUrl, encryptAsset, ssiEnabled } from 'app.config.cjs'
+import { customProviderUrl, encryptAsset } from 'app.config.cjs'
 import { useSsiWallet } from '@context/SsiWallet'
 import { State } from 'src/@types/ddo/State'
 import { assetStateToNumber } from '@utils/assetState'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 import { getOpaServerUrl } from '@utils/wallet/policyServer'
-import { toast } from 'react-toastify'
+import { useOpaServerChangeNotification } from './useOpaServerChangeNotification'
 
 export default function EditService({
   asset,
@@ -72,57 +72,12 @@ export default function EditService({
   const [detectedFileType, setDetectedFileType] = useState<string | undefined>()
   const hasFeedback = error || success
 
-  useEffect(() => {
-    if (!ssiEnabled) return
-
-    let cancelled = false
-    const toastId = `opa-server-changed-${asset.id}-${service.id}`
-
-    async function checkOpaServer() {
-      const opaServerUrl = await getOpaServerUrl(service.serviceEndpoint)
-      if (cancelled || !opaServerUrl) return
-
-      const hasChanged = service.credentials?.allow?.some((credential) => {
-        if (credential.type !== 'SSIpolicy') return false
-        return credential.values?.some((value) =>
-          value.request_credentials?.some((requestedCredential) =>
-            requestedCredential.policies?.some((storedPolicy) => {
-              try {
-                const policy =
-                  typeof storedPolicy === 'string'
-                    ? JSON.parse(storedPolicy)
-                    : storedPolicy
-                if (policy?.policy !== 'dynamic') return false
-                const args =
-                  typeof policy.args === 'string'
-                    ? JSON.parse(policy.args)
-                    : policy.args
-                return (
-                  typeof args?.opa_server === 'string' &&
-                  args.opa_server !== opaServerUrl
-                )
-              } catch {
-                return false
-              }
-            })
-          )
-        )
-      })
-
-      if (hasChanged) {
-        toast.info(
-          'The OPA server URL has changed. Save this service to update it in the asset.',
-          { toastId, autoClose: false }
-        )
-      }
-    }
-
-    checkOpaServer()
-    return () => {
-      cancelled = true
-      toast.dismiss(toastId)
-    }
-  }, [asset.id, service.id, service.serviceEndpoint, service.credentials])
+  useOpaServerChangeNotification(
+    `${asset.id}-${service.id}`,
+    service.serviceEndpoint,
+    service.credentials,
+    'The OPA server URL has changed. Save this service to update it in the asset.'
+  )
 
   useEffect(() => {
     async function fetchFileType() {
