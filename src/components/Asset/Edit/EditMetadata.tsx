@@ -30,6 +30,8 @@ import { AdditionalVerifiableCredentials } from 'src/@types/ddo/AdditionalVerifi
 import { useSsiWallet } from '@context/SsiWallet'
 import { State } from 'src/@types/ddo/State'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import { getOpaServerUrl } from '@utils/wallet/policyServer'
+import { useOpaServerChangeNotification } from './useOpaServerChangeNotification'
 
 export default function Edit({
   asset
@@ -47,6 +49,13 @@ export default function Edit({
   const [success, setSuccess] = useState<string>()
   const [error, setError] = useState<string>()
   const hasFeedback = error || success
+
+  useOpaServerChangeNotification(
+    asset.id,
+    asset.credentialSubject?.services[0]?.serviceEndpoint,
+    asset.credentialSubject?.credentials,
+    'The OPA server URL has changed. Save this asset to update it.'
+  )
 
   async function handleSubmit(values: MetadataEditForm, resetForm: () => void) {
     try {
@@ -143,7 +152,13 @@ export default function Edit({
         }
       }
 
-      const updatedCredentials = generateCredentials(values?.credentials)
+      const opaServerUrl = await getOpaServerUrl(
+        asset.credentialSubject?.services[0]?.serviceEndpoint
+      )
+      const updatedCredentials = generateCredentials(
+        values?.credentials,
+        opaServerUrl
+      )
       const updatedNft: AssetNft = {
         ...asset.indexedMetadata.nft,
         state: State[values.assetState as unknown as keyof typeof State]
@@ -166,7 +181,7 @@ export default function Edit({
       updatedAsset.credentialSubject.services =
         updatedAsset.credentialSubject.services.map((svc) => ({
           ...svc,
-          credentials: generateCredentials(values?.credentials)
+          credentials: generateCredentials(values?.credentials, opaServerUrl)
         }))
 
       stringifyCredentialPolicies(updatedAsset.credentialSubject.credentials)
