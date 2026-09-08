@@ -35,8 +35,6 @@ export default async function handler(
     })
   }
 
-  // A refresh token alone is not enough to trust the session. Make the client
-  // refresh so Authentik can reject revoked sessions with `invalid_grant`.
   if (!accessToken && refreshToken) {
     return res.status(401).json({
       error: 'Access token missing',

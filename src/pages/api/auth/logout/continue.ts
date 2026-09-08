@@ -44,7 +44,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(404).end()
   }
 
-  // Check if we're in federated logout continuation flow
   if (req.cookies[FEDERATED_LOGOUT_CONTINUE_COOKIE] !== '1') {
     console.info(
       'No federated logout continuation cookie found. Redirecting to login.'
@@ -66,8 +65,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const callbackUrl = `${getRequestOrigin(req)}/auth/callback/logout`
 
-  // Step 3: After partner logout, now logout from main OIDC
-  // No id_token_hint needed - logout works without it
   const oidcParams = new URLSearchParams({
     client_id: clientId,
     post_logout_redirect_uri: callbackUrl,
@@ -79,7 +76,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     `Redirecting to: ${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
   )
 
-  // Clear the federated logout cookie and redirect to main OIDC logout
   clearLogoutCookies(res)
   return res.redirect(
     302,

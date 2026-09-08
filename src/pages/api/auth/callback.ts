@@ -116,7 +116,6 @@ export default async function handler(
     })
     if (payload.nonce !== expectedNonce) return failRedirect(res)
 
-    // Validate required claims — throws if any are missing or empty
     getRequiredStringClaim(payload, 'sub')
     getRequiredStringClaim(payload, 'email')
     getRequiredStringClaim(payload, 'name')
@@ -148,7 +147,6 @@ export default async function handler(
     const isMain = isMainProviderByName(upstreamIdp)
     let partnerEndSessionUrl: string | undefined
 
-    // Store wellKnownUrl for federated logout
     const wellKnownUrl = getWellKnownUrl(payload)
 
     if (!isMain && wellKnownUrl) {
@@ -164,9 +162,6 @@ export default async function handler(
         )
       }
     }
-
-    // Store ONLY access_token and refresh_token in cookies
-    // id_token is NOT stored - we use introspection instead
     const cookies = [
       ...buildAuthCookieStrings(
         {
@@ -174,16 +169,13 @@ export default async function handler(
           refresh_token: data.refresh_token,
           expires_in: data.expires_in
         },
-        upstreamIdp, // login_source - needed for logout routing
-        partnerEndSessionUrl // idp_end_session_url - needed for partner logout
+        upstreamIdp,
+        partnerEndSessionUrl
       ),
       ...buildClearTransientCookieStrings()
     ]
 
     res.setHeader('Set-Cookie', cookies)
-
-    // Pass metadata to frontend via headers for localStorage storage
-    // This preserves federated logout capability without id_token cookie
     const metadataForFrontend = {
       upstreamIdp: upstreamIdp || 'main',
       wellKnownUrl: wellKnownUrl || '',
@@ -198,9 +190,6 @@ export default async function handler(
     }
 
     res.setHeader('X-Auth-Metadata', JSON.stringify(metadataForFrontend))
-
-    // Always return to /auth/login so the onboarding flow (wallet + SSI) can run.
-    // The login page then redirects to callbackUrl when onboarding is complete.
     return res.redirect(
       302,
       buildLoginRedirect({

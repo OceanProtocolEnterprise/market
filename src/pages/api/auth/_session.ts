@@ -8,15 +8,6 @@ import { authEnabled, oidcClientId, oidcIssuer } from 'app.config.cjs'
 
 const OIDC_CLIENT_SECRET_ENV_KEY = 'OIDC_CLIENT_SECRET'
 
-/**
- * Verify the `id_token` session cookie and return its claims, or `undefined`
- * when there is no trustworthy session. Signature/issuer/audience failures are
- * treated as "no session" (returns undefined) rather than throwing.
- *
- * An expired id_token is only tolerated after access-token introspection proves
- * the session is still active. This keeps server-side authorization decisions
- * tied to live session state, not to a long-lived authentication assertion.
- */
 export async function getVerifiedSessionClaims(
   req: NextApiRequest
 ): Promise<JWTPayload | undefined> {
@@ -63,11 +54,6 @@ export async function getVerifiedSessionClaims(
   }
 }
 
-/**
- * Resolve the DFNS organization id from the authenticated session. Returns the
- * verified `orgId` claim, never client-supplied input. Callers fall back to the
- * server-configured default when this is undefined.
- */
 export async function getSessionOrgId(
   req: NextApiRequest
 ): Promise<string | undefined> {

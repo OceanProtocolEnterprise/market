@@ -12,34 +12,6 @@ import {
 } from '@utils/authFlow'
 import { AUTH_SESSION_LOST_EVENT, OIDC_LOGOUT_PENDING_KEY } from './_constants'
 
-const AUTH_METADATA_KEY = 'auth_metadata'
-
-type AuthMetadata = {
-  upstreamIdp?: string
-  partnerEndSessionUrl?: string
-  loginSource?: string
-}
-
-function getAuthMetadata(): AuthMetadata {
-  try {
-    const stored = localStorage.getItem(AUTH_METADATA_KEY)
-    if (stored) return JSON.parse(stored)
-  } catch (e) {}
-  return {}
-}
-
-function setAuthMetadata(metadata: AuthMetadata) {
-  try {
-    localStorage.setItem(AUTH_METADATA_KEY, JSON.stringify(metadata))
-  } catch (e) {}
-}
-
-function clearAuthMetadata() {
-  try {
-    localStorage.removeItem(AUTH_METADATA_KEY)
-  } catch (e) {}
-}
-
 type SessionResponse = {
   user?: {
     id?: string
@@ -58,11 +30,6 @@ type SessionVerificationResult = {
   user: User | null
   hasRefreshToken: boolean
   refreshRequired: boolean
-  /**
-   * Access-token lifetime in seconds, as reported by /api/auth/session.
-   * `null` when the session is not valid or the server did not return a
-   * usable value.
-   */
   expiresIn: number | null
 }
 
@@ -89,7 +56,6 @@ const clearOidcStorage = () => {
   localStorage.removeItem('oidc_session')
   localStorage.removeItem('token_expires_at')
   localStorage.removeItem('auth_meta')
-  clearAuthMetadata()
   sessionStorage.removeItem(OIDC_LOGOUT_PENDING_KEY)
   clearPendingAuthMode()
   clearPendingCallbackUrl()
@@ -135,12 +101,6 @@ const persistVerifiedSession = (data: SessionResponse) => {
 
   if (data.authMeta) {
     localStorage.setItem('auth_meta', JSON.stringify(data.authMeta))
-    if (data.authMeta.upstream_idp) {
-      setAuthMetadata({
-        upstreamIdp: data.authMeta.upstream_idp as string,
-        loginSource: data.authMeta.upstream_idp as string
-      })
-    }
   } else {
     localStorage.removeItem('auth_meta')
   }
@@ -288,7 +248,6 @@ export const useAuth = () => {
     [setUser, setExpiresAt]
   )
 
-  // Server session is the source of truth; localStorage is only a verified UI cache.
   React.useEffect(() => {
     if (!authEnabled || isSessionVerified) return
 
@@ -332,7 +291,6 @@ export const useAuth = () => {
     applyVerificationResult
   ])
 
-  // After server-driven callback, ?hydrated=1 signals us to fetch session data
   React.useEffect(() => {
     if (!router.isReady) return
     if (router.query.hydrated !== '1') return
