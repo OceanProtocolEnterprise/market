@@ -157,7 +157,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
     return res.redirect(302, partnerLogoutUrl.toString())
   }
 
-  // CASE 3: Fallback - if we can't find partner logout URL
+  // CASE 3: Fallback - if we can't find partner logout URL: test push
   console.warn(
     `No partner logout endpoint found for "${detectedLoginSource}". Falling back to Main logout.`
   )
