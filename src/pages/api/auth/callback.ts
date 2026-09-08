@@ -148,27 +148,56 @@ export default async function handler(
     const isMain = isMainProviderByName(upstreamIdp)
     let partnerEndSessionUrl: string | undefined
 
-    if (!isMain) {
-      const wellKnownUrl = getWellKnownUrl(payload)
-      if (wellKnownUrl) {
-        try {
-          partnerEndSessionUrl = await getProviderEndSessionUrl(
-            wellKnownUrl,
-            upstreamIdp
-          )
-        } catch (error) {
-          console.warn(
-            `Failed to get end_session_url for partner ${upstreamIdp}:`,
-            error
-          )
-        }
+    // Store wellKnownUrl for federated logout
+    const wellKnownUrl = getWellKnownUrl(payload)
+
+    if (!isMain && wellKnownUrl) {
+      try {
+        partnerEndSessionUrl = await getProviderEndSessionUrl(
+          wellKnownUrl,
+          upstreamIdp
+        )
+      } catch (error) {
+        console.warn(
+          `Failed to get end_session_url for partner ${upstreamIdp}:`,
+          error
+        )
       }
     }
 
-    res.setHeader('Set-Cookie', [
-      ...buildAuthCookieStrings(data, upstreamIdp, partnerEndSessionUrl),
+    // Store ONLY access_token and refresh_token in cookies
+    // id_token is NOT stored - we use introspection instead
+    const cookies = [
+      ...buildAuthCookieStrings(
+        {
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          expires_in: data.expires_in
+        },
+        upstreamIdp, // login_source - needed for logout routing
+        partnerEndSessionUrl // idp_end_session_url - needed for partner logout
+      ),
       ...buildClearTransientCookieStrings()
-    ])
+    ]
+
+    res.setHeader('Set-Cookie', cookies)
+
+    // Pass metadata to frontend via headers for localStorage storage
+    // This preserves federated logout capability without id_token cookie
+    const metadataForFrontend = {
+      upstreamIdp: upstreamIdp || 'main',
+      wellKnownUrl: wellKnownUrl || '',
+      partnerEndSessionUrl: partnerEndSessionUrl || '',
+      isMainProvider: isMain,
+      user: {
+        id: getRequiredStringClaim(payload, 'sub'),
+        email: getRequiredStringClaim(payload, 'email'),
+        name: getRequiredStringClaim(payload, 'name'),
+        organizationId: payload.orgId
+      }
+    }
+
+    res.setHeader('X-Auth-Metadata', JSON.stringify(metadataForFrontend))
 
     // Always return to /auth/login so the onboarding flow (wallet + SSI) can run.
     // The login page then redirects to callbackUrl when onboarding is complete.

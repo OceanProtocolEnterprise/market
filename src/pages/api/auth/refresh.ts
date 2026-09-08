@@ -93,9 +93,9 @@ export default async function handler(
       })
     }
 
-    const { access_token, refresh_token, id_token } = req.cookies
+    const { access_token, refresh_token } = req.cookies
     if (!refresh_token) {
-      if (access_token || id_token) {
+      if (access_token) {
         return res.status(409).json({
           error: 'refresh_token_unavailable',
           message: 'Session cannot be refreshed because no refresh token exists'
@@ -174,8 +174,9 @@ export default async function handler(
     }
 
     setAuthCookies(res, {
-      ...data,
-      id_token: data.id_token || id_token
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_in: data.expires_in
     })
 
     return res.status(200).json({

@@ -1,14 +1,11 @@
 /* eslint-disable camelcase */
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { decodeJwt } from 'jose'
 import {
   buildClearAuthCookieStrings,
   clearAuthCookies,
   IDP_END_SESSION_URL_COOKIE
 } from '../_cookies'
 import { isMainProviderByName } from '../_federated'
-import { getLoginSource, getWellKnownUrl } from '../_claims'
-import { getEndSessionUrlFromWellKnown } from '../_oidc'
 import { authEnabled, oidcClientId, oidcIssuer } from 'app.config.cjs'
 
 const OIDC_CLIENT_SECRET_ENV_KEY = 'OIDC_CLIENT_SECRET'
@@ -37,16 +34,6 @@ function getRevokeUrl(issuer: string): string {
   }
 
   return `${issuer.replace(/\/$/, '')}/revoke/`
-}
-
-function getLoginSourceFromIdToken(idToken?: string): string | undefined {
-  if (!idToken) return undefined
-
-  try {
-    return getLoginSource(decodeJwt(idToken))
-  } catch {
-    return undefined
-  }
 }
 
 function serializeFederatedLogoutContinueCookie(
@@ -95,9 +82,10 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
     return res.redirect(302, '/auth/login')
   }
 
-  const { access_token, refresh_token, id_token, login_source } = req.cookies
+  const { access_token, refresh_token, login_source } = req.cookies
   const revokeUrl = getRevokeUrl(issuer)
 
+  // Revoke tokens
   await Promise.all([
     access_token
       ? revokeToken(
@@ -121,46 +109,39 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
 
   const callbackUrl = `${getRequestOrigin(req)}/auth/callback/logout`
 
-  const detectedLoginSource =
-    login_source || getLoginSourceFromIdToken(id_token)
+  // Get login_source from cookie (set during login)
+  // This tells us if user logged in via federated IDP or main OIDC
+  const detectedLoginSource = login_source
 
   const isMain = isMainProviderByName(detectedLoginSource)
 
+  // CASE 1: Main OIDC logout or no login_source
   if (isMain || !detectedLoginSource) {
     console.info(`Main logout for "${detectedLoginSource || 'unknown'}".`)
 
     clearAuthCookies(res)
 
-    // Only send id_token_hint if it's from the main issuer
+    // No id_token_hint needed - logout works without it
     const oidcParams = new URLSearchParams({
       client_id: clientId,
       post_logout_redirect_uri: callbackUrl,
       state: 'logout'
     })
 
-    if (id_token) {
-      try {
-        const decoded = decodeJwt(id_token)
-        if (decoded.iss === issuer) {
-          oidcParams.set('id_token_hint', id_token)
-        }
-      } catch (error) {
-        console.warn('Could not decode id_token for main logout:', error)
-      }
-    }
-
     const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
     return res.redirect(302, mainLogoutUrl)
   }
 
+  // CASE 2: Federated/Partner logout
+  // Step 1: Logout from partner IDP first
   const partnerEndSessionUrl = req.cookies[IDP_END_SESSION_URL_COOKIE]
 
   if (partnerEndSessionUrl) {
+    // Set a cookie to track that we're in federated logout flow
+    // This tells logout-continue to redirect back to main OIDC after partner logout
     res.setHeader('Set-Cookie', [
-      ...buildClearAuthCookieStrings({
-        keepIdToken: true
-      }),
-      serializeFederatedLogoutContinueCookie('1', 300)
+      ...buildClearAuthCookieStrings(),
+      serializeFederatedLogoutContinueCookie('1', 300) // 5 min expiry
     ])
 
     const partnerLogoutUrl = new URL(partnerEndSessionUrl)
@@ -170,52 +151,13 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       `Partner logout for "${detectedLoginSource}". Redirecting to: ${partnerLogoutUrl.toString()}`
     )
 
+    // Step 2: Redirect to partner IDP for logout
+    // After partner logout, user comes back to /auth/callback/logout
+    // Then logout-continue handles the main OIDC logout
     return res.redirect(302, partnerLogoutUrl.toString())
   }
 
-  if (id_token) {
-    try {
-      const decoded = decodeJwt(id_token)
-      const wellKnownUrl = getWellKnownUrl(decoded)
-
-      if (wellKnownUrl) {
-        try {
-          const endSessionUrl = await getEndSessionUrlFromWellKnown(
-            wellKnownUrl
-          )
-
-          if (endSessionUrl) {
-            res.setHeader('Set-Cookie', [
-              ...buildClearAuthCookieStrings({
-                keepIdToken: true
-              }),
-              serializeFederatedLogoutContinueCookie('1', 300)
-            ])
-
-            const partnerLogoutUrl = new URL(endSessionUrl)
-            partnerLogoutUrl.searchParams.set(
-              'post_logout_redirect_uri',
-              callbackUrl
-            )
-
-            console.info(
-              `Partner logout for "${detectedLoginSource}" (from well-known). Redirecting to: ${partnerLogoutUrl.toString()}`
-            )
-
-            return res.redirect(302, partnerLogoutUrl.toString())
-          }
-        } catch (error) {
-          console.warn(
-            `Failed to get end_session_url from well-known for ${detectedLoginSource}:`,
-            error
-          )
-        }
-      }
-    } catch (error) {
-      console.warn('Could not decode id_token for partner logout:', error)
-    }
-  }
-
+  // CASE 3: Fallback - if we can't find partner logout URL
   console.warn(
     `No partner logout endpoint found for "${detectedLoginSource}". Falling back to Main logout.`
   )
@@ -227,17 +169,6 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
     post_logout_redirect_uri: callbackUrl,
     state: 'logout'
   })
-
-  if (id_token) {
-    try {
-      const decoded = decodeJwt(id_token)
-      if (decoded.iss === issuer) {
-        oidcParams.set('id_token_hint', id_token)
-      }
-    } catch (error) {
-      console.warn('Could not decode id_token for fallback logout:', error)
-    }
-  }
 
   const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
   return res.redirect(302, mainLogoutUrl)

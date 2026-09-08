@@ -26,7 +26,6 @@ export default async function handler(
 
   const accessToken = req.cookies.access_token
   const refreshToken = req.cookies.refresh_token
-  const idToken = req.cookies.id_token
 
   if (!accessToken && !refreshToken) {
     clearAuthCookies(res)
@@ -55,41 +54,21 @@ export default async function handler(
     return res.status(500).json({ error: 'Server configuration error' })
   }
 
-  if (!idToken) {
-    if (!refreshToken) clearAuthCookies(res)
-    return res.status(401).json({
-      error: 'Session verification required',
-      has_refresh_token: Boolean(refreshToken),
-      refresh_required: Boolean(refreshToken)
-    })
-  }
-
   try {
-    const metadata = await getOidcMetadata(issuer)
-    // Tolerate an expired id_token: access-token introspection below is the
-    // live source of truth for session validity. Signature/issuer/audience
-    // failures still bubble to the outer catch and 401 the session.
-    const { payload } = await jwtVerify(idToken, metadata.jwks, {
-      issuer: metadata.issuer,
-      audience: clientId
-    }).catch((error) => {
-      const { code, payload: expiredPayload } = error as {
-        code?: string
-        payload?: JWTPayload
-      }
-      if (code !== 'ERR_JWT_EXPIRED' || !expiredPayload) throw error
-
-      console.warn(
-        'Session id_token expired; falling back to introspection. ' +
-          'If frequent, check that the IdP returns id_token on the refresh_token grant.'
-      )
-      return { payload: expiredPayload }
-    })
-
-    // JWT verification only proves the token was issued by us. Introspection
-    // is the live source of truth for revocations after token issuance.
     let accessTokenExp: number | undefined
+    let userClaims: JWTPayload | null = null
+
     if (accessToken) {
+      try {
+        const parts = accessToken.split('.')
+        if (parts.length === 3) {
+          const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString())
+          userClaims = payload
+        }
+      } catch (e) {
+        console.warn('Could not decode access_token, using introspection only')
+      }
+
       const introspection = await introspectAccessToken(
         accessToken,
         issuer,
@@ -113,39 +92,50 @@ export default async function handler(
 
       accessTokenExp = introspection.exp
     }
-
-    // Session lifetime tracks the access token (what the SPA actually needs to
-    // call protected APIs), not the id_token. The id_token is only an
-    // authentication assertion at login time.
     const now = Math.floor(Date.now() / 1000)
     const expiresIn = accessTokenExp
       ? Math.max(0, accessTokenExp - now)
-      : payload.exp
-      ? Math.max(0, payload.exp - now)
       : DEFAULT_ACCESS_TOKEN_MAX_AGE
 
-    const authMeta = {
-      main_oidc: getOptionalStringClaim(payload, 'iss') || issuer,
-      upstream_idp: getLoginSource(payload) || 'unknown'
-    }
-    const organizationId = getOptionalStringClaim(payload, 'orgId')
+    if (userClaims) {
+      const authMeta = {
+        main_oidc: getOptionalStringClaim(userClaims, 'iss') || issuer,
+        upstream_idp: getLoginSource(userClaims) || 'unknown'
+      }
+      const organizationId = getOptionalStringClaim(userClaims, 'orgId')
 
-    return res.status(200).json({
-      user: {
-        id: getOptionalStringClaim(payload, 'sub'),
-        email: getOptionalStringClaim(payload, 'email'),
-        name: getOptionalStringClaim(payload, 'name'),
-        username:
-          getOptionalStringClaim(payload, 'preferred_username') ||
-          getOptionalStringClaim(payload, 'username'),
-        organizationId
-      },
-      authMeta,
-      has_refresh_token: Boolean(refreshToken),
-      expires_in: expiresIn
-    })
+      return res.status(200).json({
+        user: {
+          id: getOptionalStringClaim(userClaims, 'sub'),
+          email: getOptionalStringClaim(userClaims, 'email'),
+          name: getOptionalStringClaim(userClaims, 'name'),
+          username:
+            getOptionalStringClaim(userClaims, 'preferred_username') ||
+            getOptionalStringClaim(userClaims, 'username'),
+          organizationId
+        },
+        authMeta,
+        has_refresh_token: Boolean(refreshToken),
+        expires_in: expiresIn
+      })
+    } else {
+      return res.status(200).json({
+        user: {
+          id: 'session-active',
+          email: 'session@active',
+          name: 'Active Session',
+          organizationId: undefined
+        },
+        authMeta: {
+          main_oidc: issuer,
+          upstream_idp: 'unknown'
+        },
+        has_refresh_token: Boolean(refreshToken),
+        expires_in: expiresIn
+      })
+    }
   } catch (error) {
-    console.error('Session id_token verification failed:', error)
+    console.error('Session verification failed:', error)
     if (!refreshToken) clearAuthCookies(res)
     return res.status(401).json({
       error: 'Session verification failed',
