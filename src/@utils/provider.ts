@@ -13,11 +13,11 @@ import {
   S3FileObject,
   FtpFileObject
 } from '@oceanprotocol/lib'
+import type { dockerRegistryAuth as DockerRegistryAuth } from '@oceanprotocol/lib'
 // if customProviderUrl is set, we need to call provider using this custom endpoint
 import { customProviderUrl } from '../../app.config.cjs'
 import type { KeyValuePair } from 'src/@types/KeyValuePair'
 import { Signer } from 'ethers'
-import { getValidUntilTime } from './compute'
 import { toast } from 'react-toastify'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
@@ -83,7 +83,8 @@ export async function initializeProviderForComputeMulti(
   computeOutput?: ComputeOutput,
   queueMaxWaitTime?: number,
   algoParams?: Record<string, any>,
-  datasetParams?: Record<string, any>
+  datasetParams?: Record<string, any>,
+  dockerRegistryAuth?: DockerRegistryAuth
 ) {
   const safeDatasets = datasets ?? []
   const computeAssets = safeDatasets.map(
@@ -127,11 +128,7 @@ export async function initializeProviderForComputeMulti(
     }
   ]
 
-  const validUntil = getValidUntilTime(
-    selectedResources.jobDuration,
-    safeDatasets[0]?.service.timeout ?? 0,
-    algorithm.credentialSubject.services[svcIndexAlgo].timeout
-  )
+  const maxJobDuration = selectedResources.jobDuration * 60
 
   const providerUrl =
     safeDatasets[0]?.service.serviceEndpoint ||
@@ -156,7 +153,7 @@ export async function initializeProviderForComputeMulti(
     computeAlgo,
     computeEnv.id,
     paymentTokenAddress,
-    validUntil,
+    maxJobDuration,
     providerUrl,
     await accountId.getAddress(),
     resources,
@@ -164,7 +161,7 @@ export async function initializeProviderForComputeMulti(
     policiesServer,
     null,
     queueMaxWaitTime,
-    null,
+    dockerRegistryAuth,
     computeOutput
   )
 }
@@ -221,9 +218,12 @@ export async function getFileDidInfo(
     )
     return response
   } catch (error) {
-    console.error('Error check did files', error)
     const message = 'Failed to fetch file info from provider'
-    LoggerInstance.error('[Initialize check file did] Error:', message)
+    LoggerInstance.warn('[Provider File Info] Request failed', {
+      did,
+      serviceId,
+      error: error instanceof Error ? error.message : String(error)
+    })
     throw new Error(`[Initialize check file did] Error: ${message}`)
   }
 }

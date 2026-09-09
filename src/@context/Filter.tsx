@@ -34,6 +34,7 @@ function FilterProvider({ children }: { children: ReactNode }): ReactElement {
   const [filters, setFilters] = useState<Filters>({
     accessType: [],
     serviceType: [],
+    priceType: [],
     supportedBlockchain: [],
     filterSet: [],
     filterTime: [],

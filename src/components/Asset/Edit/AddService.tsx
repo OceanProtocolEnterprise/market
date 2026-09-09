@@ -59,6 +59,7 @@ import { State } from 'src/@types/ddo/State'
 import { useSsiWallet } from '@context/SsiWallet'
 import { getTokenInfo } from '@utils/wallet'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import { getOpaServerUrl } from '@utils/wallet/policyServer'
 
 export default function AddService({
   asset
@@ -266,7 +267,8 @@ export default function AddService({
         ...(values.credentials || {}),
         vcPolicies: []
       }
-      const credentials = generateCredentials(serviceCredentials)
+      const opaServerUrl = await getOpaServerUrl(serviceEndpoint)
+      const credentials = generateCredentials(serviceCredentials, opaServerUrl)
 
       const newService: Service = {
         id: getHash(datatokenAddress + newFiles),

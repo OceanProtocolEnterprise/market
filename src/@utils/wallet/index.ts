@@ -1,7 +1,7 @@
 'use client'
 
 import { LoggerInstance } from '@oceanprotocol/lib'
-import { cookieStorage, createConfig, createStorage } from 'wagmi'
+import { createConfig } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 import { erc20Abi, http } from 'viem'
 import { localhost, type Chain } from 'wagmi/chains'
@@ -13,20 +13,32 @@ import {
   Provider,
   Wallet
 } from 'ethers'
+import Cookies from 'js-cookie'
 import { getOceanConfig } from '../ocean'
 import { getSupportedChains } from './chains'
 import { getAllowedErc20ChainIds, getRuntimeConfig } from '../runtimeConfig'
 import { signerServerConnector } from './signerServerConnector'
 
-export async function getDummySigner(chainId: number): Promise<Wallet> {
-  const config = getOceanConfig(chainId)
-  if (!config?.nodeUri) throw new Error('Missing nodeUri in Ocean config')
+const providerCache = new Map<number, JsonRpcProvider>()
+export function getOrCreateProvider(chainId: number): JsonRpcProvider {
+  if (providerCache.has(chainId)) {
+    return providerCache.get(chainId) as JsonRpcProvider
+  }
 
-  const privateKey =
-    '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+  const config = getOceanConfig(chainId)
+  if (!config?.nodeUri) {
+    throw new Error('Missing nodeUri in Ocean config')
+  }
 
   const provider = new JsonRpcProvider(config.nodeUri)
+  providerCache.set(chainId, provider)
+  return provider
+}
 
+export async function getDummySigner(chainId: number): Promise<Wallet> {
+  const provider = getOrCreateProvider(chainId)
+  const privateKey =
+    '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
   return new Wallet(privateKey, provider)
 }
 
@@ -56,18 +68,25 @@ export function createWagmiConfig() {
   return createConfig({
     chains,
     ssr: true,
-    storage: createStorage({ storage: cookieStorage }),
     // Signer Server must exist when Wagmi mounts so its reconnect pass can
     // restore that connection after a page refresh.
     connectors: [injected({ target: 'metaMask' }), signerServerConnector()],
     transports: chains.reduce(
       (acc, chain) => ({
         ...acc,
-        [chain.id]: http()
+        [chain.id]: http(chain.rpcUrls.default.http[0]) // use real rpc url
       }),
       {} as Record<number, ReturnType<typeof http>>
     )
   })
+}
+
+export function removeLegacyWagmiCookies(): void {
+  if (typeof document === 'undefined') return
+
+  Object.keys(Cookies.get())
+    .filter((name) => name.startsWith('wagmi.'))
+    .forEach((name) => Cookies.remove(name, { path: '/' }))
 }
 
 // ConnectKit CSS overrides

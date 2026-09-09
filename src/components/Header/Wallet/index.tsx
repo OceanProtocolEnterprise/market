@@ -11,6 +11,7 @@ import { useSignerServerConnect } from '@hooks/useSignerServerConnect'
 import { useMetaMaskConnect } from '@hooks/useMetaMaskConnect'
 import WalletChoiceModal from '@shared/WalletChoiceModal'
 import DfnsRegistrationModal from '@shared/DfnsRegistrationModal'
+import { getRuntimeConfig } from '@utils/runtimeConfig'
 
 type TooltipHandle = {
   hide?: () => void
@@ -22,6 +23,7 @@ export default function Wallet(): ReactElement {
   const dfns = useDfnsConnect()
   const signerServer = useSignerServerConnect()
   const { authEnabled } = useAuth()
+  const isDfnsEnabled = getRuntimeConfig().NEXT_PUBLIC_DFNS_ENABLED === 'true'
   const [isSsiModalOpen, setIsSsiModalOpen] = useState(false)
   const [isWalletChoiceOpen, setIsWalletChoiceOpen] = useState(false)
   const tooltipRef = useRef<TooltipHandle | null>(null)
@@ -54,7 +56,7 @@ export default function Wallet(): ReactElement {
         isOpen={isWalletChoiceOpen}
         isDfnsConnecting={dfns.isConnecting}
         isSignerServerConnecting={signerServer.isConnecting}
-        showDfns={authEnabled}
+        showDfns={authEnabled && isDfnsEnabled}
         showSignerServer={signerServer.isConfigured}
         onClose={() => setIsWalletChoiceOpen(false)}
         onSelectMetaMask={() => {
@@ -71,14 +73,16 @@ export default function Wallet(): ReactElement {
         }}
       />
 
-      <DfnsRegistrationModal
-        isOpen={dfns.isRegistrationModalOpen}
-        registrationCode={dfns.registrationCode}
-        isConnecting={dfns.isConnecting}
-        onChange={dfns.setRegistrationCode}
-        onSubmit={dfns.submitRegistrationCode}
-        onClose={() => dfns.setIsRegistrationModalOpen(false)}
-      />
+      {isDfnsEnabled && (
+        <DfnsRegistrationModal
+          isOpen={dfns.isRegistrationModalOpen}
+          registrationCode={dfns.registrationCode}
+          isConnecting={dfns.isConnecting}
+          onChange={dfns.setRegistrationCode}
+          onSubmit={dfns.submitRegistrationCode}
+          onClose={() => dfns.setIsRegistrationModalOpen(false)}
+        />
+      )}
     </div>
   )
 }

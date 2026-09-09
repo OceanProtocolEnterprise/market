@@ -36,6 +36,7 @@ export interface InputProps {
   prominentHelp?: boolean
   tag?: string
   type?: string
+  autoComplete?: string
   options?:
     | string[]
     | AssetSelectionAsset[]
@@ -109,6 +110,7 @@ export interface InputProps {
   onReset?: () => void
   showResetButton?: boolean
   additionalAction?: ReactNode
+  assetSelectionFooterAction?: ReactNode
   showDeleteButton?: boolean
   onDelete?: () => void
   activeFileType?: string

@@ -48,8 +48,8 @@ export const authConfig = ((): AuthConfig => {
     : runtimeConfig.NEXT_PUBLIC_OIDC_REDIRECT_URI || null
 
   const signupFlow = isServer()
-    ? oidcSignupFlow || 'self-service-registration'
-    : runtimeConfig.NEXT_PUBLIC_OIDC_SIGNUP_FLOW || 'self-service-registration'
+    ? oidcSignupFlow || ''
+    : runtimeConfig.NEXT_PUBLIC_OIDC_SIGNUP_FLOW || ''
 
   return {
     enabled,
@@ -60,7 +60,7 @@ export const authConfig = ((): AuthConfig => {
       redirectUri,
       signupFlow,
       scope:
-        'openid profile email offline_access federated_identity organizationId walletId signerServer',
+        'openid profile email offline_access oe-central-federated_identity oe-organizationId oe-walletId oe-signerServer oe-wellKnownUrl',
       responseType: 'code',
       pkceMethod: 'S256'
     }

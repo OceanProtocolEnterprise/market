@@ -4,6 +4,7 @@ export enum PolicyServerActions {
   CHECK_SESSION_ID = 'checkSessionId',
   PRESENTATION_REQUEST = 'presentationRequest',
   DOWNLOAD = 'download',
+  GET_OPA_SERVER_URL = 'getOpaServerUrl',
   PASSTHROUGH = 'passthrough'
 }
 
@@ -68,7 +69,7 @@ export type PolicyServerInitiateMessage = PolicyServerRedirectMessage
 
 export interface PolicyServerResponse {
   success: boolean
-  message?: string | PolicyServerCheckSessionMessage
+  message?: string | PolicyServerCheckSessionMessage | null
   httpStatus: number
 }
 
@@ -115,6 +116,10 @@ export interface PolicyServerInitiateComputeActionData
 export interface PolicyServerGetPdAction {
   action: PolicyServerActions.GET_PD
   sessionId: string
+}
+
+export interface PolicyServerGetOpaServerUrlAction {
+  action: PolicyServerActions.GET_OPA_SERVER_URL
 }
 
 export interface PolicyServerCheckSessionIdAction {

@@ -2,18 +2,14 @@
 
 import { ReactElement, useEffect, useMemo, useState } from 'react'
 import { useFormikContext } from 'formik'
-import { useAccount } from 'wagmi'
 import StepTitle from '@shared/StepTitle'
 import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelection'
 import DatasetSelection from '@shared/FormInput/InputElement/DatasetSelection'
-import { useCancelToken } from '@hooks/useCancelToken'
-import { getAlgorithmDatasetsForComputeSelection } from '@utils/aquarius'
 import { Service } from 'src/@types/ddo/Service'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import { ComputeFlow, FormComputeData } from '../_types'
 import styles from './index.module.css'
 import LoaderOverlay from '../LoaderOverlay'
-import { useMarketMetadata } from '@context/MarketMetadata'
 
 type DatasetService = {
   serviceId: string
@@ -27,6 +23,8 @@ type DatasetService = {
   isAccountIdWhitelisted?: boolean
   datetime?: string
   userParameters?: unknown[]
+  selectionDisabled?: boolean
+  selectionDisabledReason?: string
 }
 
 type DatasetItem = {
@@ -39,11 +37,14 @@ type DatasetItem = {
   expanded?: boolean
   checked?: boolean
   services: DatasetService[]
+  selectionDisabled?: boolean
+  selectionDisabledReason?: string
 }
 
 interface SelectPrimaryAssetProps {
   flow: ComputeFlow
   algorithms?: AssetSelectionAsset[]
+  datasets?: AssetSelectionAsset[]
   asset: AssetExtended
   service: Service
   accessDetails: AccessDetails
@@ -66,6 +67,8 @@ type RawDatasetEntry = {
   isAccountIdWhitelisted?: boolean
   datetime?: string
   userParameters?: DatasetService['userParameters']
+  selectionDisabled?: boolean
+  selectionDisabledReason?: string
 }
 
 function parseAlgorithmSelection(value: string | unknown): {
@@ -130,7 +133,9 @@ function transformDatasets(
       checked: ds.checked,
       isAccountIdWhitelisted: ds.isAccountIdWhitelisted,
       datetime: ds.datetime,
-      userParameters: ds.userParameters ?? []
+      userParameters: ds.userParameters ?? [],
+      selectionDisabled: ds.selectionDisabled,
+      selectionDisabledReason: ds.selectionDisabledReason
     }
 
     if (service.tokenSymbol) {
@@ -147,7 +152,16 @@ function transformDatasets(
       : []
     return {
       ...dataset,
-      tokenSymbol: tokens.length > 0 ? tokens.join(' & ') : dataset.tokenSymbol
+      tokenSymbol: tokens.length > 0 ? tokens.join(' & ') : dataset.tokenSymbol,
+      selectionDisabled:
+        dataset.services.length > 0 &&
+        dataset.services.every((service) => service.selectionDisabled),
+      selectionDisabledReason: dataset.services.every(
+        (service) => service.selectionDisabled
+      )
+        ? dataset.services.find((service) => service.selectionDisabledReason)
+            ?.selectionDisabledReason
+        : undefined
     }
   })
 }
@@ -155,25 +169,13 @@ function transformDatasets(
 export default function SelectPrimaryAsset({
   flow,
   algorithms = [],
-  asset,
-  service,
-  accessDetails
+  datasets,
+  asset
 }: SelectPrimaryAssetProps): ReactElement {
   const isDatasetFlow = flow === 'dataset'
-  const { address: accountId } = useAccount()
   const { values, setFieldValue } = useFormikContext<FormComputeData>()
-  const { approvedBaseTokens } = useMarketMetadata()
-  const newCancelToken = useCancelToken()
   const [datasetsForCompute, setDatasetsForCompute] = useState<DatasetItem[]>()
-  const [isLoadingDatasets, setIsLoadingDatasets] = useState(false)
-  const tokenSymbolMap = useMemo(() => {
-    const map: Record<string, string> = {}
-    approvedBaseTokens?.forEach((token) => {
-      if (!token?.address || !token?.symbol) return
-      map[token.address.toLowerCase()] = token.symbol
-    })
-    return map
-  }, [approvedBaseTokens])
+  const isLoadingDatasets = !isDatasetFlow && datasets === undefined
 
   const selectedDatasetIds = useMemo(() => {
     const ids =
@@ -199,51 +201,17 @@ export default function SelectPrimaryAsset({
 
   useEffect(() => {
     if (isDatasetFlow) return
-    if (!accessDetails.type) return
-    if (asset.credentialSubject?.metadata.type !== 'algorithm') return
+    if (!datasets) return
 
     const selectedIdsSnapshot =
       values.datasets
         ?.map((dataset) => dataset.did ?? dataset.id)
         .filter((identifier): identifier is string => Boolean(identifier)) ?? []
 
-    async function getDatasetsAllowedForCompute() {
-      setIsLoadingDatasets(true)
-      try {
-        const datasets = await getAlgorithmDatasetsForComputeSelection(
-          asset.id,
-          service.id,
-          service.serviceEndpoint,
-          accountId,
-          asset.credentialSubject?.chainId,
-          newCancelToken(),
-          tokenSymbolMap
-        )
-        const datasetsRaw = (datasets as unknown as RawDatasetEntry[]) ?? []
-        const groupedDatasets = transformDatasets(
-          datasetsRaw,
-          selectedIdsSnapshot
-        )
-        setDatasetsForCompute(groupedDatasets)
-      } catch (error) {
-        console.error('Error fetching datasets:', error)
-        setDatasetsForCompute([])
-      } finally {
-        setIsLoadingDatasets(false)
-      }
-    }
-
-    getDatasetsAllowedForCompute()
+    const datasetsRaw = (datasets as unknown as RawDatasetEntry[]) ?? []
+    setDatasetsForCompute(transformDatasets(datasetsRaw, selectedIdsSnapshot))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isDatasetFlow,
-    accessDetails,
-    accountId,
-    asset,
-    newCancelToken,
-    service,
-    tokenSymbolMap
-  ])
+  }, [isDatasetFlow, datasets])
 
   const handleDatasetSelect = (did: string) => {
     if (isDatasetFlow) return
@@ -265,7 +233,8 @@ export default function SelectPrimaryAsset({
         if (
           isSelected &&
           servicesWithSelection.length === 1 &&
-          !servicesWithSelection[0].checked
+          !servicesWithSelection[0].checked &&
+          !servicesWithSelection[0].selectionDisabled
         ) {
           servicesWithSelection[0].checked = true
         }
@@ -332,7 +301,9 @@ export default function SelectPrimaryAsset({
             ? algo.serviceDuration
             : Number(algo.serviceDuration ?? 0),
         checked: datasetFlowSelectedIds.includes(encodedId),
-        isAccountIdWhitelisted: algo.isAccountIdWhitelisted
+        isAccountIdWhitelisted: algo.isAccountIdWhitelisted,
+        selectionDisabled: algo.selectionDisabled,
+        selectionDisabledReason: algo.selectionDisabledReason
       }
     })
   }, [algorithms, datasetFlowSelectedIds, isDatasetFlow])
@@ -359,7 +330,9 @@ export default function SelectPrimaryAsset({
               ? svc.serviceDuration
               : Number(svc?.serviceDuration ?? 0),
           checked: Boolean(ds.checked),
-          isAccountIdWhitelisted: svc?.isAccountIdWhitelisted || false
+          isAccountIdWhitelisted: svc?.isAccountIdWhitelisted || false,
+          selectionDisabled: ds.selectionDisabled,
+          selectionDisabledReason: ds.selectionDisabledReason
         }
       }) || []
     return mapped
@@ -368,6 +341,58 @@ export default function SelectPrimaryAsset({
   const selectedIds = isDatasetFlow
     ? datasetFlowSelectedIds
     : selectedDatasetIds
+
+  useEffect(() => {
+    const disabledIds = new Set(
+      datasetsForSelection
+        .filter((item) => item.selectionDisabled)
+        .map((item) => item.did)
+    )
+    if (disabledIds.size === 0) return
+
+    if (isDatasetFlow) {
+      const selectedAlgorithmId = algorithms.find((algorithm) =>
+        datasetFlowSelectedIds.includes(
+          JSON.stringify({
+            algoDid: algorithm.did,
+            serviceId: algorithm.serviceId
+          })
+        )
+      )?.did
+      if (!selectedAlgorithmId || !disabledIds.has(selectedAlgorithmId)) return
+
+      setFieldValue('algorithm', undefined)
+      setFieldValue('algorithms', undefined)
+      setFieldValue('serviceSelected', false)
+      return
+    }
+
+    if (!selectedDatasetIds.some((did) => disabledIds.has(did))) return
+
+    setFieldValue(
+      'datasets',
+      values.datasets?.filter(
+        (dataset) => !disabledIds.has(dataset.did ?? dataset.id)
+      ) ?? []
+    )
+    setFieldValue(
+      'dataset',
+      (Array.isArray(values.dataset) ? values.dataset : []).filter(
+        (selection) =>
+          typeof selection !== 'string' ||
+          !disabledIds.has(selection.split('|')[0])
+      )
+    )
+  }, [
+    algorithms,
+    datasetFlowSelectedIds,
+    datasetsForSelection,
+    isDatasetFlow,
+    selectedDatasetIds,
+    setFieldValue,
+    values.dataset,
+    values.datasets
+  ])
 
   const handleSelectionChange = (did: string) => {
     if (isDatasetFlow) {

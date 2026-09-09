@@ -13,6 +13,7 @@ import Loader from '@shared/atoms/Loader'
 import useNetworkMetadata from '@hooks/useNetworkMetadata'
 import { isAddress } from 'ethers'
 import isUrl from 'is-url-superb'
+import { isPrimaryLicenseReady } from '../_license'
 
 function isValidUrl(url: string): boolean {
   if (!url?.trim()) return false
@@ -205,10 +206,7 @@ export default function Actions({
     const stepValidations = {
       1: () =>
         errors.metadata !== undefined ||
-        (values.metadata.licenseTypeSelection === 'URL' &&
-          !values.metadata.licenseUrl?.[0]?.valid) ||
-        (values.metadata.licenseTypeSelection === 'Upload license file' &&
-          !values.metadata.uploadedLicense),
+        !isPrimaryLicenseReady(values.metadata),
       2: () =>
         !step1Completed ||
         errors.credentials !== undefined ||

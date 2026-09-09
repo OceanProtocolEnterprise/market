@@ -219,7 +219,7 @@ export default function App({
       <SsiWalletManager />
 
       {appConfig?.privacyPreferenceCenter === 'true' && (
-        <PrivacyPreferenceCenter style="small" />
+        <PrivacyPreferenceCenter />
       )}
 
       <DfnsRegistrationModal

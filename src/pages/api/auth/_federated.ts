@@ -1,27 +1,50 @@
-import { federatedOidcIssuers } from 'app.config.cjs'
+import { getEndSessionUrlFromWellKnown } from './_oidc'
+import { centralIdpName } from 'app.config.cjs'
+export type FederatedProviderType = 'main' | 'partner'
 
-function getIssuerList(value: unknown): unknown[] {
-  if (Array.isArray(value)) return value
-  if (typeof value !== 'string') return []
+export interface FederatedProvider {
+  type: FederatedProviderType
+  logout?: string
+}
+
+function normalize(value?: string): string {
+  return value?.trim().toLowerCase() || ''
+}
+
+export async function getProviderEndSessionUrl(
+  wellKnownUrl: string,
+  loginSource?: string
+): Promise<string | undefined> {
+  if (!wellKnownUrl) {
+    console.warn(
+      `No well-known URL provided for ${loginSource || 'unknown provider'}`
+    )
+    return undefined
+  }
 
   try {
-    const parsed = JSON.parse(value) as unknown
-    return Array.isArray(parsed) ? parsed : [parsed]
-  } catch {
-    return [value]
+    const endSessionUrl = await getEndSessionUrlFromWellKnown(wellKnownUrl)
+    if (!endSessionUrl) {
+      console.warn(
+        `No end_session_url found for ${
+          loginSource || 'unknown provider'
+        } at ${wellKnownUrl}`
+      )
+      return undefined
+    }
+    return endSessionUrl
+  } catch (error) {
+    console.error(
+      `Failed to get end_session_url for ${loginSource || 'unknown provider'}:`,
+      error
+    )
+    return undefined
   }
 }
 
-export function isFederatedSource(loginSource: string): boolean {
-  const normalizedLoginSource = loginSource.trim().toLowerCase()
-  if (!normalizedLoginSource) return false
+export function isMainProviderByName(loginSource?: string): boolean {
+  if (!loginSource) return false
 
-  return getIssuerList(federatedOidcIssuers).some((issuer: unknown) => {
-    if (typeof issuer !== 'string') return false
-    const normalizedIssuer = issuer.trim().toLowerCase()
-    return (
-      normalizedIssuer.length > 0 &&
-      normalizedLoginSource.includes(normalizedIssuer)
-    )
-  })
+  const mainProviderName = centralIdpName || 'main-oidc-provider'
+  return normalize(loginSource) === normalize(mainProviderName)
 }

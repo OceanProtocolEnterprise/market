@@ -7,6 +7,7 @@ import {
   ENTERPRISE_FEE_COLLECTOR_ABI,
   TOKEN_CHECK_TIMEOUT_MS
 } from './_constants'
+import { getOrCreateProvider } from '@utils/wallet'
 
 type AllowedChainTokens = {
   chainId: number
@@ -98,7 +99,7 @@ export async function fetchValidatedSupportedChains(): Promise<number[]> {
       }
 
       try {
-        const provider = new JsonRpcProvider(nodeUri)
+        const provider = getOrCreateProvider(chainId)
         const contract = new Contract(
           feeCollectorAddress,
           ENTERPRISE_FEE_COLLECTOR_ABI,

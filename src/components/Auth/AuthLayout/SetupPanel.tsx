@@ -5,6 +5,7 @@ import useSsiAllowedChain from '@hooks/useSsiAllowedChain'
 import useSsiChainGuard from '@hooks/useSsiChainGuard'
 import { useAuth } from '@hooks/useAuth'
 import { getPendingAuthMode } from '@utils/authFlow'
+import { getRuntimeConfig } from '@utils/runtimeConfig'
 import useSsiConnect from '@hooks/useSsiConnect'
 import { useDfnsConnect } from '@hooks/useDfnsConnect'
 import { useSignerServerConnect } from '@hooks/useSignerServerConnect'
@@ -100,6 +101,7 @@ export default function SetupPanel() {
   const { ensureAllowedChainForSsi } = useSsiChainGuard()
   const authMode = getPendingAuthMode()
   const isSsiEnabled = appConfig.ssiEnabled
+  const isDfnsEnabled = getRuntimeConfig().NEXT_PUBLIC_DFNS_ENABLED === 'true'
 
   const isWalletReady = isConnected
   const isSsiReady = Boolean(sessionToken)
@@ -238,16 +240,18 @@ export default function SetupPanel() {
                 >
                   {authSetupCopy.connectBrowserWallet}
                 </button>
-                <button
-                  type="button"
-                  className={styles.actionButton}
-                  onClick={dfns.openConnect}
-                  disabled={dfns.isConnecting}
-                >
-                  {dfns.isConnecting
-                    ? authSetupCopy.dfnsConnecting
-                    : authSetupCopy.connectDfnsWallet}
-                </button>
+                {isDfnsEnabled && (
+                  <button
+                    type="button"
+                    className={styles.actionButton}
+                    onClick={dfns.openConnect}
+                    disabled={dfns.isConnecting}
+                  >
+                    {dfns.isConnecting
+                      ? authSetupCopy.dfnsConnecting
+                      : authSetupCopy.connectDfnsWallet}
+                  </button>
+                )}
                 {signerServer.isConfigured && (
                   <button
                     type="button"
@@ -281,14 +285,16 @@ export default function SetupPanel() {
         )}
       </div>
 
-      <DfnsRegistrationModal
-        isOpen={dfns.isRegistrationModalOpen}
-        registrationCode={dfns.registrationCode}
-        isConnecting={dfns.isConnecting}
-        onChange={dfns.setRegistrationCode}
-        onSubmit={dfns.submitRegistrationCode}
-        onClose={() => dfns.setIsRegistrationModalOpen(false)}
-      />
+      {isDfnsEnabled && (
+        <DfnsRegistrationModal
+          isOpen={dfns.isRegistrationModalOpen}
+          registrationCode={dfns.registrationCode}
+          isConnecting={dfns.isConnecting}
+          onChange={dfns.setRegistrationCode}
+          onSubmit={dfns.submitRegistrationCode}
+          onClose={() => dfns.setIsRegistrationModalOpen(false)}
+        />
+      )}
     </div>
   )
 }

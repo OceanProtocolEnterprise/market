@@ -2,6 +2,7 @@ import { ReactElement, useState } from 'react'
 import styles from './ServiceCard.module.css'
 import { Service } from 'src/@types/ddo/Service'
 import ServiceTypeIcon from '@shared/ServiceTypeIcon'
+import { formatServiceTimeout } from '@utils/ddo'
 
 export default function ServiceCard({
   service,
@@ -79,6 +80,9 @@ export default function ServiceCard({
         <ServiceTypeIcon type={service.type} className={styles.typeIcon} />
         {service.type}
       </span>
+      <br />
+      <span className={styles.title}>Timeout: </span>
+      <span>{formatServiceTimeout(service.timeout)}</span>
       <br />
       <span className={styles.title}>Price: </span>
       {accessDetails.type === 'fixed' ? (

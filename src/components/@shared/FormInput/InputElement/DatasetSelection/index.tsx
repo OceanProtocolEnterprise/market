@@ -9,6 +9,8 @@ import External from '@images/external.svg'
 import { AssetSelectionAsset } from '@shared/FormInput/InputElement/AssetSelection'
 import { AssetExtended } from 'src/@types/AssetExtended'
 import Link from 'next/link'
+import Tooltip from '@shared/atoms/Tooltip'
+import InfoIcon from '@images/info.svg'
 
 interface DatasetSelectionDataset extends AssetSelectionAsset {
   checked: boolean
@@ -84,9 +86,11 @@ export default function DatasetSelection({
                   key={selectionValue}
                   className={`${styles.datasetCard} ${
                     isSelected ? styles.selected : ''
-                  }`}
+                  } ${dataset.selectionDisabled ? styles.itemDisabled : ''}`}
                   onClick={() =>
-                    !disabled && handleDatasetSelect(selectionValue)
+                    !disabled &&
+                    !dataset.selectionDisabled &&
+                    handleDatasetSelect(selectionValue)
                   }
                 >
                   <div className={styles.cardHeader}>
@@ -126,12 +130,37 @@ export default function DatasetSelection({
                     </p>
 
                     <div className={styles.cardActions}>
+                      {dataset.selectionDisabledReason && (
+                        <Tooltip
+                          content={dataset.selectionDisabledReason}
+                          placement="top"
+                        >
+                          <button
+                            type="button"
+                            className={styles.updateInfoButton}
+                            aria-label="Why is this dataset unavailable?"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <InfoIcon className={styles.updateInfoIcon} />
+                          </button>
+                        </Tooltip>
+                      )}
                       <Button
                         type="button"
                         style="slim"
-                        onClick={() => onChange?.(selectionValue)}
+                        disabled={disabled || dataset.selectionDisabled}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          if (!dataset.selectionDisabled) {
+                            onChange?.(selectionValue)
+                          }
+                        }}
                       >
-                        {isSelected ? 'Selected' : 'Select'}
+                        {dataset.selectionDisabled
+                          ? 'Update required'
+                          : isSelected
+                          ? 'Selected'
+                          : 'Select'}
                       </Button>
                     </div>
                   </div>

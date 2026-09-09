@@ -8,6 +8,7 @@ import {
   ProviderFees,
   ZERO_ADDRESS
 } from '@oceanprotocol/lib'
+import type { dockerRegistryAuth as DockerRegistryAuth } from '@oceanprotocol/lib'
 import { isOrderable } from '@utils/compute'
 import { handleComputeOrder } from '@utils/order'
 import { getComputeFeedback } from '@utils/feedback'
@@ -63,6 +64,7 @@ type StartJobParams = {
   computeOutputEncryptionKey?: string
   computeOutputStorage?: FormComputeData['outputStorage']
   queueMaxWaitTime?: number
+  dockerRegistryAuth?: DockerRegistryAuth
 }
 
 async function setAlgoPrice(
@@ -225,7 +227,8 @@ export function useComputeSubmission() {
       computeOutput,
       computeOutputEncryptionKey,
       computeOutputStorage,
-      queueMaxWaitTime
+      queueMaxWaitTime,
+      dockerRegistryAuth
     }: StartJobParams) => {
       try {
         setIsOrdering(true)
@@ -388,13 +391,14 @@ export function useComputeSubmission() {
 
         let response
         if (selectedResources.mode === 'paid') {
+          const maxJobDuration = selectedResources.jobDuration * 60
           response = await ProviderInstance.computeStart(
             providerEndpoint,
             signer,
             selectedComputeEnv.id,
             datasetInputs,
             { ...computeAlgorithm, transferTxId: algorithmOrderTx },
-            selectedResources.jobDuration,
+            maxJobDuration,
             paymentToken,
             resourceRequests,
             firstDataset?.asset.credentialSubject.chainId ??
@@ -402,9 +406,10 @@ export function useComputeSubmission() {
             null,
             null,
             computeOutput,
-            policiesServer as any,
+            policiesServer,
             undefined,
-            queueMaxWaitTime
+            queueMaxWaitTime,
+            dockerRegistryAuth
           )
         } else {
           const algorithm: ComputeAlgorithm = {
@@ -425,9 +430,10 @@ export function useComputeSubmission() {
             null,
             null,
             computeOutput,
-            policiesServer as any,
+            policiesServer,
             undefined,
-            queueMaxWaitTime
+            queueMaxWaitTime,
+            dockerRegistryAuth
           )
         }
 

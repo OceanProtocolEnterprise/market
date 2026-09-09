@@ -11,7 +11,7 @@ interface TitleProps {
 }
 
 const titleCopy: Record<ComputeFlow, string> = {
-  dataset: 'Buy Dataset',
+  dataset: 'Buy Compute Job',
   algorithm: 'Buy Compute Job'
 }
 

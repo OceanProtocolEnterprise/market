@@ -55,6 +55,7 @@ import { ComputeStartProgressStep } from '../progress'
 import Accordion from '@components/@shared/Accordion'
 import RowItem from './RowItem'
 import CurrencySplitRow from './CurrencySplitRow'
+import DockerRegistryAuthFields from '../DockerRegistryAuthFields'
 
 type VerificationStatus =
   | 'verified'
@@ -2465,6 +2466,7 @@ export default function Review({
             />
           </FormErrorGroup>
         </div>
+        {values.dockerRegistryAuthRequired && <DockerRegistryAuthFields />}
         {showComputeProgress && (
           <section
             className={styles.computeProgress}

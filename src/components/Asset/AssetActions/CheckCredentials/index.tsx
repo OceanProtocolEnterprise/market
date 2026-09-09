@@ -35,6 +35,7 @@ import {
   extractSsiErrorDetails,
   getSsiVerificationFailureDetails
 } from './errorUtils'
+import { useEthersSigner } from '@hooks/useEthersSigner'
 
 enum CheckCredentialState {
   Stop = 'Stop',
@@ -90,6 +91,7 @@ export function AssetActionCheckCredentials({
   onError?: () => void
 }) {
   const { address: accountId } = useAccount()
+  const signer = useEthersSigner()
   const credentialDialog = useCredentialDialog()
   const autoStart = credentialDialog?.autoStart ?? false
   const [checkCredentialState, setCheckCredentialState] =
@@ -138,10 +140,12 @@ export function AssetActionCheckCredentials({
         }
         switch (checkCredentialState) {
           case CheckCredentialState.StartCredentialExchange: {
+            if (!signer) throw new Error('Wallet signer is not available.')
             const presentationResult = await requestCredentialPresentation(
               asset,
               accountId,
-              service.id
+              service.id,
+              signer
             )
             const openid4vcMessage = presentationResult.openid4vc
             if (
@@ -194,7 +198,7 @@ export function AssetActionCheckCredentials({
             exchangeStateData.sessionId =
               presentationResult.policyServerData?.sessionId || state
             if (service?.type === 'access' && accountId) {
-              await initializeProvider(asset, service, accountId)
+              await initializeProvider(asset, service, accountId, signer)
             }
             const presentationDefinition = await getPd(state)
             const resultRequiredCredentials =
@@ -387,6 +391,7 @@ export function AssetActionCheckCredentials({
     asset,
     accountId,
     service.id,
+    signer,
     selectedWallet,
     sessionToken
   ])

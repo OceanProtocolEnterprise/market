@@ -31,6 +31,11 @@ export enum FilterByAccessOptions {
   Compute = 'compute'
 }
 
+export enum FilterByPriceOptions {
+  Free = 'dispenser',
+  Paid = 'fixedrate'
+}
+
 export enum FilterByTimeOptions {
   Last3Months = `${1000 * 60 * 60 * 24 * 30 * 3}`,
   Last6Months = `${1000 * 60 * 60 * 24 * 30 * 6}`,

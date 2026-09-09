@@ -33,6 +33,7 @@ export interface URLInputProps {
   onReset?: () => void
   showResetButton?: boolean
   additionalAction?: ReactNode
+  inputType?: 'text' | 'url'
 }
 
 export default function URLInput({
@@ -56,6 +57,7 @@ export default function URLInput({
   additionalAction,
   inputAdornment,
   inputDropdown,
+  inputType = 'url',
   ...props
 }: URLInputProps): ReactElement {
   const [field, meta] = useField(name)
@@ -109,7 +111,7 @@ export default function URLInput({
             }`}
             {...props}
             {...field}
-            type="url"
+            type={inputType}
             placeholder={placeholder}
             data-storage-type={storageType}
             disabled={isInputDisabled}

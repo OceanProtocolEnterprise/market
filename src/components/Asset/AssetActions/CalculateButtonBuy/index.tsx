@@ -4,6 +4,7 @@ import styles from './index.module.css'
 import Loader from '../../../@shared/atoms/Loader'
 
 interface CalculateButtonBuyProps {
+  disabled?: boolean
   isLoading?: boolean
   onClick?: (e: FormEvent<HTMLButtonElement>) => void
   stepText?: string
@@ -11,6 +12,7 @@ interface CalculateButtonBuyProps {
 }
 
 export default function CalculateButtonBuy({
+  disabled,
   onClick,
   stepText,
   isLoading,
@@ -21,7 +23,12 @@ export default function CalculateButtonBuy({
       {isLoading ? (
         <Loader message={stepText} />
       ) : (
-        <Button style="accent" type={type} onClick={onClick}>
+        <Button
+          style="accent"
+          type={type}
+          onClick={onClick}
+          disabled={disabled}
+        >
           Calculate Total Price
         </Button>
       )}

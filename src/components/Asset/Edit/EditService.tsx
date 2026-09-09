@@ -44,6 +44,8 @@ import { useSsiWallet } from '@context/SsiWallet'
 import { State } from 'src/@types/ddo/State'
 import { assetStateToNumber } from '@utils/assetState'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import { getOpaServerUrl } from '@utils/wallet/policyServer'
+import { useOpaServerChangeNotification } from './useOpaServerChangeNotification'
 
 export default function EditService({
   asset,
@@ -69,6 +71,13 @@ export default function EditService({
   const [error, setError] = useState<string>()
   const [detectedFileType, setDetectedFileType] = useState<string | undefined>()
   const hasFeedback = error || success
+
+  useOpaServerChangeNotification(
+    `${asset.id}-${service.id}`,
+    service.serviceEndpoint,
+    service.credentials,
+    'The OPA server URL has changed. Save this service to update it in the asset.'
+  )
 
   useEffect(() => {
     async function fetchFileType() {
@@ -206,7 +215,11 @@ export default function EditService({
         ...(values.credentials || {}),
         vcPolicies: []
       }
-      const updatedCredentials = generateCredentials(serviceCredentials)
+      const opaServerUrl = await getOpaServerUrl(service.serviceEndpoint)
+      const updatedCredentials = generateCredentials(
+        serviceCredentials,
+        opaServerUrl
+      )
       const updatedService: Service = {
         ...service,
         name: values.name,

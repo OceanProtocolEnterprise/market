@@ -96,7 +96,7 @@ If you contact us via e-mail, OEC collects, uses, and stores your e-mail address
 
 ### 4. Cookies
 
-Our website uses cookies. You can manage cookies via your browser settings, including disabling or deleting cookies. If you want to change your cookie consent, use the Cookie Settings link in the footer when available.
+Our website uses cookies. You can manage cookies via your browser settings, including disabling or deleting cookies. If you want to change your cookie consent, use the Cookie Settings link in the footer when available. A description of every cookie and web storage item we use, including its purpose and storage duration, can be found in our [Cookie Policy](/privacy/cookie-policy).
 
 ### 5. Automated decision making including profiling according to Article 13(2)(f) GDPR
 

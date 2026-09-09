@@ -29,7 +29,11 @@ import appConfig, {
   defaultDatatokenCap
 } from '../../../app.config.cjs'
 import { sanitizeUrl } from '@utils/url'
-import { getContainerChecksum } from '@utils/docker'
+import {
+  getConcreteDockerImageTag,
+  normalizeDockerImageReference,
+  resolveDockerImageReferenceForPreview
+} from '@utils/docker'
 import {
   hexlify,
   parseEther,
@@ -75,6 +79,7 @@ import { ComputeEditForm } from '@components/Asset/Edit/_types'
 import { getOceanConfig } from '@utils/ocean'
 import { getDummySigner, getTokenInfo } from '@utils/wallet'
 import { inferNameFromUrl } from './_license'
+import { getOpaServerUrl } from '@utils/wallet/policyServer'
 
 function cleanupVpPolicies(value: any): void {
   if (!value.vp_policies || value.vp_policies.length === 0) {
@@ -111,10 +116,16 @@ async function getAlgorithmContainerPreset(
   const preset = algorithmContainerPresets.find(
     (preset) => `${preset.image}:${preset.tag}` === dockerImage
   )
-  preset.checksum = await (
-    await getContainerChecksum(preset.image, preset.tag)
-  ).checksum
-  return preset
+  if (!preset) {
+    throw new Error(`Unknown algorithm container preset: ${dockerImage}`)
+  }
+
+  const resolved = await getConcreteDockerImageTag(preset.image, preset.tag)
+  return {
+    ...preset,
+    tag: resolved.tag,
+    checksum: resolved.checksum
+  }
 }
 
 function dateToStringNoMS(date: Date): string {
@@ -242,7 +253,7 @@ allow if {
   return result
 }
 
-function generateSsiPolicy(policy: PolicyType): any {
+function generateSsiPolicy(policy: PolicyType, opaServerUrl?: string): any {
   let result
   switch (policy?.type) {
     case 'staticPolicy':
@@ -265,7 +276,7 @@ function generateSsiPolicy(policy: PolicyType): any {
           policy: 'dynamic',
           args: {
             policy_name: policy.name,
-            opa_server: appConfig.opaServer,
+            opa_server: opaServerUrl,
             policy_query: 'data',
             rules: {
               policy_url: policy.policyUrl
@@ -282,7 +293,7 @@ function generateSsiPolicy(policy: PolicyType): any {
           policy: 'dynamic',
           args: {
             policy_name: policy.name,
-            opa_server: appConfig.opaServer,
+            opa_server: opaServerUrl,
             policy_query: 'data',
             rules: {
               rego: generateCustomPolicyScript(policy.name, policy.rules)
@@ -364,7 +375,8 @@ export function stringifyCredentialPolicies(credentials: Credential) {
 }
 
 export function generateCredentials(
-  updatedCredentials: CredentialForm
+  updatedCredentials: CredentialForm,
+  opaServerUrl: string | undefined = appConfig.opaServer
 ): Credential {
   const newCredentials: Credential = {
     allow: [],
@@ -381,7 +393,7 @@ export function generateCredentials(
         (credential) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const policies: any[] = credential?.policies?.map((policy) =>
-            generateSsiPolicy(policy)
+            generateSsiPolicy(policy, opaServerUrl)
           )
           return {
             format: credential.format,
@@ -585,10 +597,20 @@ export async function transformPublishFormToDdo(
 
   const currentTime = dateToStringNoMS(new Date())
   const isPreview = !datatokenAddress && !nftAddress
+  const opaServerUrl = await getOpaServerUrl(providerUrl.url)
 
   const algorithmContainerPresets =
     type === 'algorithm' && dockerImage !== '' && dockerImage !== 'custom'
       ? await getAlgorithmContainerPreset(dockerImage)
+      : null
+  const customAlgorithmContainer =
+    type === 'algorithm' && dockerImage === 'custom'
+      ? isPreview
+        ? resolveDockerImageReferenceForPreview(
+            dockerImageCustom,
+            dockerImageCustomTag
+          )
+        : normalizeDockerImageReference(dockerImageCustom, dockerImageCustomTag)
       : null
 
   // Transform from files[0].url to string[] assuming only 1 file
@@ -705,11 +727,11 @@ export async function transformPublishFormToDdo(
                 : algorithmContainerPresets.entrypoint,
             image:
               dockerImage === 'custom'
-                ? dockerImageCustom
+                ? customAlgorithmContainer.image
                 : algorithmContainerPresets.image,
             tag:
               dockerImage === 'custom'
-                ? dockerImageCustomTag
+                ? customAlgorithmContainer.tag
                 : algorithmContainerPresets.tag,
             checksum:
               dockerImage === 'custom'
@@ -745,7 +767,9 @@ export async function transformPublishFormToDdo(
   }
 
   let filesEncrypted = ''
-  if (!isPreview && files?.length && files[0].valid) {
+  if (isPreview) {
+    filesEncrypted = 'encryptedFilesPlaceholder'
+  } else if (files?.length && files[0].valid) {
     try {
       const encryptedResult = await getEncryptedFiles(
         file,
@@ -764,18 +788,13 @@ export async function transformPublishFormToDdo(
       throw error
     }
   } else {
-    console.warn('⏭️ Skipping encryption - conditions not met:', {
-      isPreview,
+    console.warn('Skipping encryption because the file is not valid:', {
       filesExist: !!files?.length,
       fileValid: files?.[0]?.valid
     })
-    if (isPreview) {
-      console.warn('👁️ Preview mode - using placeholder')
-      filesEncrypted = 'encryptedFilesPlaceholder'
-    }
   }
 
-  const newServiceCredentials = generateCredentials(credentials)
+  const newServiceCredentials = generateCredentials(credentials, opaServerUrl)
   const valuesCompute: ComputeEditForm = {
     allowAllPublishedAlgorithms:
       values.allowAllPublishedAlgorithms === 'Allow any published algorithms',
@@ -821,7 +840,7 @@ export async function transformPublishFormToDdo(
       )
     })
   }
-  const newCredentials = generateCredentials(values.credentials)
+  const newCredentials = generateCredentials(values.credentials, opaServerUrl)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const newDdo: any = {
     '@context': ['https://www.w3.org/ns/credentials/v2'],

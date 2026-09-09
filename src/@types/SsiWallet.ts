@@ -115,6 +115,7 @@ export class SsiWalletCache {
 
   public clearCredentials() {
     localStorage.removeItem(this.credentialStorage)
+    localStorage.removeItem(this.credentialSelectionStorage)
   }
 
   public cacheCredentialSelection(did: string, credentialSelection: string[]) {
