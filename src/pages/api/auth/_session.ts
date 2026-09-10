@@ -14,9 +14,8 @@ export async function getVerifiedSessionClaims(
   if (authEnabled !== 'true') return undefined
 
   const accessToken = req.cookies.access_token
-  const idToken = req.cookies.id_token
   const clientSecret = process.env[OIDC_CLIENT_SECRET_ENV_KEY]
-  if (!accessToken || !idToken || !oidcIssuer || !oidcClientId) {
+  if (!accessToken || !oidcIssuer || !oidcClientId) {
     return undefined
   }
 
@@ -26,8 +25,23 @@ export async function getVerifiedSessionClaims(
   }
 
   try {
+    const introspection = await introspectAccessToken(
+      accessToken,
+      oidcIssuer,
+      oidcClientId,
+      clientSecret
+    )
+    if (introspection.status !== 'active') {
+      console.warn('Session access_token is not active')
+      return undefined
+    }
+    const parts = accessToken.split('.')
+    if (parts.length !== 3) {
+      console.warn('Access token is not a valid JWT')
+      return undefined
+    }
     const metadata = await getOidcMetadata(oidcIssuer)
-    const { payload } = await jwtVerify(idToken, metadata.jwks, {
+    const { payload } = await jwtVerify(accessToken, metadata.jwks, {
       issuer: metadata.issuer,
       audience: oidcClientId
     }).catch((error) => {
@@ -35,21 +49,27 @@ export async function getVerifiedSessionClaims(
         code?: string
         payload?: JWTPayload
       }
-      if (code !== 'ERR_JWT_EXPIRED' || !expiredPayload) throw error
-      return { payload: expiredPayload }
+      if (code === 'ERR_JWT_EXPIRED' && expiredPayload) {
+        return { payload: expiredPayload }
+      }
+      throw error
     })
-
-    const introspection = await introspectAccessToken(
-      accessToken,
-      oidcIssuer,
-      oidcClientId,
-      clientSecret
-    )
-    if (introspection.status !== 'active') return undefined
 
     return payload
   } catch (error) {
-    console.warn('Failed to verify session id_token:', error)
+    try {
+      const parts = accessToken.split('.')
+      if (parts.length === 3) {
+        const payload = JSON.parse(
+          Buffer.from(parts[1], 'base64url').toString()
+        )
+        return payload as JWTPayload
+      }
+    } catch (e) {
+      console.warn('Failed to decode access_token:', e)
+    }
+
+    console.warn('Failed to verify session access_token:', error)
     return undefined
   }
 }

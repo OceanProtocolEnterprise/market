@@ -29,7 +29,7 @@ function getTokenUrl(issuer: string): string {
 function getRequiredStringClaim(payload: JWTPayload, claim: string): string {
   const value = payload[claim]
   if (typeof value !== 'string' || value.length === 0) {
-    throw new Error(`id_token missing required claim: ${claim}`)
+    throw new Error(`access_token missing required claim: ${claim}`)
   }
   return value
 }
@@ -110,7 +110,7 @@ export default async function handler(
     }
 
     const metadata = await getOidcMetadata(issuer)
-    const { payload } = await jwtVerify(data.id_token, metadata.jwks, {
+    const { payload } = await jwtVerify(data.access_token, metadata.jwks, {
       issuer: metadata.issuer,
       audience: clientId
     })
