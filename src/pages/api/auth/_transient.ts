@@ -25,36 +25,83 @@ function serialize(
 }
 
 export function buildTransientCookieStrings(values: TransientValues): string[] {
-  return (Object.entries(values) as [TransientName, string | undefined][])
-    .filter((entry): entry is [TransientName, string] => entry[1] !== undefined)
-    .map(([name, value]) => serialize(name, value))
+  if (!values || typeof values !== 'object') {
+    console.error('buildTransientCookieStrings: invalid values provided')
+    return []
+  }
+
+  try {
+    return (Object.entries(values) as [TransientName, string | undefined][])
+      .filter(
+        (entry): entry is [TransientName, string] =>
+          entry[1] !== undefined && entry[1] !== null
+      )
+      .map(([name, value]) => serialize(name, value))
+  } catch (error) {
+    console.error('buildTransientCookieStrings failed:', error)
+    return []
+  }
 }
 
 export function buildClearTransientCookieStrings(): string[] {
-  return TRANSIENT_NAMES.map((name) => serialize(name, '', 0))
+  try {
+    return TRANSIENT_NAMES.map((name) => serialize(name, '', 0))
+  } catch (error) {
+    console.error('buildClearTransientCookieStrings failed:', error)
+    return []
+  }
 }
 
 export function setTransientCookies(
   res: NextApiResponse,
   values: TransientValues
 ) {
-  const strings = buildTransientCookieStrings(values)
-  if (strings.length > 0) res.setHeader('Set-Cookie', strings)
+  if (!res || typeof res.setHeader !== 'function') {
+    console.error('setTransientCookies: invalid response object')
+    return
+  }
+
+  try {
+    const strings = buildTransientCookieStrings(values)
+    if (strings.length > 0) res.setHeader('Set-Cookie', strings)
+  } catch (error) {
+    console.error('setTransientCookies failed:', error)
+  }
 }
 
 export function generateCodeVerifier(): string {
-  return crypto.randomBytes(32).toString('base64url')
+  try {
+    return crypto.randomBytes(32).toString('base64url')
+  } catch (error) {
+    console.error('generateCodeVerifier failed:', error)
+    throw new Error('Failed to generate code verifier')
+  }
 }
 
 export function generateCodeChallenge(verifier: string): string {
-  return crypto.createHash('sha256').update(verifier).digest('base64url')
+  if (!verifier || typeof verifier !== 'string') {
+    console.error('generateCodeChallenge: invalid verifier provided')
+    throw new Error('Code verifier is required')
+  }
+
+  try {
+    return crypto.createHash('sha256').update(verifier).digest('base64url')
+  } catch (error) {
+    console.error('generateCodeChallenge failed:', error)
+    throw new Error('Failed to generate code challenge')
+  }
 }
 
 export function generateRandomString(): string {
-  return crypto.randomBytes(32).toString('hex')
+  try {
+    return crypto.randomBytes(32).toString('hex')
+  } catch (error) {
+    console.error('generateRandomString failed:', error)
+    throw new Error('Failed to generate random string')
+  }
 }
 
 export function isSafeCallbackUrl(url: string): boolean {
-  if (!url) return false
+  if (!url || typeof url !== 'string') return false
   return url.startsWith('/') && !url.startsWith('//')
 }
