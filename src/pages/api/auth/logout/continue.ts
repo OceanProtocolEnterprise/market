@@ -28,10 +28,14 @@ function serializeFederatedLogoutContinueCookie(value: string, maxAge: number) {
 }
 
 function clearLogoutCookies(res: NextApiResponse) {
-  res.setHeader('Set-Cookie', [
-    ...buildClearAuthCookieStrings(),
-    serializeFederatedLogoutContinueCookie('', 0)
-  ])
+  try {
+    res.setHeader('Set-Cookie', [
+      ...buildClearAuthCookieStrings(),
+      serializeFederatedLogoutContinueCookie('', 0)
+    ])
+  } catch (error) {
+    console.error('Failed to clear logout cookies:', error)
+  }
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -63,22 +67,28 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.redirect(302, '/auth/login?loggedout=1')
   }
 
-  const callbackUrl = `${getRequestOrigin(req)}/auth/callback/logout`
+  try {
+    const callbackUrl = `${getRequestOrigin(req)}/auth/callback/logout`
 
-  const oidcParams = new URLSearchParams({
-    client_id: clientId,
-    post_logout_redirect_uri: callbackUrl,
-    state: 'logout'
-  })
+    const oidcParams = new URLSearchParams({
+      client_id: clientId,
+      post_logout_redirect_uri: callbackUrl,
+      state: 'logout'
+    })
 
-  console.info('Continuing logout with Main OIDC provider.')
-  console.info(
-    `Redirecting to: ${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
-  )
+    console.info('Continuing logout with Main OIDC provider.')
+    console.info(
+      `Redirecting to: ${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
+    )
 
-  clearLogoutCookies(res)
-  return res.redirect(
-    302,
-    `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
-  )
+    clearLogoutCookies(res)
+    return res.redirect(
+      302,
+      `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
+    )
+  } catch (error) {
+    console.error('Federated logout continuation failed:', error)
+    clearLogoutCookies(res)
+    return res.redirect(302, '/auth/login?loggedout=1')
+  }
 }

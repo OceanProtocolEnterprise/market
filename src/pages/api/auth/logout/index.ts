@@ -52,8 +52,13 @@ async function revokeToken(
   token: string,
   tokenTypeHint: string
 ): Promise<void> {
+  if (!revokeUrl || !clientId || !clientSecret || !token) {
+    console.warn(`Skipping revoke for ${tokenTypeHint}: missing parameters`)
+    return
+  }
+
   try {
-    await fetch(revokeUrl, {
+    const response = await fetch(revokeUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -66,6 +71,12 @@ async function revokeToken(
       }),
       signal: AbortSignal.timeout(5000)
     })
+
+    if (!response.ok) {
+      console.error(
+        `Revoke ${tokenTypeHint} returned status ${response.status}`
+      )
+    }
   } catch (err) {
     console.error(`Failed to revoke ${tokenTypeHint}:`, err)
   }
@@ -85,32 +96,41 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   const { access_token, refresh_token, login_source } = req.cookies
   const revokeUrl = getRevokeUrl(issuer)
 
-  await Promise.all([
-    access_token
-      ? revokeToken(
-          revokeUrl,
-          clientId,
-          clientSecret,
-          access_token,
-          'access_token'
-        )
-      : Promise.resolve(),
-    refresh_token
-      ? revokeToken(
-          revokeUrl,
-          clientId,
-          clientSecret,
-          refresh_token,
-          'refresh_token'
-        )
-      : Promise.resolve()
-  ])
+  try {
+    await Promise.all([
+      access_token
+        ? revokeToken(
+            revokeUrl,
+            clientId,
+            clientSecret,
+            access_token,
+            'access_token'
+          )
+        : Promise.resolve(),
+      refresh_token
+        ? revokeToken(
+            revokeUrl,
+            clientId,
+            clientSecret,
+            refresh_token,
+            'refresh_token'
+          )
+        : Promise.resolve()
+    ])
+  } catch (revokeError) {
+    console.error('Token revocation failed:', revokeError)
+  }
 
   const callbackUrl = `${getRequestOrigin(req)}/auth/callback/logout`
 
   const detectedLoginSource = login_source
 
-  const isMain = isMainProviderByName(detectedLoginSource)
+  let isMain = false
+  try {
+    isMain = isMainProviderByName(detectedLoginSource)
+  } catch (error) {
+    console.warn('Failed to determine main provider:', error)
+  }
 
   if (isMain || !detectedLoginSource) {
     console.info(`Main logout for "${detectedLoginSource || 'unknown'}".`)
@@ -130,12 +150,28 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   const partnerEndSessionUrl = req.cookies[IDP_END_SESSION_URL_COOKIE]
 
   if (partnerEndSessionUrl) {
+    let partnerLogoutUrl: URL
+    try {
+      partnerLogoutUrl = new URL(partnerEndSessionUrl)
+    } catch (urlError) {
+      console.error('Invalid partner end session URL:', urlError)
+      clearAuthCookies(res)
+      const oidcParams = new URLSearchParams({
+        client_id: clientId,
+        post_logout_redirect_uri: callbackUrl,
+        state: 'logout'
+      })
+      return res.redirect(
+        302,
+        `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
+      )
+    }
+
     res.setHeader('Set-Cookie', [
       ...buildClearAuthCookieStrings(),
       serializeFederatedLogoutContinueCookie('1', 600)
     ])
 
-    const partnerLogoutUrl = new URL(partnerEndSessionUrl)
     partnerLogoutUrl.searchParams.set('post_logout_redirect_uri', callbackUrl)
 
     console.info(

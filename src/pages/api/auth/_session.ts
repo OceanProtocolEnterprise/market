@@ -13,8 +13,14 @@ export async function getVerifiedSessionClaims(
 ): Promise<JWTPayload | undefined> {
   if (authEnabled !== 'true') return undefined
 
+  if (!req || !req.cookies) {
+    console.error('getVerifiedSessionClaims: invalid request object')
+    return undefined
+  }
+
   const accessToken = req.cookies.access_token
   const clientSecret = process.env[OIDC_CLIENT_SECRET_ENV_KEY]
+
   if (!accessToken || !oidcIssuer || !oidcClientId) {
     return undefined
   }
@@ -31,44 +37,56 @@ export async function getVerifiedSessionClaims(
       oidcClientId,
       clientSecret
     )
+
     if (introspection.status !== 'active') {
       console.warn('Session access_token is not active')
       return undefined
     }
+
     const parts = accessToken.split('.')
     if (parts.length !== 3) {
       console.warn('Access token is not a valid JWT')
       return undefined
     }
-    const metadata = await getOidcMetadata(oidcIssuer)
-    const { payload } = await jwtVerify(accessToken, metadata.jwks, {
-      issuer: metadata.issuer,
-      audience: oidcClientId
-    }).catch((error) => {
-      const { code, payload: expiredPayload } = error as {
-        code?: string
-        payload?: JWTPayload
-      }
-      if (code === 'ERR_JWT_EXPIRED' && expiredPayload) {
-        return { payload: expiredPayload }
-      }
-      throw error
-    })
 
-    return payload
-  } catch (error) {
     try {
-      const parts = accessToken.split('.')
-      if (parts.length === 3) {
-        const payload = JSON.parse(
-          Buffer.from(parts[1], 'base64url').toString()
-        )
-        return payload as JWTPayload
-      }
-    } catch (e) {
-      console.warn('Failed to decode access_token:', e)
-    }
+      const metadata = await getOidcMetadata(oidcIssuer)
+      const { payload } = await jwtVerify(accessToken, metadata.jwks, {
+        issuer: metadata.issuer,
+        audience: oidcClientId
+      }).catch((error) => {
+        const { code, payload: expiredPayload } = error as {
+          code?: string
+          payload?: JWTPayload
+        }
+        if (code === 'ERR_JWT_EXPIRED' && expiredPayload) {
+          return { payload: expiredPayload }
+        }
+        throw error
+      })
 
+      return payload
+    } catch (verifyError) {
+      console.warn(
+        'JWT verification failed, falling back to decode:',
+        verifyError
+      )
+
+      try {
+        const parts = accessToken.split('.')
+        if (parts.length === 3) {
+          const payload = JSON.parse(
+            Buffer.from(parts[1], 'base64url').toString()
+          )
+          return payload as JWTPayload
+        }
+      } catch (decodeError) {
+        console.warn('Failed to decode access_token:', decodeError)
+      }
+
+      return undefined
+    }
+  } catch (error) {
     console.warn('Failed to verify session access_token:', error)
     return undefined
   }
@@ -77,6 +95,11 @@ export async function getVerifiedSessionClaims(
 export async function getSessionOrgId(
   req: NextApiRequest
 ): Promise<string | undefined> {
-  const payload = await getVerifiedSessionClaims(req)
-  return payload ? getOptionalStringClaim(payload, 'orgId') : undefined
+  try {
+    const payload = await getVerifiedSessionClaims(req)
+    return payload ? getOptionalStringClaim(payload, 'orgId') : undefined
+  } catch (error) {
+    console.error('getSessionOrgId failed:', error)
+    return undefined
+  }
 }

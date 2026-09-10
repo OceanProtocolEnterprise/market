@@ -2,7 +2,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { jwtVerify, type JWTPayload } from 'jose'
 import { clearAuthCookies, DEFAULT_ACCESS_TOKEN_MAX_AGE } from './_cookies'
-import { getOidcMetadata } from './_oidc'
 import { introspectAccessToken } from './_introspect'
 import { getLoginSource, getOptionalStringClaim } from './_claims'
 import { authEnabled, oidcClientId, oidcIssuer } from 'app.config.cjs'
@@ -22,6 +21,11 @@ export default async function handler(
 
   if (authEnabled !== 'true') {
     return res.status(404).json({ error: 'Not found' })
+  }
+
+  if (!req || !req.cookies) {
+    console.error('Session handler received invalid request object')
+    return res.status(500).json({ error: 'Server configuration error' })
   }
 
   const accessToken = req.cookies.access_token
@@ -63,16 +67,29 @@ export default async function handler(
           const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString())
           userClaims = payload
         }
-      } catch (e) {
-        console.warn('Could not decode access_token, using introspection only')
+      } catch (decodeError) {
+        console.warn(
+          'Could not decode access_token, using introspection only:',
+          decodeError
+        )
       }
 
-      const introspection = await introspectAccessToken(
-        accessToken,
-        issuer,
-        clientId,
-        clientSecret
-      )
+      let introspection: Awaited<ReturnType<typeof introspectAccessToken>>
+      try {
+        introspection = await introspectAccessToken(
+          accessToken,
+          issuer,
+          clientId,
+          clientSecret
+        )
+      } catch (introspectError) {
+        console.error('Introspection call failed:', introspectError)
+        return res.status(503).json({
+          error: 'Session status unavailable',
+          has_refresh_token: Boolean(refreshToken)
+        })
+      }
+
       if (introspection.status === 'inactive') {
         clearAuthCookies(res)
         return res.status(401).json({
@@ -116,22 +133,22 @@ export default async function handler(
         has_refresh_token: Boolean(refreshToken),
         expires_in: expiresIn
       })
-    } else {
-      return res.status(200).json({
-        user: {
-          id: 'session-active',
-          email: 'session@active',
-          name: 'Active Session',
-          organizationId: undefined
-        },
-        authMeta: {
-          main_oidc: issuer,
-          upstream_idp: 'unknown'
-        },
-        has_refresh_token: Boolean(refreshToken),
-        expires_in: expiresIn
-      })
     }
+
+    return res.status(200).json({
+      user: {
+        id: 'session-active',
+        email: 'session@active',
+        name: 'Active Session',
+        organizationId: undefined
+      },
+      authMeta: {
+        main_oidc: issuer,
+        upstream_idp: 'unknown'
+      },
+      has_refresh_token: Boolean(refreshToken),
+      expires_in: expiresIn
+    })
   } catch (error) {
     console.error('Session verification failed:', error)
     if (!refreshToken) clearAuthCookies(res)

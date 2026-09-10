@@ -143,9 +143,15 @@ export default async function handler(
       signal: AbortSignal.timeout(OIDC_REQUEST_TIMEOUT_MS)
     })
 
-    const data = (await response
-      .json()
-      .catch(() => ({}))) as TokenEndpointResponse
+    let data: TokenEndpointResponse
+    try {
+      data = (await response.json()) as TokenEndpointResponse
+    } catch (jsonError) {
+      console.error('Failed to parse refresh response JSON:', jsonError)
+      return res.status(502).json({
+        error: 'Invalid response from authentication server'
+      })
+    }
 
     if (!response.ok) {
       console.error('Token refresh error:', {
@@ -172,11 +178,25 @@ export default async function handler(
       })
     }
 
-    setAuthCookies(res, {
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-      expires_in: data.expires_in
-    })
+    if (!data.access_token) {
+      console.error('Refresh response missing access_token')
+      return res.status(502).json({
+        error: 'Refresh response missing access_token'
+      })
+    }
+
+    try {
+      setAuthCookies(res, {
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_in: data.expires_in
+      })
+    } catch (cookieError) {
+      console.error('Failed to set auth cookies after refresh:', cookieError)
+      return res.status(500).json({
+        error: 'Failed to persist session'
+      })
+    }
 
     return res.status(200).json({
       expires_in: getAccessTokenMaxAge(data)
@@ -184,7 +204,7 @@ export default async function handler(
   } catch (error) {
     console.error('Refresh error:', error)
 
-    if (error.name === 'TimeoutError') {
+    if ((error as Error).name === 'TimeoutError') {
       return res.status(504).json({
         error: 'Gateway timeout',
         message: 'Authentication server did not respond in time'
@@ -193,7 +213,7 @@ export default async function handler(
 
     return res.status(500).json({
       error: 'Internal server error',
-      message: error.message
+      message: (error as Error).message
     })
   }
 }
