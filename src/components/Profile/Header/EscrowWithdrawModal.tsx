@@ -8,14 +8,6 @@ import { Signer, formatUnits, parseUnits } from 'ethers'
 import { useEthersSigner } from '@hooks/useEthersSigner'
 import Modal from '@shared/atoms/Modal'
 import Button from '@shared/atoms/Button'
-import { formatToFixed } from '@utils/numbers'
-
-const ESCROW_WITHDRAW_TEXT = {
-  invalidAmount: 'Please enter a valid withdrawal amount.',
-  exceedsBalance: 'Amount can’t be greater than your escrow funds.',
-  walletMissing: 'Wallet or network not detected.',
-  withdrawFailed: 'Withdrawal failed. Please try again.'
-} as const
 
 interface EscrowFunds {
   available: string
@@ -23,6 +15,20 @@ interface EscrowFunds {
   symbol: string
   address: string
   decimals: number
+}
+
+function getValidationError(value: string, funds: EscrowFunds): string {
+  try {
+    const amount = parseUnits(value.trim(), funds.decimals)
+    if (amount <= 0n)
+      return 'Please enter a withdrawal amount greater than zero.'
+    if (amount > parseUnits(funds.available, funds.decimals)) {
+      return 'Amount can’t be greater than your available escrow funds.'
+    }
+    return ''
+  } catch {
+    return `Enter a valid amount with at most ${funds.decimals} decimals.`
+  }
 }
 
 export default function EscrowWithdrawModal({
@@ -35,111 +41,105 @@ export default function EscrowWithdrawModal({
   const { refreshEscrowFunds, escrowFundsByToken } = useProfile()
   const walletClient = useEthersSigner()
   const chainId = useChainId()
-  const [amount, setAmount] = useState('')
+  const [amounts, setAmounts] = useState<Record<string, string>>({})
+  const [selectedTokens, setSelectedTokens] = useState<string[]>([
+    escrowFunds.address.toLowerCase()
+  ])
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedToken, setSelectedToken] = useState(escrowFunds.symbol)
-  const trimmedAmount = amount.trim()
-
-  const availableTokens = Object.keys(escrowFundsByToken || {})
-  const selectedEscrowFunds = escrowFundsByToken?.[selectedToken] || escrowFunds
-  const availableAmount = Number(selectedEscrowFunds.available)
-  const availableDisplay = formatToFixed(availableAmount, 3)
-  const availableUnits = (() => {
-    try {
-      return parseUnits(
-        selectedEscrowFunds.available || '0',
-        selectedEscrowFunds.decimals
-      )
-    } catch {
-      return BigInt(0)
-    }
-  })()
-
-  function getValidationError(value: string) {
-    const trimmed = value.trim()
-    if (!trimmed) return ''
-    if (Number(trimmed) <= 0) return ESCROW_WITHDRAW_TEXT.invalidAmount
-
-    try {
-      const amountUnits = parseUnits(trimmed, selectedEscrowFunds.decimals)
-      if (amountUnits > availableUnits) {
-        return ESCROW_WITHDRAW_TEXT.exceedsBalance
-      }
-    } catch (err) {
-      if (err?.message?.toLowerCase?.().includes('too many decimals')) {
-        return `Too many decimals (max ${selectedEscrowFunds.decimals}).`
-      }
-      return ESCROW_WITHDRAW_TEXT.invalidAmount
-    }
-
-    return ''
-  }
-
-  function handleInputChange(e) {
-    const val = e.target.value
-    setAmount(val)
-    setError(getValidationError(val))
-  }
-
-  const validationError = getValidationError(trimmedAmount)
+  const tokens = Object.values(escrowFundsByToken || {})
+  const availableTokens = tokens.length ? tokens : [escrowFunds]
+  const selectedFunds = availableTokens.filter((funds) =>
+    selectedTokens.includes(funds.address.toLowerCase())
+  )
   const isWithdrawDisabled =
     isLoading ||
-    trimmedAmount === '' ||
-    Number(trimmedAmount) <= 0 ||
-    !!validationError
+    selectedFunds.length === 0 ||
+    selectedFunds.some((funds) =>
+      Boolean(
+        getValidationError(amounts[funds.address.toLowerCase()] || '', funds)
+      )
+    )
 
-  function handleTokenChange(e) {
-    setSelectedToken(e.target.value)
-    setAmount('')
-    setError('')
-  }
-
-  function handleMaxClick() {
-    setAmount(selectedEscrowFunds.available || '0')
+  function setAmount(address: string, value: string) {
+    setAmounts((previous) => ({ ...previous, [address]: value }))
     setError('')
   }
 
   async function handleWithdraw() {
-    if (!trimmedAmount || Number(trimmedAmount) <= 0) {
-      setError(ESCROW_WITHDRAW_TEXT.invalidAmount)
-      return
-    }
-    let amountUnits: bigint
-    try {
-      amountUnits = parseUnits(trimmedAmount, selectedEscrowFunds.decimals)
-    } catch {
-      setError(ESCROW_WITHDRAW_TEXT.invalidAmount)
-      return
-    }
-    if (amountUnits <= BigInt(0)) {
-      setError(ESCROW_WITHDRAW_TEXT.invalidAmount)
-      return
-    }
-    if (amountUnits > availableUnits) {
-      setError(ESCROW_WITHDRAW_TEXT.exceedsBalance)
-      return
-    }
+    if (isWithdrawDisabled) return
     if (!walletClient || !chainId) {
-      setError(ESCROW_WITHDRAW_TEXT.walletMissing)
+      setError('Wallet or network not detected.')
       return
     }
     setError('')
     setIsLoading(true)
-    const signer = walletClient as unknown as Signer
     try {
-      const { escrowAddress } = getOceanConfig(chainId)
+      const escrowAddress = getOceanConfig(chainId)?.escrowAddress
+      if (!escrowAddress)
+        throw new Error('Escrow is not configured for this network.')
+      const signer = walletClient as unknown as Signer
       const escrow = new EscrowContract(escrowAddress, signer, chainId)
-
-      const escrowAmount = formatUnits(
-        amountUnits,
-        selectedEscrowFunds.decimals
+      const owner = await signer.getAddress()
+      const withdrawalAmounts = selectedFunds.map((funds) =>
+        parseUnits(amounts[funds.address.toLowerCase()].trim(), funds.decimals)
       )
-      await escrow.withdraw([selectedEscrowFunds.address], [escrowAmount])
+      // Recheck available funds: running jobs may have locked funds since the modal opened.
+      const balances = await Promise.all(
+        selectedFunds.map((funds) => escrow.getUserFunds(owner, funds.address))
+      )
+      selectedFunds.forEach((funds, index) => {
+        if (
+          withdrawalAmounts[index] >
+          BigInt(balances[index].available.toString())
+        ) {
+          throw new Error(
+            `Available ${funds.symbol} balance changed. Refresh your funds and try again.`
+          )
+        }
+      })
+      const transaction = await escrow.withdraw(
+        selectedFunds.map((funds) => funds.address),
+        selectedFunds.map((funds, index) =>
+          formatUnits(withdrawalAmounts[index], funds.decimals)
+        )
+      )
+      if (!transaction) {
+        throw new Error('Withdrawal was not confirmed. Please try again.')
+      }
+      const receipt = await transaction.wait()
+      if (receipt?.status !== 1)
+        throw new Error('Withdrawal was not confirmed. Please try again.')
+      // The contract can skip an insufficient balance without reverting the batch.
+      const withdrawn = new Map<string, bigint>()
+      for (const log of receipt.logs) {
+        if (log.address.toLowerCase() !== escrowAddress.toLowerCase()) continue
+        const event = escrow.contract.interface.parseLog(log)
+        if (
+          event?.name === 'Withdraw' &&
+          event.args.payer.toLowerCase() === owner.toLowerCase()
+        ) {
+          const token = event.args.token.toLowerCase()
+          withdrawn.set(token, (withdrawn.get(token) || 0n) + event.args.amount)
+        }
+      }
+      // Clear submitted amounts before refreshing, so a partial result cannot be retried twice.
+      setAmounts({})
       if (refreshEscrowFunds) await refreshEscrowFunds()
+      if (
+        selectedFunds.some(
+          (funds, index) =>
+            withdrawn.get(funds.address.toLowerCase()) !==
+            withdrawalAmounts[index]
+        )
+      ) {
+        throw new Error(
+          'Not all withdrawals completed. Review the refreshed balances and enter the remaining amounts.'
+        )
+      }
       onClose()
     } catch (err) {
-      setError(err.message || ESCROW_WITHDRAW_TEXT.withdrawFailed)
+      setError(err.message || 'Withdrawal failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -149,69 +149,102 @@ export default function EscrowWithdrawModal({
     <Modal
       title="Withdraw Escrow Funds"
       isOpen
-      onToggleModal={onClose}
+      onToggleModal={() => !isLoading && onClose()}
       shouldCloseOnOverlayClick={!isLoading}
+      shouldCloseOnEsc={!isLoading}
     >
       <div className={styles.content}>
         {availableTokens.length > 1 && (
-          <div className={styles.fieldGroup}>
-            <label className={styles.label} htmlFor="escrow-token">
-              Token
-            </label>
-            <select
-              id="escrow-token"
-              value={selectedToken}
-              onChange={handleTokenChange}
-              className={styles.select}
-              disabled={isLoading}
-            >
-              {availableTokens.map((token) => (
-                <option key={token} value={token}>
-                  {token}
-                </option>
-              ))}
-            </select>
+          <p className={styles.hint}>
+            Select tokens to withdraw in one transaction. Locked funds cannot be
+            withdrawn.
+          </p>
+        )}
+        {availableTokens.map((funds) => {
+          const address = funds.address.toLowerCase()
+          const selected = selectedTokens.includes(address)
+          const amount = amounts[address] || ''
+          const validationError =
+            selected && amount ? getValidationError(amount, funds) : ''
+          return (
+            <div key={address} className={styles.tokenGroup}>
+              <div className={styles.availableRow}>
+                <label className={styles.tokenLabel}>
+                  {availableTokens.length > 1 && (
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      disabled={isLoading}
+                      onChange={(event) => {
+                        setSelectedTokens((previous) =>
+                          event.target.checked
+                            ? [...previous, address]
+                            : previous.filter((token) => token !== address)
+                        )
+                        setError('')
+                      }}
+                    />
+                  )}
+                  {funds.symbol}
+                </label>
+                <span className={styles.label}>
+                  Available: {funds.available}
+                </span>
+              </div>
+              {selected && (
+                <div className={styles.fieldGroup}>
+                  <label
+                    className={styles.label}
+                    htmlFor={`escrow-amount-${address}`}
+                  >
+                    Amount ({funds.symbol})
+                  </label>
+                  <div className={styles.inputRow}>
+                    <input
+                      id={`escrow-amount-${address}`}
+                      type="text"
+                      placeholder="0.0"
+                      value={amount}
+                      onChange={(event) =>
+                        setAmount(address, event.target.value)
+                      }
+                      disabled={isLoading}
+                      className={styles.input}
+                      inputMode="decimal"
+                      aria-invalid={Boolean(validationError)}
+                      aria-describedby={
+                        validationError ? `escrow-error-${address}` : undefined
+                      }
+                    />
+                    <Button
+                      type="button"
+                      style="outlined"
+                      size="small"
+                      onClick={() => setAmount(address, funds.available)}
+                      disabled={isLoading}
+                      className={styles.maxButton}
+                    >
+                      Max
+                    </Button>
+                  </div>
+                  {validationError && (
+                    <div
+                      id={`escrow-error-${address}`}
+                      className={styles.error}
+                    >
+                      {validationError}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+        {error && (
+          <div role="alert" className={styles.error}>
+            {error}
           </div>
         )}
-
-        <div className={styles.availableRow}>
-          <span className={styles.label}>Available</span>
-          <span className={styles.value}>
-            {availableDisplay} {selectedEscrowFunds.symbol}
-          </span>
-        </div>
-
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="escrow-amount">
-            Amount
-          </label>
-          <div className={styles.inputRow}>
-            <input
-              id="escrow-amount"
-              type="number"
-              placeholder="0.0"
-              value={amount}
-              onChange={handleInputChange}
-              disabled={isLoading}
-              className={styles.input}
-              min="0"
-              inputMode="decimal"
-            />
-            <Button
-              type="button"
-              style="outlined"
-              size="small"
-              onClick={handleMaxClick}
-              disabled={isLoading}
-              className={styles.maxButton}
-            >
-              Max
-            </Button>
-          </div>
-        </div>
-
-        {error && <div className={styles.error}>{error}</div>}
-
         <div className={styles.actions}>
           <Button
             style="ghost"

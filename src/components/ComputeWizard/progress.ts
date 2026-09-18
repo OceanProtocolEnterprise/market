@@ -40,7 +40,7 @@ export function createComputeStartProgress({
   return [
     {
       id: 'escrow',
-      label: 'Approve and deposit funds in escrow if necessary',
+      label: 'Prepare escrow funds and provider authorization',
       shortLabel: 'Escrow',
       status: 'pending'
     },

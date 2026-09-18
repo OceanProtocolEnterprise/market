@@ -770,7 +770,7 @@ export default function ComputeWizardController({
         datasetParams,
         dockerRegistryAuth,
         accountId,
-        shouldDepositEscrow: withEscrow,
+        shouldPrepareEscrow: withEscrow,
         onProgress: setComputeProgressStep
       })
 
@@ -952,9 +952,6 @@ export default function ComputeWizardController({
     setComputeProgressStep('escrow', 'active')
     try {
       const formValuesForEscrow = formikValues || initialFormValues
-      const shouldDepositEscrow = new Decimal(
-        formValuesForEscrow?.actualPaymentAmount || 0
-      ).gt(0)
       const {
         datasetResponses,
         actualAlgorithmAsset,
@@ -963,11 +960,7 @@ export default function ComputeWizardController({
         initializedProvider,
         selectedComputeEnv,
         selectedResources
-      } = await initPriceAndFees(
-        datasetServices,
-        formikValues,
-        shouldDepositEscrow
-      )
+      } = await initPriceAndFees(datasetServices, formikValues, true)
 
       if (!datasetResponses || !selectedComputeEnv || !selectedResources) {
         throw new Error('Missing compute initialization data.')
