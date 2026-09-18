@@ -190,7 +190,7 @@ export default function Filter({
       type: 'filterList',
       options: [
         { label: 'Active', value: State.Active },
-        // { label: 'EndOfLife', value: State.EndOfLife },
+        { label: 'EndOfLife', value: State.EndOfLife },
         // { label: 'Deprecated', value: State.Deprecated },
         // { label: 'RevokedByPublisher', value: State.RevokedByPublisher },
         {
