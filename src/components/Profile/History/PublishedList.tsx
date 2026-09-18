@@ -87,7 +87,12 @@ export default function PublishedList({
   return accountId ? (
     <div className={styles.container}>
       <div className={styles.filterContainer}>
-        <Filter showPurgatoryOption={ownAccount} expanded showPrice />
+        <Filter
+          showPurgatoryOption={ownAccount}
+          expanded
+          showPrice
+          showUnlisted
+        />
       </div>
       <div className={styles.results}>
         <AssetList

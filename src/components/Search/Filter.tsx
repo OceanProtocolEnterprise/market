@@ -75,7 +75,8 @@ export default function Filter({
   expanded,
   className,
   showTime,
-  showPrice
+  showPrice,
+  showUnlisted = false
 }: {
   addFiltersToUrl?: boolean
   showPurgatoryOption?: boolean
@@ -83,6 +84,7 @@ export default function Filter({
   className?: string
   showTime?: boolean
   showPrice?: boolean
+  showUnlisted?: boolean
 }): ReactElement {
   const { filters, setFilters, ignorePurgatory, setIgnorePurgatory } =
     useFilter()
@@ -197,7 +199,7 @@ export default function Filter({
           label: 'TemporaryDisabled',
           value: State.OrderingIsTemporaryDisabled
         },
-        { label: 'Unlisted', value: State.Unlisted }
+        ...(showUnlisted ? [{ label: 'Unlisted', value: State.Unlisted }] : [])
       ]
     },
     ...(connectorSupportedChains.length > 1
