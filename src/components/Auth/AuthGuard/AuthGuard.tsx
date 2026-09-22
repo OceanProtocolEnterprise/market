@@ -11,7 +11,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const { isAuthenticated, isLoading, authEnabled, clearLocalSession } =
     useAuth()
   const router = useRouter()
-  const [isRouteSessionChecking, setIsRouteSessionChecking] = useState(false)
+  const [checkedRoute, setCheckedRoute] = useState<string | null>(null)
 
   const isPublicRoute = (): boolean => {
     const path = router.asPath.split('?')[0]
@@ -45,15 +45,22 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const isPublic = isPublicRoute()
   const shouldRedirectToLogin =
     authEnabled && !isLoading && !isAuthenticated && !isPublic
+  // Gate the first render too, before the verification effect runs. Otherwise
+  // children mount, start requests, and immediately unmount for the loader.
+  const isRouteSessionChecking =
+    !isPublic && (!router.isReady || checkedRoute !== router.pathname)
 
   useEffect(() => {
     if (!router.isReady) return
-    if (!authEnabled || isPublic || !isAuthenticated) return
+    if (!authEnabled || isPublic || !isAuthenticated) {
+      setCheckedRoute(null)
+      return
+    }
 
     let cancelled = false
 
     const verifyRouteSession = async () => {
-      setIsRouteSessionChecking(true)
+      setCheckedRoute(null)
       try {
         const result = await verifyAuthSessionDetailed()
         if (cancelled) return
@@ -64,7 +71,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
       } catch (error) {
         console.error('Route session verification failed:', error)
       } finally {
-        if (!cancelled) setIsRouteSessionChecking(false)
+        if (!cancelled) setCheckedRoute(router.pathname)
       }
     }
 
