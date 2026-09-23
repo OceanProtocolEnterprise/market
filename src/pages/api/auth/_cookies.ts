@@ -3,7 +3,7 @@ import crypto from 'crypto'
 import type { NextApiResponse } from 'next'
 export const IDP_END_SESSION_URL_COOKIE = 'idp_end_session_url'
 
-const AUTH_COOKIE_NAMES = ['access_token', 'refresh_token', 'id_token'] as const
+const AUTH_COOKIE_NAMES = ['access_token', 'refresh_token'] as const
 const EXTRA_SESSION_COOKIE_NAMES = ['dfns_token'] as const
 export const CSRF_COOKIE_NAME = '__Host-csrf_token'
 export const CSRF_HEADER_NAME = 'x-csrf-token'
@@ -68,8 +68,6 @@ export function buildAuthCookieStrings(
         tokens.refresh_token,
         REFRESH_TOKEN_MAX_AGE
       ),
-    tokens.id_token &&
-      serializeCookie('id_token', tokens.id_token, REFRESH_TOKEN_MAX_AGE),
     tokens.access_token &&
       serializeCsrfCookie(generateCsrfToken(), accessTokenMaxAge),
     loginSource &&
@@ -89,17 +87,9 @@ export function buildAuthCookieStrings(
   return cookies
 }
 
-export function buildClearAuthCookieStrings({
-  keepIdToken = false
-}: {
-  keepIdToken?: boolean
-} = {}): string[] {
-  const authCookieNames = AUTH_COOKIE_NAMES.filter(
-    (name) => !(keepIdToken && name === 'id_token')
-  )
-
+export function buildClearAuthCookieStrings(): string[] {
   return [
-    ...authCookieNames.map((name) => serializeCookie(name, '', 0)),
+    ...AUTH_COOKIE_NAMES.map((name) => serializeCookie(name, '', 0)),
     ...EXTRA_SESSION_COOKIE_NAMES.map((name) => serializeCookie(name, '', 0)),
     serializeCsrfCookie('', 0),
     serializeSessionCookie('login_source', '', 0),

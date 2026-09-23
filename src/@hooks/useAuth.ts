@@ -30,11 +30,6 @@ type SessionVerificationResult = {
   user: User | null
   hasRefreshToken: boolean
   refreshRequired: boolean
-  /**
-   * Access-token lifetime in seconds, as reported by /api/auth/session.
-   * `null` when the session is not valid or the server did not return a
-   * usable value.
-   */
   expiresIn: number | null
 }
 
@@ -253,7 +248,6 @@ export const useAuth = () => {
     [setUser, setExpiresAt]
   )
 
-  // Server session is the source of truth; localStorage is only a verified UI cache.
   React.useEffect(() => {
     if (!authEnabled || isSessionVerified) return
 
@@ -297,7 +291,6 @@ export const useAuth = () => {
     applyVerificationResult
   ])
 
-  // After server-driven callback, ?hydrated=1 signals us to fetch session data
   React.useEffect(() => {
     if (!router.isReady) return
     if (router.query.hydrated !== '1') return

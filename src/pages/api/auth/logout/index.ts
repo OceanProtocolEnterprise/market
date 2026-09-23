@@ -1,14 +1,11 @@
 /* eslint-disable camelcase */
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { decodeJwt } from 'jose'
 import {
   buildClearAuthCookieStrings,
   clearAuthCookies,
   IDP_END_SESSION_URL_COOKIE
 } from '../_cookies'
 import { isMainProviderByName } from '../_federated'
-import { getLoginSource, getWellKnownUrl } from '../_claims'
-import { getEndSessionUrlFromWellKnown } from '../_oidc'
 import { authEnabled, oidcClientId, oidcIssuer } from 'app.config.cjs'
 
 const OIDC_CLIENT_SECRET_ENV_KEY = 'OIDC_CLIENT_SECRET'
@@ -39,16 +36,6 @@ function getRevokeUrl(issuer: string): string {
   return `${issuer.replace(/\/$/, '')}/revoke/`
 }
 
-function getLoginSourceFromIdToken(idToken?: string): string | undefined {
-  if (!idToken) return undefined
-
-  try {
-    return getLoginSource(decodeJwt(idToken))
-  } catch {
-    return undefined
-  }
-}
-
 function serializeFederatedLogoutContinueCookie(
   value: string,
   maxAge: number
@@ -65,8 +52,13 @@ async function revokeToken(
   token: string,
   tokenTypeHint: string
 ): Promise<void> {
+  if (!revokeUrl || !clientId || !clientSecret || !token) {
+    console.warn(`Skipping revoke for ${tokenTypeHint}: missing parameters`)
+    return
+  }
+
   try {
-    await fetch(revokeUrl, {
+    const response = await fetch(revokeUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -79,6 +71,12 @@ async function revokeToken(
       }),
       signal: AbortSignal.timeout(5000)
     })
+
+    if (!response.ok) {
+      console.error(
+        `Revoke ${tokenTypeHint} returned status ${response.status}`
+      )
+    }
   } catch (err) {
     console.error(`Failed to revoke ${tokenTypeHint}:`, err)
   }
@@ -95,59 +93,55 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
     return res.redirect(302, '/auth/login')
   }
 
-  const { access_token, refresh_token, id_token, login_source } = req.cookies
+  const { access_token, refresh_token, login_source } = req.cookies
   const revokeUrl = getRevokeUrl(issuer)
 
-  await Promise.all([
-    access_token
-      ? revokeToken(
-          revokeUrl,
-          clientId,
-          clientSecret,
-          access_token,
-          'access_token'
-        )
-      : Promise.resolve(),
-    refresh_token
-      ? revokeToken(
-          revokeUrl,
-          clientId,
-          clientSecret,
-          refresh_token,
-          'refresh_token'
-        )
-      : Promise.resolve()
-  ])
+  try {
+    await Promise.all([
+      access_token
+        ? revokeToken(
+            revokeUrl,
+            clientId,
+            clientSecret,
+            access_token,
+            'access_token'
+          )
+        : Promise.resolve(),
+      refresh_token
+        ? revokeToken(
+            revokeUrl,
+            clientId,
+            clientSecret,
+            refresh_token,
+            'refresh_token'
+          )
+        : Promise.resolve()
+    ])
+  } catch (revokeError) {
+    console.error('Token revocation failed:', revokeError)
+  }
 
   const callbackUrl = `${getRequestOrigin(req)}/auth/callback/logout`
 
-  const detectedLoginSource =
-    login_source || getLoginSourceFromIdToken(id_token)
+  const detectedLoginSource = login_source
 
-  const isMain = isMainProviderByName(detectedLoginSource)
+  let isMain = false
+  try {
+    isMain = isMainProviderByName(detectedLoginSource)
+  } catch (error) {
+    console.warn('Failed to determine main provider:', error)
+  }
 
   if (isMain || !detectedLoginSource) {
     console.info(`Main logout for "${detectedLoginSource || 'unknown'}".`)
 
     clearAuthCookies(res)
 
-    // Only send id_token_hint if it's from the main issuer
     const oidcParams = new URLSearchParams({
       client_id: clientId,
       post_logout_redirect_uri: callbackUrl,
       state: 'logout'
     })
-
-    if (id_token) {
-      try {
-        const decoded = decodeJwt(id_token)
-        if (decoded.iss === issuer) {
-          oidcParams.set('id_token_hint', id_token)
-        }
-      } catch (error) {
-        console.warn('Could not decode id_token for main logout:', error)
-      }
-    }
 
     const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
     return res.redirect(302, mainLogoutUrl)
@@ -156,14 +150,28 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   const partnerEndSessionUrl = req.cookies[IDP_END_SESSION_URL_COOKIE]
 
   if (partnerEndSessionUrl) {
+    let partnerLogoutUrl: URL
+    try {
+      partnerLogoutUrl = new URL(partnerEndSessionUrl)
+    } catch (urlError) {
+      console.error('Invalid partner end session URL:', urlError)
+      clearAuthCookies(res)
+      const oidcParams = new URLSearchParams({
+        client_id: clientId,
+        post_logout_redirect_uri: callbackUrl,
+        state: 'logout'
+      })
+      return res.redirect(
+        302,
+        `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
+      )
+    }
+
     res.setHeader('Set-Cookie', [
-      ...buildClearAuthCookieStrings({
-        keepIdToken: true
-      }),
-      serializeFederatedLogoutContinueCookie('1', 300)
+      ...buildClearAuthCookieStrings(),
+      serializeFederatedLogoutContinueCookie('1', 600)
     ])
 
-    const partnerLogoutUrl = new URL(partnerEndSessionUrl)
     partnerLogoutUrl.searchParams.set('post_logout_redirect_uri', callbackUrl)
 
     console.info(
@@ -171,49 +179,6 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
     )
 
     return res.redirect(302, partnerLogoutUrl.toString())
-  }
-
-  if (id_token) {
-    try {
-      const decoded = decodeJwt(id_token)
-      const wellKnownUrl = getWellKnownUrl(decoded)
-
-      if (wellKnownUrl) {
-        try {
-          const endSessionUrl = await getEndSessionUrlFromWellKnown(
-            wellKnownUrl
-          )
-
-          if (endSessionUrl) {
-            res.setHeader('Set-Cookie', [
-              ...buildClearAuthCookieStrings({
-                keepIdToken: true
-              }),
-              serializeFederatedLogoutContinueCookie('1', 300)
-            ])
-
-            const partnerLogoutUrl = new URL(endSessionUrl)
-            partnerLogoutUrl.searchParams.set(
-              'post_logout_redirect_uri',
-              callbackUrl
-            )
-
-            console.info(
-              `Partner logout for "${detectedLoginSource}" (from well-known). Redirecting to: ${partnerLogoutUrl.toString()}`
-            )
-
-            return res.redirect(302, partnerLogoutUrl.toString())
-          }
-        } catch (error) {
-          console.warn(
-            `Failed to get end_session_url from well-known for ${detectedLoginSource}:`,
-            error
-          )
-        }
-      }
-    } catch (error) {
-      console.warn('Could not decode id_token for partner logout:', error)
-    }
   }
 
   console.warn(
@@ -227,17 +192,6 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
     post_logout_redirect_uri: callbackUrl,
     state: 'logout'
   })
-
-  if (id_token) {
-    try {
-      const decoded = decodeJwt(id_token)
-      if (decoded.iss === issuer) {
-        oidcParams.set('id_token_hint', id_token)
-      }
-    } catch (error) {
-      console.warn('Could not decode id_token for fallback logout:', error)
-    }
-  }
 
   const mainLogoutUrl = `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
   return res.redirect(302, mainLogoutUrl)
