@@ -91,6 +91,7 @@ export default function PublishedList({
           showPurgatoryOption={ownAccount}
           expanded
           showPrice
+          showEndOfLife={false}
           showUnlisted
         />
       </div>

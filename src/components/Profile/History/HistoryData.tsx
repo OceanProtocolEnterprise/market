@@ -374,6 +374,7 @@ export default function HistoryData({
           showPurgatoryOption={ownAccount}
           expanded
           showTime
+          showEndOfLife={false}
           showUnlisted
         />
       </div>

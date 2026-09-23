@@ -1,3 +1,9 @@
+import { State } from 'src/@types/ddo/State'
+
+export function isAssetOrderableState(state: number | undefined): boolean {
+  return state === State.Active || state === State.Unlisted
+}
+
 export function assetStateToString(state: number): string {
   switch (state) {
     case 0:

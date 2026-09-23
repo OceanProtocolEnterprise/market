@@ -102,8 +102,12 @@ function getSearchQuery(
     }
   } else {
     filters.push({
-      term: {
-        'indexedMetadata.nft.state': State.Active
+      terms: {
+        'indexedMetadata.nft.state': [
+          State.Active,
+          State.EndOfLife,
+          State.OrderingIsTemporaryDisabled
+        ]
       }
     })
   }

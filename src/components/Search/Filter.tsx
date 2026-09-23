@@ -76,6 +76,7 @@ export default function Filter({
   className,
   showTime,
   showPrice,
+  showEndOfLife = true,
   showUnlisted = false
 }: {
   addFiltersToUrl?: boolean
@@ -84,6 +85,7 @@ export default function Filter({
   className?: string
   showTime?: boolean
   showPrice?: boolean
+  showEndOfLife?: boolean
   showUnlisted?: boolean
 }): ReactElement {
   const { filters, setFilters, ignorePurgatory, setIgnorePurgatory } =
@@ -192,7 +194,9 @@ export default function Filter({
       type: 'filterList',
       options: [
         { label: 'Active', value: State.Active },
-        { label: 'EndOfLife', value: State.EndOfLife },
+        ...(showEndOfLife
+          ? [{ label: 'EndOfLife', value: State.EndOfLife }]
+          : []),
         // { label: 'Deprecated', value: State.Deprecated },
         // { label: 'RevokedByPublisher', value: State.RevokedByPublisher },
         {
