@@ -24,3 +24,10 @@ export function getLoginSource(payload: JWTPayload): string | undefined {
 export function getWellKnownUrl(payload: JWTPayload): string | undefined {
   return getOptionalStringClaim(payload, 'wellKnownUrl')
 }
+
+export function getSsiWalletApiClaim(payload: JWTPayload): string | undefined {
+  const value = getOptionalStringClaim(payload, 'ssiWalletApi')
+  if (!value) return undefined
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : undefined
+}

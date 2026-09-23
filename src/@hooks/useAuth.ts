@@ -11,6 +11,10 @@ import {
   type PendingAuthMode
 } from '@utils/authFlow'
 import { AUTH_SESSION_LOST_EVENT, OIDC_LOGOUT_PENDING_KEY } from './_constants'
+import {
+  setSsiWalletApiFromJwt,
+  clearSsiWalletApiFromJwt
+} from '@utils/wallet/ssiWallet'
 
 type SessionResponse = {
   user?: {
@@ -21,6 +25,7 @@ type SessionResponse = {
     organizationId?: string
   }
   authMeta?: Record<string, unknown>
+  ssiWalletApi?: string
   expires_in?: number
   refresh_required?: boolean
   has_refresh_token?: boolean
@@ -59,6 +64,7 @@ const clearOidcStorage = () => {
   sessionStorage.removeItem(OIDC_LOGOUT_PENDING_KEY)
   clearPendingAuthMode()
   clearPendingCallbackUrl()
+  clearSsiWalletApiFromJwt()
 }
 
 const clearStoredSessionData = () => {
@@ -104,6 +110,7 @@ const persistVerifiedSession = (data: SessionResponse) => {
   } else {
     localStorage.removeItem('auth_meta')
   }
+  setSsiWalletApiFromJwt(data.ssiWalletApi)
 
   return userData
 }
