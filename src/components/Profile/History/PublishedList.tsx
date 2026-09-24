@@ -11,6 +11,13 @@ import { useProfile } from '@context/Profile'
 import { useFilter, Filters } from '@context/Filter'
 import { useDebouncedCallback } from 'use-debounce'
 import { useUserPreferences } from '@context/UserPreferences'
+import { State } from 'src/@types/ddo/State'
+
+const defaultAssetStates = [
+  State.Active,
+  State.OrderingIsTemporaryDisabled,
+  State.Unlisted
+].map(String)
 
 export default function PublishedList({
   accountId
@@ -39,13 +46,16 @@ export default function PublishedList({
     ) => {
       try {
         setIsLoading(true)
+        const publishedFilters = filters.assetState?.length
+          ? filters
+          : { ...filters, assetState: defaultAssetStates }
         const result = await getPublishedAssets(
           accountId.toLowerCase(),
           chainIds,
           cancelToken,
           ownAccount && ignorePurgatory,
           ownAccount,
-          filters,
+          publishedFilters,
           page
         )
         setQueryResult(result)
