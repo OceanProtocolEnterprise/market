@@ -12,14 +12,36 @@ import { getAllowedErc20ChainIds } from '@utils/runtimeConfig'
 import { LoggerInstance } from '@oceanprotocol/lib'
 
 export const STORAGE_KEY = 'ssiWalletApiOverride'
+const JWT_STORAGE_KEY = 'ssiWalletApiFromJwt'
 
 export function setSsiWalletApiOverride(url: string) {
   sessionStorage.setItem(STORAGE_KEY, url)
 }
+export function setSsiWalletApiFromJwt(url: string | undefined | null) {
+  if (typeof window === 'undefined') return
+  const trimmed = typeof url === 'string' ? url.trim() : ''
+  if (trimmed) {
+    sessionStorage.setItem(JWT_STORAGE_KEY, trimmed)
+  } else {
+    sessionStorage.removeItem(JWT_STORAGE_KEY)
+  }
+}
+
+export function clearSsiWalletApiFromJwt() {
+  if (typeof window === 'undefined') return
+  sessionStorage.removeItem(JWT_STORAGE_KEY)
+}
 
 export function getSsiWalletApi(): string {
-  const override = sessionStorage.getItem(STORAGE_KEY)
-  return override || appConfig.ssiWalletApi
+  if (typeof window !== 'undefined') {
+    const manual = sessionStorage.getItem(STORAGE_KEY)
+    if (manual && manual.trim()) return manual.trim()
+
+    const fromJwt = sessionStorage.getItem(JWT_STORAGE_KEY)
+    if (fromJwt && fromJwt.trim()) return fromJwt.trim()
+  }
+
+  return appConfig.ssiWalletApi
 }
 
 function isWalletActionRejected(error: any): boolean {

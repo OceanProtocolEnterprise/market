@@ -3,7 +3,11 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { jwtVerify, type JWTPayload } from 'jose'
 import { clearAuthCookies, DEFAULT_ACCESS_TOKEN_MAX_AGE } from './_cookies'
 import { introspectAccessToken } from './_introspect'
-import { getLoginSource, getOptionalStringClaim } from './_claims'
+import {
+  getLoginSource,
+  getOptionalStringClaim,
+  getSsiWalletApiClaim
+} from './_claims'
 import { authEnabled, oidcClientId, oidcIssuer } from 'app.config.cjs'
 
 const OIDC_CLIENT_SECRET_ENV_KEY = 'OIDC_CLIENT_SECRET'
@@ -118,6 +122,7 @@ export default async function handler(
         upstream_idp: getLoginSource(userClaims) || 'unknown'
       }
       const organizationId = getOptionalStringClaim(userClaims, 'orgId')
+      const ssiWalletApi = getSsiWalletApiClaim(userClaims)
 
       return res.status(200).json({
         user: {
@@ -130,6 +135,7 @@ export default async function handler(
           organizationId
         },
         authMeta,
+        ssiWalletApi,
         has_refresh_token: Boolean(refreshToken),
         expires_in: expiresIn
       })
@@ -146,6 +152,7 @@ export default async function handler(
         main_oidc: issuer,
         upstream_idp: 'unknown'
       },
+      ssiWalletApi: undefined,
       has_refresh_token: Boolean(refreshToken),
       expires_in: expiresIn
     })
@@ -159,3 +166,4 @@ export default async function handler(
     })
   }
 }
+// redeploy push
