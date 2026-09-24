@@ -75,7 +75,9 @@ export default function Filter({
   expanded,
   className,
   showTime,
-  showPrice
+  showPrice,
+  showEndOfLife = true,
+  showUnlisted = false
 }: {
   addFiltersToUrl?: boolean
   showPurgatoryOption?: boolean
@@ -83,6 +85,8 @@ export default function Filter({
   className?: string
   showTime?: boolean
   showPrice?: boolean
+  showEndOfLife?: boolean
+  showUnlisted?: boolean
 }): ReactElement {
   const { filters, setFilters, ignorePurgatory, setIgnorePurgatory } =
     useFilter()
@@ -190,14 +194,16 @@ export default function Filter({
       type: 'filterList',
       options: [
         { label: 'Active', value: State.Active },
-        // { label: 'EndOfLife', value: State.EndOfLife },
+        ...(showEndOfLife
+          ? [{ label: 'EndOfLife', value: State.EndOfLife }]
+          : []),
         // { label: 'Deprecated', value: State.Deprecated },
         // { label: 'RevokedByPublisher', value: State.RevokedByPublisher },
         {
           label: 'TemporaryDisabled',
           value: State.OrderingIsTemporaryDisabled
         },
-        { label: 'Unlisted', value: State.Unlisted }
+        ...(showUnlisted ? [{ label: 'Unlisted', value: State.Unlisted }] : [])
       ]
     },
     ...(connectorSupportedChains.length > 1

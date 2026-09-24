@@ -5,6 +5,7 @@ import {
 import {
   escapeEsReservedCharacters,
   getFilterTerm,
+  parseFilters,
   generateBaseQuery,
   getWhitelistShould,
   sortMergedResults
@@ -61,6 +62,12 @@ describe('@utils/aquarius', () => {
     expect(getFilterTerm('hello', ['world', 'domination'])).toStrictEqual({
       terms: { hello: ['world', 'domination'] }
     })
+  })
+
+  test('parseFilters converts selected asset states to numeric query terms', () => {
+    expect(parseFilters({ assetState: ['0', '4', '5'] }, {})).toStrictEqual([
+      { terms: { 'indexedMetadata.nft.state': [0, 4, 5] } }
+    ])
   })
 
   test('generateBaseQuery', () => {

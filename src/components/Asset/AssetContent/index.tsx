@@ -33,6 +33,7 @@ import ComputeJobs from '@components/@shared/ComputeJobs'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { toast } from 'react-toastify'
+import { isAssetOrderableState } from '@utils/assetState'
 
 export default function AssetContent({
   asset
@@ -107,7 +108,7 @@ export default function AssetContent({
 
     processedRerunJobRef.current = rerunJobQuery
 
-    if (Number(asset?.indexedMetadata?.nft?.state) !== 0) {
+    if (!isAssetOrderableState(asset?.indexedMetadata?.nft?.state)) {
       toast.error('Algorithm is not available.')
       clearRerunQueryFromUrl()
       return
@@ -338,7 +339,7 @@ export default function AssetContent({
             <p>Loading access details...</p>
           ) : (
             <>
-              {asset?.indexedMetadata?.nft?.state === 0 ? (
+              {isAssetOrderableState(asset?.indexedMetadata?.nft?.state) ? (
                 selectedService === undefined ? (
                   <>
                     {availableServices.length > 0 ? (
