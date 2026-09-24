@@ -160,7 +160,7 @@ export default function EnvironmentSelection({
                       <div className={styles.titleSection}>
                         <div className={styles.titleRow}>
                           <h3 className={styles.title}>
-                            Environment {index + 1}
+                            {env.description || `Environment ${index + 1}`}
                           </h3>
                           <Button
                             style="outlined"
