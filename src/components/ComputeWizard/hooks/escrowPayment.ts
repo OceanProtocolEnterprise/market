@@ -11,7 +11,8 @@ export async function prepareEscrowPayment({
   payee,
   amount,
   minLockSeconds,
-  decimals
+  decimals,
+  onPrepared
 }: {
   escrow: EscrowContract
   erc20: Contract
@@ -22,9 +23,13 @@ export async function prepareEscrowPayment({
   amount: number | string
   minLockSeconds: number | string
   decimals: number
+  onPrepared?: () => void
 }): Promise<boolean> {
   const requiredAmount = BigInt(amount)
-  if (requiredAmount <= 0n) return false
+  if (requiredAmount <= 0n) {
+    onPrepared?.()
+    return false
+  }
 
   const [funds, authorizations] = await Promise.all([
     escrow.getUserFunds(owner, token),
@@ -53,7 +58,10 @@ export async function prepareEscrowPayment({
     existingSeconds < requiredSeconds ||
     existingCounts < requiredCounts
 
-  if (depositAmount === 0n && !needsAuthorization) return false
+  if (depositAmount === 0n && !needsAuthorization) {
+    onPrepared?.()
+    return false
+  }
 
   if (depositAmount > 0n) {
     const allowance = BigInt(
@@ -104,5 +112,6 @@ export async function prepareEscrowPayment({
   if (receipt?.status !== 1) {
     throw new Error('Escrow payment was not confirmed. Please try again.')
   }
+  onPrepared?.()
   return true
 }

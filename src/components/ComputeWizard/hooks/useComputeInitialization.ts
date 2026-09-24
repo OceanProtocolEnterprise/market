@@ -46,6 +46,7 @@ type InitializeParams = {
   dockerRegistryAuth?: DockerRegistryAuth
   accountId?: string
   shouldPrepareEscrow?: boolean
+  onEscrowPrepared?: () => void
   onProgress?: (
     phase: ComputeStartProgressPhase,
     status: ComputeStartProgressStatus
@@ -171,6 +172,7 @@ export function useComputeInitialization({
       dockerRegistryAuth,
       accountId,
       shouldPrepareEscrow = true,
+      onEscrowPrepared,
       onProgress
     }: InitializeParams): Promise<InitializeResult> => {
       setIsInitLoading(true)
@@ -250,7 +252,8 @@ export function useComputeInitialization({
             payee: ethers.getAddress(payment.payee),
             amount: payment.amount,
             minLockSeconds: payment.minLockSeconds,
-            decimals: tokenDetails.decimals
+            decimals: tokenDetails.decimals,
+            onPrepared: onEscrowPrepared
           })
           onProgress?.('escrow', prepared ? 'completed' : 'skipped')
         } else {
