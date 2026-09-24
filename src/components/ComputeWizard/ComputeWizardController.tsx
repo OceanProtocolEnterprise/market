@@ -39,6 +39,7 @@ import { CredentialDialogProvider } from '../Asset/AssetActions/Compute/Credenti
 import { useAsset } from '@context/Asset'
 import { useUserPreferences } from '@context/UserPreferences'
 import { useSsiWallet } from '@context/SsiWallet'
+import { useProfile } from '@context/Profile'
 import { secondsToString } from '@utils/ddo'
 import {
   getAlgorithmAssetSelectionListForComputeWizard,
@@ -457,6 +458,7 @@ export default function ComputeWizardController({
 
   const [svcIndex, setSvcIndex] = useState(0)
   const [isSubmittingJob, setIsSubmittingJob] = useState(false)
+  const { refreshEscrowFunds } = useProfile()
 
   const [allResourceValues, setAllResourceValues] = useState<{
     [envId: string]: ResourceType
@@ -771,6 +773,22 @@ export default function ComputeWizardController({
         dockerRegistryAuth,
         accountId,
         shouldPrepareEscrow: withEscrow,
+        onEscrowPrepared: () => {
+          // Confirmed escrow funds no longer need to be paid from the wallet,
+          // including when a later step fails and the user retries.
+          const resourceKey = `${selectedComputeEnv.id}_${selectedResources.mode}`
+          setAllResourceValues((previous) => ({
+            ...previous,
+            [resourceKey]: {
+              ...selectedResources,
+              price: '0',
+              actualPaymentAmount: '0',
+              escrowCoveredAmount: selectedResources.fullJobPrice
+            }
+          }))
+          formikRef.current?.setFieldValue('actualPaymentAmount', '0', false)
+          refreshEscrowFunds?.()
+        },
         onProgress: setComputeProgressStep
       })
 
