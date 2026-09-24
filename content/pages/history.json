@@ -1,5 +1,6 @@
 {
   "compute": {
-    "storage": "Results are stored for 30 days."
+    "storage": "Results are stored for {duration}.",
+    "storageUnknown": "The job environment's storage retention period is unavailable."
   }
 }

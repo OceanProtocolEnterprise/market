@@ -15,6 +15,7 @@ import { prettySize } from '@components/@shared/FormInput/InputElement/FilesInpu
 import { customProviderUrl } from 'app.config.cjs'
 import { Signer } from 'ethers'
 import { useEthersSigner } from '@hooks/useEthersSigner'
+import { getComputeEnvironments } from '@utils/provider'
 
 type ComputeJobWithEnvironment = ComputeJobMetaData & {
   environment?: string
@@ -90,34 +91,64 @@ function ResultDownloadItem({
 export default function Results({
   job
 }: {
-  job: ComputeJobMetaData
+  job: ComputeJobWithEnvironment
 }): ReactElement {
   const providerInstance = useMemo(() => new Provider(), [])
   const { address: accountId } = useAccount()
   const walletClient = useEthersSigner()
 
   const [datasetProvider, setDatasetProvider] = useState<string>()
+  const [retentionDays, setRetentionDays] = useState<number>()
   const [pendingIndex, setPendingIndex] = useState<number | null>(null)
   const newCancelToken = useCancelToken()
 
   const isFinished = job.dateFinished !== null
   const results = Array.isArray(job.results) ? job.results : []
+  const { environment, providerUrl: jobProviderUrl } = job
 
   useEffect(() => {
+    let cancelled = false
+    setDatasetProvider(undefined)
+    setRetentionDays(undefined)
+
     async function getAssetMetadata() {
-      if (job.assets && job.assets.length > 0) {
-        const ddo = await getAsset(job.assets[0].documentId, newCancelToken())
-        if (ddo?.credentialSubject?.services?.[0]?.serviceEndpoint) {
-          setDatasetProvider(ddo.credentialSubject.services[0].serviceEndpoint)
-        } else {
-          setDatasetProvider(customProviderUrl)
+      try {
+        let providerUrl = jobProviderUrl
+        if (!providerUrl && job.assets?.length > 0) {
+          const ddo = await getAsset(job.assets[0].documentId, newCancelToken())
+          providerUrl = ddo?.credentialSubject?.services?.[0]?.serviceEndpoint
         }
-      } else {
-        setDatasetProvider(customProviderUrl)
+        providerUrl = providerUrl || customProviderUrl
+        if (cancelled) return
+        setDatasetProvider(providerUrl)
+
+        if (!environment) return
+        const environments = await getComputeEnvironments(
+          providerUrl,
+          job.networkId
+        )
+        const storageExpiry = environments?.find(
+          (env) => env.id === environment
+        )?.storageExpiry
+        if (
+          !cancelled &&
+          typeof storageExpiry === 'number' &&
+          Number.isFinite(storageExpiry) &&
+          storageExpiry >= 0
+        ) {
+          setRetentionDays(storageExpiry / (24 * 60 * 60))
+        }
+      } catch (error) {
+        if (!cancelled) {
+          LoggerInstance.error('[Compute job storage retention]', error)
+        }
       }
     }
     getAssetMetadata()
-  }, [job.assets, newCancelToken])
+    return () => {
+      cancelled = true
+    }
+  }, [job.assets, jobProviderUrl, job.networkId, environment, newCancelToken])
 
   async function downloadResults(resultIndex: number) {
     if (
@@ -192,7 +223,14 @@ export default function Results({
       <div className={styles.alert}>
         <div className={styles.rightAlert}></div>
         <div>
-          <FormHelp className={styles.help}>{content.compute.storage}</FormHelp>
+          <FormHelp className={styles.help}>
+            {retentionDays === undefined
+              ? content.compute.storageUnknown
+              : content.compute.storage.replace(
+                  '{duration}',
+                  `${retentionDays} ${retentionDays === 1 ? 'day' : 'days'}`
+                )}
+          </FormHelp>
         </div>
       </div>
     </div>
