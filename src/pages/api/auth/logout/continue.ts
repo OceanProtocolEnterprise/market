@@ -1,10 +1,7 @@
 /* eslint-disable camelcase */
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { decodeJwt } from 'jose'
 import { buildClearAuthCookieStrings } from '../_cookies'
 import { authEnabled, oidcClientId, oidcIssuer } from 'app.config.cjs'
-import { isMainProviderByName } from '../_federated'
-import { getLoginSource } from '../_claims'
 
 const FEDERATED_LOGOUT_CONTINUE_COOKIE = 'federated_logout_continue'
 
@@ -31,10 +28,14 @@ function serializeFederatedLogoutContinueCookie(value: string, maxAge: number) {
 }
 
 function clearLogoutCookies(res: NextApiResponse) {
-  res.setHeader('Set-Cookie', [
-    ...buildClearAuthCookieStrings(),
-    serializeFederatedLogoutContinueCookie('', 0)
-  ])
+  try {
+    res.setHeader('Set-Cookie', [
+      ...buildClearAuthCookieStrings(),
+      serializeFederatedLogoutContinueCookie('', 0)
+    ])
+  } catch (error) {
+    console.error('Failed to clear logout cookies:', error)
+  }
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -66,43 +67,28 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.redirect(302, '/auth/login?loggedout=1')
   }
 
-  const callbackUrl = `${getRequestOrigin(req)}/auth/callback/logout`
-  const oidcParams = new URLSearchParams({
-    client_id: clientId,
-    post_logout_redirect_uri: callbackUrl,
-    state: 'logout'
-  })
+  try {
+    const callbackUrl = `${getRequestOrigin(req)}/auth/callback/logout`
 
-  const idTokenHint = req.cookies.id_token
+    const oidcParams = new URLSearchParams({
+      client_id: clientId,
+      post_logout_redirect_uri: callbackUrl,
+      state: 'logout'
+    })
 
-  // Only send id_token_hint if it exists and is from the main issuer
-  if (idTokenHint) {
-    try {
-      const decoded = decodeJwt(idTokenHint)
-      const loginSource = getLoginSource(decoded)
-      const isMain = isMainProviderByName(loginSource)
-      if (isMain && decoded.iss === issuer) {
-        oidcParams.set('id_token_hint', idTokenHint)
-        console.info('Using id_token_hint for main OIDC logout continuation')
-      } else {
-        console.info('Skipping id_token_hint for partner provider continuation')
-      }
-    } catch (error) {
-      console.warn(
-        'Could not decode id_token for main logout continuation:',
-        error
-      )
-    }
+    console.info('Continuing logout with Main OIDC provider.')
+    console.info(
+      `Redirecting to: ${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
+    )
+
+    clearLogoutCookies(res)
+    return res.redirect(
+      302,
+      `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
+    )
+  } catch (error) {
+    console.error('Federated logout continuation failed:', error)
+    clearLogoutCookies(res)
+    return res.redirect(302, '/auth/login?loggedout=1')
   }
-
-  console.info('Continuing logout with Main OIDC provider.')
-  console.info(
-    `Redirecting to: ${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
-  )
-
-  clearLogoutCookies(res)
-  return res.redirect(
-    302,
-    `${getEndSessionUrl(issuer)}?${oidcParams.toString()}`
-  )
 }

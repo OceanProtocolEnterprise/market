@@ -25,25 +25,26 @@ export default function useSsiConnect() {
     setCachedCredentials,
     clearVerifierSessionCache,
     setIsSsiSessionHydrating,
-    selectedWallet,
     setSelectedWallet,
     setSelectedKey,
     setSelectedDid
   } = useSsiWallet()
 
   const fetchWallets = useCallback(
-    async (session: SsiWalletSession) => {
+    async (session: SsiWalletSession): Promise<SsiWalletDesc | undefined> => {
+      if (!session?.token) return undefined
       try {
-        if (!session) return selectedWallet
         const wallets = await getWallets(session.token)
-        setSelectedWallet(wallets[0])
-        return wallets[0]
+        const first = wallets?.[0]
+        setSelectedWallet(first)
+        return first
       } catch (error) {
         LoggerInstance.error(error)
-        return selectedWallet
+        setSelectedWallet(undefined)
+        return undefined
       }
     },
-    [selectedWallet, setSelectedWallet]
+    [setSelectedWallet]
   )
 
   const fetchKeys = useCallback(
@@ -72,6 +73,10 @@ export default function useSsiConnect() {
         ssiWalletCache.clearCredentials()
         setCachedCredentials([])
         clearVerifierSessionCache()
+        setSessionToken(undefined)
+        setSelectedWallet(undefined)
+        setSelectedKey(undefined)
+        setSelectedDid(undefined)
 
         if (apiOverride) {
           setSsiWalletApiOverride(apiOverride)
@@ -79,9 +84,12 @@ export default function useSsiConnect() {
 
         const session = await connectToWallet(walletClient)
         setSessionToken(session)
-        setSelectedDid(undefined)
-        setSelectedKey(undefined)
         const wallet = await fetchWallets(session)
+        if (!wallet) {
+          toast.error('Connected to SSI wallet API but no wallet was found.')
+          setShowSsiWalletModule(false)
+          return false
+        }
         await fetchKeys(wallet, session)
         setShowSsiWalletModule(false)
         return true
@@ -101,8 +109,9 @@ export default function useSsiConnect() {
       setCachedCredentials,
       clearVerifierSessionCache,
       setSessionToken,
-      setSelectedDid,
+      setSelectedWallet,
       setSelectedKey,
+      setSelectedDid,
       fetchWallets,
       fetchKeys,
       setShowSsiWalletModule,

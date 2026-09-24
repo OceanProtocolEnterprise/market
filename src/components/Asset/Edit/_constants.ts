@@ -481,7 +481,7 @@ export const getServiceInitialValues = (
   }
 
   const hasExistingEncryptedFile =
-    Array.isArray(service.files) && service.files.length > 0
+    typeof service.files === 'string' && service.files.trim().length > 0
 
   let processedFiles = []
   if (hasExistingEncryptedFile) {

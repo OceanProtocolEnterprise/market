@@ -179,7 +179,14 @@
         "label": "Service State",
         "help": "Specifies whether the service is consumable. An Active state indicates it can be consumed, while any other state means it cannot.",
         "type": "select",
-        "options": ["Active", "OrderingIsTemporaryDisabled", "Unlisted"],
+        "options": [
+          "Active",
+          "EndOfLife",
+          "Deprecated",
+          "RevokedByPublisher",
+          "OrderingIsTemporaryDisabled",
+          "Unlisted"
+        ],
         "sortOptions": false,
         "required": false
       },

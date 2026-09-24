@@ -11,6 +11,10 @@ import {
   type PendingAuthMode
 } from '@utils/authFlow'
 import { AUTH_SESSION_LOST_EVENT, OIDC_LOGOUT_PENDING_KEY } from './_constants'
+import {
+  setSsiWalletApiFromJwt,
+  clearSsiWalletApiFromJwt
+} from '@utils/wallet/ssiWallet'
 
 type SessionResponse = {
   user?: {
@@ -21,6 +25,7 @@ type SessionResponse = {
     organizationId?: string
   }
   authMeta?: Record<string, unknown>
+  ssiWalletApi?: string
   expires_in?: number
   refresh_required?: boolean
   has_refresh_token?: boolean
@@ -30,11 +35,6 @@ type SessionVerificationResult = {
   user: User | null
   hasRefreshToken: boolean
   refreshRequired: boolean
-  /**
-   * Access-token lifetime in seconds, as reported by /api/auth/session.
-   * `null` when the session is not valid or the server did not return a
-   * usable value.
-   */
   expiresIn: number | null
 }
 
@@ -64,6 +64,7 @@ const clearOidcStorage = () => {
   sessionStorage.removeItem(OIDC_LOGOUT_PENDING_KEY)
   clearPendingAuthMode()
   clearPendingCallbackUrl()
+  clearSsiWalletApiFromJwt()
 }
 
 const clearStoredSessionData = () => {
@@ -109,6 +110,7 @@ const persistVerifiedSession = (data: SessionResponse) => {
   } else {
     localStorage.removeItem('auth_meta')
   }
+  setSsiWalletApiFromJwt(data.ssiWalletApi)
 
   return userData
 }
@@ -253,7 +255,6 @@ export const useAuth = () => {
     [setUser, setExpiresAt]
   )
 
-  // Server session is the source of truth; localStorage is only a verified UI cache.
   React.useEffect(() => {
     if (!authEnabled || isSessionVerified) return
 
@@ -297,7 +298,6 @@ export const useAuth = () => {
     applyVerificationResult
   ])
 
-  // After server-driven callback, ?hydrated=1 signals us to fetch session data
   React.useEffect(() => {
     if (!router.isReady) return
     if (router.query.hydrated !== '1') return

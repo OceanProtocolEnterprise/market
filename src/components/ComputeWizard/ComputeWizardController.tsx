@@ -39,6 +39,7 @@ import { CredentialDialogProvider } from '../Asset/AssetActions/Compute/Credenti
 import { useAsset } from '@context/Asset'
 import { useUserPreferences } from '@context/UserPreferences'
 import { useSsiWallet } from '@context/SsiWallet'
+import { useProfile } from '@context/Profile'
 import { secondsToString } from '@utils/ddo'
 import {
   getAlgorithmAssetSelectionListForComputeWizard,
@@ -457,6 +458,7 @@ export default function ComputeWizardController({
 
   const [svcIndex, setSvcIndex] = useState(0)
   const [isSubmittingJob, setIsSubmittingJob] = useState(false)
+  const { refreshEscrowFunds } = useProfile()
 
   const [allResourceValues, setAllResourceValues] = useState<{
     [envId: string]: ResourceType
@@ -770,7 +772,23 @@ export default function ComputeWizardController({
         datasetParams,
         dockerRegistryAuth,
         accountId,
-        shouldDepositEscrow: withEscrow,
+        shouldPrepareEscrow: withEscrow,
+        onEscrowPrepared: () => {
+          // Confirmed escrow funds no longer need to be paid from the wallet,
+          // including when a later step fails and the user retries.
+          const resourceKey = `${selectedComputeEnv.id}_${selectedResources.mode}`
+          setAllResourceValues((previous) => ({
+            ...previous,
+            [resourceKey]: {
+              ...selectedResources,
+              price: '0',
+              actualPaymentAmount: '0',
+              escrowCoveredAmount: selectedResources.fullJobPrice
+            }
+          }))
+          formikRef.current?.setFieldValue('actualPaymentAmount', '0', false)
+          refreshEscrowFunds?.()
+        },
         onProgress: setComputeProgressStep
       })
 
@@ -952,9 +970,6 @@ export default function ComputeWizardController({
     setComputeProgressStep('escrow', 'active')
     try {
       const formValuesForEscrow = formikValues || initialFormValues
-      const shouldDepositEscrow = new Decimal(
-        formValuesForEscrow?.actualPaymentAmount || 0
-      ).gt(0)
       const {
         datasetResponses,
         actualAlgorithmAsset,
@@ -963,11 +978,7 @@ export default function ComputeWizardController({
         initializedProvider,
         selectedComputeEnv,
         selectedResources
-      } = await initPriceAndFees(
-        datasetServices,
-        formikValues,
-        shouldDepositEscrow
-      )
+      } = await initPriceAndFees(datasetServices, formikValues, true)
 
       if (!datasetResponses || !selectedComputeEnv || !selectedResources) {
         throw new Error('Missing compute initialization data.')

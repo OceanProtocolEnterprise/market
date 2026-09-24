@@ -5,6 +5,19 @@ import { ReactElement } from 'react'
 import styles from './MetaInfo.module.css'
 import { AssetExtended } from 'src/@types/AssetExtended'
 
+function isAssetPublished(asset: AssetExtended): boolean {
+  const nft = asset?.indexedMetadata?.nft
+  const event = asset?.indexedMetadata?.event
+
+  return Boolean(
+    nft?.address &&
+      nft?.created &&
+      event?.txid &&
+      event?.block &&
+      event?.datetime
+  )
+}
+
 export default function MetaInfo({
   asset,
   nftPublisher,
@@ -15,43 +28,54 @@ export default function MetaInfo({
   verifiedServiceProviderName?: string
 }): ReactElement {
   const nftOwner = asset?.indexedMetadata?.nft?.owner
+  const isPublished = isAssetPublished(asset)
 
   return (
     <div className={styles.wrapper}>
+      {' '}
       <AssetType
         type={asset?.credentialSubject?.metadata.type}
         variant="metadata"
         className={styles.assetType}
-      />
+      />{' '}
       <div className={styles.byline}>
+        {' '}
         <div>
-          Published{' '}
-          <Time date={asset?.credentialSubject?.metadata.created} relative />
-          {(verifiedServiceProviderName ||
-            (nftPublisher && nftPublisher !== nftOwner)) && (
-            <span>
-              {' by '}{' '}
-              <Publisher
-                account={nftPublisher}
-                verifiedServiceProviderName={verifiedServiceProviderName}
-              />
-            </span>
-          )}
-          {asset?.credentialSubject?.metadata.created !==
-            asset?.credentialSubject?.metadata.updated && (
+          {isPublished ? (
             <>
-              {' — '}
-              <span className={styles.updated}>
-                updated{' '}
-                <Time
-                  date={asset?.credentialSubject?.metadata.updated}
-                  relative
-                />
-              </span>
+              Published{' '}
+              <Time date={asset?.indexedMetadata?.event?.datetime} relative />
+              {(verifiedServiceProviderName ||
+                (nftPublisher && nftPublisher !== nftOwner)) && (
+                <span>
+                  {' by '}{' '}
+                  <Publisher
+                    account={nftPublisher}
+                    verifiedServiceProviderName={verifiedServiceProviderName}
+                  />{' '}
+                </span>
+              )}
+              {asset?.credentialSubject?.metadata.created !==
+                asset?.credentialSubject?.metadata.updated && (
+                <>
+                  {' — '}{' '}
+                  <span className={styles.updated}>
+                    updated{' '}
+                    <Time
+                      date={asset?.credentialSubject?.metadata.updated}
+                      relative
+                    />{' '}
+                  </span>
+                </>
+              )}
             </>
-          )}
-        </div>
-      </div>
+          ) : (
+            <span>Not published yet</span>
+          )}{' '}
+        </div>{' '}
+      </div>{' '}
     </div>
   )
 }
+
+// redeploy push

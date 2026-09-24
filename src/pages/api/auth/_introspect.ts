@@ -15,13 +15,6 @@ function getIntrospectUrl(issuer: string): string {
   return `${issuer.replace(/\/$/, '')}/introspect/`
 }
 
-/**
- * Asks Authentik whether this access token is still active.
- *
- * Do not cache positive introspection responses. Session polling uses this as
- * the live source of truth for revocations, so `active: false` must be observed
- * on the next `/api/auth/session` check.
- */
 export async function introspectAccessToken(
   accessToken: string,
   issuer: string,
@@ -47,8 +40,6 @@ export async function introspectAccessToken(
     })
 
     if (!response.ok) {
-      // These statuses usually mean our OIDC setup is wrong, not that
-      // Authentik is temporarily down. Keep the log marker stable for alerts.
       if (
         response.status === 401 ||
         response.status === 403 ||

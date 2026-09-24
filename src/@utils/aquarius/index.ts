@@ -100,6 +100,9 @@ export function parseFilters(
         const targetDateISOString = targetDate.toISOString()
         return getRangeFilterTerm(filterQueryPath[key], targetDateISOString)
       }
+      if (key === 'assetState' && filtersList[key]?.length > 0) {
+        return getFilterTerm(filterQueryPath[key], filtersList[key].map(Number))
+      }
       if (filtersList[key]?.length > 0) {
         return getFilterTerm(filterQueryPath[key], filtersList[key])
       }

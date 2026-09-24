@@ -52,10 +52,7 @@ import {
   SSI_POLICY_UNSUPPORTED_MESSAGE
 } from '@utils/credentials'
 import Alert from '@shared/atoms/Alert'
-
-function isNftActive(state: unknown): boolean {
-  return Number(state) === 0
-}
+import { isAssetOrderableState } from '@utils/assetState'
 
 export default function AssetActions({
   asset,
@@ -381,7 +378,7 @@ export default function AssetActions({
         )
         if (
           !algorithmAsset ||
-          !isNftActive(algorithmAsset.indexedMetadata?.nft?.state)
+          !isAssetOrderableState(algorithmAsset.indexedMetadata?.nft?.state)
         ) {
           toast.error('Algorithm is not available.')
           return
@@ -396,7 +393,8 @@ export default function AssetActions({
 
           const hasUnavailableDataset = fetchedDatasets.some(
             (dataset) =>
-              !dataset || !isNftActive(dataset.indexedMetadata?.nft?.state)
+              !dataset ||
+              !isAssetOrderableState(dataset.indexedMetadata?.nft?.state)
           )
           if (hasUnavailableDataset) {
             toast.error('One or more datasets are not available.')
