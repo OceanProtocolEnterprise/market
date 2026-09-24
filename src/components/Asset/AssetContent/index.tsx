@@ -34,6 +34,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { toast } from 'react-toastify'
 import { isAssetOrderableState } from '@utils/assetState'
+import { State } from 'src/@types/ddo/State'
 
 export default function AssetContent({
   asset
@@ -58,13 +59,29 @@ export default function AssetContent({
   const [expanded, setExpanded] = useState(false)
   const [showDdo, setShowDdo] = useState(false)
   const availableServices =
-    asset.credentialSubject?.services?.filter(
-      (service) => service.state === 0
-    ) || []
+    asset.credentialSubject?.services
+      ?.map((service, index) => ({ service, index }))
+      .filter(
+        ({ service }) =>
+          service.state !== State.Deprecated &&
+          service.state !== State.RevokedByPublisher
+      ) || []
+  const selectedServiceIsOrderable = isAssetOrderableState(
+    asset.credentialSubject?.services?.[selectedService]?.state
+  )
+
+  useEffect(() => {
+    if (selectedService !== undefined && !selectedServiceIsOrderable) {
+      setSelectedService(undefined)
+    }
+  }, [selectedService, selectedServiceIsOrderable])
 
   // Find compute service
   const computeServiceIndex = asset.credentialSubject?.services?.findIndex(
     (service) => service.type === 'compute'
+  )
+  const computeServiceIsOrderable = isAssetOrderableState(
+    asset.credentialSubject?.services?.[computeServiceIndex]?.state
   )
   const rerunJobQuery = useMemo(() => {
     const value = router.query.rerunJob ?? router.query.rerun
@@ -114,7 +131,7 @@ export default function AssetContent({
       return
     }
 
-    if (computeServiceIndex === undefined || computeServiceIndex < 0) {
+    if (!computeServiceIsOrderable) {
       toast.error('Algorithm is not available.')
       clearRerunQueryFromUrl()
       return
@@ -125,6 +142,7 @@ export default function AssetContent({
     router.isReady,
     rerunJobQuery,
     computeServiceIndex,
+    computeServiceIsOrderable,
     asset?.indexedMetadata?.nft?.state,
     clearRerunQueryFromUrl
   ])
@@ -340,41 +358,30 @@ export default function AssetContent({
           ) : (
             <>
               {isAssetOrderableState(asset?.indexedMetadata?.nft?.state) ? (
-                selectedService === undefined ? (
+                selectedService === undefined || !selectedServiceIsOrderable ? (
                   <>
                     {availableServices.length > 0 ? (
                       <div className={styles.serviceDisplay}>
                         <h4>Choose service to see Price:</h4>
                         <div className={styles.servicesGrid}>
-                          {availableServices.map((service, index) => {
-                            const isPublished = Boolean(
-                              asset?.indexedMetadata?.nft?.created
-                            )
+                          {availableServices.map(({ service, index }) => {
                             const isClickable =
-                              isAssetNetwork && isConnected && isPublished
+                              isAssetNetwork &&
+                              isConnected &&
+                              isPublished &&
+                              isAssetOrderableState(service.state)
 
                             return (
-                              <div
+                              <ServiceCard
                                 key={service.id}
+                                service={service}
+                                accessDetails={asset.accessDetails[index]}
                                 onClick={() => {
                                   if (!isClickable) return
                                   setSelectedService(index)
                                 }}
-                                className={`
-                ${
-                  isClickable
-                    ? 'cursor-pointer hover:opacity-100'
-                    : 'opacity-50 cursor-not-allowed'
-                }
-              `}
-                              >
-                                <ServiceCard
-                                  service={service}
-                                  accessDetails={asset.accessDetails[index]}
-                                  onClick={() => {}}
-                                  isClickable={isPublished}
-                                />
-                              </div>
+                                isClickable={isClickable}
+                              />
                             )
                           })}
                         </div>

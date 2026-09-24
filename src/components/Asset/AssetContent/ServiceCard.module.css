@@ -15,6 +15,12 @@
   box-shadow: var(--box-template-box-shadow);
 }
 
+.disabledMessage {
+  margin: calc(var(--spacer) / 4) 0 0;
+  font-size: var(--font-size-small);
+  color: var(--font-color-text);
+}
+
 .title {
   font-family: var(--font-family);
   font-weight: 700;
@@ -31,12 +37,18 @@
 .tokenSymbol {
   color: var(--clr-teal);
 }
+.typeRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .access {
   font-family: var(--font-family);
   font-weight: 400;
   font-size: 14px;
   color: var(--clr-slate-70);
-  line-height: 250%;
+  line-height: 150%;
   display: inline-flex;
   align-items: center;
   gap: 4px;
