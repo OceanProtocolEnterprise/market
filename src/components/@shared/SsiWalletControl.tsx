@@ -150,6 +150,7 @@ export default function SsiWalletControl({
 
   useEffect(() => {
     if (!sessionToken) return
+    if (isSsiSessionHydrating) return
 
     if (!selectedWallet) {
       fetchWallets().catch((error) => {
@@ -173,6 +174,7 @@ export default function SsiWalletControl({
     selectedWallet,
     selectedDid,
     selectedKey,
+    isSsiSessionHydrating,
     fetchWallets,
     fetchDids,
     fetchKeys
