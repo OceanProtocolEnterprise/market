@@ -166,11 +166,24 @@ const ComputeJobs = ({
               ? Number(job.dateFinished) * 1000
               : null
 
+            const isFailed = /fail(?:ed|ure)?/i.test(job.statusText || '')
+
             return (
               <div key={job.jobId} className={styles.jobRow}>
                 <div className={styles.statusCell}>
                   <div className={styles.statusContent}>
-                    {dateFinishedMs ? (
+                    {isFailed ? (
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={styles.statusIcon}
+                      >
+                        <circle cx="7" cy="7" r="7" fill="#FF4D4D" />
+                      </svg>
+                    ) : dateFinishedMs ? (
                       <FinishedIcon className={styles.statusIcon} />
                     ) : (
                       <InProgress className={styles.statusIcon} />
