@@ -1,7 +1,7 @@
 {
   "name": "@OceanProtocolEnterprise/market",
   "description": "Ocean Protocol Enterprise Marketplace",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "license": "Apache-2.0",
   "homepage": "https://github.com/OceanProtocolEnterprise",
   "type": "module",
@@ -33,7 +33,7 @@
     "@dfns/sdk-browser": "^0.8.21",
     "@loadable/component": "^5.15.3",
     "@oceanprotocol/art": "^3.2.0",
-    "@oceanprotocol/ddo-js": "^0.4.1",
+    "@oceanprotocol/ddo-js": "^1.0.0",
     "@oceanprotocol/lib": "^9.0.0",
     "@oceanprotocol/typographies": "^0.1.0",
     "@react-spring/web": "^9.7.5",

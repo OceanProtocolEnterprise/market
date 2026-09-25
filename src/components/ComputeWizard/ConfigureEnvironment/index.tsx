@@ -858,6 +858,14 @@ export default function ConfigureEnvironment({
   }, [setFieldValue, values.user.stepCurrent])
 
   if (stepMode === 'storage') {
+    const storageExpiry = values.computeEnv?.storageExpiry
+    const retentionDays =
+      typeof storageExpiry === 'number' &&
+      Number.isFinite(storageExpiry) &&
+      storageExpiry >= 0
+        ? storageExpiry / (24 * 60 * 60)
+        : undefined
+
     return (
       <div className={`${styles.container} ${styles.storageContainer}`}>
         <StepTitle title="Job Results Storage" />
@@ -888,8 +896,11 @@ export default function ConfigureEnvironment({
         ) : (
           <div className={styles.outputStorageCard}>
             <p className={styles.outputStorageHint}>
-              The compute job results will remain on the node storage for 30
-              days.
+              {retentionDays === undefined
+                ? 'The selected environment does not specify a node storage retention period.'
+                : `The compute job results will remain on the node storage for ${retentionDays} ${
+                    retentionDays === 1 ? 'day' : 'days'
+                  }.`}
               <br />
               Select the remote storage option if you want to export encrypted
               results also to your own destination.
