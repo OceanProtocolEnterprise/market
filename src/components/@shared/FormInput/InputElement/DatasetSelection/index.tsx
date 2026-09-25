@@ -148,6 +148,7 @@ export default function DatasetSelection({
                       <Button
                         type="button"
                         style="slim"
+                        className={isSelected ? styles.selectedButton : ''}
                         disabled={disabled || dataset.selectionDisabled}
                         onClick={(event) => {
                           event.stopPropagation()
