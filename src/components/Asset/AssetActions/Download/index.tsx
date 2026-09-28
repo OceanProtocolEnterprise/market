@@ -213,7 +213,7 @@ export default function Download({
 
   useEffect(() => {
     const licenseMirrors =
-      asset?.credentialSubject?.metadata?.license?.licenseDocuments[0]
+      asset?.credentialSubject?.metadata?.license?.licenseDocuments?.[0]
         ?.mirrors || []
     let license = ''
 
