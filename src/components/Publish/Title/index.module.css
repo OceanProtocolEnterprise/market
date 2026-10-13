@@ -7,7 +7,7 @@
 }
 
 .titleText {
-  font-family: 'Helvetica', Arial, sans-serif;
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 700;
   font-size: 24px;
@@ -16,7 +16,7 @@
 }
 
 .intoText {
-  font-family: 'Helvetica', Arial, sans-serif;
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 700;
   font-size: 24px;
@@ -32,7 +32,7 @@
 }
 
 .network {
-  font-family: 'Helvetica', Arial, sans-serif;
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 700;
   font-size: 24px;

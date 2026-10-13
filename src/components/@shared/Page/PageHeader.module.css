@@ -11,7 +11,7 @@
 }
 
 .headerExtended .title {
-  font-family: 'Helvetica', Arial, sans-serif;
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 700;
   font-size: 24px;
@@ -85,7 +85,7 @@
 }
 
 .headerExtended .description {
-  font-family: 'Helvetica', Arial, sans-serif;
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 400;
   font-size: 18px;

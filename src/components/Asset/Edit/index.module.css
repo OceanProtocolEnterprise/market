@@ -183,7 +183,7 @@ body .addAddressButton {
   background: var(--gradient-primary);
   box-shadow: 1px 2px 8px var(--box-shadow-color);
   border-radius: 20px;
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-weight: 700;
   font-size: 14px;
   color: #ffffff;

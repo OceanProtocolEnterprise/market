@@ -370,7 +370,7 @@ body .addPolicyDropdown {
   background-repeat: no-repeat !important;
   border: none;
   cursor: pointer;
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 700;
   font-size: 14px;
@@ -386,7 +386,7 @@ body .addPolicyDropdown {
 body .addPolicyDropdown option {
   background: #ffffff;
   color: #303031;
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-weight: 400;
   padding: 8px 12px;
 }
@@ -437,7 +437,7 @@ body .advancedOptionsCheckbox {
 
 .policyOption {
   padding: 12px 16px;
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-size: 14px;
   color: #303031;
   cursor: pointer;
