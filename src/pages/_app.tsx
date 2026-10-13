@@ -8,7 +8,7 @@ import ConsentProvider from '@context/CookieConsent'
 import { SearchBarStatusProvider } from '@context/SearchBarStatus'
 import App from '../components/App'
 import '@fontsource-variable/montserrat'
-// import '@oceanprotocol/typographies/css/ocean-typo.css'
+// import '@oceanprotocol/typographies/css/ocean-typo.css' redeploy push
 import '../stylesGlobal/styles.css'
 import Decimal from 'decimal.js'
 import MarketMetadataProvider from '@context/MarketMetadata'
