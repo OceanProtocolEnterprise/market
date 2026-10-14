@@ -1,12 +1,6 @@
 @import url('./_colors.css');
 
 :root {
-  /* Font families */
-  --font-family-base: 'Montserrat Variable', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Arial, sans-serif;
-  --font-family-heading: var(--font-family-base);
-  --font-family: var(--font-family-base);
-
   /* Menubar */
   --menu-logo-size-width-sm: 7.5rem;
   --menu-logo-size-height-sm: 3.5rem;
@@ -53,6 +47,10 @@
   /* Pagination component */
   /* Filter and sort */
 
+  --font-family-base: 'Inter Variable', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Arial, sans-serif;
+  --font-family-heading: 'Plus Jakarta Sans Variable', var(--font-family-base);
+  --font-family: var(--font-family-base);
   /*
   --font-family-monospace: 'Fira Code', 'Fira Mono', Menlo, Monaco, Consolas,
     'Courier New', monospace; */
