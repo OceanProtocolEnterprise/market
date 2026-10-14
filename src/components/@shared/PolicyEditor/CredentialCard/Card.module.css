@@ -15,7 +15,7 @@
 }
 
 .title {
-  font: 600 1.125rem/1.3 Helvetica;
+  font: 600 1.125rem/1.3 var(--font-family-base);
   color: var(--clr-slate-70);
   margin: 0;
 }
