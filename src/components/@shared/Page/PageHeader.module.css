@@ -11,7 +11,7 @@
 }
 
 .headerExtended .title {
-  font-family: var(--font-family-base);
+  font-family: var(--font-family-heading);
   font-style: normal;
   font-weight: 700;
   font-size: 24px;

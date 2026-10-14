@@ -65,7 +65,7 @@ a.link:focus {
 }
 
 .title {
-  font-family: var(--font-family);
+  font-family: var(--font-family-heading);
   font-weight: 700;
   font-size: 18px;
   color: #303031;

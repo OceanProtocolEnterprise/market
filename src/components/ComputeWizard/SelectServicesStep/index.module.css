@@ -6,7 +6,7 @@
 }
 
 .title {
-  font-family: var(--font-family-base);
+  font-family: var(--font-family-heading);
   font-weight: 700;
   font-size: 22px;
   color: #303031;
