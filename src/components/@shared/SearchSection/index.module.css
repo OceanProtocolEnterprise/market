@@ -14,7 +14,7 @@
   height: 40px;
   border: 0;
   border-radius: var(--radius-xl) 0 0 var(--radius-xl);
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
@@ -32,7 +32,7 @@
 
 .search::placeholder {
   color: rgba(48, 48, 49, 0.7);
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
@@ -78,7 +78,7 @@
 }
 
 .searchButtonText {
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 700;
   font-size: 14px;

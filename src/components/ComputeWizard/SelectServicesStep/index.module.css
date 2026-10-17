@@ -1,12 +1,12 @@
 .container {
-  font-family: Arial, sans-serif;
+  font-family: var(--font-family-base);
   max-width: 1200px;
   padding: 20px;
   padding-left: 0; /* dataset variant */
 }
 
 .title {
-  font-family: var(--font-family);
+  font-family: var(--font-family-heading);
   font-weight: 700;
   font-size: 22px;
   color: #303031;

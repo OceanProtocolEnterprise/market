@@ -1,5 +1,4 @@
 @import url('./_colors.css');
-@import url('../../public/static/fonts/fonts.css');
 
 :root {
   /* Menubar */
@@ -48,10 +47,10 @@
   /* Pagination component */
   /* Filter and sort */
 
-  --font-family-base: 'Helvetica', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    Helvetica, Arial, sans-serif;
-  --font-family-heading: 'Sharp sans', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-family-base: 'Inter Variable', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Arial, sans-serif;
+  --font-family-heading: 'Plus Jakarta Sans Variable', var(--font-family-base);
+  --font-family: var(--font-family-base);
   --font-family-monospace: 'Fira Code', 'Fira Mono', Menlo, Monaco, Consolas,
     'Courier New', monospace;
 

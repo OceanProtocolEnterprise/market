@@ -7,7 +7,7 @@
 /* Publish-specific button styling */
 :global(.accent) .actions button {
   border-radius: var(--radius-xl, 20px) !important;
-  font-family: var(--font-family-base, 'Helvetica') !important;
+  font-family: var(--font-family-base, var(--font-family-base)) !important;
   font-weight: var(--text-weight-bold, 700) !important;
 }
 
@@ -32,7 +32,7 @@
   box-shadow: 1px 2px 8px var(--black-alpha-15) !important;
   border-radius: 20px !important;
   border: none !important;
-  font-family: 'Helvetica', Arial, sans-serif !important;
+  font-family: var(--font-family-base) !important;
   font-style: normal !important;
   font-weight: 700 !important;
   font-size: 14px !important;

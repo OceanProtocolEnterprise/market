@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { join } from 'path'
-import matter from 'gray-matter'
+import { parseFrontmatter } from './parseFrontmatter'
 import { execFileSync } from 'child_process'
 import {
   dpuaUrl,
@@ -158,7 +158,7 @@ export async function getPageBySlug(
         if (extracted) externalContent = extracted
       }
 
-      const { data, content } = matter(externalContent)
+      const { data, content } = parseFrontmatter(externalContent)
       const title =
         data.title ||
         realSlug
@@ -197,7 +197,7 @@ export async function getPageBySlug(
   const fileContents = fs.readFileSync(filePath, 'utf8')
   const fileStats = fs.statSync(filePath)
   const gitLastUpdated = getGitLastUpdated(filePath)
-  const { data, content } = matter(fileContents)
+  const { data, content } = parseFrontmatter(fileContents)
 
   const title =
     data.title ||
@@ -236,7 +236,7 @@ export function getAllPages(subDir?: string): PageData[] {
         const fileContents = fs.readFileSync(enMdPath, 'utf8')
         const fileStats = fs.statSync(enMdPath)
         const gitLastUpdated = getGitLastUpdated(enMdPath)
-        const { data, content } = matter(fileContents)
+        const { data, content } = parseFrontmatter(fileContents)
         const title =
           data.title ||
           item
