@@ -63,7 +63,7 @@ export default function CustomUrlPolicyBlock({
         {policy.arguments?.map((argument, argIndex) => (
           <div key={argIndex} className={styles.argumentRow}>
             <Field
-              {...getFieldContent('name', fields)}
+              {...getFieldContent('argumentName', fields)}
               component={Input}
               name={`${name}.requestCredentials[${index}].policies[${innerIndex}].arguments[${argIndex}].name`}
               className={styles.argumentInput}

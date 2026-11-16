@@ -32,7 +32,13 @@
     "required": true
   },
   {
-    "name": "name",
+    "name": "argumentName",
+    "label": "Argument Name",
+    "type": "text",
+    "required": true
+  },
+  {
+    "name": "policyName",
     "label": "Policy Name",
     "type": "text",
     "required": true
