@@ -178,16 +178,13 @@ export default function Edit({
           (values?.additionalDdos as AdditionalVerifiableCredentials[]) || []
       }
 
-      updatedAsset.credentialSubject.services =
-        updatedAsset.credentialSubject.services.map((svc) => ({
-          ...svc,
-          credentials: generateCredentials(values?.credentials, opaServerUrl)
-        }))
-
       stringifyCredentialPolicies(updatedAsset.credentialSubject.credentials)
-      updatedAsset.credentialSubject.services.forEach((service) => {
-        stringifyCredentialPolicies(service.credentials)
-      })
+      updatedAsset.credentialSubject.services =
+        updatedAsset.credentialSubject.services.map((svc) => {
+          const credentials = structuredClone(svc.credentials)
+          stringifyCredentialPolicies(credentials)
+          return { ...svc, credentials }
+        })
 
       // delete custom helper properties injected in the market so we don't write them on chain
       delete (updatedAsset as AssetExtended).accessDetails
