@@ -93,7 +93,7 @@
   height: 38px;
   background: #fdd655;
   border-radius: 19px;
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 700;
   font-size: 24px;
@@ -109,7 +109,7 @@
 /* Active Step Label */
 .activeStepLabel {
   height: 21px;
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 700;
   font-size: 18px;
@@ -134,7 +134,7 @@
   height: 30px;
   border: 1px solid #757575;
   border-radius: 19px;
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 400;
   font-size: 18px;
@@ -151,7 +151,7 @@
 /* Inactive Step Label */
 .inactiveStepLabel {
   height: 16px;
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 400;
   font-size: 14px;

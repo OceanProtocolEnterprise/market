@@ -197,7 +197,7 @@
   background: none;
   border: none;
   color: #303031;
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-weight: 400;
   font-size: 14px;
   line-height: 16px;

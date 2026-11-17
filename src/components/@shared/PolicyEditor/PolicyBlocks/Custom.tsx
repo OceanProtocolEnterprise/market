@@ -47,7 +47,7 @@ export default function CustomPolicyBlock({
     <div className={styles.block}>
       <div className={styles.header}>
         <Field
-          {...getFieldContent('name', fields)}
+          {...getFieldContent('policyName', fields)}
           component={Input}
           name={`${name}.requestCredentials[${index}].policies[${innerIndex}].name`}
           required

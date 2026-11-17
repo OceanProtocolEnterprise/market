@@ -2,7 +2,7 @@
   background: #ffffff;
   padding: 1.75rem;
   min-width: 23rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-base);
   color: var(--navy-700);
 }
 

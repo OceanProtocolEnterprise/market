@@ -45,7 +45,7 @@
   box-shadow: 1px 4px 8px var(--black-alpha-15);
   border-radius: 20px;
   padding: 0px 30px;
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
@@ -63,7 +63,7 @@
   box-shadow: 1px 4px 8px var(--black-alpha-15);
   border-radius: 20px;
   padding: 0px 30px;
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
@@ -79,7 +79,7 @@
   min-width: 82px !important;
   height: 40px;
   border-radius: 20px;
-  font-family: 'Helvetica';
+  font-family: var(--font-family-base);
   font-weight: 700;
   font-size: 14px;
   line-height: 14px;

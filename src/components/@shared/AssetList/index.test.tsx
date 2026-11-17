@@ -17,7 +17,7 @@ describe('@shared/AssetList', () => {
     )
     await screen.findAllByText('OCEAN')
     fireEvent.click(screen.getByLabelText('Page 2'))
-    expect(onPageChange).toBeCalled()
+    expect(onPageChange).toHaveBeenCalled()
   })
 
   it('renders empty', async () => {
